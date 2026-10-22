@@ -35,3 +35,11 @@ Desktop defaults to Compact at 1024px and wider. The header offers Compact / Com
 ## Interface language and entry route — 2026-10-22
 
 Use direct, professional language in English and Spanish: Projects, New project, Members, Save, and factual status messages. Remove whimsical encouragement, harbor/crew metaphors, and promotional filler from working screens. Signed-in visits to `/` redirect on the server to `/projects`; signed-out visits retain the public landing page. Project authorization remains enforced by the destination page and services.
+
+## Optional 3D mini-view — 2026-10-22
+
+The project journey offers Show / Hide 3D mini-view, initially hidden. This adds a compact spatial stage sequence above the existing tree and editor. Each stage retains its question/activity/outcome dependency branches, including joins. Saved states color the nodes; stage labels distinguish not started, in progress, and explicitly reviewed. Revisit flags remain accessible as text. This shows the project's saved progress, not a timeline of visits.
+
+Stage labels and question points are ordinary keyboard-accessible navigation links; node names and states appear on hover/focus and in accessible labels. Perspective buttons rotate in discrete steps without continuous motion, dragging, or camera flights. The map scrolls within its own region on phones. Its canvas is decorative to assistive technology; semantic links and the ordinary working tree remain available. WebGL failure displays a message directing members to the tree. Toggling does not replace or unmount answer forms. The mini-view requests no additional private data and uses the page's existing membership-checked guidance.
+
+The user's supplied reference refines the mini-view toward a dark technical display: wireframe stage volumes in Nakama’s lime, peach, and muted green palette, luminous answered nodes, fine connecting lines, a perspective floor grid, restrained scan lines, and monospace labels. The stage sequence now occupies depth as well as width, while each stage retains its downward dependency branches. There is no automatic animation, flashing, or invented telemetry.

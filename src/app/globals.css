@@ -1727,3 +1727,39 @@ footer {
     margin: 0;
   }
 }
+
+/* Optional spatial overview; the working tree and editors stay mounted. */
+.miniview-toggle { display: flex; justify-content: flex-end; margin-bottom: .75rem; }
+.journey-miniview { margin-bottom: 1.25rem; padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); color: var(--ink); }
+.miniview-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.miniview-controls { display: flex; gap: .4rem; }
+.miniview-controls button { color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; min-height: 40px; padding: .35rem .65rem; }
+.miniview-controls button:disabled { opacity: .5; }
+.journey-miniview .muted, .miniview-legend { color: var(--muted); font-size: .8rem; }
+.miniview-scroll { overflow-x: auto; }
+.miniview-scene { position: relative; min-width: 740px; height: 370px; }
+.miniview-scene canvas { display: block; width: 100%; height: 100%; }
+.miniview-point { position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; z-index: 1; }
+.miniview-point[aria-current], .miniview-point:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+.miniview-label { position: absolute; left: 50%; top: 28px; transform: translateX(-50%); width: max-content; max-width: 145px; padding: .25rem .4rem; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); font-size: .75rem; text-align: center; line-height: 1.35; }
+.miniview-label small { display: block; color: var(--muted); font-size: .65rem; }
+.miniview-stage .miniview-label { top: auto; bottom: 35px; }
+.miniview-node .miniview-label { display: none; pointer-events: none; }
+.miniview-node:hover, .miniview-node:focus-visible { z-index: 3; }
+.miniview-node:hover .miniview-label, .miniview-node:focus-visible .miniview-label { display: block; }
+.miniview-legend { margin-bottom: 0; }
+.miniview-scene { max-width: 980px; margin-inline: auto; }
+
+/* Spatial wireframes use the existing Nakama brand tokens. */
+.journey-miniview { border: 1px solid var(--line); border-radius: 4px; background: radial-gradient(ellipse at 50% 50%, var(--panel) 0%, var(--bg) 65%); box-shadow: inset 0 0 60px var(--dark); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.miniview-heading { padding-bottom: .6rem; border-bottom: 1px solid var(--line); }
+.miniview-heading > strong { color: var(--lime); text-transform: uppercase; letter-spacing: .18em; font-size: .85rem; text-shadow: 0 0 12px var(--line); }
+.miniview-controls button { border-radius: 2px; background: var(--dark); border-color: var(--line); color: var(--lime); font-size: .75rem; }
+.journey-miniview .muted, .miniview-legend { color: var(--muted); font-size: .7rem; }
+.miniview-scene { height: 430px; max-width: 1100px; }
+.miniview-scene::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(transparent 0 3px, #17231c30 3px 4px); }
+.miniview-label { background: var(--bg); border-color: var(--line); color: var(--ink); border-radius: 2px; font-size: .7rem; letter-spacing: .03em; }
+.miniview-label small { color: var(--muted); }
+.miniview-stage .miniview-label { bottom: 40px; }
+.miniview-point[aria-current], .miniview-point:focus-visible { outline-color: var(--lime); }
+.miniview-legend { padding-top: .7rem; border-top: 1px solid var(--line); }

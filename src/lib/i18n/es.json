@@ -409,5 +409,20 @@
   "A ten-minute interview with a local researcher.": "Una entrevista de diez minutos con un investigador local.",
   "The interview provided a clear explanation of the topic.": "La entrevista aportó una explicación clara del tema.",
   "Record the opening narration.": "Grabar la narración inicial.",
-  "Documentary interviews, field recordings, and clear narration.": "Entrevistas documentales, grabaciones de campo y narración clara."
+  "Documentary interviews, field recordings, and clear narration.": "Entrevistas documentales, grabaciones de campo y narración clara.",
+  "3D stage map": "Mapa 3D de etapas",
+  "Map perspective": "Perspectiva del mapa",
+  "Rotate left": "Girar a la izquierda",
+  "Rotate right": "Girar a la derecha",
+  "Reset view": "Restablecer vista",
+  "Saved progress across stages. Branches show dependencies; upcoming stages remain visible.": "Progreso guardado por etapa. Las ramas muestran dependencias; las próximas etapas siguen visibles.",
+  "3D is unavailable. Use the stage tree below.": "La vista 3D no está disponible. Usá el árbol de etapas de abajo.",
+  "Stage map. Scroll horizontally on small screens.": "Mapa de etapas. Desplazate horizontalmente en pantallas pequeñas.",
+  "Stages and question branches": "Etapas y ramas de preguntas",
+  "Green: answered or reviewed · Gold: in progress or draft · Purple: skipped · Red: blocked · Gray: not started": "Verde: respondido o revisado · Dorado: en progreso o borrador · Violeta: omitido · Rojo: bloqueado · Gris: sin empezar",
+  "Hide 3D mini-view": "Ocultar minivista 3D",
+  "Show 3D mini-view": "Mostrar minivista 3D",
+  "reviewed": "revisado",
+  "Mint: answered or reviewed · Cyan: in progress or draft · Purple: skipped · Red: blocked · Blue: not started": "Menta: respondido o revisado · Cian: en progreso o borrador · Violeta: omitido · Rojo: bloqueado · Azul: sin empezar",
+  "Lime: answered or reviewed · Peach: in progress, draft, or blocked · Muted: not started or skipped": "Lima: respondido o revisado · Durazno: en progreso, borrador o bloqueado · Tenue: sin empezar u omitido"
 }

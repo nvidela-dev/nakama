@@ -1,10 +1,13 @@
 "use client";
+import dynamic from "next/dynamic";
+import { useState } from "react";
 import { useT } from "@/components/language";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Guidance, Revision } from "@/lib/guidance";
 import type { FlowStage } from "@/lib/flows";
 import { AnswerEditor, StageReviewForm } from "./guidance";
+const JourneyMiniview = dynamic(() => import("./journey-miniview"), { ssr: false });
 const symbols: Record<string, string> = {
   unanswered: "○",
   draft: "◐",
@@ -43,6 +46,7 @@ export function Journey({
   preview?: boolean;
 }) {
   const t = useT();
+  const [showMap, setShowMap] = useState(false);
   const { flow, answers, reviews } = guidance;
   const base = preview ? "/preview" : `/projects/${projectId}`;
   const href = (stage?: string, node?: string) =>
@@ -77,6 +81,14 @@ export function Journey({
   const review = reviews.find((r) => r.stage_id === stageId);
   return (
     <section className="journey">
+      <div className="miniview-toggle">
+        <button type="button" className="button secondary" aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
+          {showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")}
+        </button>
+      </div>
+      <div id="project-stage-map">
+        {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
+      </div>
       {activeStage && (
         <nav className="desktop-stage-nav" aria-label={t("All stages")}>
           {flow.stages.map((stage, index) => (
