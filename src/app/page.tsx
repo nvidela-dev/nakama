@@ -1,37 +1,40 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { authConfigured } from "@/lib/auth";
 export default async function Home() {
+  if (authConfigured() && (await auth()).isAuthenticated) redirect("/projects");
   const t = await getT();
   return (
     <main id="main" className="landing">
       <section className="hero">
         <div className="eyebrow">
-          <span /> {t("A LITTLE HARBOR FOR BIG WHAT-IFS")}{" "}
+          <span /> {t("PROJECT DEVELOPMENT AND COLLABORATION")}{" "}
         </div>
         <h1>
-          {t("Some ideas need")} <br />
-          {t("a little")} <em>{t("company.")}</em>
+          {t("Develop projects")} <br />
+          {t("with your")} <em>{t("team.")}</em>
         </h1>
         <p className="hero-copy">
-          {t("The late-night thought. The “we should make this.”")} <br />
-          {t("Give it a home, bring your people, and see where it goes.")}{" "}
+          {t("Define the project. Evaluate assumptions.")} <br />
+          {t("Plan the work and collaborate in one place.")}{" "}
         </p>
         <div className="hero-actions">
           {authConfigured() ? (
             <Link className="button" href="/projects">
-              {t("Start with a spark ↗")}{" "}
+              {t("Open projects")}{" "}
             </Link>
           ) : (
             <Link className="button" href="/preview">
-              {t("Explore a sample path ↗")}{" "}
+              {t("View example")}{" "}
             </Link>
           )}
-          <span>{t("No perfect plan required.")}</span>
+          <span>{t("Private project workspaces.")}</span>
         </div>
         <div className="hero-note">
           <span aria-hidden="true">✦</span>{" "}
-          {t("Something useful. Something weird. Something just for fun.")}{" "}
+          {t("Structured workflows for business and creative projects.")}{" "}
         </div>
       </section>
       <section
@@ -40,18 +43,16 @@ export default async function Home() {
       >
         <div className="orbit orbit-one" />
         <div className="orbit orbit-two" />
-        <span className="map-coordinate">
-          {t("UNEXPLORED / FULL OF POSSIBILITY")}
-        </span>
+        <span className="map-coordinate">{t("PROJECT OVERVIEW")}</span>
         <div className="floating-note note-one">
-          <span>{t("01 / THE SPARK")}</span>
-          <strong>{t("A tiny radio play")}</strong>
-          <p>{t("“What if we made it together?”")}</p>
+          <span>{t("01 / CONCEPT")}</span>
+          <strong>{t("Audio production")}</strong>
+          <p>{t("“Produce a short audio episode.”")}</p>
           <div className="avatars">
             <i>M</i>
             <i>J</i>
             <i>+1</i>
-            <small>{t("Your kind of crew")}</small>
+            <small>{t("Project members")}</small>
           </div>
         </div>
         <div className="map-path" />
@@ -67,45 +68,37 @@ export default async function Home() {
           <div className="island-base" />
         </div>
         <div className="floating-note note-two">
-          <span className="status-dot" /> {t("One small experiment")} <br />
-          <small>{t("Let's try a one-minute scene.")}</small>
+          <span className="status-dot" /> {t("Prototype")} <br />
+          <small>{t("Record a one-minute sample.")}</small>
         </div>
         <span className="compass" aria-hidden="true">
           N<br />✧
         </span>
         <span className="scene-caption">
-          {t("A little direction. Room to wander.")}{" "}
+          {t("Stages, decisions, and revisions.")}{" "}
         </span>
       </section>
       <section id="how-it-works" className="how">
         <div>
-          <span className="eyebrow">
-            {t("FROM “WHAT IF” TO “WE MADE THIS”")}
-          </span>
-          <h2>{t("You don't need all the answers.")}</h2>
+          <span className="eyebrow">{t("FROM DEFINITION TO DELIVERY")}</span>
+          <h2>{t("A structured project workflow.")}</h2>
         </div>
         <div className="steps">
           <article>
             <span>01</span>
-            <h3>{t("Catch the thought.")}</h3>
-            <p>{t("A name and a few words. That's enough to begin.")}</p>
+            <h3>{t("Define the project.")}</h3>
+            <p>{t("Record the project's name, purpose, and scope.")}</p>
           </article>
           <article>
             <span>02</span>
-            <h3>{t("Find your crew.")}</h3>
-            <p>
-              {t(
-                "Invite different friends to different ideas. Keep each little world your own.",
-              )}{" "}
-            </p>
+            <h3>{t("Add collaborators.")}</h3>
+            <p>{t("Manage membership independently for each project.")} </p>
           </article>
           <article>
             <span>03</span>
-            <h3>{t("Try a small thing.")}</h3>
+            <h3>{t("Test and develop.")}</h3>
             <p>
-              {t(
-                "A helpful question, a rough experiment, a new discovery. Even a “no” moves you forward.",
-              )}{" "}
+              {t("Record answers, test assumptions, and track decisions.")}{" "}
             </p>
           </article>
         </div>
@@ -113,15 +106,13 @@ export default async function Home() {
       <section className="closing-note">
         <span>✳</span>
         <p>
-          {t("A venture with a purpose.")} <br />
-          {t("A project with no purpose but joy.")} <br />
-          <strong>{t("There's room for both.")}</strong>
+          {t("Business development.")} <br />
+          {t("Creative production.")} <br />
+          <strong>{t("Choose the workflow that fits your project.")}</strong>
         </p>
         {!authConfigured() && (
           <small>
-            {t(
-              "Our harbor is taking shape. Private workspaces will open when sign-in is connected.",
-            )}{" "}
+            {t("Sign-in must be configured to use private projects.")}{" "}
           </small>
         )}
       </section>

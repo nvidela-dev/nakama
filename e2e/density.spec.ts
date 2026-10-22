@@ -78,16 +78,14 @@ test("density changes keep capture and answer drafts, selections and saving inta
   });
   await page.goto("/projects");
   const name = `E2E compact ${Date.now()}`;
-  await page.getByLabel("Give your idea a name").fill(name);
-  await page
-    .getByLabel("What are you imagining?")
-    .fill("A compact desktop workspace.");
+  await page.getByLabel("Project name").fill(name);
+  await page.getByLabel("Description").fill("A compact desktop workspace.");
   await density(page, "comfortable");
-  await expect(page.getByLabel("Give your idea a name")).toHaveValue(name);
+  await expect(page.getByLabel("Project name")).toHaveValue(name);
   await density(page, "compact");
-  await page.getByRole("button", { name: "Give it a place to grow" }).click();
+  await page.getByRole("button", { name: "Create project" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Creative \/ fun/ }).click();
+  await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
   const project = new URL(page.url()).pathname;
   await page.goto(`${project}?stage=experiment&node=experiment-direction`);
@@ -112,9 +110,7 @@ test("density changes keep capture and answer drafts, selections and saving inta
   });
   await page.getByLabel("Where does this stand?").selectOption("answered");
   await page.getByRole("button", { name: "Save this step" }).click();
-  await expect(
-    page.getByText("Saved. A little more understood."),
-  ).toBeVisible();
+  await expect(page.getByText("Saved.")).toBeVisible();
   await page.reload();
   await expect(
     page.getByLabel("Your answer, learning, or uncertainty"),

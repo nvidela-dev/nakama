@@ -1,6 +1,6 @@
 # Nakama
 
-A lovely place to turn “what if?” into something with friends.
+A workspace for defining, developing, and managing projects with collaborators.
 
 Nakama will help a small group capture an idea, explore it through approachable questions, try something small, and decide what to do next. Different projects can include different friends. A venture can investigate demand and feasibility; a creative project can exist simply because making it together sounds fun.
 

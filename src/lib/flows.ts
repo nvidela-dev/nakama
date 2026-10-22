@@ -52,7 +52,7 @@ export const flows: Record<FlowId, Flow> = {
           node(
             "idea-name",
             "Name",
-            "What shall we call it?",
+            "What is the project name?",
             "A neighborhood tool library.",
           ),
           node(
@@ -281,33 +281,32 @@ export const flows: Record<FlowId, Flow> = {
   creative: {
     id: "creative",
     version: 1,
-    name: "Creative / fun",
-    description:
-      "Make something because it sounds fun. No market, profit, or perfect plan required.",
+    name: "Creative",
+    description: "Develop a creative project from concept to production.",
     stages: [
       {
         id: "spark",
-        name: "Spark",
-        question: "What would be fun to make?",
+        name: "Concept",
+        question: "What are we making?",
         nodes: [
           node(
             "spark-name",
             "Name",
-            "What shall we call it?",
-            "A tiny pirate radio play.",
+            "What is the project name?",
+            "A short audio documentary.",
           ),
           node(
             "spark-description",
             "Brief description",
             "What sounds fun to make?",
-            "A short story with silly sea monsters and homemade sound effects.",
+            "An audio documentary with interviews and original recordings.",
             ["spark-name"],
           ),
           node(
             "spark-captured",
-            "Spark captured",
+            "Concept recorded",
             "What are you curious to imagine next?",
-            "How the ship and its crew could sound.",
+            "The topic, format, and intended audience.",
             ["spark-description"],
             "outcome",
           ),
@@ -322,25 +321,25 @@ export const flows: Record<FlowId, Flow> = {
             "inspiration",
             "Inspiration",
             "What inspires us?",
-            "Warm voices, old adventure stories, and strange ocean sounds.",
+            "Documentary interviews, field recordings, and clear narration.",
           ),
           node(
             "excitement",
-            "Each friend’s excitement",
-            "What excites each friend about this?",
-            "Alex wants to write jokes; Jo wants to make sound effects.",
+            "Individual interests",
+            "What does each collaborator want to work on?",
+            "Alex will research the topic; Jo will record interviews.",
           ),
           node(
             "possibilities",
             "Possibilities",
             "What could we try?",
-            "A ship diary, a sea-monster interview, or a lost radio signal.",
+            "A narrated report, an interview series, or a recorded discussion.",
           ),
           node(
             "creative-direction",
             "Direction",
             "Which direction do we want to explore first?",
-            "A captain interviews a very polite sea monster.",
+            "A ten-minute interview with a local researcher.",
             ["inspiration", "excitement", "possibilities"],
             "outcome",
           ),
@@ -349,12 +348,12 @@ export const flows: Record<FlowId, Flow> = {
       {
         id: "experiment",
         name: "Experiment",
-        question: "Let's try a little piece",
+        question: "Test a prototype",
         nodes: [
           node(
             "rough-version",
             "Sketch, demo, or rough version",
-            "What tiny version can we try?",
+            "What prototype can we test?",
             "Record a one-minute scene on our phones.",
             [],
             "action",
@@ -363,7 +362,7 @@ export const flows: Record<FlowId, Flow> = {
             "what-we-like",
             "What we like",
             "What do we like about it?",
-            "The improvised monster voice made everyone laugh.",
+            "The interview provided a clear explanation of the topic.",
             ["rough-version"],
           ),
           node(
@@ -433,7 +432,7 @@ export const flows: Record<FlowId, Flow> = {
             "next-piece",
             "Make the next piece",
             "What piece do we want to make next?",
-            "Record the monster’s first line.",
+            "Record the opening narration.",
             [],
             "action",
           ),

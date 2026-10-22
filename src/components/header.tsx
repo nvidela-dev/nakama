@@ -20,8 +20,8 @@ export async function Header() {
         nakama<span className="brand-dot">.</span>
       </Link>
       <nav aria-label={t("Main navigation")}>
-        <Link href="/">{t("The harbor")}</Link>
-        <Link href="/preview">{t("A sample path")}</Link>
+        <Link href="/">{t("Home")}</Link>
+        <Link href="/preview">{t("Example project")}</Link>
         <DensitySwitcher density={density} />
         <LanguageSwitcher />
         {authConfigured() && (
@@ -32,7 +32,7 @@ export async function Header() {
             </Show>
             <Show when="signed-out">
               <SignInButton mode="redirect">
-                <button className="nav-button">{t("Come aboard ↗")}</button>
+                <button className="nav-button">{t("Sign in")}</button>
               </SignInButton>
             </Show>
           </>

@@ -11,7 +11,7 @@ async function signIn(page: Page, email: string) {
   await clerk.signIn({ page, emailAddress: email });
   await page.goto("/projects");
   await expect(
-    page.getByRole("heading", { name: "Room for another what-if." }),
+    page.getByRole("heading", { name: "Projects", exact: true }),
   ).toBeVisible();
 }
 test("private capture, invitation, guided editing, conflict, and removal on real development services", async ({
@@ -22,22 +22,24 @@ test("private capture, invitation, guided editing, conflict, and removal on real
   await expect(page).toHaveURL(/sign-in/);
   await expect(page.getByLabel("Email address")).toBeVisible();
   await signIn(page, ownerEmail);
-  await expect(page.getByRole("button", { name: "Open user menu" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open user menu" }),
+  ).toBeVisible();
   const name = `E2E radio play ${Date.now()}`;
-  await page.getByLabel("Give your idea a name").fill(name);
+  await page.getByLabel("Project name").fill(name);
   await page
-    .getByLabel("What are you imagining?")
+    .getByLabel("Description")
     .fill(
       "A small radio play made with friends. Automated development fixture.",
     );
-  await page.getByRole("button", { name: "Give it a place to grow" }).click();
+  await page.getByRole("button", { name: "Create project" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   const projectPath = new URL(page.url()).pathname;
   await page.reload();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Creative \/ fun/ }).click();
+  await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
-  await page.getByLabel("A friend's email").fill(friendEmail);
+  await page.getByLabel("Email address").fill(friendEmail);
   await page.getByRole("button", { name: "Create invitation link" }).click();
   const inviteInput = page.getByLabel("Share this link privately");
   await expect(inviteInput).toBeVisible();
@@ -67,27 +69,21 @@ test("private capture, invitation, guided editing, conflict, and removal on real
     .fill("Warm voices and homemade sound effects.");
   await page.getByLabel("Where does this stand?").selectOption("answered");
   await page.getByRole("button", { name: "Save this step" }).click();
-  await expect(
-    page.getByText("Saved. A little more understood."),
-  ).toBeVisible();
+  await expect(page.getByText("Saved.")).toBeVisible();
   await friend
     .getByLabel("Your answer, learning, or uncertainty")
     .fill("A friend’s different draft.");
   await friend.getByLabel("Where does this stand?").selectOption("answered");
   await friend.getByRole("button", { name: "Save this step" }).click();
   await expect(
-    friend.getByRole("heading", { name: "A newer saved answer" }),
+    friend.getByRole("heading", { name: "Newer answer available" }),
   ).toBeVisible();
   await expect(
     friend.getByLabel("Your answer, learning, or uncertainty"),
   ).toHaveValue("A friend’s different draft.");
-  await friend
-    .getByRole("button", { name: "I've compared; keep my draft" })
-    .click();
+  await friend.getByRole("button", { name: "Keep my version" }).click();
   await friend.getByRole("button", { name: "Save this step" }).click();
-  await expect(
-    friend.getByText("Saved. A little more understood."),
-  ).toBeVisible();
+  await expect(friend.getByText("Saved.")).toBeVisible();
   await friend.reload();
   await expect(
     friend.getByLabel("Your answer, learning, or uncertainty"),
@@ -119,7 +115,7 @@ test("private capture, invitation, guided editing, conflict, and removal on real
     outsider.getByRole("heading", { name: "This project isn't available." }),
   ).toBeVisible();
   await page.goto(projectPath);
-  await page.getByLabel("A friend's email").fill(friendEmail);
+  await page.getByLabel("Email address").fill(friendEmail);
   await page.getByRole("button", { name: "Create invitation link" }).click();
   await expect(page.getByLabel("Share this link privately")).toBeVisible();
   const olderUnusedInvite = await page

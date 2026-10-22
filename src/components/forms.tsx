@@ -34,7 +34,7 @@ export function CaptureForm() {
   const [description, setDescription] = useState("");
   return (
     <form action={action} className="form-stack">
-      <label htmlFor="name">{t("Give your idea a name")}</label>
+      <label htmlFor="name">{t("Project name")}</label>
       <input
         id="name"
         name="name"
@@ -42,9 +42,9 @@ export function CaptureForm() {
         onChange={(e) => setName(e.target.value)}
         required
         maxLength={100}
-        placeholder={t("A tiny pirate radio play")}
+        placeholder={t("Audio production project")}
       />
-      <label htmlFor="description">{t("What are you imagining?")}</label>
+      <label htmlFor="description">{t("Description")}</label>
       <textarea
         id="description"
         name="description"
@@ -53,15 +53,13 @@ export function CaptureForm() {
         required
         maxLength={2000}
         rows={4}
-        placeholder={t(
-          "A few sentences is plenty. You can figure out the rest together.",
-        )}
+        placeholder={t("Describe the project's purpose and scope.")}
       />
       <Feedback state={state} />
       <button disabled={pending}>
-        {pending ? t("Saving your idea…") : t("Give it a place to grow ↗")}
+        {pending ? t("Creating project…") : t("Create project")}
       </button>
-      <small>{t("Private to you until you invite someone.")}</small>
+      <small>{t("Only invited members can access this project.")}</small>
     </form>
   );
 }
@@ -84,7 +82,7 @@ export function InviteForm({ projectId }: { projectId: string }) {
   }, [state.token]);
   return (
     <form action={action} className="form-stack">
-      <label htmlFor="email">{t("A friend's email")}</label>
+      <label htmlFor="email">{t("Email address")}</label>
       <input
         id="email"
         name="email"

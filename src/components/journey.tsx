@@ -128,9 +128,7 @@ export function Journey({
       {!activeStage ? (
         <>
           <p className="journey-hint">
-            {t(
-              "A path, not a test. Open any stage and follow your curiosity.",
-            )}{" "}
+            {t("Select a stage to view its questions.")}{" "}
           </p>
           <ol className="stage-list">
             {flow.stages.map((stage, i) => {
@@ -177,7 +175,7 @@ export function Journey({
               className="button secondary"
               href={href(next.stage.id, next.node.id)}
             >
-              {t("A small next step:")} {t(next.node.label)} ↗
+              {t("Next unanswered question:")} {t(next.node.label)} ↗
             </Link>
           )}
         </>
@@ -205,7 +203,7 @@ export function Journey({
                 <span className="eyebrow">{t("READ-ONLY EXAMPLE")}</span>
                 <h2>{t(activeNode.question)}</h2>
                 <details className="example" open>
-                  <summary>{t("A little inspiration")}</summary>
+                  <summary>{t("Example")}</summary>
                   <p>{t(activeNode.example)}</p>
                 </details>
                 <p>
@@ -287,7 +285,7 @@ export function Journey({
                 <p className="loop-links">
                   {t("Trying another direction?")}{" "}
                   <Link href={href("experiment", "rough-version")}>
-                    {t("Try another little piece ↶")}{" "}
+                    {t("Test another prototype ↶")}{" "}
                   </Link>
                 </p>
               )}

@@ -51,7 +51,7 @@ export async function chooseFlow(
     return failure(error);
   }
   revalidatePath(`/projects/${projectId}`);
-  return { success: "Your path is ready." };
+  return { success: "Workflow selected." };
 }
 export async function saveAnswer(
   projectId: string,
@@ -74,7 +74,7 @@ export async function saveAnswer(
     );
     revalidatePath(`/projects/${projectId}`);
     revalidatePath("/projects");
-    return { savedRevision, success: "Saved. A little more understood." };
+    return { savedRevision, success: "Saved." };
   } catch (error) {
     return failure(error);
   }
@@ -99,7 +99,6 @@ export async function reviewStage(
   }
   revalidatePath(`/projects/${projectId}`);
   return {
-    success:
-      "Stage reviewed. You can come back whenever you learn something new.",
+    success: "Stage review saved.",
   };
 }

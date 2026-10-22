@@ -6,7 +6,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <main id="main" className="workspace narrow">
       <section className="panel">
-        <h1>{t("A small snag.")}</h1>
+        <h1>{t("Unable to load")}</h1>
         <p>
           {t(
             "We couldn't load this part of your workspace. Please try again in a moment.",

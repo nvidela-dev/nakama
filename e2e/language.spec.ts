@@ -23,14 +23,14 @@ test("language switches persist across routes and reload, including Clerk and mo
   await language(page, "es");
   await expect(
     page.getByRole("heading", {
-      name: "Algunas ideas necesitan un poco de compañía.",
+      name: "Desarrollá proyectos con tu equipo.",
     }),
   ).toBeVisible();
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  await page.getByRole("link", { name: "Un recorrido de ejemplo" }).click();
+  await page.getByRole("link", { name: "Proyecto de ejemplo" }).click();
   await expect(
-    page.getByRole("heading", { name: "Un pequeño radioteatro pirata" }),
+    page.getByRole("heading", { name: "Proyecto de producción de audio" }),
   ).toBeVisible();
   await page.locator(".stage-card").filter({ hasText: "Imaginar" }).click();
   await page
@@ -78,17 +78,15 @@ test("switching languages preserves drafts, stored content, canonical decisions 
   });
   await page.goto("/projects");
   const name = `E2E idiomas ${Date.now()}`;
-  await page.getByLabel("Give your idea a name").fill(name);
-  await page.getByLabel("What are you imagining?").fill("What inspires us?");
+  await page.getByLabel("Project name").fill(name);
+  await page.getByLabel("Description").fill("What inspires us?");
   await language(page, "es");
-  await expect(page.getByLabel("Dale un nombre a tu idea")).toHaveValue(name);
-  await expect(page.getByLabel("¿Qué estás imaginando?")).toHaveValue(
-    "What inspires us?",
-  );
-  await page.getByRole("button", { name: "Dale un lugar para crecer" }).click();
+  await expect(page.getByLabel("Nombre del proyecto")).toHaveValue(name);
+  await expect(page.getByLabel("Descripción")).toHaveValue("What inspires us?");
+  await page.getByRole("button", { name: "Crear proyecto" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await expect(page.locator(".page-heading p")).toHaveText("What inspires us?");
-  await page.getByRole("button", { name: /Creativo \/ diversión/ }).click();
+  await page.getByRole("button", { name: /Creativo/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
   const project = new URL(page.url()).pathname;
   await page.goto(`${project}?stage=experiment&node=experiment-direction`);
@@ -104,9 +102,7 @@ test("switching languages preserves drafts, stored content, canonical decisions 
   await language(page, "es");
   await page.getByLabel("¿En qué estado está?").selectOption("answered");
   await page.getByRole("button", { name: "Guardar este paso" }).click();
-  await expect(
-    page.getByText("Guardado. Ahora entendemos un poco más."),
-  ).toBeVisible();
+  await expect(page.getByText("Guardado.")).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("Tu respuesta, aprendizaje o duda")).toHaveValue(
     "Mi borrador stays exactly as typed.",
