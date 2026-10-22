@@ -22,9 +22,9 @@ export default function Home() {
               Start with a spark ↗
             </Link>
           ) : (
-            <a className="button" href="#how-it-works">
-              Explore the idea ↓
-            </a>
+            <Link className="button" href="/preview">
+              Explore a sample path ↗
+            </Link>
           )}
           <span>No perfect plan required.</span>
         </div>

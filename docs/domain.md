@@ -1,6 +1,6 @@
 # Domain vocabulary and conceptual model
 
-This is a proposed logical model, not a database schema. [Flows](flows.md) own stage names; [collaboration](collaboration.md) owns access policy.
+This logical model guides the implementation. M1/M2 tables live in reviewed SQL migrations; comments/activity and remaining lifecycle policy are still planned. [Flows](flows.md) own stage names; [collaboration](collaboration.md) owns access policy.
 
 | Term | Meaning |
 | --- | --- |
@@ -34,7 +34,7 @@ erDiagram
 
 This summarizes ownership, not every foreign key. Comments additionally target one scope within their project. Decisions can reference stages/nodes and evidence. Stage/node instances retain stable IDs and template keys so exports/history survive label changes. A newly captured project may have no flow/stages; choosing a flow instantiates its stages.
 
-## State and progress proposal
+## State and progress (implemented in the guided-flow slice)
 
 - Node: `unanswered`, `draft`, `answered`, `skipped`, or `blocked`. An answer can explicitly record an unknown; empty text alone is not answered. Skips have reasons; blocked nodes retain drafts and explain blockers.
 - Stage: `not_started`, `in_progress`, or `reviewed`. A human marks reviewed after considering the outcome. Reopening preserves history.

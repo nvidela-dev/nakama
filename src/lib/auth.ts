@@ -11,7 +11,11 @@ export async function actor(includeEmails = false): Promise<Actor> {
   const user = await currentUser();
   return {
     userId,
-    displayName: user?.fullName || user?.username || "Crew member",
+    displayName:
+      user?.fullName ||
+      user?.username ||
+      user?.primaryEmailAddress?.emailAddress.split("@")[0] ||
+      "Crew member",
     verifiedEmails:
       (includeEmails ? user?.emailAddresses : [])
         ?.filter((e) => e.verification?.status === "verified")

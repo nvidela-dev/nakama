@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   acceptInvitation,
   createProject,
@@ -155,7 +155,11 @@ export function AccessButton({
 export function AcceptForm() {
   const [state, action, pending] = useActionState(acceptInvitation, initial);
   const [token, setToken] = useState("");
+  const initialized = useRef(false);
   useEffect(() => {
+    // React development Strict Mode repeats effects. Read once before clearing the fragment.
+    if (initialized.current) return;
+    initialized.current = true;
     // The fragment is never sent in an HTTP URL or referrer. Remove it from browser history after reading.
     setToken(window.location.hash.slice(1));
     window.history.replaceState(null, "", window.location.pathname);
