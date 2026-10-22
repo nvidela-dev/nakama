@@ -145,7 +145,7 @@ export function AnswerEditor({
           )}{" "}
         </p>
       )}
-      <form action={action} className="form-stack">
+      <form action={action} className="form-stack answer-form">
         <input type="hidden" name="revision" value={revision} />
         <label htmlFor="answer">
           {t("Your answer, learning, or uncertainty")}

@@ -77,6 +77,19 @@ export function Journey({
   const review = reviews.find((r) => r.stage_id === stageId);
   return (
     <section className="journey">
+      {activeStage && (
+        <nav className="desktop-stage-nav" aria-label={t("All stages")}>
+          {flow.stages.map((stage, index) => (
+            <Link
+              key={stage.id}
+              href={href(stage.id)}
+              aria-current={stage.id === activeStage.id ? "step" : undefined}
+            >
+              <span>{String(index + 1).padStart(2, "0")}</span> {t(stage.name)}
+            </Link>
+          ))}
+        </nav>
+      )}
       <div className="journey-summary">
         <div>
           <span className="eyebrow">

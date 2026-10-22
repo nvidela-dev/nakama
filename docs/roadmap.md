@@ -61,3 +61,7 @@ The M2 implementation adopts the domain status proposal, template version 1, and
 ## Language support — 2026-10-22
 
 The user requested English and Spanish with switching in both directions. The header exposes both language names, remembers the choice in a one-year browser cookie, and defaults to English when no supported preference exists. Spanish uses familiar Rioplatense wording. The interface, both guided flows, feedback, and embedded Clerk components follow the choice. User content and canonical stored choices remain unchanged; switching preserves in-progress forms. No schema migration or automatic translation of project data is involved.
+
+## Desktop workspace — 2026-10-22
+
+The user requested much denser desktop forms and overviews, with useful ultrawide support and the existing phone design preserved. Compact is the default desktop density; Comfortable remains selectable. This is responsive workspace layout and a saved presentation preference, not a change to the flow template, data, or progress semantics.
