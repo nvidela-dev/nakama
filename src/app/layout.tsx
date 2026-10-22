@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -24,6 +25,10 @@ export default async function RootLayout({
 }) {
   const t = await getT();
   const locale = await getLocale();
+  const density =
+    (await cookies()).get("nakama-density")?.value === "comfortable"
+      ? "comfortable"
+      : "compact";
   const content = (
     <>
       <a className="skip-link" href="#main">
@@ -38,7 +43,7 @@ export default async function RootLayout({
     </>
   );
   return (
-    <html lang={locale} data-scroll-behavior="smooth">
+    <html lang={locale} data-density={density} data-scroll-behavior="smooth">
       <body>
         <LanguageProvider locale={locale}>
           {authConfigured() ? (
