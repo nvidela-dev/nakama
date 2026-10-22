@@ -95,3 +95,7 @@ Projects without a selected flow display a static muted placeholder timeline ins
 ## Owner project editing and deletion — 2026-10-22
 
 The user requested the ability to edit and delete projects. Owners can edit name/description and permanently delete a project with exact-name confirmation. Guided metadata edits preserve revision history and review invalidation; stale project snapshots fail without overwriting work. Deletion removes all dependent project records in one transaction, with no in-app recovery. No schema migration, service provisioning, or deletion of existing user projects is performed during implementation. This resolves whole-project retention for this operation; account deletion and ownership transfer remain deferred.
+
+## Administrator-controlled signup whitelist — 2026-10-22
+
+The user designated their verified account as the sole application administrator and requested control over who can sign up. Use the existing Clerk email allowlist for signup and app admission, with owner-managed project membership remaining separate. Add a bilingual Administration screen for exact-email additions/removals. Do not auto-approve existing accounts or grant the administrator global project access. Store the designated admin email in server-only environment configuration, keep the administrator's entry protected, and send no notification emails. Clerk's existing development instance and hosting environments are configured under this request; no new service or database schema is provisioned.

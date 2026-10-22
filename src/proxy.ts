@@ -10,6 +10,7 @@ export default function proxy(
     !process.env.CLERK_SECRET_KEY
   ) {
     if (
+      request.nextUrl.pathname.startsWith("/admin") ||
       request.nextUrl.pathname.startsWith("/projects") ||
       request.nextUrl.pathname.startsWith("/invitations")
     ) {

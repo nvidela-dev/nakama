@@ -436,5 +436,22 @@
   "Permanently delete this project for all members, including answers, revision history, and invitations. This cannot be undone.": "Eliminá definitivamente este proyecto para todos sus miembros, incluidas las respuestas, el historial de revisiones y las invitaciones. No se puede deshacer.",
   "Type the project name to confirm:": "Escribí el nombre del proyecto para confirmar:",
   "Deleting…": "Eliminando…",
-  "Permanently delete project": "Eliminar proyecto definitivamente"
+  "Permanently delete project": "Eliminar proyecto definitivamente",
+  "Administrator access required.": "Se requiere acceso de administrador.",
+  "Enter one valid email address. Wildcards are not allowed.": "Ingresá una dirección de correo válida. No se permiten comodines.",
+  "Whitelist entry not found.": "No se encontró el correo en la lista de permitidos.",
+  "The administrator cannot be removed from the whitelist.": "No se puede quitar al administrador de la lista de permitidos.",
+  "Administration": "Administración",
+  "Could not update the whitelist. Please try again.": "No se pudo actualizar la lista de permitidos. Intentá de nuevo.",
+  "Whitelist updated.": "Lista de permitidos actualizada.",
+  "Allow email": "Permitir correo",
+  "Remove access": "Quitar acceso",
+  "Only whitelisted emails can sign up and access private workspaces.": "Solo los correos permitidos pueden registrarse y acceder a los espacios privados.",
+  "Allowed emails": "Correos permitidos",
+  "Removing access blocks future private requests. It does not delete the account or project history.": "Quitar el acceso bloquea las próximas solicitudes privadas. No elimina la cuenta ni el historial de proyectos.",
+  "Administrator": "Administrador",
+  "Allow a person": "Permitir a una persona",
+  "Add one exact email address. This grants app access; projects still require membership. No email notification is sent.": "Agregá una dirección de correo exacta. Esto permite acceder a la aplicación; los proyectos siguen requiriendo membresía. No se envía ninguna notificación por correo.",
+  "Access requires approval": "El acceso requiere aprobación",
+  "Ask the administrator to whitelist your verified email address. Signing in or receiving a project invitation does not grant app access.": "Pedile al administrador que permita tu correo verificado. Iniciar sesión o recibir una invitación a un proyecto no da acceso a la aplicación."
 }

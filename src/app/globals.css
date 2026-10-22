@@ -1787,3 +1787,4 @@ footer {
 .project-settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .project-settings .panel { max-width: 640px; margin-top: 12px; }
 .project-settings [hidden] { display: none; }
+.allowed-email { overflow-wrap: anywhere; min-width: 0; }
