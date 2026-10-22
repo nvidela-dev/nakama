@@ -162,3 +162,11 @@ Members, the invitation form, and pending invitations now use a native disclosur
 ## Accumulated workspace improvements — integration check, 2026-10-22
 
 The user authorized pushing the accumulated improvements to main. The final combined build (including TypeScript), all 29 local tests, and diff whitespace validation passed. Browser evidence and its limits for individual changes are recorded above. The full service-backed journey/language/collaboration suites were adjusted for navigation and disclosure behavior but were not rerun as a set. Deployment verification remains separate.
+
+## Stage rail color and progress — 2026-10-22
+
+Stage links now use the existing pink accent and display answered-question counts from the same guidance data as the step cards, plus explicit reviewed/in-progress/not-started and revisit states. Full question counts do not infer stage review. Production build and all 29 tests passed. Chrome synthetic-preview checks verified saved counts, an unreviewed 2/2 stage remaining In progress, the pink selected border in both densities, active-stage synchronization in the editor, and no phone overflow. A desktop screenshot was inspected. This slice did not perform new authenticated saves; prior save/revalidation checks remain documented above. Nothing was pushed.
+
+## Full-width map placement — 2026-10-22
+
+The map now renders above the stage rail/content layout, within the full project-working column. Production build passed. Chrome's synthetic preview verified equal map/work-column width, both rail and substeps below the opened map, original rail position restored on close, and no horizontal overflow with the map open at 390px. The desktop screenshot was inspected. The ordinary editor subtree remains mounted; private draft preservation was not re-exercised in this slice. Nothing was pushed.

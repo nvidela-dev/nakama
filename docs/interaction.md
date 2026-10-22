@@ -85,3 +85,7 @@ Desktop expanded stages and question editors use a vertical overall-stage rail t
 A successful step save returns to that stage's step list. Validation failures and revision conflicts stay in the editor with the draft intact; only a confirmed successful save navigates away.
 
 Members and invitations sit inside a keyboard-accessible disclosure, closed by default, with the member count visible in the summary. Activity remains a separate disclosure.
+
+Overall-stage navigation uses the pink brand accent, distinct from green question cards. The selected stage has a pink border and inset marker. Each rail link shows saved answered-question progress and explicit review/in-progress state; revisit flags stay visible. Full answer counts alone do not imply human review.
+
+The optional 3D map opens above the full project-working area, spanning both the stage rail and substep/editor width. Both move down together; closing the map restores their position without unmounting the editor.

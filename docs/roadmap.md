@@ -153,3 +153,11 @@ The user requested removing “Idea captured” from the Venture flow. The Idea 
 ## Collapsible members and invitations — 2026-10-22
 
 The user requested the Members section as a dropdown. Use a native disclosure closed by default, with the member count visible in its summary and membership/invitation controls inside. Keep Activity independently expandable. Existing owner-only controls and server authorization remain unchanged. Keep local with the other pending improvements.
+
+## Distinct stage rail and synchronized progress — 2026-10-22
+
+The user requested visual synchronization of stages with their steps and a different color for the left rail. Use the existing pink accent for stage links and a stronger pink selected state, keeping question cards green. Each stage shows its saved answered-question count and explicit review/in-progress state, including revisit flags. Answering all questions does not automatically mark a stage reviewed. Counts update from the same authorized guidance as the step list after saving. No additional persistence or inferred completion is introduced.
+
+## Full-width map above stage navigation — 2026-10-22
+
+The user requested the opened 3D map to push down both the overall-stage rail and substeps. Place the map above the entire stage/editor layout within the project-working column, spanning its full width. Keep the discussion and progress/members columns independent and the ordinary editor mounted when toggling the map. No change to map content or authorization.

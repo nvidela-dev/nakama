@@ -88,24 +88,39 @@ export function Journey({
   return (
     <div className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
       <div className="project-working-column">
-    <section className={`journey${activeStage ? " has-stage-rail" : ""}`}>
-      {activeStage && (
-        <nav className="desktop-stage-nav" aria-label={t("All stages")}>
-          {flow.stages.map((stage, index) => (
-            <Link
-              key={stage.id}
-              href={href(stage.id)}
-              aria-current={stage.id === activeStage.id ? "step" : undefined}
-            >
-              <span>{String(index + 1).padStart(2, "0")}</span> {t(stage.name)}
-            </Link>
-          ))}
-        </nav>
-      )}
-      <div className="journey-content">
       <div id="project-stage-map">
         {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
       </div>
+    <section className={`journey${activeStage ? " has-stage-rail" : ""}`}>
+      {activeStage && (
+        <nav className="desktop-stage-nav" aria-label={t("All stages")}>
+          {flow.stages.map((stage, index) => {
+            const questions = stage.nodes.filter((node) => node.kind === "question");
+            const saved = answers.filter((answer) => stage.nodes.some((node) => node.id === answer.node_id));
+            const answered = questions.filter((node) => saved.some((answer) => answer.node_id === node.id && answer.status === "answered")).length;
+            const revisit = saved.some((answer) => answer.needs_review);
+            const reviewed = reviews.some((review) => review.stage_id === stage.id && review.reviewed) && !revisit;
+            const started = saved.some((answer) => answer.status !== "unanswered");
+            const status = reviewed ? "✓ Reviewed" : started ? "In progress" : "Not started";
+            return (
+              <Link
+                key={stage.id}
+                href={href(stage.id)}
+                className={`stage-rail-link${reviewed ? " reviewed" : ""}${revisit ? " revisit" : ""}`}
+                aria-current={stage.id === activeStage.id ? "step" : undefined}
+                title={`${t(status)} · ${answered}/${questions.length} ${t("questions answered")}${revisit ? t(" · revisit") : ""}`}
+              >
+                <span className="rail-number">{String(index + 1).padStart(2, "0")}</span>
+                <div className="rail-label">
+                  <strong>{t(stage.name)}</strong>
+                  <small>{answered}/{questions.length} · {t(status)}{revisit ? t(" · revisit") : ""}</small>
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+      <div className="journey-content">
       {!activeStage ? (
         <>
           <p className="journey-hint">
