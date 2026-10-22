@@ -147,3 +147,17 @@ test("project and owner membership creation roll back together", async () => {
   );
   assert.equal(rows.rows.length, 0);
 });
+
+test("removing a member revokes older unused invitations for their joining email", async () => {
+  const id = await service.create(alice, {
+    name: "Removal boundary",
+    description: "Old links cannot undo removal.",
+  });
+  const accepted = await service.invite(alice, id, "bob@example.com");
+  await service.accept(bob, accepted.token);
+  const unused = await service.invite(alice, id, "bob@example.com");
+  await service.remove(alice, id, "bob");
+  await assert.rejects(service.accept(bob, unused.token));
+  const invitedAgain = await service.invite(alice, id, "bob@example.com");
+  assert.equal(await service.accept(bob, invitedAgain.token), id);
+});

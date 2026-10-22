@@ -4,7 +4,7 @@ A lovely place to turn “what if?” into something with friends.
 
 Nakama will help a small group capture an idea, explore it through approachable questions, try something small, and decide what to do next. Different projects can include different friends. A venture can investigate demand and feasibility; a creative project can exist simply because making it together sounds fun.
 
-**Status: private projects and guided flows implemented locally, not deployed.** The Next.js app includes a public harbor, Clerk sign-in integration, private project capture, owner/member access, and recipient-specific invitation links. SQL/access tests pass locally; real Clerk/Neon browser integration still needs configured development services. Both guided flows now support stage/question navigation, saved answers, explicit progress, revision history, and conflict handling. Comments, export, and AI remain unimplemented. See [development setup and verification](docs/development.md).
+**Status: private projects and guided flows connected to development services, not deployed.** The Next.js app includes a public harbor, Clerk sign-in integration, private project capture, owner/member access, and recipient-specific invitation links. SQL/access tests pass locally, and the main authenticated browser journey has passed against dedicated Clerk and Neon development resources. Both guided flows now support stage/question navigation, saved answers, explicit progress, revision history, and conflict handling. Comments, export, and AI remain unimplemented. See [development setup and verification](docs/development.md).
 
 ## The experience
 

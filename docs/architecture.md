@@ -1,6 +1,6 @@
 # Architecture direction
 
-**Confirmed:** a simple app on Vercel, Clerk for identity, and Neon Postgres for persistent application data. The first implementation uses Next.js/TypeScript, Clerk identity, and application-owned Postgres memberships. No cloud services have been provisioned. Remaining choices below retain their proposal status.
+**Confirmed:** a simple app on Vercel, Clerk for identity, and Neon Postgres for persistent application data. The first implementation uses Next.js/TypeScript, Clerk identity, and application-owned Postgres memberships. Dedicated Clerk and Neon development resources are now connected locally; no production deployment exists. Remaining choices below retain their proposal status.
 
 ```mermaid
 flowchart TD

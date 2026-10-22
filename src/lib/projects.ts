@@ -127,7 +127,7 @@ export function projectService(db: Database) {
       return db.transaction(async (tx) => {
         await membership(tx, actor, projectId, true);
         // Serialize invitation replacement for this project, including simultaneous submissions.
-        await tx.query("SELECT id FROM projects WHERE id = $1 FOR UPDATE", [
+        await tx.query("SELECT id FROM projects WHERE id = $1 FOR NO KEY UPDATE", [
           projectId,
         ]);
         await tx.query(
@@ -215,6 +215,20 @@ export function projectService(db: Database) {
     async remove(actor: Actor, projectId: string, userId: string) {
       await db.transaction(async (tx) => {
         await membership(tx, actor, projectId, true);
+        await tx.query("SELECT id FROM projects WHERE id = $1 FOR NO KEY UPDATE", [
+          projectId,
+        ]);
+        // Lock invitation rows before deleting membership, matching accept's lock order.
+        // Revoke unused links to addresses this member previously used to join.
+        const emails = await tx.query<{ email: string }>(
+          "SELECT DISTINCT email FROM project_invitations WHERE project_id = $1 AND accepted_by = $2",
+          [projectId, userId],
+        );
+        if (emails.rows.length)
+          await tx.query(
+            "UPDATE project_invitations SET revoked_at = now() WHERE project_id = $1 AND email = ANY($2::text[]) AND accepted_at IS NULL AND revoked_at IS NULL",
+            [projectId, emails.rows.map((row) => row.email)],
+          );
         await tx.query(
           "DELETE FROM project_memberships WHERE project_id = $1 AND user_id = $2 AND role = 'member'",
           [projectId, userId],
