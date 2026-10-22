@@ -1777,3 +1777,8 @@ footer {
 .project-timeline .started .timeline-name { color: var(--ink); }
 .project-timeline .timeline-count { display: block; margin-top: 4px; font-variant-numeric: tabular-nums; font-size: 10px; color: var(--muted); }
 .project-timeline-empty { display: block; margin-top: 12px; color: var(--muted); font-size: 12px; }
+
+.timeline-placeholder { opacity: .55; }
+.project-timeline.timeline-placeholder .timeline-marker { background: var(--line); }
+.timeline-placeholder-bar { display: inline-block; width: 65%; height: 6px; border-radius: 3px; background: var(--line); }
+.timeline-placeholder-bar.short { width: 24%; }

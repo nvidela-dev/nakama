@@ -87,3 +87,7 @@ The user requested a small horizontal timeline beneath each title instead of a t
 ## Aligned project-card rows — 2026-10-22
 
 The user flagged empty gaps below shorter cards. Compact desktop cards now stretch within each grid row, maintaining aligned card bottoms and consistent spacing when only some projects have timelines.
+
+## Placeholder card timelines — 2026-10-22
+
+Projects without a selected flow display a static muted placeholder timeline instead of a visible choose-flow message. Empty rings and label bars preserve card structure without asserting stage names or saved progress.

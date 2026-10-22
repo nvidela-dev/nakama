@@ -6,7 +6,19 @@ export function ProjectTimeline({ stages, t }: {
   stages?: StageProgress[];
   t: ReturnType<typeof translator>;
 }) {
-  if (!stages) return <span className="project-timeline-empty">{t("Choose a flow first.")}</span>;
+  if (!stages) return (
+    <div role="img" aria-label={t("Choose a flow first.")} title={t("Choose a flow first.")}>
+      <ol className="project-timeline timeline-placeholder" aria-hidden="true">
+        {Array.from({ length: 5 }, (_, index) => (
+          <li key={index}>
+            <span className="timeline-marker"><span /></span>
+            <span className="timeline-name"><span className="timeline-placeholder-bar" /></span>
+            <span className="timeline-count"><span className="timeline-placeholder-bar short" /></span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
   return <ol className="project-timeline" aria-label={t("Stage progress")}>
     {stages.map((stage) => {
       const state = stage.reviewed ? t("✓ Reviewed") : stage.started ? t("In progress") : t("Not started");
