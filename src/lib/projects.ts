@@ -1,4 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { recordActivity } from "./activity-log";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
 
@@ -76,6 +77,7 @@ export function projectService(db: Database) {
           "INSERT INTO project_memberships (project_id, user_id, display_name, role) VALUES ($1, $2, $3, 'owner')",
           [id, actor.userId, actor.displayName || "Crew member"],
         );
+        await recordActivity(tx, actor, id, "project_created");
       });
       return id;
     },
@@ -154,6 +156,7 @@ export function projectService(db: Database) {
           "INSERT INTO project_invitations (id, project_id, email, token_hash, invited_by, expires_at) VALUES ($1, $2, $3, $4, $5, now() + interval '7 days')",
           [id, projectId, email, digest(token), actor.userId],
         );
+        await recordActivity(tx, actor, projectId, "invitation_created");
         return { id, token };
       });
     },
@@ -162,10 +165,11 @@ export function projectService(db: Database) {
         throw new ProjectError("Invitation not found.");
       await db.transaction(async (tx) => {
         await membership(tx, actor, projectId, true);
-        await tx.query(
-          "UPDATE project_invitations SET revoked_at = now() WHERE id = $1 AND project_id = $2 AND accepted_at IS NULL AND revoked_at IS NULL",
+        const revoked = await tx.query(
+          "UPDATE project_invitations SET revoked_at = now() WHERE id = $1 AND project_id = $2 AND accepted_at IS NULL AND revoked_at IS NULL RETURNING id",
           [invitationId, projectId],
         );
+        if (revoked.rows.length) await recordActivity(tx, actor, projectId, "invitation_revoked");
       });
     },
     async accept(actor: Actor, token: string) {
@@ -211,8 +215,8 @@ export function projectService(db: Database) {
           invitation.project_id,
           true,
         );
-        await tx.query(
-          "INSERT INTO project_memberships (project_id, user_id, display_name, role) VALUES ($1, $2, $3, 'member') ON CONFLICT DO NOTHING",
+        const joined = await tx.query(
+          "INSERT INTO project_memberships (project_id, user_id, display_name, role) VALUES ($1, $2, $3, 'member') ON CONFLICT DO NOTHING RETURNING user_id",
           [
             invitation.project_id,
             actor.userId,
@@ -223,6 +227,7 @@ export function projectService(db: Database) {
           "UPDATE project_invitations SET accepted_by = $1, accepted_at = now() WHERE token_hash = $2",
           [actor.userId, digest(token)],
         );
+        if (joined.rows.length) await recordActivity(tx, actor, invitation.project_id, "member_joined");
         return invitation.project_id;
       });
     },
@@ -243,10 +248,11 @@ export function projectService(db: Database) {
             "UPDATE project_invitations SET revoked_at = now() WHERE project_id = $1 AND email = ANY($2::text[]) AND accepted_at IS NULL AND revoked_at IS NULL",
             [projectId, emails.rows.map((row) => row.email)],
           );
-        await tx.query(
-          "DELETE FROM project_memberships WHERE project_id = $1 AND user_id = $2 AND role = 'member'",
+        const removed = await tx.query<{ display_name: string }>(
+          "DELETE FROM project_memberships WHERE project_id = $1 AND user_id = $2 AND role = 'member' RETURNING display_name",
           [projectId, userId],
         );
+        if (removed.rows.length) await recordActivity(tx, actor, projectId, "member_removed", { subjectName: removed.rows[0].display_name });
       });
     },
   };

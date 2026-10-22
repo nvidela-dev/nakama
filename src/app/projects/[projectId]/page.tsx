@@ -8,6 +8,9 @@ import { AccessButton, InviteForm } from "@/components/forms";
 import { guidanceService } from "@/lib/guidance";
 import { FlowChooser } from "@/components/guidance";
 import { ProjectSettings } from "@/components/project-settings";
+import { Discussion } from "@/components/discussion";
+import { ActivityFeed } from "@/components/activity-feed";
+import { collaborationService } from "@/lib/collaboration";
 import { Journey } from "@/components/journey";
 export const dynamic = "force-dynamic";
 export default async function ProjectPage({
@@ -15,30 +18,41 @@ export default async function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ stage?: string; node?: string }>;
+  searchParams: Promise<{ stage?: string; node?: string; commentsBefore?: string; activityBefore?: string }>;
 }) {
   const t = await getT();
   const person = await actor();
   const { projectId } = await params;
   const service = projectService(database());
   const query = await searchParams;
-  let project, people, guidance;
+  let project, people, guidance, comments, activity;
   let history: Awaited<
     ReturnType<ReturnType<typeof guidanceService>["history"]>
   > = [];
   try {
-    project = await service.get(person, projectId);
-    people = await service.people(person, projectId);
-    guidance = await guidanceService(database()).get(person, projectId);
-    if (query.node)
-      history = await guidanceService(database()).history(
-        person,
-        projectId,
-        query.node,
-      );
+    [project, people, guidance, history, comments, activity] = await Promise.all([
+      service.get(person, projectId),
+      service.people(person, projectId),
+      guidanceService(database()).get(person, projectId),
+      query.node ? guidanceService(database()).history(person, projectId, query.node) : Promise.resolve([]),
+      collaborationService(database()).comments(person, projectId, { stageId: query.stage, nodeId: query.node }, query.commentsBefore),
+      collaborationService(database()).activity(person, projectId, query.activityBefore),
+    ]);
   } catch (error) {
     if (error instanceof ProjectError) notFound();
     throw error;
+  }
+  const selectedStage = guidance?.flow.stages.find((stage) => stage.id === query.stage);
+  const selectedNode = selectedStage?.nodes.find((node) => node.id === query.node);
+  const discussionLabel = selectedNode ? t(selectedNode.label) : selectedStage ? t(selectedStage.name) : t("Project discussion");
+  function pageHref(kind: "commentsBefore" | "activityBefore", value?: string) {
+    const params = new URLSearchParams();
+    if (query.stage) params.set("stage", query.stage);
+    if (query.node) params.set("node", query.node);
+    if (query.commentsBefore && kind !== "commentsBefore") params.set("commentsBefore", query.commentsBefore);
+    if (query.activityBefore && kind !== "activityBefore") params.set("activityBefore", query.activityBefore);
+    if (value) params.set(kind, value);
+    return `/projects/${projectId}${params.size ? `?${params}` : ""}`;
   }
   return (
     <main id="main" className="workspace">
@@ -54,6 +68,7 @@ export default async function ProjectPage({
         contentRevision={guidance?.contentRevision ?? 0}
       />}
       <div className="workspace-columns">
+        <div className="project-working-column">
         {guidance ? (
           <Journey
             projectId={projectId}
@@ -68,6 +83,8 @@ export default async function ProjectPage({
         ) : (
           <FlowChooser projectId={projectId} />
         )}
+        <Discussion key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`} projectId={projectId} target={{ stageId: query.stage, nodeId: query.node }} label={discussionLabel} comments={comments} userId={person.userId} owner={project.role === "owner"} olderHref={comments.next ? pageHref("commentsBefore", comments.next) : undefined} latestHref={query.commentsBefore ? pageHref("commentsBefore") : undefined} />
+        </div>
         <aside className="panel">
           <h2>
             {t("Members")}{" "}
@@ -130,6 +147,7 @@ export default async function ProjectPage({
               )}
             </>
           )}
+          <ActivityFeed projectId={projectId} activity={activity} flow={guidance?.flow} open={!query.stage || !!query.activityBefore} olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined} latestHref={query.activityBefore ? pageHref("activityBefore") : undefined} />
         </aside>
       </div>
     </main>

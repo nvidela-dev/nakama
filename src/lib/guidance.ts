@@ -1,3 +1,4 @@
+import { recordActivity } from "./activity-log";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
 import { membership, ProjectError, type Actor } from "./projects";
@@ -109,6 +110,7 @@ export function guidanceService(db: Database) {
           "INSERT INTO project_flows (project_id, flow_id, template_version, selected_by) VALUES ($1, $2, 1, $3)",
           [projectId, flowId, actor.userId],
         );
+        await recordActivity(tx, actor, projectId, "flow_selected");
         const owner = (
           await tx.query<{ user_id: string }>(
             "SELECT user_id FROM project_memberships WHERE project_id = $1 AND role = 'owner'",
@@ -193,6 +195,7 @@ export function guidanceService(db: Database) {
           throw new ProjectError("Project changed. Reload before saving; your edits are still here.");
         if (!selected) {
           await tx.query("UPDATE projects SET name = $1, description = $2 WHERE id = $3", [name, description, projectId]);
+          if (name !== current.name || description !== current.description) await recordActivity(tx, actor, projectId, "project_edited");
           return;
         }
         const { flow } = await selectedFlow(tx, projectId);

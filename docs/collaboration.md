@@ -1,6 +1,6 @@
 # Collaboration and access
 
-**Confirmed:** membership and invitations are per project; different friends can join different projects. Comments can target the project, a stage, or a node. The first implementation uses the owner/member policy below with Postgres as membership authority. Ownership transfer and content collaboration remain later work.
+**Confirmed:** membership and invitations are per project; different friends can join different projects. Comments can target the project, a stage, or a node. The first implementation uses the owner/member policy below with Postgres as membership authority. Contextual comments and project activity are implemented; ownership transfer remains later work.
 
 ## Initial policy and implementation scope
 
@@ -31,7 +31,7 @@ Use one access policy implementation; provider identity establishes who the pers
 
 ## Comments and shared editing
 
-Each comment has one validated target, author, created/edited timestamps, and content. Initial proposal: plain text with safe links, a flat chronological discussion per target, editing/deleting one's own comments, and owner removal with a visible moderation event. A deleted comment becomes a tombstone; export omits its former body. Retention policy must be settled before storage implementation.
+Each comment has one validated target, author, created/edited timestamps, and content. Implemented policy: plain text with safe HTTP(S) links, flat chronological discussions per target, editing/deleting one's own comments, and owner removal with an attributable moderation event. Deletion permanently clears the body and leaves a tombstone; a future export must omit the former body. Whole-project deletion removes the discussion and its activity. No old comment bodies are retained as hidden revisions.
 
 Comments are suggestions/discussion until a person explicitly incorporates them into an answer or decision with attribution. Use revision checks for simultaneous edits and show the new saved answer alongside the stale draft for reconciliation. Do not promise real-time editing in the first release.
 
@@ -43,7 +43,7 @@ Exercise owner/member/non-member across two projects with overlapping membership
 
 Owners can edit the name and description in project settings. Updates use a project revision snapshot to reject stale submissions. When a flow exists, changed fields save through the same answer-revision behavior as guided edits, preserving attribution and invalidating dependent reviews. Both field changes commit atomically. Members retain the existing ability to answer guided questions; project settings do not change that policy.
 
-Owners may permanently delete a project after entering its exact current name in an explicit confirmation form. Deletion atomically removes its memberships, invitations, selected flow, answers, answer revisions, stage reviews, review history, and project record. No retained tombstone or in-app recovery exists for this operation. This policy applies only to whole-project deletion; account deletion, standalone comment retention, and ownership transfer remain unresolved. Authorization is checked server-side for both operations. An old project URL or invitation grants no access after deletion. No existing project is deleted by deploying the feature.
+Owners may permanently delete a project after entering its exact current name in an explicit confirmation form. Deletion atomically removes its memberships, invitations, selected flow, answers, answer revisions, stage reviews, review history, and project record. No retained tombstone or in-app recovery exists for this operation. This policy applies only to whole-project deletion; account deletion, ownership transfer and account retention remain unresolved. Authorization is checked server-side for both operations. An old project URL or invitation grants no access after deletion. No existing project is deleted by deploying the feature.
 
 ## Application admission and administrator — 2026-10-22
 
@@ -58,3 +58,9 @@ Unapproved accounts see `/access-required`; non-admins cannot read whitelist ent
 People can submit an email for approval before signup or from the access-required page. An unapproved submission creates a deduplicated pending entry in Clerk's existing waitlist storage with notifications disabled; it does not create an account, verify ownership, grant admission, or create project membership. An already-allowed email continues to the ordinary Clerk signup form, where the allowlist and verification still apply.
 
 Only the administrator can list requests, allow their exact emails, or dismiss them. Both Administration and the main-screen admin panel display pending emails and first-request timestamps. Submitted identifiers are explicitly labeled as unverified. Requests remain until allowed/dismissed; allowlisting precedes queue deletion, and already-allowed emails are filtered from the pending view if cleanup fails. Approval sends no invitation or notification email. Dismissal removes the request without granting access; a later submission can create another request. This queue is prospective and is not a history of Clerk's rejected authentication events. No historical signup rejection is inferred from an existing account.
+
+## Comment concurrency and project activity — 2026-10-22
+
+Every comment/feed read and every comment action checks current membership; app administration does not bypass it. Authors edit or remove their own active comments; owners can remove another author's comment but cannot rewrite it. Edit/remove actions compare a revision captured when editing/confirming begins, including across language or server refreshes. Failures retain the draft. Server-side template checks reject mismatched stage/node targets, and project IDs scope all comment lookups.
+
+Project and comment events save atomically with source writes. The feed also reads existing retained answer revisions and stage-review history. It shows actors, timestamps, targets, and answer states/direction choices, not full comment/answer bodies. Invitation events never include recipient emails or tokens. Current members can inspect former authors' retained contributions with a former-member label; removed members cannot read the feed or change comments. Keyset pagination exposes older records without truncating the collection or depending on browser-local dates.

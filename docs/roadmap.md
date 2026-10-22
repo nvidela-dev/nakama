@@ -1,6 +1,6 @@
 # Roadmap and decision register
 
-M1 has a first code implementation: capture, access, and invitation links. The core M1/M2 journey is now verified against dedicated Clerk/Neon development resources; launch checks and remaining lifecycle operations are still outstanding. M2 now has an implementation of both flows, answers, honest progress, conflict detection, and revisiting. Authenticated capture, invitations, answers, edit conflicts, and removal are verified on development services; M3 onward remains unimplemented. Exit criteria describe future evidence required, not promises of a timeline. Requirement IDs refer to [requirements](requirements.md).
+M1 has a first code implementation: capture, access, and invitation links. The core M1/M2 journey is now verified against dedicated Clerk/Neon development resources; launch checks and remaining lifecycle operations are still outstanding. M2 now has an implementation of both flows, answers, honest progress, conflict detection, and revisiting. Authenticated capture, invitations, answers, edit conflicts, and removal are verified on development services; M3 now includes contextual comments and an activity feed. M4 export and M6/M7 AI remain unimplemented. M5 has an optional Three.js mini-view; broader accessibility/performance acceptance remains outstanding. Exit criteria describe future evidence required, not promises of a timeline. Requirement IDs refer to [requirements](requirements.md).
 
 | Milestone | Deliverable | Exit evidence / dependency |
 | --- | --- | --- |
@@ -107,3 +107,9 @@ The user requested easy access to project editing/deletion and whitelist managem
 ## Access requests alongside the whitelist — 2026-10-22
 
 After learning that rejected authentication logs are not exposed as a list through Clerk's public APIs, the user explicitly chose access requests collected in Nakama. Add an email-first signup gate and request form on the access-required page, plus administrator-only Allow/Dismiss controls on Administration and the main screen. Use the existing provider's pending waitlist-entry API without changing signup mode or sending emails. Preserve whitelist admission, email verification, and project membership as separate checks. This starts new request collection; it does not backfill historical Clerk rejections or assert ownership of submitted addresses.
+
+## Contextual comments and project activity — 2026-10-22
+
+The user selected contextual comments and an activity feed as the next implementation. Adopt flat plain-text discussions targeting exactly one project, stage, or node; allow author edits, author deletion, and owner moderation. Comment deletion permanently blanks the body and retains an attribution/timestamp tombstone, while whole-project deletion removes comments and activity. Do not retain deleted bodies in feed events. Edits and removals check the displayed revision, retaining the local draft on conflict.
+
+The feed combines existing answer revisions and stage-review history with newly recorded project/flow, invitation lifecycle, membership, and comment events. Historical invitation/member events are not invented or backfilled. Events omit comment bodies, invitation recipients, tokens, and invitation URLs. New events commit with their source writes. Use a 25-item keyset page with timestamp precision preserved. No automatic publication, notifications, AI, or real-time subscription is added. This resolves the comment retention/moderation proposal for this implementation; export and account-retention policy remain separate work.

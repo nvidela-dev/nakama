@@ -31,7 +31,7 @@ const answer = (content: string, revision = 0) => ({
   choice: null,
 });
 before(async () => {
-  for (const file of ["001_private_projects.sql", "002_guided_flows.sql"])
+  for (const file of ["001_private_projects.sql", "002_guided_flows.sql", "003_comments_activity.sql"])
     await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {

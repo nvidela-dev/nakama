@@ -1,6 +1,6 @@
 # Domain vocabulary and conceptual model
 
-This logical model guides the implementation. M1/M2 tables live in reviewed SQL migrations; comments/activity and remaining lifecycle policy are still planned. [Flows](flows.md) own stage names; [collaboration](collaboration.md) owns access policy.
+This logical model guides the implementation. M1/M2 tables live in reviewed SQL migrations; comments/activity are implemented; remaining lifecycle policy is still planned. [Flows](flows.md) own stage names; [collaboration](collaboration.md) owns access policy.
 
 | Term | Meaning |
 | --- | --- |
@@ -49,3 +49,9 @@ Recommend a next node without locking earlier content or forcing every answer. A
 Every nested record must resolve to the same project; validate server-side and use database constraints where possible. Membership is unique per person/project. Under the proposed policy a project always retains an active owner. Answer edits check revisions to prevent silent overwrite. Store UTC timestamps; display local time.
 
 Template updates never silently rewrite existing projects. Flow/version migration needs a preview of retained/unmapped answers; defer it in the first version. Whole-project deletion follows the owner-confirmed permanent removal policy in [collaboration](collaboration.md). Account retention/deletion and ownership succession remain deferred.
+
+## Comment and activity records — 2026-10-22
+
+Comments belong to one project and one scope: project, stage, or node. Stage/node targets require the selected project flow; the server validates stable template keys. Authors retain their membership-time display attribution when they leave. Revisions prevent silent overwrites. Deleted bodies are blanked permanently while the comment ID, original author/time, and deletion marker remain. Discussion does not count toward answered progress or invalidate answer reviews.
+
+Activity describes attributable recorded actions. Current comment bodies are not duplicated into activity. Existing answer revisions and stage reviews provide historical source events; new project, flow, invitation, membership, and comment events are stored in a project-owned activity table. Former-member labels do not re-grant access. Whole-project deletion cascades through both stores.
