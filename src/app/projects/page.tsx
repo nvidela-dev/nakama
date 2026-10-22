@@ -26,15 +26,7 @@ export default async function ProjectsPage() {
                 key={p.id}
                 href={`/projects/${p.id}`}
               >
-                <span className="eyebrow">
-                  {p.role === "owner" ? t("OWNER") : t("MEMBER")}{" "}
-                  <span aria-hidden="true">↗</span>
-                </span>
                 <h3>{p.name}</h3>
-                <p>{p.description}</p>
-                <small>
-                  {t("Private project ·")} {t(p.role)}
-                </small>
               </Link>
             ))
           ) : (

@@ -559,6 +559,7 @@ footer {
   justify-content: space-between;
 }
 .project-card h3 {
+  margin: 0;
   font-size: 25px;
   overflow-wrap: anywhere;
 }
@@ -1400,7 +1401,7 @@ footer {
   }
   html[data-density="compact"] .project-card h3 {
     font-size: 18px;
-    margin: 7px 0 5px;
+    margin: 0;
   }
   html[data-density="compact"] .project-card p {
     font-size: 13px;

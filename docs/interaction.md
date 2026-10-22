@@ -43,3 +43,7 @@ The project journey offers Show / Hide 3D mini-view, initially hidden. This adds
 Stage labels and question points are ordinary keyboard-accessible navigation links; node names and states appear on hover/focus and in accessible labels. Perspective buttons rotate in discrete steps without continuous motion, dragging, or camera flights. The map scrolls within its own region on phones. Its canvas is decorative to assistive technology; semantic links and the ordinary working tree remain available. WebGL failure displays a message directing members to the tree. Toggling does not replace or unmount answer forms. The mini-view requests no additional private data and uses the page's existing membership-checked guidance.
 
 The user's supplied reference refines the mini-view toward a dark technical display: wireframe stage volumes in Nakama’s lime, peach, and muted green palette, luminous answered nodes, fine connecting lines, a perspective floor grid, restrained scan lines, and monospace labels. The stage sequence now occupies depth as well as width, while each stage retains its downward dependency branches. There is no automatic animation, flashing, or invented telemetry.
+
+## Project list cards — 2026-10-22
+
+Project cards display only the project title as their navigation link. Descriptions, ownership/member labels, and the private-project footer are omitted from the list; project details and membership rules are unchanged.

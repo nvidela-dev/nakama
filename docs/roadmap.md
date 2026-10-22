@@ -75,3 +75,7 @@ The user requested a professional, direct interface and projects as the signed-i
 The user requested a project-page toggle for a Three.js mini-view while preserving the tree. The mini-view uses the existing authorized guidance: ordered stages, each stage's dependency branches, saved node states, and explicit reviews. Upcoming stages remain visible for context. It represents saved work, not a chronological history of stage visits; no visit tracking or inferred completion is introduced. The ordinary tree and editors remain mounted below it. Three.js is loaded only when the mini-view is opened. No service provisioning or deployment is part of this change.
 
 The supplied visual reference was accepted for this mini-view's art direction: wireframe volumes in a dark spatial grid using Nakama’s existing brand palette, with readable semantic labels and unchanged progress/access semantics. This narrows the visual proposal for the map without applying the treatment to answer forms.
+
+## Title-only project cards — 2026-10-22
+
+The user requested project cards containing only the title. Remove descriptions and role/privacy labels from this overview to make the project list easier to scan. No project data or access policy changes.
