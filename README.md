@@ -4,7 +4,7 @@ A lovely place to turn “what if?” into something with friends.
 
 Nakama will help a small group capture an idea, explore it through approachable questions, try something small, and decide what to do next. Different projects can include different friends. A venture can investigate demand and feasibility; a creative project can exist simply because making it together sounds fun.
 
-**Status: documentation only.** There is no application, deployed site, database schema, authentication setup, or implemented AI feature. Vercel, Clerk, and Neon Postgres are the agreed platform direction; no services have been provisioned by this documentation work.
+**Status: first application slice, not deployed.** The Next.js app includes a public harbor, Clerk sign-in integration, private project capture, owner/member access, and recipient-specific invitation links. SQL/access tests pass locally; real Clerk/Neon browser integration still needs configured development services. Guided flows, comments, export, and AI are not implemented yet. See [development setup and verification](docs/development.md).
 
 ## The experience
 
@@ -28,7 +28,7 @@ The visual ambition is spatial, 3D, chill, piratey/hackery, and warm. Readable f
 | [Roadmap and decisions](docs/roadmap.md) | Delivery order, decisions, proposals, and questions |
 | [Contributing](CONTRIBUTING.md) | How to change and validate this foundation |
 
-Start with requirements and flows. Read the domain and collaboration rules before implementing persistence or access. There are no install or run commands yet; those belong in the first application PR once verified.
+Start with requirements and flows. Read the domain and collaboration rules before implementing persistence or access. Use the [development guide](docs/development.md) to run the public shell, connect isolated services, and verify private workflows.
 
 ## First useful outcome
 

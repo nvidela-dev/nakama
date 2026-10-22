@@ -1,8 +1,8 @@
 # Collaboration and access
 
-**Confirmed:** membership and invitations are per project; different friends can join different projects. Comments can target the project, a stage, or a node. The detailed policy below is a proposal to approve before implementation, independent of the Clerk organization decision.
+**Confirmed:** membership and invitations are per project; different friends can join different projects. Comments can target the project, a stage, or a node. The first implementation uses the owner/member policy below with Postgres as membership authority. Ownership transfer and content collaboration remain later work.
 
-## Proposed initial policy
+## Initial policy and implementation scope
 
 Projects are private to active members. Two roles keep the first version understandable:
 
@@ -18,7 +18,7 @@ Creating a project creates its owner membership atomically. The last owner canno
 
 ## Invitations and removal
 
-Invite a specific verified identity/email to one project; do not implement unrestricted join links by default. For application-managed invitations, store a hashed, single-use token with expiry, intended recipient, role, project, inviter, and lifecycle timestamps. If Clerk Organizations is chosen, use its invitation lifecycle and verify the equivalent policy before committing to provider-specific behavior; do not duplicate its token store. The exact expiry duration and email delivery provider remain open. Acceptance checks signed-in verified identity, token, expiry, revocation, and current inviter authority, then creates membership transactionally. Repeated acceptance by the same recipient is idempotent. Invitation URLs and tokens never enter comments, exports, or analytics logs.
+Invite a specific verified identity/email to one project; do not implement unrestricted join links by default. For application-managed invitations, store a hashed, single-use token with expiry, intended recipient, role, project, inviter, and lifecycle timestamps. If Clerk Organizations is chosen, use its invitation lifecycle and verify the equivalent policy before committing to provider-specific behavior; do not duplicate its token store. Implemented invitations expire after 7 days and are manually shared links. Automated email delivery remains open. Acceptance checks signed-in verified identity, token, expiry, revocation, and current inviter authority, then creates membership transactionally. Repeated acceptance by the same recipient is idempotent. Invitation URLs and tokens never enter comments, exports, or analytics logs.
 
 A pending invitation grants no content access. An invitation landing page exposes only the minimum information needed to accept. Removal stops subsequent reads, writes, exports, and future AI access; authorize again at execution and commit boundaries. Previously downloaded Markdown cannot be recalled. Retain old authorship with a former-member label rather than pretending someone else wrote it.
 
