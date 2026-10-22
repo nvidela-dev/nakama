@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { Journey } from "@/components/journey";
 import { flows } from "@/lib/flows";
@@ -7,6 +8,7 @@ export default async function Preview({
 }: {
   searchParams: Promise<{ stage?: string; node?: string }>;
 }) {
+  const t = await getT();
   const query = await searchParams;
   const guidance: Guidance = {
     flow: flows.creative,
@@ -42,16 +44,17 @@ export default async function Preview({
   return (
     <main id="main" className="workspace">
       <Link href="/" className="back-link">
-        ← Back to the harbor
+        {t("← Back to the harbor")}{" "}
       </Link>
       <div className="page-heading">
         <span className="eyebrow">
-          READ-ONLY EXAMPLE · NOTHING HERE IS YOUR PROJECT DATA
+          {t("READ-ONLY EXAMPLE · NOTHING HERE IS YOUR PROJECT DATA")}{" "}
         </span>
-        <h1>A tiny pirate radio play</h1>
+        <h1>{t("A tiny pirate radio play")}</h1>
         <p>
-          Try opening a stage, then a question. This sample shows the path; sign
-          in and create your own project to save answers.
+          {t(
+            "Try opening a stage, then a question. This sample shows the path; sign in and create your own project to save answers.",
+          )}{" "}
         </p>
       </div>
       <div className="preview-journey">

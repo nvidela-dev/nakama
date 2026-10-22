@@ -1,3 +1,5 @@
+"use client";
+import { useT } from "@/components/language";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Guidance, Revision } from "@/lib/guidance";
@@ -40,6 +42,7 @@ export function Journey({
   names?: Record<string, string>;
   preview?: boolean;
 }) {
+  const t = useT();
   const { flow, answers, reviews } = guidance;
   const base = preview ? "/preview" : `/projects/${projectId}`;
   const href = (stage?: string, node?: string) =>
@@ -76,13 +79,16 @@ export function Journey({
     <section className="journey">
       <div className="journey-summary">
         <div>
-          <span className="eyebrow">{flow.name.toUpperCase()} · YOUR PATH</span>
+          <span className="eyebrow">
+            {t(flow.name).toLocaleUpperCase()} {t("· YOUR PATH")}
+          </span>
           <p>
-            <strong>{answered}</strong> of {questions.length} questions answered
+            <strong>{answered}</strong> {t("of")} {questions.length}{" "}
+            {t("questions answered")}{" "}
           </p>
           <small>
-            {skipped} skipped · {blocked} blocked ·{" "}
-            {guidance.projectState.replaceAll("_", " ")}
+            {skipped} {t("skipped ·")} {blocked} {t("blocked ·")}{" "}
+            {t(guidance.projectState.replaceAll("_", " "))}
           </small>
         </div>
         <div
@@ -99,7 +105,7 @@ export function Journey({
       <div
         className="progress-track"
         role="progressbar"
-        aria-label="Questions answered, not proof of success"
+        aria-label={t("Questions answered, not proof of success")}
         aria-valuemin={0}
         aria-valuemax={questions.length}
         aria-valuenow={answered}
@@ -109,7 +115,9 @@ export function Journey({
       {!activeStage ? (
         <>
           <p className="journey-hint">
-            A path, not a test. Open any stage and follow your curiosity.
+            {t(
+              "A path, not a test. Open any stage and follow your curiosity.",
+            )}{" "}
           </p>
           <ol className="stage-list">
             {flow.stages.map((stage, i) => {
@@ -131,15 +139,16 @@ export function Journey({
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div>
-                      <span className="stage-label">{stage.name}</span>
-                      <h2>{stage.question}</h2>
+                      <span className="stage-label">{t(stage.name)}</span>
+                      <h2>{t(stage.question)}</h2>
                       <small>
                         {reviewed
-                          ? "✓ Reviewed"
+                          ? t("✓ Reviewed")
                           : count
-                            ? "In progress"
-                            : "Not started"}{" "}
-                        · {count}/{questions.length} questions answered
+                            ? t("In progress")
+                            : t("Not started")}{" "}
+                        · {count}/{questions.length}{" "}
+                        {t("questions answered")}{" "}
                       </small>
                     </div>
                     <span className="stage-arrow" aria-hidden="true">
@@ -155,43 +164,46 @@ export function Journey({
               className="button secondary"
               href={href(next.stage.id, next.node.id)}
             >
-              A small next step: {next.node.label} ↗
+              {t("A small next step:")} {t(next.node.label)} ↗
             </Link>
           )}
         </>
       ) : (
         <>
-          <nav className="journey-breadcrumb" aria-label="Project path">
-            <Link href={base}>All stages</Link>
+          <nav className="journey-breadcrumb" aria-label={t("Project path")}>
+            <Link href={base}>{t("All stages")}</Link>
             <span>/</span>
             <Link
               href={href(activeStage.id)}
               aria-current={activeNode ? undefined : "page"}
             >
-              {activeStage.name}
+              {t(activeStage.name)}
             </Link>
             {activeNode && (
               <>
                 <span>/</span>
-                <span aria-current="page">{activeNode.label}</span>
+                <span aria-current="page">{t(activeNode.label)}</span>
               </>
             )}
           </nav>
           {activeNode ? (
             preview ? (
               <section className="panel answer-panel">
-                <span className="eyebrow">READ-ONLY EXAMPLE</span>
-                <h2>{activeNode.question}</h2>
+                <span className="eyebrow">{t("READ-ONLY EXAMPLE")}</span>
+                <h2>{t(activeNode.question)}</h2>
                 <details className="example" open>
-                  <summary>A little inspiration</summary>
-                  <p>{activeNode.example}</p>
+                  <summary>{t("A little inspiration")}</summary>
+                  <p>{t(activeNode.example)}</p>
                 </details>
                 <p>
-                  {current?.content ||
-                    "No answer yet. In your project, this is a place for an answer, an uncertainty, or what you learned."}
+                  {current?.content
+                    ? t(current.content)
+                    : t(
+                        "No answer yet. In your project, this is a place for an answer, an uncertainty, or what you learned.",
+                      )}
                 </p>
                 <Link href={href(activeStage.id)} className="button secondary">
-                  Back to this stage
+                  {t("Back to this stage")}{" "}
                 </Link>
               </section>
             ) : (
@@ -207,10 +219,11 @@ export function Journey({
             )
           ) : (
             <section className="stage-expanded">
-              <h2>{activeStage.question}</h2>
+              <h2>{t(activeStage.question)}</h2>
               <p className="muted">
-                Open a step to see its question and example. Branches can be
-                explored in any order.
+                {t(
+                  "Open a step to see its question and example. Branches can be explored in any order.",
+                )}{" "}
               </p>
               <div className="node-tree">
                 {levels(activeStage).map((row, i) => (
@@ -225,19 +238,20 @@ export function Journey({
                         >
                           <span className="node-state">
                             {symbols[answer?.status ?? "unanswered"]}{" "}
-                            {answer?.status ?? "unanswered"}
-                            {answer?.needs_review ? " · revisit" : ""}
+                            {t(answer?.status ?? "unanswered")}
+                            {answer?.needs_review ? t(" · revisit") : ""}
                           </span>
-                          <strong>{node.label}</strong>
-                          <small>{node.kind}</small>
+                          <strong>{t(node.label)}</strong>
+                          <small>{t(node.kind)}</small>
                           {node.after.length > 0 && (
                             <small className="node-after">
-                              After:{" "}
+                              {t("After:")}{" "}
                               {node.after
-                                .map(
-                                  (id) =>
+                                .map((id) =>
+                                  t(
                                     activeStage.nodes.find((n) => n.id === id)
-                                      ?.label,
+                                      ?.label ?? "",
+                                  ),
                                 )
                                 .join(" + ")}
                             </small>
@@ -250,40 +264,42 @@ export function Journey({
               </div>
               {activeStage.id === "building" && (
                 <p className="loop-links">
-                  Need help or another round?{" "}
+                  {t("Need help or another round?")}{" "}
                   <Link href={href("building", "next-task")}>
-                    Return to the next task ↶
+                    {t("Return to the next task ↶")}{" "}
                   </Link>
                 </p>
               )}
               {activeStage.id === "experiment" && (
                 <p className="loop-links">
-                  Trying another direction?{" "}
+                  {t("Trying another direction?")}{" "}
                   <Link href={href("experiment", "rough-version")}>
-                    Try another little piece ↶
+                    {t("Try another little piece ↶")}{" "}
                   </Link>
                 </p>
               )}
               {activeStage.id === "create" && (
                 <p className="loop-links">
-                  Not finished enough?{" "}
+                  {t("Not finished enough?")}{" "}
                   <Link href={href("create", "next-piece")}>
-                    Make the next piece ↶
+                    {t("Make the next piece ↶")}{" "}
                   </Link>
                 </p>
               )}
               {activeStage.id === "validation" && (
                 <p className="loop-links">
-                  Revising the idea?{" "}
-                  <Link href={href("exploration")}>Revisit Exploration ↶</Link>
+                  {t("Revising the idea?")}{" "}
+                  <Link href={href("exploration")}>
+                    {t("Revisit Exploration ↶")}
+                  </Link>
                 </p>
               )}
               {review && (
                 <div className="review-note">
                   <strong>
                     {review.reviewed
-                      ? "✓ Stage reviewed"
-                      : "↶ Revisit this review after earlier changes"}
+                      ? t("✓ Stage reviewed")
+                      : t("↶ Revisit this review after earlier changes")}
                   </strong>
                   <p className="preserve-lines">{review.rationale}</p>
                 </div>
