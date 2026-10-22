@@ -1,5 +1,9 @@
 import { getT } from "@/lib/i18n/server";
-import Link from "next/link";
+import { ProjectCard } from "@/components/project-card";
+import { WhitelistList } from "@/components/whitelist-list";
+import { AddAllowedEmail } from "@/components/whitelist";
+import { isAppAdmin } from "@/lib/app-access";
+import { accessPolicy, adminEmail } from "@/lib/whitelist";
 import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
 import { projectService } from "@/lib/projects";
@@ -9,10 +13,12 @@ import { CaptureForm } from "@/components/forms";
 export const dynamic = "force-dynamic";
 export default async function ProjectsPage() {
   const t = await getT();
-  const person = await actor();
-  const [projects, progress] = await Promise.all([
+  const person = await actor(true);
+  const admin = isAppAdmin(person, adminEmail());
+  const [projects, progress, allowed] = await Promise.all([
     projectService(database()).list(person),
     projectProgress(database(), person),
+    admin ? accessPolicy().list(person) : Promise.resolve(null),
   ]);
   return (
     <main id="main" className="workspace">
@@ -26,14 +32,9 @@ export default async function ProjectsPage() {
           <h2 className="sr-only">{t("Your projects")}</h2>
           {projects.length ? (
             projects.map((p) => (
-              <Link
-                className="project-card"
-                key={p.id}
-                href={`/projects/${p.id}`}
-              >
-                <h3>{p.name}</h3>
+              <ProjectCard key={p.id} project={p}>
                 <ProjectTimeline stages={progress.get(p.id)} t={t} />
-              </Link>
+              </ProjectCard>
             ))
           ) : (
             <div className="empty-state">
@@ -43,9 +44,20 @@ export default async function ProjectsPage() {
             </div>
           )}
         </section>
-        <aside className="panel capture">
+        <aside className="main-screen-sidebar">
+        <section className="panel capture">
           <h2>{t("New project")}</h2>
           <CaptureForm />
+        </section>
+        {allowed && <section className="panel main-whitelist">
+          <h2>{t("Allow a person")}</h2>
+          <AddAllowedEmail />
+          <details>
+            <summary>{t("Allowed emails")} <span className="count">{allowed.length}</span></summary>
+            <p className="muted">{t("Removing access blocks future private requests. It does not delete the account or project history.")}</p>
+            <WhitelistList entries={allowed} />
+          </details>
+        </section>}
         </aside>
       </div>
     </main>

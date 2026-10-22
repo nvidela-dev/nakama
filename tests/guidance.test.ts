@@ -302,6 +302,7 @@ test("owner project edits are atomic, revision checked, and retain answer histor
   const id = await project();
   const original = await projects.get(alice, id);
   const before = (await guidance.get(alice, id))!;
+  assert.equal((await projects.list(alice)).find((p) => p.id === id)?.content_revision, before.contentRevision);
   const expected = { name: original.name, description: original.description, contentRevision: before.contentRevision };
   const input = { name: "Updated project", description: "Updated purpose." };
   await assert.rejects(guidance.editProject(outsider, id, input, expected));
@@ -311,6 +312,7 @@ test("owner project edits are atomic, revision checked, and retain answer histor
   await guidance.editProject(alice, id, input, expected);
   assert.equal((await projects.get(alice, id)).name, input.name);
   const after = (await guidance.get(alice, id))!;
+  assert.equal((await projects.list(alice)).find((p) => p.id === id)?.content_revision, after.contentRevision);
   assert.equal(after.answers.find((a) => a.node_id === "idea-name")?.content, input.name);
   assert.equal(after.answers.find((a) => a.node_id === "idea-description")?.content, input.description);
   assert.equal((await guidance.history(alice, id, "idea-name")).length, 2);

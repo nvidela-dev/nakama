@@ -99,3 +99,7 @@ The user requested the ability to edit and delete projects. Owners can edit name
 ## Administrator-controlled signup whitelist — 2026-10-22
 
 The user designated their verified account as the sole application administrator and requested control over who can sign up. Use the existing Clerk email allowlist for signup and app admission, with owner-managed project membership remaining separate. Add a bilingual Administration screen for exact-email additions/removals. Do not auto-approve existing accounts or grant the administrator global project access. Store the designated admin email in server-only environment configuration, keep the administrator's entry protected, and send no notification emails. Clerk's existing development instance and hosting environments are configured under this request; no new service or database schema is provisioned.
+
+## Main-screen management — 2026-10-22
+
+The user requested easy access to project editing/deletion and whitelist management from the main screen. Add direct owner-card controls opening a dialog and an administrator-only sidebar whitelist panel. Reuse existing server actions, permission checks, conflict handling, and deletion confirmation. Include flow content revisions in the existing membership-scoped project-list query for reliable edit snapshots without per-card reads. Keep private project access and app administration separate.

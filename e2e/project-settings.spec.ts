@@ -12,7 +12,7 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   await expect(page.getByRole("heading", { name: original, exact: true })).toBeVisible();
   const path = new URL(page.url()).pathname;
   await page.getByRole("button", { name: "Edit project", exact: true }).click();
-  const form = page.locator("#edit-project-form");
+  const form = page.locator("form[id$='-edit-project-form']");
   await form.getByLabel("Project name", { exact: true }).fill(`${original} renamed`);
   await form.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.getByRole("heading", { name: `${original} renamed`, exact: true })).toBeVisible();
@@ -30,7 +30,7 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await page.getByRole("button", { name: "Delete project", exact: true }).click();
-  const deletion = page.locator("#delete-project-form");
+  const deletion = page.locator("form[id$='-delete-project-form']");
   const remove = deletion.getByRole("button", { name: "Permanently delete project", exact: true });
   await expect(remove).toBeDisabled();
   await deletion.getByRole("textbox").fill("wrong");

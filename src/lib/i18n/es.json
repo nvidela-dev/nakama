@@ -453,5 +453,6 @@
   "Allow a person": "Permitir a una persona",
   "Add one exact email address. This grants app access; projects still require membership. No email notification is sent.": "Agregá una dirección de correo exacta. Esto permite acceder a la aplicación; los proyectos siguen requiriendo membresía. No se envía ninguna notificación por correo.",
   "Access requires approval": "El acceso requiere aprobación",
-  "Ask the administrator to whitelist your verified email address. Signing in or receiving a project invitation does not grant app access.": "Pedile al administrador que permita tu correo verificado. Iniciar sesión o recibir una invitación a un proyecto no da acceso a la aplicación."
+  "Ask the administrator to whitelist your verified email address. Signing in or receiving a project invitation does not grant app access.": "Pedile al administrador que permita tu correo verificado. Iniciar sesión o recibir una invitación a un proyecto no da acceso a la aplicación.",
+  "Close": "Cerrar"
 }

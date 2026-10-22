@@ -16,5 +16,6 @@ export async function manageWhitelist(_state: ActionState, data: FormData): Prom
     return { error: error instanceof ProjectError ? error.message : "Could not update the whitelist. Please try again." };
   }
   revalidatePath("/admin");
+  revalidatePath("/projects");
   return { success: "Whitelist updated." };
 }

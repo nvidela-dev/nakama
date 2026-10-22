@@ -1788,3 +1788,25 @@ footer {
 .project-settings .panel { max-width: 640px; margin-top: 12px; }
 .project-settings [hidden] { display: none; }
 .allowed-email { overflow-wrap: anywhere; min-width: 0; }
+
+/* Keep the overview compact; management opens without leaving the project list. */
+.project-card { position: relative; }
+.project-card-link { display: block; }
+.project-card.has-management h3 { padding-right: 72px; }
+.project-card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 2px; }
+.project-card-actions button { padding: 0; width: 34px; min-height: 36px; background: transparent; color: var(--muted); font-size: 20px; }
+.project-card-actions button:hover { background: var(--line); color: var(--lime); }
+.project-management-dialog { width: min(640px, calc(100vw - 28px)); max-height: calc(100dvh - 40px); padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); overflow-y: auto; }
+.project-management-dialog::backdrop { background: #0009; }
+.project-dialog-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.project-dialog-heading strong { overflow-wrap: anywhere; }
+.project-dialog-heading button { flex-shrink: 0; padding: 0; width: 44px; min-height: 44px; background: var(--panel); color: var(--ink); }
+.project-management-dialog .project-settings { margin: 0; }
+.main-screen-sidebar { display: grid; gap: 16px; min-width: 0; align-content: start; }
+.main-whitelist details { margin-top: 18px; }
+.main-whitelist .people-list li { flex-wrap: wrap; gap: 8px; }
+@media (max-width: 700px) { .main-screen-sidebar { order: -1; } }
+@media (pointer: coarse) {
+  .project-card-actions button { width: 44px; min-height: 44px; }
+  .project-card.has-management h3 { padding-right: 92px; }
+}

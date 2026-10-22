@@ -27,7 +27,8 @@ const cara: Actor = {
   displayName: "Cara",
 };
 before(async () => {
-  await sql.exec(await readFile("migrations/001_private_projects.sql", "utf8"));
+  for (const file of ["001_private_projects.sql", "002_guided_flows.sql"])
+    await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {
   await sql.close();

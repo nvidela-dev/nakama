@@ -51,3 +51,9 @@ Project cards display only the project title as their navigation link. Descripti
 Each titled project card now includes a compact horizontal stage timeline for its selected flow. Stage labels and answered-question counts remain visible; partial rings show answer coverage, a check indicates explicit human review, and an exclamation flags revisiting. Tooltips and accessible list labels additionally report blocked/skipped counts. Answer coverage does not imply review or validation. Projects without a flow show a muted five-position placeholder timeline with empty rings and short label bars. No stage names or progress counts are invented; accessible text and a tooltip explain that a flow must be chosen. The entire card remains one navigation link.
 
 Compact desktop project cards stretch to the tallest card in each grid row. Mixed cards with and without a selected flow retain aligned bottoms and consistent row gaps.
+
+## Management from the main screen — 2026-10-22
+
+The Projects screen exposes edit and delete controls on owner project cards. These open a native modal dialog over the existing list, with a close control, Escape dismissal, keyboard focus containment/restoration, and the same revision-aware edit and exact-name delete forms used on project pages. Card titles/timelines remain navigation links; action buttons are separate siblings, never controls nested inside links. Settings forms mount only while the dialog is open, keeping the ordinary list light and avoiding duplicate active fields.
+
+For the application administrator, the sidebar also provides an allowed-email form and an expandable whitelist with removal controls. Non-admins receive no whitelist data or controls. Full project and Administration pages remain available. New project capture stays in the main sidebar. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.

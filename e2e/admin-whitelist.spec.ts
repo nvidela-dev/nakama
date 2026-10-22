@@ -37,7 +37,7 @@ test("administrator manages exact-email admission without granting project membe
     await member.goto(projectPath);
     await expect(member.getByRole("heading", { name: "This project isn't available." })).toBeVisible();
     await page.getByRole("button", { name: "Delete project", exact: true }).click();
-    await page.locator("#delete-project-form").getByRole("textbox").fill(name);
+    await page.locator("form[id$='-delete-project-form']").getByRole("textbox").fill(name);
     await page.getByRole("button", { name: "Permanently delete project", exact: true }).click();
     await expect(page).toHaveURL(/\/projects$/);
     await page.goto("/admin");
