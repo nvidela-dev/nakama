@@ -193,3 +193,37 @@ flowchart TD
 Capture supplies Name and Brief description. Every step is an editable question; the outcome choice supports Conclusion, Actionables, Artifact, or Combination. Sources and evidence use repeatable entries within the existing text answer, with links/references, dates, findings, and limitations. Findings and conclusions should cite these references. The implementation does not yet provide separate source records, uploads, generated artifacts, or automatic citations: an artifact can be written in the answer or referenced by location. All stages remain revisitable and normal human stage review applies.
 
 Follow-up projects can be described in the last step. Creating/linking multiple follow-ups is the accepted future direction and is not an implemented operation in this slice.
+
+## Specialized business flows
+
+These project types use the same saved-question, revision, review, and membership model. General E-shop and Shirt E-shop are separate selections within the shop family; an existing project cannot change its selected flow. Capturing a project supplies the first Name and Brief description answers. Examples remain guidance, never prefilled facts.
+
+| Type | Stage | Steps |
+| --- | --- | --- |
+| E-shop (generic) | Offer | Name → Brief description → Customers and products |
+| | Validate | Demand and alternatives → Test the offer |
+| | Operations | Supply and stock → Pricing and fulfillment |
+| | Launch | Storefront and checkout → First customers |
+| | Improve | Orders and learning → Shop outcomes |
+| Shirt E-shop | Concept | Name → Brief description → Audience and collection |
+| | Design | Designs and rights → Fit and samples |
+| | Production | Production model → Costs and size stock |
+| | Launch | Catalog and size guide → First collection test |
+| | Improve | Quality and sales → Collection outcomes |
+| SaaS | Problem | Name → Brief description → Users and problem |
+| | Validate | Customer evidence → Value and willingness to pay |
+| | Build | Core workflow → Data and reliability |
+| | Launch | Onboarding and billing → Support and operations |
+| | Learn | Usage and retention → Service outcomes |
+| Importation | Scope | Name → Brief description → Goods and destination |
+| | Source | Supplier checks → Sample and quality |
+| | Feasibility | Requirements and evidence → Landed cost and risk |
+| | Pilot | Shipment plan → Receipt and inspection |
+| | Review | Actual cost and timing → Import outcomes |
+| Consultancy | Engagement | Name → Brief description → Client and desired result |
+| | Diagnose | Discovery and evidence → Scope and success |
+| | Propose | Approach and deliverables → Terms and responsibilities |
+| | Deliver | Develop the work → Client review |
+| | Handover | Action plan and ownership → Engagement outcomes |
+
+Stages remain revisitable; within each stage the steps above form a sequential dependency chain. The final question captures delivered outcomes and proposed follow-up work. It does not create linked projects or infer completion. These are planning workflows: they do not provision shops, billing, logistics, contracts, or external integrations. Importation prompts request current source-backed requirements and costs, without supplying jurisdiction-specific rules or guessed amounts.

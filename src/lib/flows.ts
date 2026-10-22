@@ -1,5 +1,6 @@
+import { businessFlows, type BusinessFlowId } from "./business-flows";
 import { investigationFlow } from "./investigation-flow";
-export type FlowId = "venture" | "creative" | "investigation";
+export type FlowId = "venture" | "creative" | "investigation" | BusinessFlowId;
 export type NodeStatus =
   | "unanswered"
   | "draft"
@@ -39,6 +40,7 @@ const node = (
 ): FlowNode => ({ id, label, question, example, after, kind, choices });
 export const flows: Record<FlowId, Flow> = {
   investigation: investigationFlow,
+  ...businessFlows,
   venture: {
     id: "venture",
     version: 1,
@@ -498,4 +500,8 @@ export function descendants(stage: FlowStage, nodeId: string) {
       }
   }
   return found;
+}
+
+export function isFlowId(value: string): value is FlowId {
+  return Object.hasOwn(flows, value);
 }

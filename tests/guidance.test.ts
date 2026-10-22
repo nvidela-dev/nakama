@@ -31,7 +31,7 @@ const answer = (content: string, revision = 0) => ({
   choice: null,
 });
 before(async () => {
-  for (const file of ["001_private_projects.sql", "002_guided_flows.sql", "003_comments_activity.sql", "004_investigation_flow.sql"])
+  for (const file of ["001_private_projects.sql", "002_guided_flows.sql", "003_comments_activity.sql", "004_investigation_flow.sql", "005_business_flows.sql"])
     await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {
@@ -381,4 +381,30 @@ test("investigation captures metadata, saves evidence and outcome choices, and i
   await assert.rejects(guidance.get(outsider, id));
   await assert.rejects(guidance.save(outsider, id, "inquiry-conclusion", answer("Unauthorized")));
   await assert.rejects(guidance.save(alice, id, "inquiry-output", { ...answer("Invalid", 1), choice: "Invented output" }));
+});
+
+test("business project types retain distinct flows, metadata, saved work, and access boundaries", async () => {
+  for (const flowId of ["eshop", "shirt-eshop", "saas", "importation", "consultancy"] as const) {
+    const id = await project(flowId);
+    const flow = flows[flowId];
+    assert.equal(flow.stages.length, 5);
+    const captured = await guidance.get(alice, id);
+    assert.equal(captured!.flow.id, flowId);
+    assert.equal(captured!.answers.length, 2);
+    await guidance.save(alice, id, flow.stages[0].nodes[0].id, answer(`${flow.name} test`, 1));
+    await guidance.save(alice, id, flow.stages[0].nodes[1].id, answer(`Purpose for ${flow.name}`, 1));
+    const metadata = await projects.get(alice, id);
+    assert.equal(metadata.name, `${flow.name} test`);
+    assert.equal(metadata.description, `Purpose for ${flow.name}`);
+    const node = flow.stages[1].nodes[0];
+    await guidance.save(alice, id, node.id, answer("A supported finding with source references."));
+    assert.equal((await guidance.get(alice, id))!.answers.find((item) => item.node_id === node.id)?.content, "A supported finding with source references.");
+    assert.equal((await guidance.history(alice, id, node.id)).length, 1);
+    await assert.rejects(guidance.get(outsider, id));
+    await assert.rejects(guidance.save(outsider, id, node.id, answer("Unauthorized", 1)));
+    await assert.rejects(guidance.save(alice, id, "inquiry-evidence", answer("Wrong flow")));
+    await assert.rejects(guidance.select(alice, id, flowId === "eshop" ? "shirt-eshop" : "eshop"));
+  }
+  const id = await projects.create(alice, { name: "Invalid type", description: "Validation fixture" });
+  await assert.rejects(guidance.select(alice, id, "__proto__"));
 });

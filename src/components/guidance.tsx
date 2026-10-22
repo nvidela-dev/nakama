@@ -36,7 +36,7 @@ export function FlowChooser({ projectId }: { projectId: string }) {
               disabled={pending}
             >
               <span aria-hidden="true">
-                {flow.id === "venture" ? "↗" : flow.id === "investigation" ? "⌕" : "✳"}
+                {flow.id === "investigation" ? "⌕" : flow.id === "creative" ? "✳" : flow.id.includes("eshop") ? "▣" : flow.id === "saas" ? "⌘" : flow.id === "importation" ? "⇄" : flow.id === "consultancy" ? "◇" : "↗"}
               </span>
               <strong>{t(flow.name)}</strong>
               <span>{t(flow.description)}</span>

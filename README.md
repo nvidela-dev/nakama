@@ -6,7 +6,7 @@ Nakama will help a small group capture an idea, explore it through approachable 
 
 **Status: private projects and guided flows are live at [Nakama](https://nakama-brown-eight.vercel.app), using development services.** The Next.js app includes a public harbor, Clerk sign-in integration, private project capture, owner/member access, and recipient-specific invitation links. SQL/access tests pass locally, and the main authenticated browser journey has passed against dedicated Clerk and Neon development resources. The guided flows support stage/question navigation, saved answers, explicit progress, revision history, and conflict handling. Contextual comments and a project activity feed are implemented, with author attribution, conflict checks, and project-scoped access. Export and AI remain unimplemented. See [development setup and verification](docs/development.md).
 
-Investigation is the newest project type: its implementation is verified locally against development services; live deployment verification remains pending. Project relationships and spawning linked follow-ups are accepted future work.
+Project types include Venture, Creative/fun, Investigation, E-shop (generic or Shirt E-shop), SaaS, Importation, and Consultancy. The newest business flows are implemented locally; live deployment verification remains pending. Project relationships and spawning linked follow-ups are accepted future work.
 
 ## The experience
 

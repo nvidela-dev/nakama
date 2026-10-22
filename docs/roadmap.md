@@ -205,3 +205,7 @@ The user accepted Investigation as a third project type, using Frame → Explore
 The broader accepted direction is that projects have outcomes, can link to one another, and can spawn several follow-up projects that remain linked. Begin with Investigation; cross-project outcome entities, relationships, and spawning controls are subsequent implementation. Each future linked project must keep its own membership checks: a link must never reveal private names/context or grant access. Outcome choices in this slice are saved answers, not a new universal outcome entity.
 
 The user authorized implementation and pushing this change, including the pending yellow-green revisit text. Migration 004 only expands the allowed flow IDs and retains existing project data.
+
+## E-shop, SaaS, Importation, and Consultancy — 2026-10-22
+
+The user requested the listed project types, with a generic or shirt-specific E-shop. Add five selectable flow templates: E-shop, Shirt E-shop, SaaS, Importation, and Consultancy. Each uses five domain-specific stages, explicit outcome/follow-up questions, bilingual guidance, and existing private project services. Reuse the first two capture nodes for metadata across every type rather than extending hard-coded flow-name checks. Migration 005 expands only the allowed flow IDs. Switching existing flows, linked-project spawning, and operating external businesses/services remain outside this slice.

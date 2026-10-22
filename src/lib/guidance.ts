@@ -8,6 +8,7 @@ import {
   flows,
   type Flow,
   type FlowId,
+  isFlowId,
   type NodeStatus,
 } from "./flows";
 export type Answer = {
@@ -79,7 +80,7 @@ const answerInput = z.object({
 export function guidanceService(db: Database) {
   return {
     async select(actor: Actor, projectId: string, flowId: string) {
-      if (flowId !== "venture" && flowId !== "creative" && flowId !== "investigation")
+      if (!isFlowId(flowId))
         throw new ProjectError("Choose one of the available flows.");
       return db.transaction(async (tx) => {
         await membership(tx, actor, projectId);
@@ -264,9 +265,9 @@ export function guidanceService(db: Database) {
           if (current) throw new ConflictError(current);
           throw new ProjectError("This answer changed. Reload before saving.");
         }
-        const isName = nodeId === "idea-name" || nodeId === "spark-name" || nodeId === "inquiry-name";
+        const isName = nodeId === flow.stages[0].nodes[0].id;
         const isDescription =
-          nodeId === "idea-description" || nodeId === "spark-description" || nodeId === "inquiry-description";
+          nodeId === flow.stages[0].nodes[1].id;
         if (
           (isName && data.content.length > 100) ||
           (isDescription && data.content.length > 2000)
