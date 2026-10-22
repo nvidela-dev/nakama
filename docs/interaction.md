@@ -73,3 +73,15 @@ The members sidebar includes an expandable Activity section, open on project ove
 Owner project edit/delete controls sit beneath the right-hand members/activity panel, stacking below it on narrow screens.
 
 The accepted brand mark is a curling wave. Interface brand motifs and browser/home-screen icons share its silhouette, retaining the dark green background, lime mark, and pink accent in app icons.
+
+Question progress and its answered/skipped/blocked counts, project state, progress wheel, and mini-view toggle form a compact panel above Members/Activity in the right column. The flow-name/“Your path” banner is removed. On single-column phones the sidebar follows the journey. This layout applies to the public synthetic preview as well.
+
+Expanded-stage steps use compact two-line cards: title/state followed by dependency context/type. Keep branching rows and readable dependency labels, with a minimum 44px clickable height.
+
+At widths of 2000px and above, private projects use three columns in both Compact and Comfortable density: contextual discussion history/composer on the left, project work in the center, progress/members on the right. The left panel stays visible while scrolling with independently scrollable history. Discussion retains its current project/stage/node context and a single composer instance. Below this breakpoint it returns beneath project work.
+
+Desktop expanded stages and question editors use a vertical overall-stage rail to the left of their content. It stays visible while scrolling, preserves numbered ordering and current-stage highlighting, and appears in both densities from 1024px. In ultrawide layouts the rail is inside the center project column, alongside the existing left discussion column. Phones retain breadcrumb/All stages navigation.
+
+A successful step save returns to that stage's step list. Validation failures and revision conflicts stay in the editor with the draft intact; only a confirmed successful save navigates away.
+
+Members and invitations sit inside a keyboard-accessible disclosure, closed by default, with the member count visible in the summary. Activity remains a separate disclosure.

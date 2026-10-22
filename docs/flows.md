@@ -16,7 +16,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["Name"] --> B["Brief description"] --> C["Idea captured"]
+  A["Name"] --> B["Brief description"]
 ```
 
 Example: “A neighborhood tool library. Let neighbors borrow rarely used tools.” Save before requesting deeper answers.

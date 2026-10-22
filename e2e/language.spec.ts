@@ -102,8 +102,9 @@ test("switching languages preserves drafts, stored content, canonical decisions 
   await language(page, "es");
   await page.getByLabel("¿En qué estado está?").selectOption("answered");
   await page.getByRole("button", { name: "Guardar este paso" }).click();
-  await expect(page.getByText("Guardado.")).toBeVisible();
-  await page.reload();
+  await expect(page).toHaveURL(`${project}?stage=experiment`);
+  await expect(page.locator(".node-tree")).toBeVisible();
+  await page.goto(`${project}?stage=experiment&node=experiment-direction`);
   await expect(page.getByLabel("Tu respuesta, aprendizaje o duda")).toHaveValue(
     "Mi borrador stays exactly as typed.",
   );

@@ -62,14 +62,6 @@ export const flows: Record<FlowId, Flow> = {
             "Help neighbors borrow tools they only need once.",
             ["idea-name"],
           ),
-          node(
-            "idea-captured",
-            "Idea captured",
-            "What would you like to explore next?",
-            "Who might need this most?",
-            ["idea-description"],
-            "outcome",
-          ),
         ],
       },
       {

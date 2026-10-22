@@ -125,3 +125,31 @@ The user requested a favicon, metadata, and PWA support. Add a dark/lime Nakama 
 ## Wave brand mark — 2026-10-22
 
 The user replaced the asterisk/initial icon direction with a wave, retaining the existing dark green, lime, and pink palette. Use the same wave silhouette for interface brand motifs, the favicon, Apple touch icon, and PWA install icons. The creative-flow choice symbol remains a separate flow indicator.
+
+## Progress above the right panel — 2026-10-22
+
+The user requested the question-progress bar, answered/skipped/blocked counts, project state, and progress controls stacked above the right sidebar, and removal of the flow-name/“Your path” banner. Keep saved-question progress semantics and the mini-view toggle intact. On phones the sidebar retains its single-column position after the journey. Keep this improvement local until the user explicitly requests pushing the accumulated changes.
+
+## Compact question steps — 2026-10-22
+
+The user requested much more compact step cards. Put the title and explicit state on one row, with dependency context and node kind beneath; reduce padding and connector gaps while retaining a 44px minimum target. Preserve branch rows, dependency labels, revisit states, and existing navigation. Keep local with the pending sidebar improvement.
+
+## Ultrawide discussion column — 2026-10-22
+
+The user requested a three-column ultrawide workspace with discussion history and composer always on the left. At 2000px and above, use discussion / project work / progress-and-members columns in both desktop densities, including projects before flow selection. Keep the left discussion panel sticky with scrollable history and the composer in the same panel. Preserve one mounted discussion instance across viewport changes and existing contextual project/stage/node scopes; this does not combine scopes or introduce live chat. Smaller layouts retain discussion below project work. Keep local until explicitly asked to push.
+
+## Vertical overall-stage rail — 2026-10-22
+
+The user requested overall stages as a vertical left-hand navigation rail rather than horizontal tabs. On desktop (1024px and above), place the ordered stage links to the left of the current stage/question content in both densities, retaining the active-stage highlight and stable links. In ultrawide mode this rail sits inside the center work column, with discussion farther left and progress/members on the right. Phones retain the breadcrumb and All stages overview. No navigation or progress semantics change; keep local pending push authorization.
+
+## Return to the stage after saving a step — 2026-10-22
+
+The user requested returning to the step list after saving. After a confirmed successful step save (including drafts and reconciled conflicts), navigate to the current stage without a node selected. Validation failures and unresolved conflicts keep the editor and local draft open. Existing save authorization, revision checking, and revalidation remain unchanged. Keep local with the other pending improvements.
+
+## Remove the redundant Idea captured step — 2026-10-22
+
+The user requested removing “Idea captured” from the Venture flow. The Idea stage now consists only of Name and Brief description; capture already supplies these answers. Retire the outcome node from the template without renumbering stable IDs or changing the stored template version, so existing projects remain usable. No stored answers, history, comments, or activity are deleted. Question counts remain unchanged because the removed node was an outcome, not a question. Keep local with the pending improvements.
+
+## Collapsible members and invitations — 2026-10-22
+
+The user requested the Members section as a dropdown. Use a native disclosure closed by default, with the member count visible in its summary and membership/invitation controls inside. Keep Activity independently expandable. Existing owner-only controls and server authorization remain unchanged. Keep local with the other pending improvements.

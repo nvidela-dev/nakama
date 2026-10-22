@@ -133,3 +133,32 @@ The root layout supplies localized page and social titles/descriptions, applicat
 On HTTPS (or localhost), use a supporting browser's install control; on iPhone/iPad use Share → Add to Home Screen. Installation opens Nakama in a standalone window. The app requires a connection and does not register a service worker or store private pages for offline use. Device installation and deployed metadata must be checked after deployment; local build success does not prove either.
 
 Local validation for this slice passed: 29 tests, type checking, production build, and Chrome inspection of the production server's public preview. Chrome confirmed rendered title/social/theme metadata and manifest linkage; the manifest and every favicon/touch/install icon returned HTTP 200 with the expected content type. Manifest standalone display and icon entries were checked, and no service worker registrations were present. The icon was visually inspected. No deployment or physical-device installation was performed.
+
+## Sidebar progress layout — 2026-10-22
+
+Progress now occupies a dedicated panel above the right-hand Members/Activity panel; the flow-name/“Your path” banner is removed. Existing server-authorized sidebar and discussion content pass through layout slots, with no change to data queries or permission checks. Local production build (including TypeScript) passed. Chrome checks on the synthetic public preview verified right-column placement, banner removal, mini-view open/close, stage navigation, and a 390px layout without horizontal overflow; desktop and phone screenshots were inspected. Authenticated project layout and private draft preservation were not re-tested in this slice. Changes remain local pending the user's push instruction.
+
+## Compact question-step cards — 2026-10-22
+
+Step cards now put title/state on the first line and dependency/type beneath, with smaller padding and connector gaps and a 44px minimum target. Narrow screens use one card per row to avoid splitting titles into cramped columns. Production build passed; Chrome's synthetic preview measured desktop cards at about 51px, verified step navigation, and showed no horizontal overflow at 390px. Desktop and mobile card screenshots were inspected; the final mobile-only CSS rule was additionally checked by injecting that exact rule into the built preview. Authenticated venture data was not exercised, and nothing was pushed.
+
+## Ultrawide discussion workspace — 2026-10-22
+
+At 2000px and above, private projects use discussion/project/progress-and-members columns in both densities, including before flow selection. A single discussion instance moves through grid placement; it is not duplicated. The panel sticks within the viewport and its history can scroll while the composer remains in the same panel. Contextual comment queries and writes are unchanged. Production build passed. Authenticated Chrome checks against the existing development environment passed for 2560px column order in both densities, 1440px fallback below project work, comment-draft retention across resizing, one composer, and no overflow at 390px. The check only typed and cleared an unsent draft; no comment was posted. Long-history scrolling and contextual navigation with an unsaved comment were not exercised. Nothing was pushed.
+
+## Vertical stage navigation — 2026-10-22
+
+Overall-stage links now form a vertical rail beside the expanded stage or question editor on desktop, in both densities; mobile keeps the breadcrumb. Production build and Chrome checks passed: vertical alignment and no horizontal overflow at 1024/1440/2560px in both densities, stage navigation, one active-stage highlight, rail visibility in the question editor, and the 390px fallback. The desktop synthetic-preview screenshot was inspected. This slice did not repeat authenticated comment/access tests; all accumulated changes remain local.
+
+## Return to step list after save — 2026-10-22
+
+A confirmed saved revision now clears the dirty state and navigates to the existing stage back-link. Validation/conflict responses keep the editor mounted. Existing journey/language checks were adjusted to expect the stage list and reopen the step to inspect saved content. Production build and all 29 local tests passed. Authenticated Chrome checks against development services verified successful return, persisted content on reopening, validation staying in the editor, stale-revision draft retention, and return after explicit conflict reconciliation. Both disposable synthetic projects were deleted after checks. The full journey/language suites were not rerun; nothing was pushed.
+
+## Members dropdown — 2026-10-22
+
+Members, the invitation form, and pending invitations now use a native disclosure closed by default. The count stays visible and Activity remains independent. Production build passed. Authenticated Chrome checks on development services verified default collapse, keyboard/mouse toggles, preservation of an unsent email across closing/reopening, and no horizontal overflow at 390px. No invitation was created or sent. Existing full invitation E2E suites were not rerun; their selectors now open Members before accessing invitation controls. Nothing was pushed.
+
+
+## Accumulated workspace improvements — integration check, 2026-10-22
+
+The user authorized pushing the accumulated improvements to main. The final combined build (including TypeScript), all 29 local tests, and diff whitespace validation passed. Browser evidence and its limits for individual changes are recorded above. The full service-backed journey/language/collaboration suites were adjusted for navigation and disclosure behavior but were not rerun as a set. Deployment verification remains separate.

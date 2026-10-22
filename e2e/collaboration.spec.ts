@@ -41,6 +41,7 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await expect(discussion.getByRole("link",{name:"https://example.com",exact:true})).toHaveAttribute("rel","noopener noreferrer");
   await page.getByRole("button",{name:/Creative/}).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
+  await page.locator(".members-dropdown > summary").click();
   await page.getByLabel("Email address",{exact:true}).fill(friendEmail);
   await page.getByRole("button",{name:"Create invitation link",exact:true}).click();
   const link=await page.getByLabel("Share this link privately").inputValue();
@@ -91,6 +92,7 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await page.getByRole("button",{name:"English",exact:true}).click();
   await expect(page.locator("html")).toHaveAttribute("lang","en");
   await page.goto(path);
+  if (!(await page.locator(".members-dropdown").evaluate((element) => (element as HTMLDetailsElement).open))) await page.locator(".members-dropdown > summary").click();
   await page.getByRole("button",{name:"Remove member",exact:true}).click();
   await friend.goto(node);
   await expect(friend.getByRole("heading",{name:"This project isn't available."})).toBeVisible();

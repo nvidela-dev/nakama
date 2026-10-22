@@ -38,6 +38,8 @@ export function Journey({
   history = [],
   names = {},
   preview = false,
+  sidebar,
+  discussion,
 }: {
   projectId: string;
   guidance: Guidance;
@@ -46,6 +48,8 @@ export function Journey({
   history?: Revision[];
   names?: Record<string, string>;
   preview?: boolean;
+  sidebar?: React.ReactNode;
+  discussion?: React.ReactNode;
 }) {
   const t = useT();
   const [showMap, setShowMap] = useState(false);
@@ -82,7 +86,9 @@ export function Journey({
     );
   const review = reviews.find((r) => r.stage_id === stageId);
   return (
-    <section className="journey">
+    <div className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
+      <div className="project-working-column">
+    <section className={`journey${activeStage ? " has-stage-rail" : ""}`}>
       {activeStage && (
         <nav className="desktop-stage-nav" aria-label={t("All stages")}>
           {flow.stages.map((stage, index) => (
@@ -96,48 +102,7 @@ export function Journey({
           ))}
         </nav>
       )}
-      <div className="journey-summary">
-        <div>
-          <span className="eyebrow">
-            {t(flow.name).toLocaleUpperCase()} {t("· YOUR PATH")}
-          </span>
-          <p>
-            <strong>{answered}</strong> {t("of")} {questions.length}{" "}
-            {t("questions answered")}{" "}
-          </p>
-          <small>
-            {skipped} {t("skipped ·")} {blocked} {t("blocked ·")}{" "}
-            {t(guidance.projectState.replaceAll("_", " "))}
-          </small>
-        </div>
-        <div className="journey-progress-controls">
-          <button type="button" className="button secondary miniview-icon" aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
-              <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5" />
-            </svg>
-          </button>
-        <div
-          className="progress-ring"
-          style={
-            {
-              "--progress": `${questions.length ? (answered / questions.length) * 100 : 0}%`,
-            } as React.CSSProperties
-          }
-        >
-          <span aria-hidden="true"><WaveMark /></span>
-        </div>
-        </div>
-      </div>
-      <div
-        className="progress-track"
-        role="progressbar"
-        aria-label={t("Questions answered, not proof of success")}
-        aria-valuemin={0}
-        aria-valuemax={questions.length}
-        aria-valuenow={answered}
-      >
-        <span style={{ width: `${(answered / questions.length) * 100}%` }} />
-      </div>
+      <div className="journey-content">
       <div id="project-stage-map">
         {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
       </div>
@@ -269,7 +234,7 @@ export function Journey({
                             {answer?.needs_review ? t(" · revisit") : ""}
                           </span>
                           <strong>{t(node.label)}</strong>
-                          <small>{t(node.kind)}</small>
+                          <small className="node-type">{t(node.kind)}</small>
                           {node.after.length > 0 && (
                             <small className="node-after">
                               {t("After:")}{" "}
@@ -342,6 +307,54 @@ export function Journey({
           )}
         </>
       )}
+      </div>
     </section>
+      </div>
+      {discussion && <div className="project-discussion-column">{discussion}</div>}
+      <div className="project-sidebar">
+        <section className="journey-progress-panel panel" aria-label={t("Questions answered, not proof of success")}>
+      <div className="journey-summary">
+        <div>
+          <p>
+            <strong>{answered}</strong> {t("of")} {questions.length}{" "}
+            {t("questions answered")}{" "}
+          </p>
+          <small>
+            {skipped} {t("skipped ·")} {blocked} {t("blocked ·")}{" "}
+            {t(guidance.projectState.replaceAll("_", " "))}
+          </small>
+        </div>
+        <div className="journey-progress-controls">
+          <button type="button" className="button secondary miniview-icon" aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
+              <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5" />
+            </svg>
+          </button>
+        <div
+          className="progress-ring"
+          style={
+            {
+              "--progress": `${questions.length ? (answered / questions.length) * 100 : 0}%`,
+            } as React.CSSProperties
+          }
+        >
+          <span aria-hidden="true"><WaveMark /></span>
+        </div>
+        </div>
+      </div>
+      <div
+        className="progress-track"
+        role="progressbar"
+        aria-label={t("Questions answered, not proof of success")}
+        aria-valuemin={0}
+        aria-valuemax={questions.length}
+        aria-valuenow={answered}
+      >
+        <span style={{ width: `${(answered / questions.length) * 100}%` }} />
+      </div>
+        </section>
+        {sidebar}
+      </div>
+    </div>
   );
 }

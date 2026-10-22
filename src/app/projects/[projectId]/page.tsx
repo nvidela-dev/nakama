@@ -54,39 +54,13 @@ export default async function ProjectPage({
     if (value) params.set(kind, value);
     return `/projects/${projectId}${params.size ? `?${params}` : ""}`;
   }
-  return (
-    <main id="main" className="workspace">
-      <Link className="back-link" href="/projects">
-        {t("← Your projects")}{" "}
-      </Link>
-      <div className="page-heading">
-        <h1>{project.name}</h1>
-        <p className="preserve-lines">{project.description}</p>
-      </div>
-      <div className="workspace-columns">
-        <div className="project-working-column">
-        {guidance ? (
-          <Journey
-            projectId={projectId}
-            guidance={guidance}
-            stageId={query.stage}
-            nodeId={query.node}
-            history={history}
-            names={Object.fromEntries(
-              people.members.map((m) => [m.user_id, m.display_name]),
-            )}
-          />
-        ) : (
-          <FlowChooser projectId={projectId} />
-        )}
-        <Discussion key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`} projectId={projectId} target={{ stageId: query.stage, nodeId: query.node }} label={discussionLabel} comments={comments} userId={person.userId} owner={project.role === "owner"} olderHref={comments.next ? pageHref("commentsBefore", comments.next) : undefined} latestHref={query.commentsBefore ? pageHref("commentsBefore") : undefined} />
-        </div>
-        <div className="project-sidebar">
+  const sidebar = (
+<>
         <aside className="panel">
-          <h2>
-            {t("Members")}{" "}
-            <span className="count">{people.members.length}</span>
-          </h2>
+          <details className="members-dropdown">
+          <summary>
+            <span>{t("Members")} <span className="count">{people.members.length}</span></span>
+          </summary>
           <ul className="people-list">
             {people.members.map((m) => (
               <li key={m.user_id}>
@@ -144,14 +118,47 @@ export default async function ProjectPage({
               )}
             </>
           )}
+          </details>
           <ActivityFeed projectId={projectId} activity={activity} flow={guidance?.flow} open={!query.stage || !!query.activityBefore} olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined} latestHref={query.activityBefore ? pageHref("activityBefore") : undefined} />
         </aside>
       {project.role === "owner" && <ProjectSettings
         projectId={projectId} name={project.name} description={project.description}
         contentRevision={guidance?.contentRevision ?? 0}
       />}
-        </div>
+        </>
+  );
+  const discussion = (
+<Discussion key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`} projectId={projectId} target={{ stageId: query.stage, nodeId: query.node }} label={discussionLabel} comments={comments} userId={person.userId} owner={project.role === "owner"} olderHref={comments.next ? pageHref("commentsBefore", comments.next) : undefined} latestHref={query.commentsBefore ? pageHref("commentsBefore") : undefined} />
+  );
+  return (
+    <main id="main" className="workspace">
+      <Link className="back-link" href="/projects">
+        {t("← Your projects")}{" "}
+      </Link>
+      <div className="page-heading">
+        <h1>{project.name}</h1>
+        <p className="preserve-lines">{project.description}</p>
       </div>
+      {guidance ? (
+        <Journey
+          projectId={projectId}
+          guidance={guidance}
+          stageId={query.stage}
+          nodeId={query.node}
+          history={history}
+          names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
+          sidebar={sidebar}
+          discussion={discussion}
+        />
+      ) : (
+        <div className="workspace-columns project-capture-workspace has-discussion">
+          <div className="project-working-column">
+            <FlowChooser projectId={projectId} />
+          </div>
+          <div className="project-discussion-column">{discussion}</div>
+          <div className="project-sidebar">{sidebar}</div>
+        </div>
+      )}
     </main>
   );
 }

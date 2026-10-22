@@ -2,6 +2,7 @@
 import { useT, useLocale } from "@/components/language";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import {
   chooseFlow,
@@ -68,6 +69,7 @@ export function AnswerEditor({
   backHref: string;
 }) {
   const t = useT();
+  const router = useRouter();
   const [state, action, pending] = useActionState(
     saveAnswer.bind(null, projectId, node.id),
     initial,
@@ -87,9 +89,10 @@ export function AnswerEditor({
     if (state.savedRevision) {
       setRevision(state.savedRevision);
       setDirty(false);
+      router.push(backHref);
     }
     setReconciled(false);
-  }, [state]);
+  }, [state, router, backHref]);
   useEffect(() => {
     if (!dirty) return;
     const guard = (event: BeforeUnloadEvent) => {

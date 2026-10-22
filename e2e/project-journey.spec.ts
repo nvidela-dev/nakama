@@ -39,6 +39,7 @@ test("private capture, invitation, guided editing, conflict, and removal on real
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
+  await page.locator(".members-dropdown > summary").click();
   await page.getByLabel("Email address").fill(friendEmail);
   await page.getByRole("button", { name: "Create invitation link" }).click();
   const inviteInput = page.getByLabel("Share this link privately");
@@ -69,7 +70,8 @@ test("private capture, invitation, guided editing, conflict, and removal on real
     .fill("Warm voices and homemade sound effects.");
   await page.getByLabel("Where does this stand?").selectOption("answered");
   await page.getByRole("button", { name: "Save this step" }).click();
-  await expect(page.getByText("Saved.")).toBeVisible();
+  await expect(page).toHaveURL(`${projectPath}?stage=imagine`);
+  await expect(page.locator(".node-tree")).toBeVisible();
   await friend
     .getByLabel("Your answer, learning, or uncertainty")
     .fill("A friend’s different draft.");
@@ -83,8 +85,9 @@ test("private capture, invitation, guided editing, conflict, and removal on real
   ).toHaveValue("A friend’s different draft.");
   await friend.getByRole("button", { name: "Keep my version" }).click();
   await friend.getByRole("button", { name: "Save this step" }).click();
-  await expect(friend.getByText("Saved.")).toBeVisible();
-  await friend.reload();
+  await expect(friend).toHaveURL(`${projectPath}?stage=imagine`);
+  await expect(friend.locator(".node-tree")).toBeVisible();
+  await friend.goto(nodePath);
   await expect(
     friend.getByLabel("Your answer, learning, or uncertainty"),
   ).toHaveValue("A friend’s different draft.");
@@ -115,6 +118,7 @@ test("private capture, invitation, guided editing, conflict, and removal on real
     outsider.getByRole("heading", { name: "This project isn't available." }),
   ).toBeVisible();
   await page.goto(projectPath);
+  await page.locator(".members-dropdown > summary").click();
   await page.getByLabel("Email address").fill(friendEmail);
   await page.getByRole("button", { name: "Create invitation link" }).click();
   await expect(page.getByLabel("Share this link privately")).toBeVisible();
