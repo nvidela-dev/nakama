@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getLocale, getT } from "@/lib/i18n/server";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { authConfigured } from "@/lib/auth";
 import { Header } from "@/components/header";
@@ -8,11 +8,23 @@ import "./globals.css";
 import { LanguageProvider } from "@/components/language";
 import { enUS } from "@clerk/localizations/en-US";
 import { esUY } from "@clerk/localizations/es-UY";
+export const viewport: Viewport = {
+  themeColor: "#101c1b",
+  colorScheme: "dark",
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
+  const title = t("Nakama — Projects");
+  const description = t("Define, develop, and manage projects with your team.");
   return {
-    title: t("Nakama — Projects"),
-    description: t("Define, develop, and manage projects with your team."),
+    title: { default: title, template: "%s | Nakama" },
+    description,
+    applicationName: "Nakama",
+    appleWebApp: { capable: true, title: "Nakama", statusBarStyle: "default" },
+    formatDetection: { telephone: false },
+    openGraph: { title, description, siteName: "Nakama", type: "website" },
+    twitter: { card: "summary", title, description },
     referrer: "no-referrer",
   };
 }

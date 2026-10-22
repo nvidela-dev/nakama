@@ -117,3 +117,7 @@ The feed combines existing answer revisions and stage-review history with newly 
 ## Project control placement — 2026-10-22
 
 Place owner edit/delete controls beneath the right sidebar panel. Replace the large mini-view text button with an accessible cube icon immediately left of the progress wheel; keep the ordinary journey visible and the optional map initially hidden.
+
+## Installable web app and metadata — 2026-10-22
+
+The user requested a favicon, metadata, and PWA support. Add a dark/lime Nakama monogram, browser and Apple icons, localized page/social metadata, and a public web manifest with standalone display and a stable root identity. Installation uses browser-provided controls. Keep the app online-only: no service worker, offline project storage, push notifications, or cached private responses are introduced. Installed launches still use the existing admission and membership checks.
