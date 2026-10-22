@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { actor } from "@/lib/auth";
@@ -15,6 +16,7 @@ export default async function ProjectPage({
   params: Promise<{ projectId: string }>;
   searchParams: Promise<{ stage?: string; node?: string }>;
 }) {
+  const t = await getT();
   const person = await actor();
   const { projectId } = await params;
   const service = projectService(database());
@@ -40,10 +42,10 @@ export default async function ProjectPage({
   return (
     <main id="main" className="workspace">
       <Link className="back-link" href="/projects">
-        ← Your projects
+        {t("← Your projects")}{" "}
       </Link>
       <div className="page-heading">
-        <span className="eyebrow">A LITTLE WORLD OF YOUR OWN</span>
+        <span className="eyebrow">{t("A LITTLE WORLD OF YOUR OWN")}</span>
         <h1>{project.name}</h1>
         <p className="preserve-lines">{project.description}</p>
       </div>
@@ -64,16 +66,17 @@ export default async function ProjectPage({
         )}
         <aside className="panel">
           <h2>
-            Your crew <span className="count">{people.members.length}</span>
+            {t("Your crew")}{" "}
+            <span className="count">{people.members.length}</span>
           </h2>
           <ul className="people-list">
             {people.members.map((m) => (
               <li key={m.user_id}>
                 <div>
                   <strong>
-                    {m.user_id === person.userId ? "You" : m.display_name}
+                    {m.user_id === person.userId ? t("You") : m.display_name}
                   </strong>
-                  <small>{m.role}</small>
+                  <small>{t(m.role)}</small>
                 </div>
                 {project.role === "owner" && m.role === "member" && (
                   <AccessButton
@@ -87,9 +90,9 @@ export default async function ProjectPage({
           </ul>
           {project.role === "owner" && (
             <>
-              <h3>Bring someone aboard</h3>
+              <h3>{t("Bring someone aboard")}</h3>
               <InviteForm projectId={projectId} />
-              <h3>Invitations</h3>
+              <h3>{t("Invitations")}</h3>
               {people.invitations.length ? (
                 <ul className="people-list">
                   {people.invitations.map((inv) => (
@@ -98,12 +101,12 @@ export default async function ProjectPage({
                         <strong>{inv.email}</strong>
                         <small>
                           {inv.revoked_at
-                            ? "Revoked"
+                            ? t("Revoked")
                             : inv.accepted_at
-                              ? "Accepted"
+                              ? t("Accepted")
                               : new Date(inv.expires_at) <= new Date()
-                                ? "Expired"
-                                : "Pending"}
+                                ? t("Expired")
+                                : t("Pending")}
                         </small>
                       </div>
                       {!inv.revoked_at &&
@@ -119,7 +122,7 @@ export default async function ProjectPage({
                   ))}
                 </ul>
               ) : (
-                <p className="muted">No invitations yet.</p>
+                <p className="muted">{t("No invitations yet.")}</p>
               )}
             </>
           )}

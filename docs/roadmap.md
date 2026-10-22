@@ -57,3 +57,7 @@ Made under the request to begin building; these are engineering choices, not new
 These resolve the membership, initial roles, capture order, initial invitation duration/delivery, and scaffold questions above. Ownership transfer, provider hosting region, and later policy questions remain open.
 
 The M2 implementation adopts the domain status proposal, template version 1, and explicit human stage reviews. A read-only public sample illustrates the interface without exposing real project data.
+
+## Language support — 2026-10-22
+
+The user requested English and Spanish with switching in both directions. The header exposes both language names, remembers the choice in a one-year browser cookie, and defaults to English when no supported preference exists. Spanish uses familiar Rioplatense wording. The interface, both guided flows, feedback, and embedded Clerk components follow the choice. User content and canonical stored choices remain unchanged; switching preserves in-progress forms. No schema migration or automatic translation of project data is involved.

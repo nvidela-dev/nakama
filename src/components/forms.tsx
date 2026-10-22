@@ -1,4 +1,6 @@
 "use client";
+import { useT } from "@/components/language";
+
 import { useActionState, useEffect, useRef, useState } from "react";
 import {
   acceptInvitation,
@@ -9,28 +11,30 @@ import {
 } from "@/app/actions";
 const initial: ActionState = {};
 export function Feedback({ state }: { state: ActionState }) {
+  const t = useT();
   return (
     <>
       {state.error && (
         <p className="message error" role="alert">
-          {state.error}
+          {t(state.error)}
         </p>
       )}
       {state.success && (
         <p className="message" role="status">
-          {state.success}
+          {t(state.success)}
         </p>
       )}
     </>
   );
 }
 export function CaptureForm() {
+  const t = useT();
   const [state, action, pending] = useActionState(createProject, initial);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   return (
     <form action={action} className="form-stack">
-      <label htmlFor="name">Give your idea a name</label>
+      <label htmlFor="name">{t("Give your idea a name")}</label>
       <input
         id="name"
         name="name"
@@ -38,9 +42,9 @@ export function CaptureForm() {
         onChange={(e) => setName(e.target.value)}
         required
         maxLength={100}
-        placeholder="A tiny pirate radio play"
+        placeholder={t("A tiny pirate radio play")}
       />
-      <label htmlFor="description">What are you imagining?</label>
+      <label htmlFor="description">{t("What are you imagining?")}</label>
       <textarea
         id="description"
         name="description"
@@ -49,17 +53,20 @@ export function CaptureForm() {
         required
         maxLength={2000}
         rows={4}
-        placeholder="A few sentences is plenty. You can figure out the rest together."
+        placeholder={t(
+          "A few sentences is plenty. You can figure out the rest together.",
+        )}
       />
       <Feedback state={state} />
       <button disabled={pending}>
-        {pending ? "Saving your idea…" : "Give it a place to grow ↗"}
+        {pending ? t("Saving your idea…") : t("Give it a place to grow ↗")}
       </button>
-      <small>Private to you until you invite someone.</small>
+      <small>{t("Private to you until you invite someone.")}</small>
     </form>
   );
 }
 export function InviteForm({ projectId }: { projectId: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState(
     invitePerson.bind(null, projectId),
     initial,
@@ -77,7 +84,7 @@ export function InviteForm({ projectId }: { projectId: string }) {
   }, [state.token]);
   return (
     <form action={action} className="form-stack">
-      <label htmlFor="email">A friend's email</label>
+      <label htmlFor="email">{t("A friend's email")}</label>
       <input
         id="email"
         name="email"
@@ -86,19 +93,20 @@ export function InviteForm({ projectId }: { projectId: string }) {
         onChange={(e) => setEmail(e.target.value)}
         required
         maxLength={254}
-        placeholder="friend@example.com"
+        placeholder={t("friend@example.com")}
       />
       <small>
-        They'll need this verified email to join. Links expire after 7 days. A
-        new invitation replaces their previous unused link.
+        {t(
+          "They'll need this verified email to join. Links expire after 7 days. A new invitation replaces their previous unused link.",
+        )}{" "}
       </small>
       <button disabled={pending} className="secondary">
-        {pending ? "Preparing…" : "Create invitation link"}
+        {pending ? t("Preparing…") : t("Create invitation link")}
       </button>
       <Feedback state={state} />
       {link && (
         <div className="invite-result">
-          <label htmlFor="invite-link">Share this link privately</label>
+          <label htmlFor="invite-link">{t("Share this link privately")}</label>
           <input
             id="invite-link"
             readOnly
@@ -117,7 +125,7 @@ export function InviteForm({ projectId }: { projectId: string }) {
               }
             }}
           >
-            {copied ? "Copied" : "Copy invitation"}
+            {copied ? t("Copied") : t("Copy invitation")}
           </button>
         </div>
       )}
@@ -133,6 +141,7 @@ export function AccessButton({
   id: string;
   operation: "revoke" | "remove";
 }) {
+  const t = useT();
   const [state, action, pending] = useActionState(
     managePerson.bind(null, projectId),
     initial,
@@ -143,16 +152,17 @@ export function AccessButton({
       <input type="hidden" name="operation" value={operation} />
       <button className="text-button" disabled={pending}>
         {pending
-          ? "Updating…"
+          ? t("Updating…")
           : operation === "revoke"
-            ? "Revoke invitation"
-            : "Remove member"}
+            ? t("Revoke invitation")
+            : t("Remove member")}
       </button>
       <Feedback state={state} />
     </form>
   );
 }
 export function AcceptForm() {
+  const t = useT();
   const [state, action, pending] = useActionState(acceptInvitation, initial);
   const [token, setToken] = useState("");
   const initialized = useRef(false);
@@ -169,9 +179,9 @@ export function AcceptForm() {
       <input type="hidden" name="token" value={token} />
       <Feedback state={state} />
       <button disabled={pending || !token}>
-        {pending ? "Joining…" : "Join this project"}
+        {pending ? t("Joining…") : t("Join this project")}
       </button>
-      {!token && <p>Open the original invitation link to join.</p>}
+      {!token && <p>{t("Open the original invitation link to join.")}</p>}
     </form>
   );
 }
