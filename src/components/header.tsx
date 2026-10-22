@@ -12,6 +12,7 @@ export function Header() {
       </Link>
       <nav aria-label="Main navigation">
         <Link href="/">The harbor</Link>
+        <Link href="/preview">A sample path</Link>
         {authConfigured() && (
           <>
             <Show when="signed-in">

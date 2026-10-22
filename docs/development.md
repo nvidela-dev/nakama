@@ -1,6 +1,6 @@
 # Development and verification
 
-The first application slice implements Clerk integration, project capture, per-project owner/member access, and recipient-specific invitations. It is not deployed or connected to cloud services yet. Guided stages, comments, and export remain subsequent work.
+The first application slice implements Clerk integration, project capture, per-project owner/member access, and recipient-specific invitations. It is not deployed or connected to cloud services yet. Both guided flows, saved answers, progress, and revision history are also implemented. Comments and export remain subsequent work.
 
 ## Run locally
 
@@ -43,3 +43,13 @@ Owner creates a 7-day link for one email, shares it manually, and can revoke it.
 Tokens are random 256-bit values; only their SHA-256 hashes are stored. Links carry the secret in the URL fragment, so it is not sent as an HTTP path/query or referrer. Acceptance uses a POST Server Action. The sign-in modal keeps the fragment in place; after sign-in the form reads and removes it from browser history. If the page is reloaded after that, reopen the original link. Never log action bodies or capture invitation screens in public artifacts.
 
 Display names are membership-time snapshots from Clerk; they do not grant permission. Changing a Clerk profile does not yet synchronize these labels. Ownership transfer, self-service account/project deletion, audit history, production abuse controls, and invitation email delivery are not implemented. The owner cannot be removed through the current member-removal operation.
+
+## Guided-flow slice
+
+Apply migration 002 explicitly after 001. Projects choose one versioned flow; switching is deliberately rejected rather than losing answers. Capture data becomes the first two answers with its original author/time. An answered edit to the name/description updates the project header; drafts do not rename it.
+
+Question nodes count toward answered progress; activity/outcome nodes do not. Skipped and blocked states require a reason, and an honest unknown or a negative finding can be answered. Saving a direction can park/resume a project; the creative finishing choice can mark it finished enough. The last explicitly answered direction remains in effect when its draft is later edited.
+
+Writes serialize per project and compare the node revision. A conflict returns the authorized current answer and retains the local draft until the member explicitly reconciles. Earlier edits flag dependent nodes/later stages for review without clearing answers. Stage reviews compare a project content revision to reject stale reviews and retain immutable rationale history. Answer history records human attribution; no AI writes exist.
+
+The read-only `/preview` route uses fixed illustrative data only and has no save operation or access to project records. It lets anyone inspect stages and question guidance without authentication, while private services retain their normal checks. Chrome checks cover five stages, branching questions, question/back navigation, and a 390px layout with reduced motion. Ten service/template tests pass; authenticated UI persistence and conflicts still need real Clerk/Neon verification. Unsaved forms warn on links and full-page exit; browser history navigation is not a draft-storage feature. Save a draft before navigating away.

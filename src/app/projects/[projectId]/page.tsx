@@ -4,19 +4,35 @@ import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
 import { ProjectError, projectService } from "@/lib/projects";
 import { AccessButton, InviteForm } from "@/components/forms";
+import { guidanceService } from "@/lib/guidance";
+import { FlowChooser } from "@/components/guidance";
+import { Journey } from "@/components/journey";
 export const dynamic = "force-dynamic";
 export default async function ProjectPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ stage?: string; node?: string }>;
 }) {
   const person = await actor();
   const { projectId } = await params;
   const service = projectService(database());
-  let project, people;
+  const query = await searchParams;
+  let project, people, guidance;
+  let history: Awaited<
+    ReturnType<ReturnType<typeof guidanceService>["history"]>
+  > = [];
   try {
     project = await service.get(person, projectId);
     people = await service.people(person, projectId);
+    guidance = await guidanceService(database()).get(person, projectId);
+    if (query.node)
+      history = await guidanceService(database()).history(
+        person,
+        projectId,
+        query.node,
+      );
   } catch (error) {
     if (error instanceof ProjectError) notFound();
     throw error;
@@ -32,14 +48,20 @@ export default async function ProjectPage({
         <p className="preserve-lines">{project.description}</p>
       </div>
       <div className="workspace-columns">
-        <section className="panel">
-          <span className="eyebrow">THE FIRST STEP</span>
-          <h2>Your idea has a home.</h2>
-          <p>Bring a friend aboard, or let the thought settle for a moment.</p>
-          <p className="muted">
-            Guided stages are the next part of this workspace taking shape.
-          </p>
-        </section>
+        {guidance ? (
+          <Journey
+            projectId={projectId}
+            guidance={guidance}
+            stageId={query.stage}
+            nodeId={query.node}
+            history={history}
+            names={Object.fromEntries(
+              people.members.map((m) => [m.user_id, m.display_name]),
+            )}
+          />
+        ) : (
+          <FlowChooser projectId={projectId} />
+        )}
         <aside className="panel">
           <h2>
             Your crew <span className="count">{people.members.length}</span>
