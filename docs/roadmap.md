@@ -1,6 +1,6 @@
 # Roadmap and decision register
 
-All milestones after M0 are unimplemented. Exit criteria describe future evidence required, not promises of a timeline. Requirement IDs refer to [requirements](requirements.md).
+M1 has a first code implementation: capture, access, and invitation links. It remains incomplete until real Clerk/Neon browser verification and the remaining launch checks. Later milestones are unimplemented. Exit criteria describe future evidence required, not promises of a timeline. Requirement IDs refer to [requirements](requirements.md).
 
 | Milestone | Deliverable | Exit evidence / dependency |
 | --- | --- | --- |
@@ -43,3 +43,15 @@ Lightweight visual prototypes may inform M2 without delaying functional access/e
 | AI choices | Provider/model, budgets, consent, transcript access, retention, tools, execution host. | M6/M7 |
 
 When a proposal is accepted, record its date, reason, and consequence here and update the canonical document. Add a dedicated decision record only when the tradeoff warrants more space. Do not treat the existence of this document as approval of every proposed implementation detail.
+
+## Implementation choices — 2026-10-21
+
+Made under the request to begin building; these are engineering choices, not newly invented product requirements.
+
+- Next.js/TypeScript with parameterized node-postgres queries and explicit SQL migrations.
+- Clerk identity with Postgres as the sole project membership authority; owner/member roles.
+- Name and description capture before flow selection.
+- Seven-day verified-recipient invitation links, manually shared; no email provider provisioned.
+- Cloud services and deployment remain unconfigured; see [development](development.md) for evidence and limits.
+
+These resolve the membership, initial roles, capture order, initial invitation duration/delivery, and scaffold questions above. Ownership transfer, provider hosting region, and later policy questions remain open.

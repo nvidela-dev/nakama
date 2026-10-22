@@ -1,0 +1,37 @@
+{
+  "name": "nakama",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "@clerk/nextjs": "7.9.19",
+    "pg": "^8.16.3",
+    "@vercel/functions": "^3.0.0",
+    "zod": "^4.0.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/pg": "^8.15.0",
+    "tsx": "^4.20.0",
+    "@electric-sql/pglite": "^0.3.14",
+    "@playwright/test": "^1.56.0"
+  },
+  "type": "module"
+}
