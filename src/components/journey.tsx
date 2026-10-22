@@ -102,6 +102,25 @@ export function Journey({
         ),
     );
   const review = reviews.find((r) => r.stage_id === stageId);
+  const progressControls = (
+        <div className="journey-progress-controls">
+          <button type="button" className="button secondary miniview-icon" aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
+              <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5" />
+            </svg>
+          </button>
+        <div
+          className="progress-ring"
+          style={
+            {
+              "--progress": `${questions.length ? (answered / questions.length) * 100 : 0}%`,
+            } as React.CSSProperties
+          }
+        >
+          <span aria-hidden="true"><WaveMark /></span>
+        </div>
+        </div>
+  );
   return (
     <div ref={workspace} className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
       <div className="project-working-column">
@@ -133,9 +152,10 @@ export function Journey({
               </>}
             </ol>
           </nav>
-        {!activeNode && <>
-              <h2>{t(activeStage.question)}</h2>
-        </>}
+        <div className="stage-heading-row">
+          <h2>{t(activeStage.question)}</h2>
+          {progressControls}
+        </div>
       </header>}
       {activeStage && (
         <nav className="desktop-stage-nav" aria-label={t("All stages")}>
@@ -362,23 +382,7 @@ export function Journey({
             {t(guidance.projectState.replaceAll("_", " "))}
           </small>
         </div>
-        <div className="journey-progress-controls">
-          <button type="button" className="button secondary miniview-icon" aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
-              <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5" />
-            </svg>
-          </button>
-        <div
-          className="progress-ring"
-          style={
-            {
-              "--progress": `${questions.length ? (answered / questions.length) * 100 : 0}%`,
-            } as React.CSSProperties
-          }
-        >
-          <span aria-hidden="true"><WaveMark /></span>
-        </div>
-        </div>
+        {!activeStage && progressControls}
       </div>
       <div
         className="progress-track"

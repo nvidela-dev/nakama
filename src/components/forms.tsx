@@ -63,7 +63,7 @@ export function CaptureForm() {
     </form>
   );
 }
-export function InviteForm({ projectId }: { projectId: string }) {
+export function InviteForm({ projectId, candidates }: { projectId: string; candidates: string[] }) {
   const t = useT();
   const [state, action, pending] = useActionState(
     invitePerson.bind(null, projectId),
@@ -82,23 +82,18 @@ export function InviteForm({ projectId }: { projectId: string }) {
   }, [state.token]);
   return (
     <form action={action} className="form-stack">
-      <label htmlFor="email">{t("Email address")}</label>
-      <input
-        id="email"
-        name="email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        maxLength={254}
-        placeholder={t("friend@example.com")}
-      />
+      <label htmlFor="email">{t("Approved person")}</label>
+      <select id="email" name="email" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={pending || !candidates.length}>
+        <option value="">{t("Choose an approved person")}</option>
+        {candidates.map((candidate) => <option key={candidate} value={candidate}>{candidate}</option>)}
+      </select>
+      {!candidates.length && <p className="muted">{t("No approved people available to invite.")}</p>}
       <small>
         {t(
           "They'll need this verified email to join. Links expire after 7 days. A new invitation replaces their previous unused link.",
         )}{" "}
       </small>
-      <button disabled={pending} className="secondary">
+      <button disabled={pending || !email || !candidates.includes(email)} className="secondary">
         {pending ? t("Preparing…") : t("Create invitation link")}
       </button>
       <Feedback state={state} />

@@ -1,5 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
 :root {
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --ink: #edf2e8;
   --muted: #a6b3ab;
   --bg: #101c1b;
@@ -19,7 +19,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "DM Sans", sans-serif;
+  font-family: var(--font-mono);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -77,7 +77,7 @@ p {
 h1,
 h2,
 h3 {
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-mono);
   line-height: 1.18;
   letter-spacing: -0.045em;
 }
@@ -103,7 +103,7 @@ h3 {
   border-bottom: 1px solid #ffffff0c;
 }
 .brand {
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-mono);
   font-size: 29px;
   font-weight: 800;
   letter-spacing: -1px;
@@ -253,7 +253,7 @@ nav {
 }
 .note-one strong {
   display: block;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-mono);
   font-size: 21px;
   margin-top: 10px;
 }
@@ -1757,7 +1757,7 @@ footer {
 .miniview-scene { max-width: 980px; margin-inline: auto; }
 
 /* Spatial wireframes use the existing Nakama brand tokens. */
-.journey-miniview { border: 1px solid var(--line); border-radius: 4px; background: radial-gradient(ellipse at 50% 50%, var(--panel) 0%, var(--bg) 65%); box-shadow: inset 0 0 60px var(--dark); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.journey-miniview { border: 1px solid var(--line); border-radius: 4px; background: radial-gradient(ellipse at 50% 50%, var(--panel) 0%, var(--bg) 65%); box-shadow: inset 0 0 60px var(--dark); font-family: var(--font-mono); }
 .miniview-heading { padding-bottom: .6rem; border-bottom: 1px solid var(--line); }
 .miniview-heading > strong { color: var(--lime); text-transform: uppercase; letter-spacing: .18em; font-size: .85rem; text-shadow: 0 0 12px var(--line); }
 .miniview-controls button { border-radius: 2px; background: var(--dark); border-color: var(--line); color: var(--lime); font-size: .75rem; }
@@ -1956,11 +1956,6 @@ footer {
   }
 }
 
-.members-dropdown > summary { cursor: pointer; font-weight: 700; font-size: 18px; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; }
-.members-dropdown > summary::-webkit-details-marker { display: none; }
-.members-dropdown > summary::after { content: "⌄"; color: var(--muted); }
-.members-dropdown[open] > summary::after { content: "⌃"; }
-.members-dropdown > summary:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; border-radius: 4px; }
 
 /* Pink identifies overall-stage navigation; saved progress remains explicit. */
 @media (min-width: 1024px) {
@@ -2013,4 +2008,35 @@ footer {
 .journey-breadcrumb svg { flex-shrink: 0; }
 @media (pointer: coarse) {
   .journey-breadcrumb a { min-height: 44px; }
+}
+
+.stage-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.stage-heading-row h2 { margin: 0; min-width: 0; }
+.stage-heading-row .journey-progress-controls { gap: 8px; }
+.stage-heading-row .journey-progress-controls .miniview-icon,
+html[data-density="compact"] .workspace .stage-heading-row .miniview-icon { width: 32px; height: 32px; min-height: 32px; min-width: 32px; padding: 0; border-radius: 6px; }
+.stage-heading-row .miniview-icon svg { width: 18px; height: 18px; }
+.stage-heading-row .progress-ring,
+html[data-density="compact"] .stage-heading-row .progress-ring { width: 32px; height: 32px; }
+.stage-heading-row .progress-ring span,
+html[data-density="compact"] .stage-heading-row .progress-ring span { width: 27px; height: 27px; font-size: 17px; }
+@media (pointer: coarse) {
+  .stage-heading-row .journey-progress-controls .miniview-icon,
+  html[data-density="compact"] .workspace .stage-heading-row .miniview-icon { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+}
+.journey-stage-heading .stage-heading-row h2 { margin: 0; }
+html[data-density="compact"] .workspace .journey-stage-heading .stage-heading-row h2 { margin: 0; }
+
+/* Static dotted airflow: a wave-shaped fade behind the header controls. */
+.site-header { position: relative; isolation: isolate; }
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, #dcf6a35c .6px, #dcf6a326 1px, transparent 1.5px), radial-gradient(ellipse at 65% 0%, #dcf6a314, transparent 70%);
+  background-size: 7px 7px, 100% 100%;
+  mask: url("/header-wave-mask.svg") center / 100% 100% no-repeat;
+  -webkit-mask: url("/header-wave-mask.svg") center / 100% 100% no-repeat;
 }

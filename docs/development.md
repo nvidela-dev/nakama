@@ -182,3 +182,19 @@ The desktop right sidebar now follows the measured offset of the middle content,
 ## Breadcrumb refinement — 2026-10-22
 
 Breadcrumbs now distinguish ancestor links from a highlighted current location with a semantic ordered path, overview icon, and muted chevrons. Production build passed. Chrome synthetic-preview checks verified stage and question current-location labels, stage/overview ancestor navigation, and no horizontal overflow at 390px; a desktop breadcrumb screenshot was inspected. Existing project routes and authorization are unchanged. Nothing was pushed.
+
+## Monospace typography and heading controls — 2026-10-22
+
+The UI now uses the system monospace stack, including headings and branding, without a Google font import. Stage/question headings include a single compact map toggle and progress wheel; the right panel retains counts/bar. Overview controls remain in their original panel. Production build passed. Chrome verified computed monospace fonts, same-row heading/control alignment, 32px desktop sizing, map toggling, overview controls, and no overflow at 390px. Desktop/phone screenshots were inspected. A final compact-heading margin override was verified by injecting the exact rule into the built page. Authenticated flows were not repeated. Nothing was pushed.
+
+## Approved-person invitation dropdown — 2026-10-22
+
+Members is expanded again. Owner invitation forms now use approved email candidates, excluding addresses belonging to existing members; approval does not require an already-created account. Candidate discovery checks project ownership before reading provider data, and submission rechecks eligibility before the existing invitation write. Non-owners do not receive the list. Production build and all 29 tests passed. Authenticated Chrome checks verified expanded members, a real select control, owner-email exclusion, disabled submission without a selection, and no overflow at 390px. No invitations were created. Journey/collaboration selectors were updated for the select and duplicate-member exclusion; their full suites were not rerun. Newly created invitation acceptance and provider-failure scenarios were not re-exercised. Nothing was pushed.
+
+## Header mesh texture — 2026-10-22
+
+Added a static lime dot pattern behind the header, faded through an SVG wave mask with horizontal/vertical gradients. It has no animation, ignores pointer input, and adds no dependencies. Production build passed; Chrome verified mask delivery, navigation click-through, and no overflow at 390px. Desktop and phone header screenshots were visually inspected. Nothing was pushed.
+
+## Softened mesh and accumulated release check — 2026-10-22
+
+Feathered the SVG wave mask and reduced dot contrast/vertical opacity for a softer header fade. The final combined production build and all 29 tests passed; desktop and 390px header screenshots were inspected, with no phone overflow. The user authorized pushing the pending monospace/heading-controls, approved-person dropdown, and mesh work to main. Live deployment verification remains separate.

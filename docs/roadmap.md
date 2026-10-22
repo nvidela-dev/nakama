@@ -177,3 +177,19 @@ The user requested removing the “Open a step to see its question and example�
 ## Clearer breadcrumbs — 2026-10-22
 
 The user requested improved breadcrumbs. Use a semantic ordered path with a small overview icon, quiet chevron separators, compact hover targets, and a distinct current-location pill. The current stage is plain current-location text on stage pages; in a question editor it links back to the step list and the question becomes current. Wrap long paths on phones and preserve existing routes.
+
+## Monospace interface and heading controls — 2026-10-22
+
+The user requested a monospaced font throughout and smaller map/progress icons on the stage-question heading row. Use the system monospace stack (SF Mono/Menlo on macOS), removing the Google sans-font request and overriding heading/brand font choices. On selected stages and question editors, move the single map toggle and progress wheel beside the stage question; keep counts and progress bar in the right panel. Overview controls remain in the progress panel. Use 32px desktop controls with a preserved 44px touch target for the map button.
+
+## Approved-person invitation dropdown — 2026-10-22
+
+The user clarified that “dropdown” means selecting an invitee from approved people, not collapsing Members. Restore the expanded Members section. Project owners may discover approved email candidates, excluding existing member accounts and the owner's verified emails; this does not grant allowlist administration. Recheck project ownership, approval, and non-membership on invitation submission. Preserve verified-recipient invitation links and manual sharing; do not directly add people or send emails. Approved entries can be selected before they have created an account.
+
+## Wave-fading header mesh — 2026-10-22
+
+The user requested a futuristic dotted gradient mesh that fades in a wave shape on the header. Use a static CSS dot field and a small SVG wave mask, retaining the green/lime palette. The decoration sits behind the interface, does not intercept input, and adds no animation or rendering dependency.
+
+## Softer header mesh fade — 2026-10-22
+
+The user requested a less rigid mesh and authorized pushing the accumulated changes. Feather the wave boundary, fade the pattern earlier, and lower dot contrast so the texture dissolves into the background rather than ending at a sharp contour.

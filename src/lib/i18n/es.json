@@ -513,5 +513,10 @@
   "moderated a comment": "moderó un comentario",
   "captured an answer": "registró una respuesta inicial",
   "saved an answer": "guardó una respuesta",
-  "reviewed a stage": "revisó una etapa"
+  "reviewed a stage": "revisó una etapa",
+  "Approved person": "Persona aprobada",
+  "Choose an approved person": "Elegí una persona aprobada",
+  "No approved people available to invite.": "No hay personas aprobadas disponibles para invitar.",
+  "Choose an approved person who is not already a project member.": "Elegí una persona aprobada que todavía no sea miembro del proyecto.",
+  "Only the project owner can invite members.": "Solo quien creó el proyecto puede invitar miembros."
 }

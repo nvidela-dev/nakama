@@ -1,6 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { invitationCandidates } from "@/lib/invitation-candidates";
 import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
 import { ProjectError, projectService } from "@/lib/projects";
@@ -35,10 +36,13 @@ export async function invitePerson(
 ): Promise<ActionState> {
   const person = await actor();
   try {
+    const email = field(data, "email").trim().toLowerCase();
+    if (!(await invitationCandidates(person, projectId)).includes(email))
+      throw new ProjectError("Choose an approved person who is not already a project member.");
     const { token } = await projectService(database()).invite(
       person,
       projectId,
-      field(data, "email"),
+      email,
     );
     revalidatePath(`/projects/${projectId}`);
     return {

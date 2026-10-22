@@ -95,3 +95,9 @@ The stage rail uses lighter green, superseding the previous pink treatment. Brea
 On desktop the right progress/members stack starts at the same height as the stage rail and substeps/editor, below the shared heading (and expanded map). Its offset follows actual content size across density, language, and viewport changes.
 
 Breadcrumbs use an ordered path with an overview icon, muted chevrons, and a highlighted current-location pill. Only ancestor locations are links. Paths wrap on narrow screens; coarse-pointer links retain 44px targets.
+
+The interface uses a system monospace font throughout. Selected-stage headings show compact map/progress controls on the same row as the stage question, including when editing a question. Counts and the progress bar remain in the right panel; the overview keeps its controls there too.
+
+The approved-person dropdown supersedes the earlier Members disclosure: Members stays expanded, while owners select an approved non-member from the invitation form.
+
+The header carries a fine lime dot mesh with a sweeping wave-shaped gradient fade. It remains decorative behind readable navigation, with no animation or interactive surface.

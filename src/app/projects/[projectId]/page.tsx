@@ -1,3 +1,4 @@
+import { invitationCandidates } from "@/lib/invitation-candidates";
 import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -42,6 +43,7 @@ export default async function ProjectPage({
     if (error instanceof ProjectError) notFound();
     throw error;
   }
+  const candidates = project.role === "owner" ? await invitationCandidates(person, projectId) : [];
   const selectedStage = guidance?.flow.stages.find((stage) => stage.id === query.stage);
   const selectedNode = selectedStage?.nodes.find((node) => node.id === query.node);
   const discussionLabel = selectedNode ? t(selectedNode.label) : selectedStage ? t(selectedStage.name) : t("Project discussion");
@@ -57,10 +59,8 @@ export default async function ProjectPage({
   const sidebar = (
 <>
         <aside className="panel">
-          <details className="members-dropdown">
-          <summary>
-            <span>{t("Members")} <span className="count">{people.members.length}</span></span>
-          </summary>
+          <div className="project-members">
+          <h2>{t("Members")} <span className="count">{people.members.length}</span></h2>
           <ul className="people-list">
             {people.members.map((m) => (
               <li key={m.user_id}>
@@ -83,7 +83,7 @@ export default async function ProjectPage({
           {project.role === "owner" && (
             <>
               <h3>{t("Invite member")}</h3>
-              <InviteForm projectId={projectId} />
+              <InviteForm projectId={projectId} candidates={candidates} />
               <h3>{t("Invitations")}</h3>
               {people.invitations.length ? (
                 <ul className="people-list">
@@ -118,7 +118,7 @@ export default async function ProjectPage({
               )}
             </>
           )}
-          </details>
+          </div>
           <ActivityFeed projectId={projectId} activity={activity} flow={guidance?.flow} open={!query.stage || !!query.activityBefore} olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined} latestHref={query.activityBefore ? pageHref("activityBefore") : undefined} />
         </aside>
       {project.role === "owner" && <ProjectSettings
