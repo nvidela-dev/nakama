@@ -91,3 +91,7 @@ Overall-stage navigation uses the pink brand accent, distinct from green questio
 The optional 3D map opens above the full project-working area, spanning both the stage rail and substep/editor width. Both move down together; closing the map restores their position without unmounting the editor.
 
 The stage rail uses lighter green, superseding the previous pink treatment. Breadcrumb, stage question, and guidance occupy a shared heading above the rail and substeps, aligning their first items. The private project title sits beside Your projects, with description directly underneath.
+
+On desktop the right progress/members stack starts at the same height as the stage rail and substeps/editor, below the shared heading (and expanded map). Its offset follows actual content size across density, language, and viewport changes.
+
+Breadcrumbs use an ordered path with an overview icon, muted chevrons, and a highlighted current-location pill. Only ancestor locations are links. Paths wrap on narrow screens; coarse-pointer links retain 44px targets.

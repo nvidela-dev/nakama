@@ -2,7 +2,7 @@
 import { WaveMark } from "@/components/wave-mark";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/language";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -53,6 +53,23 @@ export function Journey({
 }) {
   const t = useT();
   const [showMap, setShowMap] = useState(false);
+  const workspace = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = workspace.current;
+    const working = root?.querySelector<HTMLElement>(".project-working-column");
+    const content = root?.querySelector<HTMLElement>(".journey-content");
+    if (!root || !working || !content) return;
+    // Follow real heading/map height, including translations and responsive wrapping.
+    const alignSidebar = () => {
+      const offset = Math.max(0, content.getBoundingClientRect().top - working.getBoundingClientRect().top);
+      root.style.setProperty("--sidebar-content-offset", `${offset}px`);
+    };
+    const observer = new ResizeObserver(alignSidebar);
+    observer.observe(working);
+    observer.observe(content);
+    alignSidebar();
+    return () => observer.disconnect();
+  }, [stageId, nodeId, showMap]);
   const { flow, answers, reviews } = guidance;
   const base = preview ? "/preview" : `/projects/${projectId}`;
   const href = (stage?: string, node?: string) =>
@@ -86,7 +103,7 @@ export function Journey({
     );
   const review = reviews.find((r) => r.stage_id === stageId);
   return (
-    <div className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
+    <div ref={workspace} className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
       <div className="project-working-column">
       <div id="project-stage-map">
         {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
@@ -94,28 +111,30 @@ export function Journey({
     <section className={`journey${activeStage ? " has-stage-rail" : ""}`}>
       {activeStage && <header className="journey-stage-heading">
           <nav className="journey-breadcrumb" aria-label={t("Project path")}>
-            <Link href={base}>{t("All stages")}</Link>
-            <span>/</span>
-            <Link
-              href={href(activeStage.id)}
-              aria-current={activeNode ? undefined : "page"}
-            >
-              {t(activeStage.name)}
-            </Link>
-            {activeNode && (
-              <>
-                <span>/</span>
-                <span aria-current="page">{t(activeNode.label)}</span>
-              </>
-            )}
+            <ol>
+              <li>
+                <Link href={base}>
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="5" rx="1" />
+                    <rect x="12" y="3" width="5" height="5" rx="1" />
+                    <rect x="3" y="12" width="5" height="5" rx="1" />
+                    <rect x="12" y="12" width="5" height="5" rx="1" />
+                  </svg>
+                  {t("All stages")}
+                </Link>
+              </li>
+              <li className="breadcrumb-separator" aria-hidden="true">›</li>
+              <li>
+                {activeNode ? <Link href={href(activeStage.id)}>{t(activeStage.name)}</Link> : <span aria-current="page">{t(activeStage.name)}</span>}
+              </li>
+              {activeNode && <>
+                <li className="breadcrumb-separator" aria-hidden="true">›</li>
+                <li><span aria-current="page">{t(activeNode.label)}</span></li>
+              </>}
+            </ol>
           </nav>
         {!activeNode && <>
               <h2>{t(activeStage.question)}</h2>
-              <p className="muted">
-                {t(
-                  "Open a step to see its question and example. Branches can be explored in any order.",
-                )}{" "}
-              </p>
         </>}
       </header>}
       {activeStage && (

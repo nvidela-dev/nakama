@@ -1997,3 +1997,20 @@ footer {
   .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"],
   html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"] { background: #405b39; border-color: var(--lime); box-shadow: inset 3px 0 var(--lime); }
 }
+
+@media (min-width: 1024px) {
+  .journey-workspace > .project-sidebar { margin-top: var(--sidebar-content-offset, 0px); }
+}
+
+.journey-breadcrumb ol { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.journey-breadcrumb li { min-width: 0; }
+.journey-breadcrumb a,
+.journey-breadcrumb [aria-current="page"] { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; min-height: 32px; border-radius: 6px; line-height: 1.4; overflow-wrap: anywhere; }
+.journey-breadcrumb a { text-decoration: none; color: var(--muted); transition: background .15s, color .15s; }
+.journey-breadcrumb a:hover { background: var(--panel); color: var(--lime); }
+.journey-breadcrumb [aria-current="page"] { color: var(--ink); background: var(--panel); font-weight: 600; }
+.journey-breadcrumb .breadcrumb-separator { color: var(--muted); opacity: .6; padding-inline: 2px; font-size: 18px; }
+.journey-breadcrumb svg { flex-shrink: 0; }
+@media (pointer: coarse) {
+  .journey-breadcrumb a { min-height: 44px; }
+}

@@ -174,3 +174,11 @@ The map now renders above the stage rail/content layout, within the full project
 ## Heading alignment and lighter-green rail — 2026-10-22
 
 The breadcrumb, stage question, and guidance now share a row above the stage rail and substeps; their first items align. The rail is lighter green with a lime selected indicator, superseding pink. Private project headings place the title beside Your projects, with description beneath. Production build passed. Chrome verified first-stage/first-substep top alignment in both densities, the shared heading above, and a 390px layout without overflow; the synthetic desktop screenshot was inspected. An authenticated read-only development check verified title/link alignment at 2560px and wrapping without phone overflow. No project data changed, and nothing was pushed.
+
+## Right-panel vertical alignment — 2026-10-22
+
+The desktop right sidebar now follows the measured offset of the middle content, aligning beneath the shared heading and expanded map with the stage rail/substeps. A ResizeObserver tracks actual wrapping and map sizes; phones retain zero offset. Production build passed. Chrome synthetic-preview checks passed at 1024/1440/2560px in both densities, with the map open/closed, and at 390px without overflow or extra sidebar offset. The desktop screenshot was inspected. No data queries or permissions changed; authenticated operations were not repeated. Nothing was pushed.
+
+## Breadcrumb refinement — 2026-10-22
+
+Breadcrumbs now distinguish ancestor links from a highlighted current location with a semantic ordered path, overview icon, and muted chevrons. Production build passed. Chrome synthetic-preview checks verified stage and question current-location labels, stage/overview ancestor navigation, and no horizontal overflow at 390px; a desktop breadcrumb screenshot was inspected. Existing project routes and authorization are unchanged. Nothing was pushed.

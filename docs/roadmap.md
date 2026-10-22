@@ -165,3 +165,15 @@ The user requested the opened 3D map to push down both the overall-stage rail an
 ## Align stages with substeps and raise headings — 2026-10-22
 
 The user corrected the earlier color/alignment interpretation: the stage rail should be lighter green, and its first link should align with the first substep rather than the stage heading. Move breadcrumb, stage question, and guidance into a shared row above both columns. Move the project title beside the Your projects link, with description directly below. This supersedes the pink rail direction; keep the selected-stage indicator and saved-progress counts.
+
+## Align the right sidebar with project steps — 2026-10-22
+
+The user requested the right panel aligned with the middle step content. On desktop, align its top to the first step/editor row, matching the stage rail below the shared heading. Measure the actual content offset so translated headings, wrapping, and the expanded map stay aligned without fixed spacing guesses. Preserve the phone stack and existing access/data behavior.
+
+## Remove stage helper sentence — 2026-10-22
+
+The user requested removing the “Open a step to see its question and example…” helper sentence from expanded-stage headings. Keep the stage question and breadcrumb. The measured sidebar offset follows the shorter heading automatically.
+
+## Clearer breadcrumbs — 2026-10-22
+
+The user requested improved breadcrumbs. Use a semantic ordered path with a small overview icon, quiet chevron separators, compact hover targets, and a distinct current-location pill. The current stage is plain current-location text on stage pages; in a question editor it links back to the step list and the question becomes current. Wrap long paths on phones and preserve existing routes.
