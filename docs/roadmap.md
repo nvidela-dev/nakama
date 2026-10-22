@@ -1,6 +1,6 @@
 # Roadmap and decision register
 
-M1 has a first code implementation: capture, access, and invitation links. It remains incomplete until real Clerk/Neon browser verification and the remaining launch checks. M2 now has an implementation of both flows, answers, honest progress, conflict detection, and revisiting. Authenticated browser acceptance remains unverified; M3 onward remains unimplemented. Exit criteria describe future evidence required, not promises of a timeline. Requirement IDs refer to [requirements](requirements.md).
+M1 has a first code implementation: capture, access, and invitation links. The core M1/M2 journey is now verified against dedicated Clerk/Neon development resources; launch checks and remaining lifecycle operations are still outstanding. M2 now has an implementation of both flows, answers, honest progress, conflict detection, and revisiting. Authenticated capture, invitations, answers, edit conflicts, and removal are verified on development services; M3 onward remains unimplemented. Exit criteria describe future evidence required, not promises of a timeline. Requirement IDs refer to [requirements](requirements.md).
 
 | Milestone | Deliverable | Exit evidence / dependency |
 | --- | --- | --- |
@@ -52,7 +52,7 @@ Made under the request to begin building; these are engineering choices, not new
 - Clerk identity with Postgres as the sole project membership authority; owner/member roles.
 - Name and description capture before flow selection.
 - Seven-day verified-recipient invitation links, manually shared; no email provider provisioned.
-- Cloud services and deployment remain unconfigured; see [development](development.md) for evidence and limits.
+- Dedicated development services were authorized and connected on 2026-10-22; deployment remains unconfigured. See [development](development.md) for evidence and limits.
 
 These resolve the membership, initial roles, capture order, initial invitation duration/delivery, and scaffold questions above. Ownership transfer, provider hosting region, and later policy questions remain open.
 

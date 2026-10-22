@@ -28,7 +28,7 @@ export default function RootLayout({
     </>
   );
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         {authConfigured() ? <ClerkProvider>{content}</ClerkProvider> : content}
       </body>
