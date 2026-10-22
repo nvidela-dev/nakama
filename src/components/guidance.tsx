@@ -22,11 +22,8 @@ export function FlowChooser({ projectId }: { projectId: string }) {
   );
   return (
     <section className="panel">
-      <span className="eyebrow">{t("A LITTLE DIRECTION")}</span>
-      <h2>{t("What kind of adventure?")}</h2>
-      <p>
-        {t("Both start small. Pick the path that feels right for this idea.")}
-      </p>
+      <h2>{t("Project type")}</h2>
+      <p>{t("Choose a workflow for this project.")}</p>
       <form action={action}>
         <div className="flow-options">
           {Object.values(flows).map((flow) => (
@@ -123,16 +120,16 @@ export function AnswerEditor({
       </Link>
       <span className="eyebrow node-kind">
         {node.kind === "question"
-          ? t("ONE QUESTION AT A TIME")
+          ? t("QUESTION")
           : node.kind === "action"
-            ? t("TRY A LITTLE SOMETHING")
-            : t("A MOMENT TO DECIDE")}
+            ? t("ACTIVITY")
+            : t("DECISION")}
       </span>
       <h2 ref={heading} tabIndex={-1}>
         {t(node.question)}
       </h2>
       <details className="example">
-        <summary>{t("A little inspiration")}</summary>
+        <summary>{t("Example")}</summary>
         <p>{t(node.example)}</p>
         <small>
           {t("This is an example, not an answer saved for your project.")}
@@ -221,14 +218,13 @@ export function AnswerEditor({
         />
         {answer && (
           <small>
-            {t("Last saved by")}{" "}
-            {names[answer.updated_by] || t("a former member")} {t("· Revision")}{" "}
-            {answer.revision}
+            {t("Saved by")} {names[answer.updated_by] || t("a former member")}{" "}
+            {t("· Revision")} {answer.revision}
           </small>
         )}
         {state.conflict && (
           <div className="conflict">
-            <h3>{t("A newer saved answer")}</h3>
+            <h3>{t("Newer answer available")}</h3>
             <p className="preserve-lines">
               {state.conflict.content || t("(No text)")}
             </p>
@@ -260,7 +256,7 @@ export function AnswerEditor({
                   setReconciled(true);
                 }}
               >
-                {t("I've compared; keep my draft")}{" "}
+                {t("Keep my version")}{" "}
               </button>
             </div>
           </div>

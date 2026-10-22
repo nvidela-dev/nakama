@@ -53,7 +53,7 @@ test("templates preserve five stages, valid within-stage edges, guidance, and cr
   );
   assert.deepEqual(
     flows.creative.stages.map((s) => s.name),
-    ["Spark", "Imagine", "Experiment", "Shape", "Create"],
+    ["Concept", "Imagine", "Experiment", "Shape", "Create"],
   );
   for (const flow of Object.values(flows)) {
     const ids = new Set<string>();

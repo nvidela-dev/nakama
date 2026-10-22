@@ -11,10 +11,8 @@ import { esUY } from "@clerk/localizations/es-UY";
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return {
-    title: t("Nakama — a place for your what-ifs"),
-    description: t(
-      "Capture an idea. Find your people. Make a little something together.",
-    ),
+    title: t("Nakama — Projects"),
+    description: t("Define, develop, and manage projects with your team."),
     referrer: "no-referrer",
   };
 }
@@ -37,8 +35,7 @@ export default async function RootLayout({
       <Header />
       {children}
       <footer>
-        {t("Made for the things we haven't made yet.")}{" "}
-        <span>{t("Small steps. Good company.")}</span>
+        {t("Nakama")} <span>{t("Project development and collaboration.")}</span>
       </footer>
     </>
   );

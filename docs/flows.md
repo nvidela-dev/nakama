@@ -92,20 +92,20 @@ Keep this version for now. There is no requirement for profit, market demand, or
 
 ```mermaid
 flowchart TD
-  C1["1. Spark — What would be fun to make?"] --> C2["2. Imagine — What could it look or feel like?"]
-  C2 --> C3["3. Experiment — Let's try a little piece"]
+  C1["1. Concept — What are we making?"] --> C2["2. Imagine — What could it look or feel like?"]
+  C2 --> C3["3. Experiment — Test a prototype"]
   C3 --> C4["4. Shape — What do we want to make together?"]
   C4 --> C5["5. Create"]
 ```
 
-### 1. Spark — What would be fun to make?
+### 1. Concept — What are we making?
 
 ```mermaid
 flowchart TD
-  A["Name"] --> B["Brief description"] --> C["Spark captured"]
+  A["Name"] --> B["Brief description"] --> C["Concept recorded"]
 ```
 
-Example: “A tiny pirate radio play made with friends.”
+Example: “Audio production project made with friends.”
 
 ### 2. Imagine — What could it look or feel like?
 
@@ -121,7 +121,7 @@ flowchart TD
 
 Example: “Warm voices, silly sea monsters, and homemade sound effects.” Different friends can want different things; keep those perspectives visible.
 
-### 3. Experiment — Let's try a little piece
+### 3. Experiment — Test a prototype
 
 ```mermaid
 flowchart TD

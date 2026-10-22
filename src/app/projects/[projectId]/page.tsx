@@ -45,7 +45,6 @@ export default async function ProjectPage({
         {t("← Your projects")}{" "}
       </Link>
       <div className="page-heading">
-        <span className="eyebrow">{t("A LITTLE WORLD OF YOUR OWN")}</span>
         <h1>{project.name}</h1>
         <p className="preserve-lines">{project.description}</p>
       </div>
@@ -66,7 +65,7 @@ export default async function ProjectPage({
         )}
         <aside className="panel">
           <h2>
-            {t("Your crew")}{" "}
+            {t("Members")}{" "}
             <span className="count">{people.members.length}</span>
           </h2>
           <ul className="people-list">
@@ -90,7 +89,7 @@ export default async function ProjectPage({
           </ul>
           {project.role === "owner" && (
             <>
-              <h3>{t("Bring someone aboard")}</h3>
+              <h3>{t("Invite member")}</h3>
               <InviteForm projectId={projectId} />
               <h3>{t("Invitations")}</h3>
               {people.invitations.length ? (

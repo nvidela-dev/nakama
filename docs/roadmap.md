@@ -65,3 +65,7 @@ The user requested English and Spanish with switching in both directions. The he
 ## Desktop workspace — 2026-10-22
 
 The user requested much denser desktop forms and overviews, with useful ultrawide support and the existing phone design preserved. Compact is the default desktop density; Comfortable remains selectable. This is responsive workspace layout and a saved presentation preference, not a change to the flow template, data, or progress semantics.
+
+## Direct interface and signed-in home — 2026-10-22
+
+The user requested a professional, direct interface and projects as the signed-in home. Public visual styling remains; working-screen copy is concise and neutral. Labels may change while stable flow/node IDs, persisted choices, and user-authored content remain intact.

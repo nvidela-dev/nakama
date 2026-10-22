@@ -6,8 +6,8 @@ export default async function Page() {
   return (
     <main id="main" className="workspace narrow">
       <section className="panel">
-        <span className="eyebrow">{t("GOOD THINGS START WITH COMPANY")}</span>
-        <h1>{t("You're invited aboard.")}</h1>
+        <span className="eyebrow">{t("PROJECT INVITATION")}</span>
+        <h1>{t("Project invitation")}</h1>
         <p>
           {t(
             "Join using the verified email your friend invited. No project details are shared until you accept.",

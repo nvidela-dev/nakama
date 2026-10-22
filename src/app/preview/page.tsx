@@ -20,7 +20,7 @@ export default async function Preview({
         node_id: "spark-name",
         stage_id: "spark",
         revision: 1,
-        content: "A tiny pirate radio play",
+        content: "Audio production project",
         status: "answered",
         choice: null,
         needs_review: false,
@@ -32,7 +32,7 @@ export default async function Preview({
         stage_id: "spark",
         revision: 1,
         content:
-          "A short adventure with silly sea monsters and homemade sound effects.",
+          "An audio documentary with interviews and original recordings.",
         status: "answered",
         choice: null,
         needs_review: false,
@@ -44,13 +44,13 @@ export default async function Preview({
   return (
     <main id="main" className="workspace">
       <Link href="/" className="back-link">
-        {t("← Back to the harbor")}{" "}
+        {t("← Home")}{" "}
       </Link>
       <div className="page-heading">
         <span className="eyebrow">
           {t("READ-ONLY EXAMPLE · NOTHING HERE IS YOUR PROJECT DATA")}{" "}
         </span>
-        <h1>{t("A tiny pirate radio play")}</h1>
+        <h1>{t("Audio production project")}</h1>
         <p>
           {t(
             "Try opening a stage, then a question. This sample shows the path; sign in and create your own project to save answers.",

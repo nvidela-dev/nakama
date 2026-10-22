@@ -12,16 +12,13 @@ export default async function ProjectsPage() {
   return (
     <main id="main" className="workspace">
       <div className="page-heading">
-        <span className="eyebrow">{t("YOUR LITTLE WORLDS")}</span>
-        <h1>{t("Room for another what-if.")}</h1>
-        <p>{t("Start small. Invite your people when you're ready.")}</p>
+        <h1 aria-label={t("Projects")}>
+          {t("Projects")} <span className="count">{projects.length}</span>
+        </h1>
       </div>
       <div className="workspace-columns">
         <section className="project-list">
-          <h2>
-            {t("Your projects")}{" "}
-            <span className="count">{projects.length}</span>
-          </h2>
+          <h2 className="sr-only">{t("Your projects")}</h2>
           {projects.length ? (
             projects.map((p) => (
               <Link
@@ -30,7 +27,7 @@ export default async function ProjectsPage() {
                 href={`/projects/${p.id}`}
               >
                 <span className="eyebrow">
-                  {p.role === "owner" ? t("YOUR IDEA") : t("WITH YOUR CREW")}{" "}
+                  {p.role === "owner" ? t("OWNER") : t("MEMBER")}{" "}
                   <span aria-hidden="true">↗</span>
                 </span>
                 <h3>{p.name}</h3>
@@ -43,17 +40,13 @@ export default async function ProjectsPage() {
           ) : (
             <div className="empty-state">
               <span aria-hidden="true">✳</span>
-              <h3>{t("Your first idea starts here.")}</h3>
-              <p>
-                {t("It doesn't have to be impressive.")} <br />
-                {t("It just has to be yours.")}{" "}
-              </p>
+              <h3>{t("No projects yet")}</h3>
+              <p>{t("Create a project to get started.")}</p>
             </div>
           )}
         </section>
         <aside className="panel capture">
-          <span className="eyebrow">{t("A NEW BEGINNING")}</span>
-          <h2>{t("What's on your mind?")}</h2>
+          <h2>{t("New project")}</h2>
           <CaptureForm />
         </aside>
       </div>
