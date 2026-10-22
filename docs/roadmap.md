@@ -79,3 +79,7 @@ The supplied visual reference was accepted for this mini-view's art direction: w
 ## Title-only project cards — 2026-10-22
 
 The user requested project cards containing only the title. Remove descriptions and role/privacy labels from this overview to make the project list easier to scan. No project data or access policy changes.
+
+## Project-card stage timelines — 2026-10-22
+
+The user requested a small horizontal timeline beneath each title instead of a tree in the project list. Use saved question progress and explicit stage reviews, preserve revisit/block/skip semantics, and keep title-only cards free of descriptions and role labels. Summaries are fetched in one membership-scoped metadata query without loading answer text or review rationale. No schema migration or new tracking is needed.

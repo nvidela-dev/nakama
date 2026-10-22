@@ -276,3 +276,24 @@ test("creative decisions can save for later, resume, and finish without commerci
     "finished_enough",
   );
 });
+
+test("card timelines expose only member status metadata and preserve honest question progress", async () => {
+  const { projectProgress } = await import("../src/lib/project-progress");
+  const id = await project("creative");
+  const summaries = await projectProgress(db, alice);
+  const stages = summaries.get(id)!;
+  assert.equal(stages.length, 5);
+  assert.equal(stages[0].answered, 2);
+  assert.equal(stages[0].total, 2);
+  assert.equal(stages[0].reviewed, false);
+  assert.equal(stages[1].started, false);
+  await guidance.save(alice, id, "inspiration", { ...answer("Unsure"), status: "blocked" });
+  const updated = (await projectProgress(db, alice)).get(id)!;
+  assert.equal(updated[1].blocked, 1);
+  assert.equal(updated[1].answered, 0);
+  assert.equal(updated[1].started, true);
+  assert.equal((await projectProgress(db, outsider)).has(id), false);
+  assert.equal((await projectProgress(db, bob)).has(id), false);
+  await assert.rejects(projectProgress(db, { userId: "", verifiedEmails: [] }));
+  assert.ok(!JSON.stringify(updated).includes("Unsure"));
+});

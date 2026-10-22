@@ -47,3 +47,5 @@ The user's supplied reference refines the mini-view toward a dark technical disp
 ## Project list cards — 2026-10-22
 
 Project cards display only the project title as their navigation link. Descriptions, ownership/member labels, and the private-project footer are omitted from the list; project details and membership rules are unchanged.
+
+Each titled project card now includes a compact horizontal stage timeline for its selected flow. Stage labels and answered-question counts remain visible; partial rings show answer coverage, a check indicates explicit human review, and an exclamation flags revisiting. Tooltips and accessible list labels additionally report blocked/skipped counts. Answer coverage does not imply review or validation. Projects without a flow show a prompt to choose one rather than invented stages. The entire card remains one navigation link.

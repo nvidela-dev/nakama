@@ -424,5 +424,6 @@
   "Show 3D mini-view": "Mostrar minivista 3D",
   "reviewed": "revisado",
   "Mint: answered or reviewed · Cyan: in progress or draft · Purple: skipped · Red: blocked · Blue: not started": "Menta: respondido o revisado · Cian: en progreso o borrador · Violeta: omitido · Rojo: bloqueado · Azul: sin empezar",
-  "Lime: answered or reviewed · Peach: in progress, draft, or blocked · Muted: not started or skipped": "Lima: respondido o revisado · Durazno: en progreso, borrador o bloqueado · Tenue: sin empezar u omitido"
+  "Lime: answered or reviewed · Peach: in progress, draft, or blocked · Muted: not started or skipped": "Lima: respondido o revisado · Durazno: en progreso, borrador o bloqueado · Tenue: sin empezar u omitido",
+  "Stage progress": "Progreso por etapa"
 }

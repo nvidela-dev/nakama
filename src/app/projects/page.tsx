@@ -3,12 +3,17 @@ import Link from "next/link";
 import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
 import { projectService } from "@/lib/projects";
+import { projectProgress } from "@/lib/project-progress";
+import { ProjectTimeline } from "@/components/project-timeline";
 import { CaptureForm } from "@/components/forms";
 export const dynamic = "force-dynamic";
 export default async function ProjectsPage() {
   const t = await getT();
   const person = await actor();
-  const projects = await projectService(database()).list(person);
+  const [projects, progress] = await Promise.all([
+    projectService(database()).list(person),
+    projectProgress(database(), person),
+  ]);
   return (
     <main id="main" className="workspace">
       <div className="page-heading">
@@ -27,6 +32,7 @@ export default async function ProjectsPage() {
                 href={`/projects/${p.id}`}
               >
                 <h3>{p.name}</h3>
+                <ProjectTimeline stages={progress.get(p.id)} t={t} />
               </Link>
             ))
           ) : (
