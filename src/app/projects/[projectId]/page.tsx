@@ -132,11 +132,11 @@ export default async function ProjectPage({
   );
   return (
     <main id="main" className="workspace">
-      <Link className="back-link" href="/projects">
-        {t("← Your projects")}{" "}
-      </Link>
-      <div className="page-heading">
-        <h1>{project.name}</h1>
+      <div className="page-heading project-heading">
+        <div className="project-heading-line">
+          <Link className="back-link" href="/projects">{t("← Your projects")}</Link>
+          <h1>{project.name}</h1>
+        </div>
         <p className="preserve-lines">{project.description}</p>
       </div>
       {guidance ? (

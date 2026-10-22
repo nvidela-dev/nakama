@@ -92,6 +92,32 @@ export function Journey({
         {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
       </div>
     <section className={`journey${activeStage ? " has-stage-rail" : ""}`}>
+      {activeStage && <header className="journey-stage-heading">
+          <nav className="journey-breadcrumb" aria-label={t("Project path")}>
+            <Link href={base}>{t("All stages")}</Link>
+            <span>/</span>
+            <Link
+              href={href(activeStage.id)}
+              aria-current={activeNode ? undefined : "page"}
+            >
+              {t(activeStage.name)}
+            </Link>
+            {activeNode && (
+              <>
+                <span>/</span>
+                <span aria-current="page">{t(activeNode.label)}</span>
+              </>
+            )}
+          </nav>
+        {!activeNode && <>
+              <h2>{t(activeStage.question)}</h2>
+              <p className="muted">
+                {t(
+                  "Open a step to see its question and example. Branches can be explored in any order.",
+                )}{" "}
+              </p>
+        </>}
+      </header>}
       {activeStage && (
         <nav className="desktop-stage-nav" aria-label={t("All stages")}>
           {flow.stages.map((stage, index) => {
@@ -177,22 +203,6 @@ export function Journey({
         </>
       ) : (
         <>
-          <nav className="journey-breadcrumb" aria-label={t("Project path")}>
-            <Link href={base}>{t("All stages")}</Link>
-            <span>/</span>
-            <Link
-              href={href(activeStage.id)}
-              aria-current={activeNode ? undefined : "page"}
-            >
-              {t(activeStage.name)}
-            </Link>
-            {activeNode && (
-              <>
-                <span>/</span>
-                <span aria-current="page">{t(activeNode.label)}</span>
-              </>
-            )}
-          </nav>
           {activeNode ? (
             preview ? (
               <section className="panel answer-panel">
@@ -226,12 +236,6 @@ export function Journey({
             )
           ) : (
             <section className="stage-expanded">
-              <h2>{t(activeStage.question)}</h2>
-              <p className="muted">
-                {t(
-                  "Open a step to see its question and example. Branches can be explored in any order.",
-                )}{" "}
-              </p>
               <div className="node-tree">
                 {levels(activeStage).map((row, i) => (
                   <div key={i} className="tree-row">

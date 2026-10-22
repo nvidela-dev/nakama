@@ -89,3 +89,5 @@ Members and invitations sit inside a keyboard-accessible disclosure, closed by d
 Overall-stage navigation uses the pink brand accent, distinct from green question cards. The selected stage has a pink border and inset marker. Each rail link shows saved answered-question progress and explicit review/in-progress state; revisit flags stay visible. Full answer counts alone do not imply human review.
 
 The optional 3D map opens above the full project-working area, spanning both the stage rail and substep/editor width. Both move down together; closing the map restores their position without unmounting the editor.
+
+The stage rail uses lighter green, superseding the previous pink treatment. Breadcrumb, stage question, and guidance occupy a shared heading above the rail and substeps, aligning their first items. The private project title sits beside Your projects, with description directly underneath.

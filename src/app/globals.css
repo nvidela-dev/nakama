@@ -1975,3 +1975,25 @@ footer {
   .journey .desktop-stage-nav .stage-rail-link.reviewed .rail-label small { color: var(--lime); }
   .journey .desktop-stage-nav .stage-rail-link.revisit .rail-label small { color: var(--pink); }
 }
+
+/* Shared heading sits above both rails, so the first step row aligns. */
+.journey-stage-heading { min-width: 0; margin-bottom: 14px; }
+.journey-stage-heading .journey-breadcrumb { margin: 0 0 8px; }
+.journey-stage-heading h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.5px; }
+.journey-stage-heading > .muted { margin: 0; font-size: 12px; }
+.project-heading-line { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.project-heading-line .back-link { margin: 0; flex-shrink: 0; }
+.project-heading-line h1 { margin: 0; min-width: 0; }
+.workspace .project-heading { margin-top: 0; }
+@media (min-width: 1024px) {
+  .journey-stage-heading { grid-column: 1 / -1; margin: 0; }
+  .journey.has-stage-rail .journey-content .node-tree,
+  html[data-density="compact"] .journey.has-stage-rail .journey-content .node-tree { margin-top: 0; }
+  html[data-density="compact"] .journey-stage-heading .journey-breadcrumb { margin: 0 0 8px; }
+  html[data-density="compact"] .workspace .project-heading { margin-top: 0; }
+  .journey .desktop-stage-nav .rail-number { color: var(--lime); }
+  .journey .desktop-stage-nav a.stage-rail-link,
+  html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link { background: #2a4034; border-color: #637a55; }
+  .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"],
+  html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"] { background: #405b39; border-color: var(--lime); box-shadow: inset 3px 0 var(--lime); }
+}

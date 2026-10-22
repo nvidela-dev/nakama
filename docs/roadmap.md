@@ -161,3 +161,7 @@ The user requested visual synchronization of stages with their steps and a diffe
 ## Full-width map above stage navigation — 2026-10-22
 
 The user requested the opened 3D map to push down both the overall-stage rail and substeps. Place the map above the entire stage/editor layout within the project-working column, spanning its full width. Keep the discussion and progress/members columns independent and the ordinary editor mounted when toggling the map. No change to map content or authorization.
+
+## Align stages with substeps and raise headings — 2026-10-22
+
+The user corrected the earlier color/alignment interpretation: the stage rail should be lighter green, and its first link should align with the first substep rather than the stage heading. Move breadcrumb, stage question, and guidance into a shared row above both columns. Move the project title beside the Your projects link, with description directly below. This supersedes the pink rail direction; keep the selected-stage indicator and saved-progress counts.

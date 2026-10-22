@@ -170,3 +170,7 @@ Stage links now use the existing pink accent and display answered-question count
 ## Full-width map placement — 2026-10-22
 
 The map now renders above the stage rail/content layout, within the full project-working column. Production build passed. Chrome's synthetic preview verified equal map/work-column width, both rail and substeps below the opened map, original rail position restored on close, and no horizontal overflow with the map open at 390px. The desktop screenshot was inspected. The ordinary editor subtree remains mounted; private draft preservation was not re-exercised in this slice. Nothing was pushed.
+
+## Heading alignment and lighter-green rail — 2026-10-22
+
+The breadcrumb, stage question, and guidance now share a row above the stage rail and substeps; their first items align. The rail is lighter green with a lime selected indicator, superseding pink. Private project headings place the title beside Your projects, with description beneath. Production build passed. Chrome verified first-stage/first-substep top alignment in both densities, the shared heading above, and a 390px layout without overflow; the synthetic desktop screenshot was inspected. An authenticated read-only development check verified title/link alignment at 2560px and wrapping without phone overflow. No project data changed, and nothing was pushed.
