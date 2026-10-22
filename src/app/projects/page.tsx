@@ -1,3 +1,4 @@
+import { WaveMark } from "@/components/wave-mark";
 import { requestPolicy } from "@/lib/request-store";
 import { AccessRequestList } from "@/components/access-request-list";
 import { getT } from "@/lib/i18n/server";
@@ -41,7 +42,7 @@ export default async function ProjectsPage() {
             ))
           ) : (
             <div className="empty-state">
-              <span aria-hidden="true">✳</span>
+              <span aria-hidden="true"><WaveMark /></span>
               <h3>{t("No projects yet")}</h3>
               <p>{t("Create a project to get started.")}</p>
             </div>

@@ -121,3 +121,7 @@ Place owner edit/delete controls beneath the right sidebar panel. Replace the la
 ## Installable web app and metadata — 2026-10-22
 
 The user requested a favicon, metadata, and PWA support. Add a dark/lime Nakama monogram, browser and Apple icons, localized page/social metadata, and a public web manifest with standalone display and a stable root identity. Installation uses browser-provided controls. Keep the app online-only: no service worker, offline project storage, push notifications, or cached private responses are introduced. Installed launches still use the existing admission and membership checks.
+
+## Wave brand mark — 2026-10-22
+
+The user replaced the asterisk/initial icon direction with a wave, retaining the existing dark green, lime, and pink palette. Use the same wave silhouette for interface brand motifs, the favicon, Apple touch icon, and PWA install icons. The creative-flow choice symbol remains a separate flow indicator.

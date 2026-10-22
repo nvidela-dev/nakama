@@ -1,3 +1,4 @@
+import { WaveMark } from "@/components/wave-mark";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
@@ -59,7 +60,7 @@ export default async function Home() {
         <div className="island">
           <div className="island-top">
             <div className="flag">
-              <span>✳</span>
+              <span><WaveMark /></span>
             </div>
             <span className="tree tree-one">✦</span>
             <span className="tree tree-two">✦</span>
@@ -104,7 +105,7 @@ export default async function Home() {
         </div>
       </section>
       <section className="closing-note">
-        <span>✳</span>
+        <span><WaveMark /></span>
         <p>
           {t("Business development.")} <br />
           {t("Creative production.")} <br />

@@ -1,4 +1,6 @@
 "use client";
+import { WaveMark } from "@/components/wave-mark";
+
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useT } from "@/components/language";
@@ -122,7 +124,7 @@ export function Journey({
             } as React.CSSProperties
           }
         >
-          <span aria-hidden="true">✳</span>
+          <span aria-hidden="true"><WaveMark /></span>
         </div>
         </div>
       </div>

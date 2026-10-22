@@ -71,3 +71,5 @@ The working column shows a Discussion section below the overview, expanded stage
 The members sidebar includes an expandable Activity section, open on project overviews. It lists attributable changes with context links and timestamps; answer states distinguish drafts and answered directions. Earlier history is explicitly limited to existing answer revisions and stage reviews. Older/latest links page comments and activity independently while retaining stage/node context. There are no live updates, automatic notifications, or fabricated presence indicators; reload to see another person's newer changes. Public preview data has no private discussion or activity access.
 
 Owner project edit/delete controls sit beneath the right-hand members/activity panel, stacking below it on narrow screens.
+
+The accepted brand mark is a curling wave. Interface brand motifs and browser/home-screen icons share its silhouette, retaining the dark green background, lime mark, and pink accent in app icons.

@@ -1,3 +1,4 @@
+import { WaveMark } from "@/components/wave-mark";
 import { currentUser } from "@clerk/nextjs/server";
 import { isAppAdmin } from "@/lib/app-access";
 import { adminEmail } from "@/lib/whitelist";
@@ -20,7 +21,7 @@ export async function Header() {
     <header className="site-header">
       <Link href="/" className="brand" aria-label={t("Nakama home")}>
         <span className="brand-mark" aria-hidden="true">
-          ✳
+          <WaveMark />
         </span>{" "}
         nakama<span className="brand-dot">.</span>
       </Link>
