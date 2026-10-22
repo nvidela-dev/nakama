@@ -1968,7 +1968,7 @@ footer {
   .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"],
   html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"] { background: #433035; border-color: var(--pink); box-shadow: inset 3px 0 var(--pink); }
   .journey .desktop-stage-nav .stage-rail-link.reviewed .rail-label small { color: var(--lime); }
-  .journey .desktop-stage-nav .stage-rail-link.revisit .rail-label small { color: var(--pink); }
+  .journey .desktop-stage-nav .stage-rail-link.revisit .rail-label small { color: #d5df8a; }
 }
 
 /* Shared heading sits above both rails, so the first step row aligns. */

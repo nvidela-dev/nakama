@@ -36,7 +36,7 @@ export function FlowChooser({ projectId }: { projectId: string }) {
               disabled={pending}
             >
               <span aria-hidden="true">
-                {flow.id === "venture" ? "↗" : "✳"}
+                {flow.id === "venture" ? "↗" : flow.id === "investigation" ? "⌕" : "✳"}
               </span>
               <strong>{t(flow.name)}</strong>
               <span>{t(flow.description)}</span>

@@ -198,3 +198,11 @@ Added a static lime dot pattern behind the header, faded through an SVG wave mas
 ## Softened mesh and accumulated release check — 2026-10-22
 
 Feathered the SVG wave mask and reduced dot contrast/vertical opacity for a softer header fade. The final combined production build and all 29 tests passed; desktop and 390px header screenshots were inspected, with no phone overflow. The user authorized pushing the pending monospace/heading-controls, approved-person dropdown, and mesh work to main. Live deployment verification remains separate.
+
+## Investigation flow — 2026-10-22
+
+Migration 004 expands the allowed project flow IDs to include `investigation`. The five-stage flow reuses existing membership checks, answers, optimistic revisions, capture-to-header synchronization, comments, reviews, progress, and map rendering. Deliver records a Conclusion/Actionables/Artifact/Combination choice and developed result as answers. Sources are referenced in editable text entries; there are no source-upload records, automatic artifact generation, cross-project links, or spawning operations yet.
+
+All 30 local tests and the production build passed. Tests exercise the migration in PGlite, Investigation capture/rename, evidence and outcome persistence, invalid-choice rejection, and outsider denial. Before applying 004 to the configured shared development database, existing migration checksums were verified and affected flow records plus the prior constraint/ledger were privately backed up outside the repository. Migration 004 applied successfully; comparison verified all 16 pre-existing flow records unchanged. No service was provisioned. The existing release uses this development database; deployment remains a separate check.
+
+Authenticated Chrome verification passed for selecting Investigation, all five stage cards, saving an outcome choice and returning to the step list, persisted outcome after reopening, opening/closing the 3D map, Spanish display with canonical choices preserved, and a 390px layout without horizontal overflow. Both disposable investigations used during verification were deleted. The canonical Investigation Mermaid diagram was rendered and inspected. Cross-project linking/spawning remains future work; live deployment has not been verified for this release.

@@ -167,3 +167,29 @@ flowchart TD
 ```
 
 Example: “Listen together before deciding whether anyone else needs to hear it.” Finishing privately is a full, valid outcome.
+
+## Investigation
+
+An investigation can lead to a supported conclusion, actionables, an artifact, or a combination. “Evidence is insufficient” is a valid conclusion; delivery does not imply certainty.
+
+```mermaid
+flowchart TD
+  F["1. Frame: What are we trying to find out?"] --> E["2. Explore: What do we know and what is missing?"]
+  E --> G["3. Gather: What evidence can we find?"]
+  G --> S["4. Synthesize: What does the evidence tell us?"]
+  S --> D["5. Deliver: What should come out of this?"]
+  S -. "Need more evidence" .-> G
+  G -. "Refine the question" .-> F
+```
+
+| Stage | Steps |
+| --- | --- |
+| Frame | Name → Brief description → Main question → Why it matters / Scope |
+| Explore | Existing knowledge → Open questions → Sources to consult → Investigation plan |
+| Gather | Sources and evidence → Findings / Credibility and limits → Contradictions |
+| Synthesize | Patterns → Compare explanations → Conclusion → Remaining uncertainty |
+| Deliver | Choose the outcome → Develop the outcome → Review against evidence → Next steps and follow-ups |
+
+Capture supplies Name and Brief description. Every step is an editable question; the outcome choice supports Conclusion, Actionables, Artifact, or Combination. Sources and evidence use repeatable entries within the existing text answer, with links/references, dates, findings, and limitations. Findings and conclusions should cite these references. The implementation does not yet provide separate source records, uploads, generated artifacts, or automatic citations: an artifact can be written in the answer or referenced by location. All stages remain revisitable and normal human stage review applies.
+
+Follow-up projects can be described in the last step. Creating/linking multiple follow-ups is the accepted future direction and is not an implemented operation in this slice.

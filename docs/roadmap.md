@@ -193,3 +193,15 @@ The user requested a futuristic dotted gradient mesh that fades in a wave shape 
 ## Softer header mesh fade — 2026-10-22
 
 The user requested a less rigid mesh and authorized pushing the accumulated changes. Feather the wave boundary, fade the pattern earlier, and lower dot contrast so the texture dissolves into the background rather than ending at a sharp contour.
+
+## Yellow-green revisit text — 2026-10-22
+
+The user requested replacing the pink/red revisit text in the stage rail with a greenish-yellow tone. Use muted chartreuse (#d5df8a), retaining the existing saved status and revisit wording.
+
+## Investigation and project outcomes — 2026-10-22
+
+The user accepted Investigation as a third project type, using Frame → Explore → Gather → Synthesize → Deliver. Start with the existing authorized answer/revision/comment model and a final output choice supporting conclusion, actionables, artifact, or combination. Preserve sources, contradictory evidence, and uncertainty through explicit questions. No automatic research or artifact generation is introduced.
+
+The broader accepted direction is that projects have outcomes, can link to one another, and can spawn several follow-up projects that remain linked. Begin with Investigation; cross-project outcome entities, relationships, and spawning controls are subsequent implementation. Each future linked project must keep its own membership checks: a link must never reveal private names/context or grant access. Outcome choices in this slice are saved answers, not a new universal outcome entity.
+
+The user authorized implementation and pushing this change, including the pending yellow-green revisit text. Migration 004 only expands the allowed flow IDs and retains existing project data.

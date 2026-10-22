@@ -55,3 +55,7 @@ Template updates never silently rewrite existing projects. Flow/version migratio
 Comments belong to one project and one scope: project, stage, or node. Stage/node targets require the selected project flow; the server validates stable template keys. Authors retain their membership-time display attribution when they leave. Revisions prevent silent overwrites. Deleted bodies are blanked permanently while the comment ID, original author/time, and deletion marker remain. Discussion does not count toward answered progress or invalidate answer reviews.
 
 Activity describes attributable recorded actions. Current comment bodies are not duplicated into activity. Existing answer revisions and stage reviews provide historical source events; new project, flow, invitation, membership, and comment events are stored in a project-owned activity table. Former-member labels do not re-grant access. Whole-project deletion cascades through both stores.
+
+## Outcomes and related projects — accepted direction, 2026-10-22
+
+A project can produce one or more outcomes, such as a conclusion, actionable next steps, or an artifact. An outcome may motivate several follow-up projects; projects may be related to each other. These are distinct from answer counts or a stage-review flag. The first Investigation implementation records an output choice and developed result as ordinary answers. Universal outcome records, cross-project relationships, and spawning remain future work. Related projects retain independent membership boundaries, including when listing or following relationships.

@@ -7,7 +7,7 @@ These are intended behaviors, not existing features. [Flows](flows.md) define th
 | R1 | Low-effort capture | Save a name and brief description without business-plan fields or inviting anyone; the project survives reload. Flow selection may be deferred during capture. | M1 |
 | R2 | Separate project groups | Alice belongs to A and B, Bob only A, Cara only B. Each sees only authorized content; guessing IDs cannot cross boundaries. | M1 |
 | R3 | Invitations | An owner invites a person to one project. Pending, accepted, revoked, and expired states are visible; acceptance verifies identity and is safe to repeat. Revoked/expired invitations grant nothing. | M1 |
-| R4 | Both flows | Venture and Creative/fun contain all five stages and branches in the canonical diagrams. Creative projects never require profit, demand, or a market assessment. | M2 |
+| R4 | Project flows | Venture, Creative/fun, and Investigation contain their five stages and branches in the canonical diagrams. Creative projects never require profit, demand, or a market assessment. Investigation records evidence, uncertainty, and a conclusion, actionables, artifact, or combination. | M2 |
 | R5 | Accessible guidance | Every question node has a plain-language question, optional example, editable answer, and visible state. Examples are never silently saved as answers. | M2 |
 | R6 | Stage/node navigation | Overview shows named stages; expanding opens a downward subdiagram; a node opens its form. Back navigation preserves location and saved content on mobile and desktop. | M2 |
 | R7 | Honest progress | Answered, unknown, skipped, and blocked remain distinguishable. Revisiting preserves prior work; negative findings and parking record useful learning. | M2 |

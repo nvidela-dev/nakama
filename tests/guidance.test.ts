@@ -31,7 +31,7 @@ const answer = (content: string, revision = 0) => ({
   choice: null,
 });
 before(async () => {
-  for (const file of ["001_private_projects.sql", "002_guided_flows.sql", "003_comments_activity.sql"])
+  for (const file of ["001_private_projects.sql", "002_guided_flows.sql", "003_comments_activity.sql", "004_investigation_flow.sql"])
     await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {
@@ -364,4 +364,21 @@ test("owner deletion confirms the name and removes only the selected project ato
   await assert.rejects(projects.accept(bob, invite.token));
   assert.ok(!(await projects.list(alice)).some((p) => p.id === id));
   assert.ok(await guidance.get(alice, other));
+});
+
+test("investigation captures metadata, saves evidence and outcome choices, and isolates members", async () => {
+  const id = await project("investigation");
+  const initial = await guidance.get(alice, id);
+  assert.deepEqual(initial!.flow.stages.map((stage) => stage.name), ["Frame", "Explore", "Gather", "Synthesize", "Deliver"]);
+  assert.equal(initial!.answers.find((answer) => answer.node_id === "inquiry-name")?.content, "Little idea");
+  await guidance.save(alice, id, "inquiry-name", answer("Energy investigation", 1));
+  assert.equal((await projects.get(alice, id)).name, "Energy investigation");
+  await guidance.save(alice, id, "inquiry-evidence", answer("Source 1: technical guide, date, URL, findings and limitations."));
+  await guidance.save(alice, id, "inquiry-output", { ...answer("Report and prioritized actions"), choice: "Combination" });
+  const saved = await guidance.get(alice, id);
+  assert.equal(saved!.answers.find((item) => item.node_id === "inquiry-output")?.choice, "Combination");
+  assert.equal(saved!.projectState, "active");
+  await assert.rejects(guidance.get(outsider, id));
+  await assert.rejects(guidance.save(outsider, id, "inquiry-conclusion", answer("Unauthorized")));
+  await assert.rejects(guidance.save(alice, id, "inquiry-output", { ...answer("Invalid", 1), choice: "Invented output" }));
 });

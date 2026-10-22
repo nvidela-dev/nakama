@@ -79,8 +79,8 @@ const answerInput = z.object({
 export function guidanceService(db: Database) {
   return {
     async select(actor: Actor, projectId: string, flowId: string) {
-      if (flowId !== "venture" && flowId !== "creative")
-        throw new ProjectError("Choose one of the two flows.");
+      if (flowId !== "venture" && flowId !== "creative" && flowId !== "investigation")
+        throw new ProjectError("Choose one of the available flows.");
       return db.transaction(async (tx) => {
         await membership(tx, actor, projectId);
         const project = (
@@ -264,9 +264,9 @@ export function guidanceService(db: Database) {
           if (current) throw new ConflictError(current);
           throw new ProjectError("This answer changed. Reload before saving.");
         }
-        const isName = nodeId === "idea-name" || nodeId === "spark-name";
+        const isName = nodeId === "idea-name" || nodeId === "spark-name" || nodeId === "inquiry-name";
         const isDescription =
-          nodeId === "idea-description" || nodeId === "spark-description";
+          nodeId === "idea-description" || nodeId === "spark-description" || nodeId === "inquiry-description";
         if (
           (isName && data.content.length > 100) ||
           (isDescription && data.content.length > 2000)

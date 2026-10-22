@@ -1,4 +1,5 @@
-export type FlowId = "venture" | "creative";
+import { investigationFlow } from "./investigation-flow";
+export type FlowId = "venture" | "creative" | "investigation";
 export type NodeStatus =
   | "unanswered"
   | "draft"
@@ -37,6 +38,7 @@ const node = (
   choices?: string[],
 ): FlowNode => ({ id, label, question, example, after, kind, choices });
 export const flows: Record<FlowId, Flow> = {
+  investigation: investigationFlow,
   venture: {
     id: "venture",
     version: 1,
