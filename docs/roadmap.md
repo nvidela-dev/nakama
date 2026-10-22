@@ -113,3 +113,7 @@ After learning that rejected authentication logs are not exposed as a list throu
 The user selected contextual comments and an activity feed as the next implementation. Adopt flat plain-text discussions targeting exactly one project, stage, or node; allow author edits, author deletion, and owner moderation. Comment deletion permanently blanks the body and retains an attribution/timestamp tombstone, while whole-project deletion removes comments and activity. Do not retain deleted bodies in feed events. Edits and removals check the displayed revision, retaining the local draft on conflict.
 
 The feed combines existing answer revisions and stage-review history with newly recorded project/flow, invitation lifecycle, membership, and comment events. Historical invitation/member events are not invented or backfilled. Events omit comment bodies, invitation recipients, tokens, and invitation URLs. New events commit with their source writes. Use a 25-item keyset page with timestamp precision preserved. No automatic publication, notifications, AI, or real-time subscription is added. This resolves the comment retention/moderation proposal for this implementation; export and account-retention policy remain separate work.
+
+## Project control placement — 2026-10-22
+
+Place owner edit/delete controls beneath the right sidebar panel. Replace the large mini-view text button with an accessible cube icon immediately left of the progress wheel; keep the ordinary journey visible and the optional map initially hidden.

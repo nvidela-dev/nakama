@@ -63,10 +63,6 @@ export default async function ProjectPage({
         <h1>{project.name}</h1>
         <p className="preserve-lines">{project.description}</p>
       </div>
-      {project.role === "owner" && <ProjectSettings
-        projectId={projectId} name={project.name} description={project.description}
-        contentRevision={guidance?.contentRevision ?? 0}
-      />}
       <div className="workspace-columns">
         <div className="project-working-column">
         {guidance ? (
@@ -85,6 +81,7 @@ export default async function ProjectPage({
         )}
         <Discussion key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`} projectId={projectId} target={{ stageId: query.stage, nodeId: query.node }} label={discussionLabel} comments={comments} userId={person.userId} owner={project.role === "owner"} olderHref={comments.next ? pageHref("commentsBefore", comments.next) : undefined} latestHref={query.commentsBefore ? pageHref("commentsBefore") : undefined} />
         </div>
+        <div className="project-sidebar">
         <aside className="panel">
           <h2>
             {t("Members")}{" "}
@@ -149,6 +146,11 @@ export default async function ProjectPage({
           )}
           <ActivityFeed projectId={projectId} activity={activity} flow={guidance?.flow} open={!query.stage || !!query.activityBefore} olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined} latestHref={query.activityBefore ? pageHref("activityBefore") : undefined} />
         </aside>
+      {project.role === "owner" && <ProjectSettings
+        projectId={projectId} name={project.name} description={project.description}
+        contentRevision={guidance?.contentRevision ?? 0}
+      />}
+        </div>
       </div>
     </main>
   );

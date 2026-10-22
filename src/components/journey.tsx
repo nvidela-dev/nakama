@@ -81,14 +81,6 @@ export function Journey({
   const review = reviews.find((r) => r.stage_id === stageId);
   return (
     <section className="journey">
-      <div className="miniview-toggle">
-        <button type="button" className="button secondary" aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
-          {showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")}
-        </button>
-      </div>
-      <div id="project-stage-map">
-        {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
-      </div>
       {activeStage && (
         <nav className="desktop-stage-nav" aria-label={t("All stages")}>
           {flow.stages.map((stage, index) => (
@@ -116,6 +108,12 @@ export function Journey({
             {t(guidance.projectState.replaceAll("_", " "))}
           </small>
         </div>
+        <div className="journey-progress-controls">
+          <button type="button" className="button secondary miniview-icon" aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
+              <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5" />
+            </svg>
+          </button>
         <div
           className="progress-ring"
           style={
@@ -125,6 +123,7 @@ export function Journey({
           }
         >
           <span aria-hidden="true">✳</span>
+        </div>
         </div>
       </div>
       <div
@@ -136,6 +135,9 @@ export function Journey({
         aria-valuenow={answered}
       >
         <span style={{ width: `${(answered / questions.length) * 100}%` }} />
+      </div>
+      <div id="project-stage-map">
+        {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
       </div>
       {!activeStage ? (
         <>

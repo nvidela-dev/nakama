@@ -1730,7 +1730,12 @@ footer {
 }
 
 /* Optional spatial overview; the working tree and editors stay mounted. */
-.miniview-toggle { display: flex; justify-content: flex-end; margin-bottom: .75rem; }
+.journey-progress-controls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.journey-progress-controls .miniview-icon { display: grid; place-items: center; width: 44px; height: 44px; min-width: 44px; padding: 0; border-radius: 50%; }
+.miniview-icon[aria-expanded="true"] { background: var(--lime); color: var(--bg); }
+.journey-summary { gap: 12px; }
+.project-sidebar { display: grid; gap: 16px; min-width: 0; align-content: start; }
+.project-sidebar .project-settings { margin-bottom: 0; }
 .journey-miniview { margin-bottom: 1.25rem; padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); color: var(--ink); }
 .miniview-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
 .miniview-controls { display: flex; gap: .4rem; }
