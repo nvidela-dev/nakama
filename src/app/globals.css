@@ -1782,3 +1782,8 @@ footer {
 .project-timeline.timeline-placeholder .timeline-marker { background: var(--line); }
 .timeline-placeholder-bar { display: inline-block; width: 65%; height: 6px; border-radius: 3px; background: var(--line); }
 .timeline-placeholder-bar.short { width: 24%; }
+
+.project-settings { margin-bottom: 18px; }
+.project-settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.project-settings .panel { max-width: 640px; margin-top: 12px; }
+.project-settings [hidden] { display: none; }

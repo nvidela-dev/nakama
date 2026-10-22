@@ -91,3 +91,7 @@ The user flagged empty gaps below shorter cards. Compact desktop cards now stret
 ## Placeholder card timelines — 2026-10-22
 
 Projects without a selected flow display a static muted placeholder timeline instead of a visible choose-flow message. Empty rings and label bars preserve card structure without asserting stage names or saved progress.
+
+## Owner project editing and deletion — 2026-10-22
+
+The user requested the ability to edit and delete projects. Owners can edit name/description and permanently delete a project with exact-name confirmation. Guided metadata edits preserve revision history and review invalidation; stale project snapshots fail without overwriting work. Deletion removes all dependent project records in one transaction, with no in-app recovery. No schema migration, service provisioning, or deletion of existing user projects is performed during implementation. This resolves whole-project retention for this operation; account deletion and ownership transfer remain deferred.

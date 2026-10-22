@@ -425,5 +425,16 @@
   "reviewed": "revisado",
   "Mint: answered or reviewed · Cyan: in progress or draft · Purple: skipped · Red: blocked · Blue: not started": "Menta: respondido o revisado · Cian: en progreso o borrador · Violeta: omitido · Rojo: bloqueado · Azul: sin empezar",
   "Lime: answered or reviewed · Peach: in progress, draft, or blocked · Muted: not started or skipped": "Lima: respondido o revisado · Durazno: en progreso, borrador o bloqueado · Tenue: sin empezar u omitido",
-  "Stage progress": "Progreso por etapa"
+  "Stage progress": "Progreso por etapa",
+  "Project changed. Reload before saving; your edits are still here.": "El proyecto cambió. Recargá antes de guardar; tus cambios siguen acá.",
+  "Type the project name exactly to confirm deletion.": "Escribí el nombre exacto del proyecto para confirmar la eliminación.",
+  "Project updated.": "Proyecto actualizado.",
+  "Edit project": "Editar proyecto",
+  "Delete project": "Eliminar proyecto",
+  "Save changes": "Guardar cambios",
+  "Changes also update the saved name and description answers, preserving their history.": "Los cambios también actualizan las respuestas de nombre y descripción, conservando su historial.",
+  "Permanently delete this project for all members, including answers, revision history, and invitations. This cannot be undone.": "Eliminá definitivamente este proyecto para todos sus miembros, incluidas las respuestas, el historial de revisiones y las invitaciones. No se puede deshacer.",
+  "Type the project name to confirm:": "Escribí el nombre del proyecto para confirmar:",
+  "Deleting…": "Eliminando…",
+  "Permanently delete project": "Eliminar proyecto definitivamente"
 }

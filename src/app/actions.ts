@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
 import { ProjectError, projectService } from "@/lib/projects";
+import { guidanceService } from "@/lib/guidance";
 export type ActionState = { error?: string; token?: string; success?: string };
 const field = (data: FormData, name: string) => String(data.get(name) ?? "");
 const message = (error: unknown) =>
@@ -80,4 +81,34 @@ export async function acceptInvitation(
   }
   revalidatePath("/projects");
   redirect(`/projects/${id}`);
+}
+
+export async function editProject(
+  projectId: string,
+  expected: { name: string; description: string; contentRevision: number },
+  _state: ActionState,
+  data: FormData,
+): Promise<ActionState> {
+  const person = await actor();
+  try {
+    await guidanceService(database()).editProject(person, projectId, {
+      name: field(data, "name"), description: field(data, "description"),
+    }, expected);
+  } catch (error) { return { error: message(error) }; }
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${projectId}`);
+  return { success: "Project updated." };
+}
+export async function deleteProject(
+  projectId: string,
+  _state: ActionState,
+  data: FormData,
+): Promise<ActionState> {
+  const person = await actor();
+  try {
+    await projectService(database()).deleteProject(person, projectId, field(data, "confirmation"));
+  } catch (error) { return { error: message(error) }; }
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${projectId}`);
+  redirect("/projects");
 }

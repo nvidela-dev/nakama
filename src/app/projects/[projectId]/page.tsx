@@ -7,6 +7,7 @@ import { ProjectError, projectService } from "@/lib/projects";
 import { AccessButton, InviteForm } from "@/components/forms";
 import { guidanceService } from "@/lib/guidance";
 import { FlowChooser } from "@/components/guidance";
+import { ProjectSettings } from "@/components/project-settings";
 import { Journey } from "@/components/journey";
 export const dynamic = "force-dynamic";
 export default async function ProjectPage({
@@ -48,6 +49,10 @@ export default async function ProjectPage({
         <h1>{project.name}</h1>
         <p className="preserve-lines">{project.description}</p>
       </div>
+      {project.role === "owner" && <ProjectSettings
+        projectId={projectId} name={project.name} description={project.description}
+        contentRevision={guidance?.contentRevision ?? 0}
+      />}
       <div className="workspace-columns">
         {guidance ? (
           <Journey

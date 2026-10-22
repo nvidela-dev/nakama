@@ -12,6 +12,7 @@ Projects are private to active members. Two roles keep the first version underst
 | Edit answers and record learning/decisions | Yes | Yes | No |
 | Comment and export authorized context | Yes | Yes | No |
 | Invite/revoke invitations/remove members | Yes | No | No |
+| Edit project name/description; permanently delete project | Yes | No | No |
 | Transfer ownership | Yes, to an active member | No | No |
 
 Creating a project creates its owner membership atomically. The last owner cannot leave or be removed without transfer. No read-only role or private node-level discussions in the first version; all project content is visible to all active members. Do not confuse project privacy with the GitHub repository's visibility.
@@ -37,3 +38,9 @@ Comments are suggestions/discussion until a person explicitly incorporates them 
 ## Required access verification
 
 Exercise owner/member/non-member across two projects with overlapping membership. Include forged project and child IDs, list endpoints, removed members, revoked/expired/wrong-recipient invites, repeat acceptance, stale edit conflicts, cache invalidation, and exports. Verify failures expose neither foreign content nor invitation secrets.
+
+## Project editing and deletion — 2026-10-22
+
+Owners can edit the name and description in project settings. Updates use a project revision snapshot to reject stale submissions. When a flow exists, changed fields save through the same answer-revision behavior as guided edits, preserving attribution and invalidating dependent reviews. Both field changes commit atomically. Members retain the existing ability to answer guided questions; project settings do not change that policy.
+
+Owners may permanently delete a project after entering its exact current name in an explicit confirmation form. Deletion atomically removes its memberships, invitations, selected flow, answers, answer revisions, stage reviews, review history, and project record. No retained tombstone or in-app recovery exists for this operation. This policy applies only to whole-project deletion; account deletion, standalone comment retention, and ownership transfer remain unresolved. Authorization is checked server-side for both operations. An old project URL or invitation grants no access after deletion. No existing project is deleted by deploying the feature.

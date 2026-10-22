@@ -172,6 +172,48 @@ export function guidanceService(db: Database) {
         };
       });
     },
+    async editProject(
+      actor: Actor,
+      projectId: string,
+      input: { name: string; description: string },
+      expected: { name: string; description: string; contentRevision: number },
+    ) {
+      const name = input.name.trim(), description = input.description.trim();
+      if (!name || name.length > 100 || !description || description.length > 2000)
+        throw new ProjectError("Add a name (up to 100 characters) and a description (up to 2,000).");
+      return db.transaction(async (tx) => {
+        await membership(tx, actor, projectId, true);
+        const current = (await tx.query<{ name: string; description: string }>(
+          "SELECT name, description FROM projects WHERE id = $1 FOR UPDATE", [projectId],
+        )).rows[0];
+        const selected = (await tx.query<{ content_revision: number }>(
+          "SELECT content_revision FROM project_flows WHERE project_id = $1", [projectId],
+        )).rows[0];
+        if (!current || current.name !== expected.name || current.description !== expected.description || (selected?.content_revision ?? 0) !== expected.contentRevision)
+          throw new ProjectError("Project changed. Reload before saving; your edits are still here.");
+        if (!selected) {
+          await tx.query("UPDATE projects SET name = $1, description = $2 WHERE id = $3", [name, description, projectId]);
+          return;
+        }
+        const { flow } = await selectedFlow(tx, projectId);
+        // Reuse answer saves on this same transaction: both metadata fields, history,
+        // review invalidation, and the project header either commit together or roll back.
+        const scoped: Database = {
+          query: (query, values) => tx.query(query, values),
+          transaction: (work) => work(tx),
+        };
+        for (const [index, value] of [name, description].entries()) {
+          if (value === (index === 0 ? current.name : current.description)) continue;
+          const node = flow.stages[0].nodes[index];
+          const answer = (await tx.query<{ revision: number }>(
+            "SELECT revision FROM node_answers WHERE project_id = $1 AND node_id = $2", [projectId, node.id],
+          )).rows[0];
+          await guidanceService(scoped).save(actor, projectId, node.id, {
+            revision: answer?.revision ?? 0, content: value, status: "answered", choice: null,
+          });
+        }
+      });
+    },
     async save(
       actor: Actor,
       projectId: string,

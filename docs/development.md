@@ -42,7 +42,7 @@ Owner creates a 7-day link for one email, shares it manually, and can revoke it.
 
 Tokens are random 256-bit values; only their SHA-256 hashes are stored. Links carry the secret in the URL fragment, so it is not sent as an HTTP path/query or referrer. Acceptance uses a POST Server Action. The sign-in modal keeps the fragment in place; after sign-in the form reads and removes it from browser history. If the page is reloaded after that, reopen the original link. Never log action bodies or capture invitation screens in public artifacts.
 
-Display names are membership-time snapshots from Clerk; they do not grant permission. Changing a Clerk profile does not yet synchronize these labels. Ownership transfer, self-service account/project deletion, audit history, production abuse controls, and invitation email delivery are not implemented. The owner cannot be removed through the current member-removal operation.
+Display names are membership-time snapshots from Clerk; they do not grant permission. Changing a Clerk profile does not yet synchronize these labels. Ownership transfer, self-service account deletion, broader audit history, production abuse controls, and invitation email delivery are not implemented. Owner-only project editing and confirmed whole-project deletion are implemented; see below. The owner cannot be removed through the current member-removal operation.
 
 ## Guided-flow slice
 
@@ -87,3 +87,9 @@ The first app version was deployed from main on 2026-10-22 at https://nakama-bro
 ## 3D mini-view verification — 2026-10-22
 
 The optional Three.js mini-view is implemented in the shared project journey and public synthetic preview. Local checks passed: 14 existing tests, type checking, and production build. Chrome preview checks cover opening/closing, all 27 creative stage/node links, stage navigation, rotation/reset, reduced-motion layout, and a 390px viewport without document overflow. Spanish and WebGL failure checks use the same synthetic preview. This change does not add persistence or alter authorization queries. Private authenticated draft preservation and real-device GPU/performance measurements remain unverified for this slice. No deployment was performed.
+
+## Project settings — 2026-10-22
+
+Project pages expose Edit project and Delete project to owners. Editing uses saved project metadata and content revision as an optimistic snapshot; changed name/description answers, their history, downstream review flags, and header values commit together. Permanent deletion requires the current exact name and removes all project-dependent records in one transaction. Neither operation needs a migration. SQL tests cover owner/member/outsider permissions, stale edits, projects with and without flows, retained history, complete deletion, old links, unrelated project isolation, and simulated mid-operation failures with rollback. `e2e/project-settings.spec.ts` checks the disposable development-project browser journey.
+
+Validation passed: all 17 local tests, type checking, production build, and the owner-settings Chrome journey against dedicated development services. The browser check covers editing before/after flow selection, persisted guided description, phone overflow, exact-name delete gating, list removal, and denial of the deleted URL. Its disposable projects were deleted, including fixtures left by failed test attempts. This is local/development evidence; live deployment remains unverified.

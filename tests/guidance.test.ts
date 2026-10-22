@@ -297,3 +297,69 @@ test("card timelines expose only member status metadata and preserve honest ques
   await assert.rejects(projectProgress(db, { userId: "", verifiedEmails: [] }));
   assert.ok(!JSON.stringify(updated).includes("Unsure"));
 });
+
+test("owner project edits are atomic, revision checked, and retain answer history", async () => {
+  const id = await project();
+  const original = await projects.get(alice, id);
+  const before = (await guidance.get(alice, id))!;
+  const expected = { name: original.name, description: original.description, contentRevision: before.contentRevision };
+  const input = { name: "Updated project", description: "Updated purpose." };
+  await assert.rejects(guidance.editProject(outsider, id, input, expected));
+  const invite = await projects.invite(alice, id, bob.verifiedEmails[0]);
+  await projects.accept(bob, invite.token);
+  await assert.rejects(guidance.editProject(bob, id, input, expected));
+  await guidance.editProject(alice, id, input, expected);
+  assert.equal((await projects.get(alice, id)).name, input.name);
+  const after = (await guidance.get(alice, id))!;
+  assert.equal(after.answers.find((a) => a.node_id === "idea-name")?.content, input.name);
+  assert.equal(after.answers.find((a) => a.node_id === "idea-description")?.content, input.description);
+  assert.equal((await guidance.history(alice, id, "idea-name")).length, 2);
+  assert.equal((await guidance.history(alice, id, "idea-description")).length, 2);
+  await assert.rejects(guidance.editProject(alice, id, { ...input, name: "Stale overwrite" }, expected));
+  assert.equal((await projects.get(alice, id)).name, input.name);
+  const fresh = { ...input, contentRevision: after.contentRevision };
+  const failing: Database = {
+    query: db.query,
+    transaction: (work) => db.transaction((tx) => work({ query: (q, values) => {
+      if (q.startsWith("INSERT INTO answer_revisions") && values?.[1] === "idea-description") throw new Error("simulated history failure");
+      return tx.query(q, values);
+    } })),
+  };
+  await assert.rejects(guidanceService(failing).editProject(alice, id, { name: "Must roll back", description: "Must also roll back" }, fresh));
+  assert.equal((await projects.get(alice, id)).name, input.name);
+  assert.equal((await guidance.history(alice, id, "idea-name")).length, 2);
+  const bare = await projects.create(alice, { name: "Before flow", description: "No flow yet." });
+  await guidance.editProject(alice, bare, input, { name: "Before flow", description: "No flow yet.", contentRevision: 0 });
+  assert.equal((await projects.get(alice, bare)).name, input.name);
+});
+
+test("owner deletion confirms the name and removes only the selected project atomically", async () => {
+  const id = await project();
+  const other = await project("creative");
+  const invite = await projects.invite(alice, id, bob.verifiedEmails[0]);
+  await projects.accept(bob, invite.token);
+  const current = (await guidance.get(alice, id))!;
+  await guidance.reviewStage(alice, id, "idea", "Capture reviewed.", current.contentRevision);
+  await assert.rejects(projects.deleteProject(bob, id, "Little idea"));
+  await assert.rejects(projects.deleteProject(outsider, id, "Little idea"));
+  await assert.rejects(projects.deleteProject(alice, id, "wrong name"));
+  const failing: Database = {
+    query: db.query,
+    transaction: (work) => db.transaction((tx) => work({ query: (q, values) => {
+      if (q.startsWith("DELETE FROM project_flows")) throw new Error("simulated delete failure");
+      return tx.query(q, values);
+    } })),
+  };
+  await assert.rejects(projectService(failing).deleteProject(alice, id, "Little idea"));
+  assert.equal((await guidance.history(alice, id, "idea-name")).length, 1);
+  await projects.deleteProject(alice, id, "Little idea");
+  for (const table of ["projects", "project_memberships", "project_invitations", "project_flows", "node_answers", "answer_revisions", "stage_reviews", "stage_review_history"]) {
+    const column = table === "projects" ? "id" : "project_id";
+    assert.equal((await db.query(`SELECT * FROM ${table} WHERE ${column} = $1`, [id])).rows.length, 0);
+  }
+  await assert.rejects(projects.get(alice, id));
+  await assert.rejects(guidance.get(bob, id));
+  await assert.rejects(projects.accept(bob, invite.token));
+  assert.ok(!(await projects.list(alice)).some((p) => p.id === id));
+  assert.ok(await guidance.get(alice, other));
+});
