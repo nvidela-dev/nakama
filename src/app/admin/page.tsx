@@ -1,3 +1,5 @@
+import { requestPolicy } from "@/lib/request-store";
+import { AccessRequestList } from "@/components/access-request-list";
 import { adminActor } from "@/lib/auth";
 import { accessPolicy } from "@/lib/whitelist";
 import { getT } from "@/lib/i18n/server";
@@ -7,7 +9,7 @@ import { AddAllowedEmail } from "@/components/whitelist";
 export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const person = await adminActor();
-  const entries = await accessPolicy().list(person);
+  const [entries, requests] = await Promise.all([accessPolicy().list(person), requestPolicy().list(person)]);
   const t = await getT();
   return <main id="main" className="workspace">
     <div className="page-heading"><h1>{t("Administration")}</h1><p>{t("Only whitelisted emails can sign up and access private workspaces.")}</p></div>
@@ -16,6 +18,7 @@ export default async function AdminPage() {
         <h2>{t("Allowed emails")}</h2>
         <p className="muted">{t("Removing access blocks future private requests. It does not delete the account or project history.")}</p>
         <WhitelistList entries={entries} />
+        <AccessRequestList requests={requests} />
       </section>
       <aside className="panel"><h2>{t("Allow a person")}</h2><p>{t("Add one exact email address. This grants app access; projects still require membership. No email notification is sent.")}</p><AddAllowedEmail /></aside>
     </div>

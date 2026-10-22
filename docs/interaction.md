@@ -57,3 +57,9 @@ Compact desktop project cards stretch to the tallest card in each grid row. Mixe
 The Projects screen exposes edit and delete controls on owner project cards. These open a native modal dialog over the existing list, with a close control, Escape dismissal, keyboard focus containment/restoration, and the same revision-aware edit and exact-name delete forms used on project pages. Card titles/timelines remain navigation links; action buttons are separate siblings, never controls nested inside links. Settings forms mount only while the dialog is open, keeping the ordinary list light and avoiding duplicate active fields.
 
 For the application administrator, the sidebar also provides an allowed-email form and an expandable whitelist with removal controls. Non-admins receive no whitelist data or controls. Full project and Administration pages remain available. New project capture stays in the main sidebar. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.
+
+## Access-request review — 2026-10-22
+
+Administration shows the allowed-email list and a separate Access requests section with email, first-request time, Allow email, and Dismiss. The main sidebar exposes the same request controls in an expandable section. Empty queues say there are no pending requests. These are submitted, unverified identifiers, not confirmed people or imported rejected-signup history.
+
+Signup begins with an email-only step. Allowed emails continue to Clerk signup; others receive a saved-request confirmation and remain unable to sign up until explicitly approved. The access-required page offers the same request form for people reaching a private route without admission. Requests do not notify the submitted email address.

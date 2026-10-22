@@ -103,3 +103,7 @@ The user designated their verified account as the sole application administrator
 ## Main-screen management — 2026-10-22
 
 The user requested easy access to project editing/deletion and whitelist management from the main screen. Add direct owner-card controls opening a dialog and an administrator-only sidebar whitelist panel. Reuse existing server actions, permission checks, conflict handling, and deletion confirmation. Include flow content revisions in the existing membership-scoped project-list query for reliable edit snapshots without per-card reads. Keep private project access and app administration separate.
+
+## Access requests alongside the whitelist — 2026-10-22
+
+After learning that rejected authentication logs are not exposed as a list through Clerk's public APIs, the user explicitly chose access requests collected in Nakama. Add an email-first signup gate and request form on the access-required page, plus administrator-only Allow/Dismiss controls on Administration and the main screen. Use the existing provider's pending waitlist-entry API without changing signup mode or sending emails. Preserve whitelist admission, email verification, and project membership as separate checks. This starts new request collection; it does not backfill historical Clerk rejections or assert ownership of submitted addresses.

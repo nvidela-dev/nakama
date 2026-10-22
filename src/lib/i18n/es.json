@@ -201,7 +201,7 @@
   "Continue, revise, or park": "Seguir, replantear o pausar",
   "What should we do next, and why?": "¿Qué deberíamos hacer ahora y por qué?",
   "Revise: focus on one building before a whole neighborhood.": "Replantear: enfocarnos en un edificio antes de abarcar todo el barrio.",
-  "Continue": "Seguir",
+  "Continue": "Continuar",
   "Revise": "Replantear",
   "Park": "Pausar",
   "Planning": "Planificación",
@@ -454,5 +454,18 @@
   "Add one exact email address. This grants app access; projects still require membership. No email notification is sent.": "Agregá una dirección de correo exacta. Esto permite acceder a la aplicación; los proyectos siguen requiriendo membresía. No se envía ninguna notificación por correo.",
   "Access requires approval": "El acceso requiere aprobación",
   "Ask the administrator to whitelist your verified email address. Signing in or receiving a project invitation does not grant app access.": "Pedile al administrador que permita tu correo verificado. Iniciar sesión o recibir una invitación a un proyecto no da acceso a la aplicación.",
-  "Close": "Cerrar"
+  "Close": "Cerrar",
+  "Access requests are unavailable. Please try again later.": "Las solicitudes de acceso no están disponibles. Intentá de nuevo más tarde.",
+  "Access request not found. Refresh the list.": "No se encontró la solicitud de acceso. Actualizá la lista.",
+  "Too many access requests. Please try again later.": "Demasiadas solicitudes de acceso. Intentá de nuevo más tarde.",
+  "Sign up": "Registrarse",
+  "Request access": "Solicitar acceso",
+  "Enter your email. If it is not allowed yet, a request will be saved for the administrator to review.": "Ingresá tu correo. Si todavía no está permitido, se guardará una solicitud para que la revise el administrador.",
+  "Access requested. You can sign up after the administrator allows your email.": "Acceso solicitado. Podés registrarte cuando el administrador permita tu correo.",
+  "Access requests": "Solicitudes de acceso",
+  "Submitted emails are not verified identities. This list starts with requests made in Nakama; it does not include historical Clerk rejections.": "Los correos enviados no son identidades verificadas. Esta lista incluye solicitudes hechas en Nakama; no incluye rechazos anteriores de Clerk.",
+  "No pending access requests.": "No hay solicitudes de acceso pendientes.",
+  "Dismiss": "Descartar",
+  "Could not update access requests. Please try again.": "No se pudieron actualizar las solicitudes. Intentá de nuevo.",
+  "Access requests updated.": "Solicitudes de acceso actualizadas."
 }

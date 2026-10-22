@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { requestPolicy } from "@/lib/request-store";
 import { adminActor } from "@/lib/auth";
 import { accessPolicy } from "@/lib/whitelist";
 import { ProjectError } from "@/lib/projects";
@@ -18,4 +19,18 @@ export async function manageWhitelist(_state: ActionState, data: FormData): Prom
   revalidatePath("/admin");
   revalidatePath("/projects");
   return { success: "Whitelist updated." };
+}
+
+export async function manageAccessRequest(_state: ActionState, data: FormData): Promise<ActionState> {
+  const person = await adminActor();
+  try {
+    const operation = String(data.get("operation") ?? "");
+    if (operation !== "allow" && operation !== "dismiss") throw new ProjectError("Unknown action.");
+    await requestPolicy().manage(person, String(data.get("id") ?? ""), operation);
+  } catch (error) {
+    return { error: error instanceof ProjectError ? error.message : "Could not update access requests. Please try again." };
+  }
+  revalidatePath("/admin");
+  revalidatePath("/projects");
+  return { success: "Access requests updated." };
 }

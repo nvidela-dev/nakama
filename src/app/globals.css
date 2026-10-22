@@ -1810,3 +1810,7 @@ footer {
   .project-card-actions button { width: 44px; min-height: 44px; }
   .project-card.has-management h3 { padding-right: 92px; }
 }
+.access-entry { width: min(100%, 480px); margin: 20px auto; }
+.access-requests { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+.access-requests .people-list li { flex-wrap: wrap; gap: 12px; }
+.request-actions { display: flex; gap: 6px; flex-wrap: wrap; }

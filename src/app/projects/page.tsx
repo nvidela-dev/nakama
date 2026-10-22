@@ -1,3 +1,5 @@
+import { requestPolicy } from "@/lib/request-store";
+import { AccessRequestList } from "@/components/access-request-list";
 import { getT } from "@/lib/i18n/server";
 import { ProjectCard } from "@/components/project-card";
 import { WhitelistList } from "@/components/whitelist-list";
@@ -15,10 +17,11 @@ export default async function ProjectsPage() {
   const t = await getT();
   const person = await actor(true);
   const admin = isAppAdmin(person, adminEmail());
-  const [projects, progress, allowed] = await Promise.all([
+  const [projects, progress, allowed, requests] = await Promise.all([
     projectService(database()).list(person),
     projectProgress(database(), person),
     admin ? accessPolicy().list(person) : Promise.resolve(null),
+    admin ? requestPolicy().list(person) : Promise.resolve(null),
   ]);
   return (
     <main id="main" className="workspace">
@@ -57,6 +60,7 @@ export default async function ProjectsPage() {
             <p className="muted">{t("Removing access blocks future private requests. It does not delete the account or project history.")}</p>
             <WhitelistList entries={allowed} />
           </details>
+          {requests && <details><summary>{t("Access requests")} <span className="count">{requests.length}</span></summary><AccessRequestList requests={requests} /></details>}
         </section>}
         </aside>
       </div>
