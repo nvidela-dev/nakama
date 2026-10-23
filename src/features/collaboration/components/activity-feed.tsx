@@ -62,8 +62,10 @@ export function ActivityFeed({
             const query = new URLSearchParams();
             if (stage) query.set("stage", stage.id);
             if (node) query.set("node", node.id);
-            if (event.kind.startsWith("task")) query.set("view", "tasks");
-            if (event.kind.startsWith("artifact")) query.set("view", "artifacts");
+            if (event.kind.startsWith("task") || event.stage_id === "tasks")
+              query.set("view", "tasks");
+            if (event.kind.startsWith("artifact") || event.stage_id === "artifacts")
+              query.set("view", "artifacts");
             const href = `/projects/${projectId}${query.size ? `?${query}` : ""}`;
             return (
               <li key={event.sort_key}>
@@ -77,11 +79,13 @@ export function ActivityFeed({
                   node ||
                   event.comment_id ||
                   event.kind.startsWith("task") ||
-                  event.kind.startsWith("artifact")) && (
+                  event.kind.startsWith("artifact") ||
+                  event.stage_id === "tasks" ||
+                  event.stage_id === "artifacts") && (
                   <Link href={href}>
-                    {event.kind.startsWith("artifact")
+                    {event.stage_id === "artifacts" || event.kind.startsWith("artifact")
                       ? t("Artifacts")
-                      : event.kind.startsWith("task")
+                      : event.stage_id === "tasks" || event.kind.startsWith("task")
                         ? t("To-do")
                         : node
                           ? t(node.label)

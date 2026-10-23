@@ -392,10 +392,19 @@ export function Journey({
       </div>
       {discussion && <div className="project-discussion-column">{discussion}</div>}
       <div className="project-sidebar">
-        <Panel
-          className="journey-progress-panel"
+        <details
+          className="panel journey-progress-panel"
+          open
           aria-label={t("Questions answered, not proof of success")}
         >
+          <summary>
+            <h2>
+              {t("Progress")}{" "}
+              <span className="count">
+                {answered}/{questions.length}
+              </span>
+            </h2>
+          </summary>
           <div className="journey-summary">
             <div>
               <p>
@@ -419,7 +428,7 @@ export function Journey({
           >
             <span style={{ width: `${(answered / questions.length) * 100}%` }} />
           </div>
-        </Panel>
+        </details>
         {sidebar}
       </div>
     </div>

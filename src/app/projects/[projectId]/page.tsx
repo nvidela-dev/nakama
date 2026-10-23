@@ -29,6 +29,7 @@ export default async function ProjectPage({
   searchParams: Promise<{
     stage?: string;
     node?: string;
+    view?: string;
     commentsBefore?: string;
     comment?: string;
     activityBefore?: string;
@@ -39,6 +40,11 @@ export default async function ProjectPage({
   const { projectId } = await params;
   const service = projectService(database());
   const query = await searchParams;
+  const isTasksView = query.view === "tasks";
+  const isArtifactsView = query.view === "artifacts";
+  const targetStageId = isTasksView ? "tasks" : isArtifactsView ? "artifacts" : query.stage;
+  const targetNodeId = isTasksView || isArtifactsView ? undefined : query.node;
+  const target = commentTarget(targetStageId, targetNodeId);
   let project, people, guidance, comments, activity, tasks, artifacts, links, accessibleProjects;
   let history: Awaited<ReturnType<ReturnType<typeof guidanceService>["history"]>> = [];
   try {
@@ -63,7 +69,7 @@ export default async function ProjectPage({
       collaborationService(database()).comments(
         person,
         projectId,
-        commentTarget(query.stage, query.node),
+        target,
         query.commentsBefore,
         query.comment,
       ),
@@ -89,15 +95,22 @@ export default async function ProjectPage({
   const candidates = project.role === "owner" ? await invitationCandidates(person, projectId) : [];
   const selectedStage = guidance?.flow.stages.find((stage) => stage.id === query.stage);
   const selectedNode = selectedStage?.nodes.find((node) => node.id === query.node);
-  const discussionLabel = selectedNode
-    ? t(selectedNode.label)
-    : selectedStage
-      ? t(selectedStage.name)
-      : t("Project discussion");
+  const discussionLabel = isTasksView
+    ? t("To-do discussion")
+    : isArtifactsView
+      ? t("Artifacts discussion")
+      : selectedNode
+        ? t(selectedNode.label)
+        : selectedStage
+          ? t(selectedStage.name)
+          : t("Project discussion");
   function pageHref(kind: "commentsBefore" | "activityBefore", value?: string) {
     const params = new URLSearchParams();
-    if (query.stage) params.set("stage", query.stage);
-    if (query.node) params.set("node", query.node);
+    if (query.view) params.set("view", query.view);
+    if (!isTasksView && !isArtifactsView) {
+      if (query.stage) params.set("stage", query.stage);
+      if (query.node) params.set("node", query.node);
+    }
     if (query.commentsBefore && kind !== "commentsBefore")
       params.set("commentsBefore", query.commentsBefore);
     if (query.activityBefore && kind !== "activityBefore")
@@ -112,11 +125,13 @@ export default async function ProjectPage({
         links={links}
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
       />
-      <aside className="panel project-people-panel">
-        <div className="project-members">
+      <details className="panel project-people-panel" open>
+        <summary>
           <h2>
             {t("Members")} <span className="count">{people.members.length}</span>
           </h2>
+        </summary>
+        <div className="project-members">
           <ul className="people-list">
             {people.members.map((m) => (
               <li key={m.user_id}>
@@ -173,7 +188,7 @@ export default async function ProjectPage({
           olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined}
           latestHref={query.activityBefore ? pageHref("activityBefore") : undefined}
         />
-      </aside>
+      </details>
       {project.role === "owner" && (
         <ProjectSettings
           projectId={projectId}
@@ -186,9 +201,9 @@ export default async function ProjectPage({
   );
   const discussion = (
     <Discussion
-      key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`}
+      key={`${projectId}:${targetStageId ?? "project"}:${targetNodeId ?? "stage"}`}
       projectId={projectId}
-      target={commentTarget(query.stage, query.node)}
+      target={target}
       label={discussionLabel}
       comments={comments}
       userId={person.userId}

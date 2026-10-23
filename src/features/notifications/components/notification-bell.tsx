@@ -142,8 +142,12 @@ function NotificationMenu() {
           <ol className="notification-list">
             {inbox?.items.map((c) => {
               const query = new URLSearchParams();
-              if (c.stage_id) query.set("stage", c.stage_id);
-              if (c.node_id) query.set("node", c.node_id);
+              if (c.stage_id === "tasks" || c.stage_id === "artifacts") {
+                query.set("view", c.stage_id);
+              } else {
+                if (c.stage_id) query.set("stage", c.stage_id);
+                if (c.node_id) query.set("node", c.node_id);
+              }
               query.set("comment", c.id);
               return (
                 <li key={c.id}>

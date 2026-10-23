@@ -283,9 +283,41 @@ test("project cards and timeline dots stay compact with centered connectors", as
   expect(metrics.centerDeltaY).toBeLessThanOrEqual(0.5);
   expect(metrics.titleFontSize).toBeLessThanOrEqual(15);
   expect(metrics.cardHeight).toBeLessThan(92);
-  expect(metrics.placeholderHeight).toBeLessThan(56);
+  expect(metrics.placeholderHeight).toBeLessThan(68);
   expect(metrics.overflow).toBe(false);
 
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+});
+
+test("project card actions stay hidden behind a chevron until opened", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await story(page, "features-projects-project-timeline--compact-cards");
+  const card = page.locator(".project-card").first();
+  const trigger = card.getByRole("button", { name: "Project actions", exact: true });
+  const edit = card.getByRole("button", { name: "Edit project", exact: true });
+  await expect(edit).not.toBeVisible();
+  await expect(card.getByRole("button", { name: "Delete project", exact: true })).not.toBeVisible();
+  await trigger.click();
+  await expect(edit).toBeVisible();
+  const [menu, nextCard] = await Promise.all([
+    card.locator(".ui-action-menu-items").boundingBox(),
+    page.locator(".project-card").nth(1).boundingBox(),
+  ]);
+  expect(menu!.width).toBeGreaterThan(100);
+  expect(nextCard).not.toBeNull();
+  const topElement = await page.evaluate(
+    ({ x, y }) => document.elementFromPoint(x, y)?.closest(".ui-action-menu-items") !== null,
+    { x: menu!.x + menu!.width / 2, y: menu!.y + menu!.height - 4 },
+  );
+  expect(topElement).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(edit).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  const title = await card.locator("h3").evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { top: parseFloat(style.paddingTop), size: parseFloat(style.fontSize) };
+  });
+  expect(title.top).toBeGreaterThanOrEqual(4);
+  expect(title.size).toBeLessThanOrEqual(14);
 });

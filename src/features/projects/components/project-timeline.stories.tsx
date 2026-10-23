@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useT } from "@/shared/i18n/provider";
 import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
+import { ActionMenu } from "@/shared/ui/action-menu";
 import type { StageProgress } from "@/features/projects/model";
 import { ProjectTimeline } from "./project-timeline";
 
@@ -86,12 +87,14 @@ function ProjectCardsPreview() {
               <ProjectTimeline stages={card.stages} t={t} />
             </a>
             <div className="project-card-actions">
-              <Button type="button" title={t("Edit project")} aria-label={t("Edit project")}>
-                <Icon name="edit" />
-              </Button>
-              <Button type="button" title={t("Delete project")} aria-label={t("Delete project")}>
-                <Icon name="delete" />
-              </Button>
+              <ActionMenu label={t("Project actions")}>
+                <Button type="button" variant="ghost">
+                  <Icon name="edit" /> {t("Edit project")}
+                </Button>
+                <Button type="button" variant="ghost">
+                  <Icon name="delete" /> {t("Delete project")}
+                </Button>
+              </ActionMenu>
             </div>
           </article>
         ))}
