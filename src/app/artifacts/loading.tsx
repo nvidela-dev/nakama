@@ -4,7 +4,7 @@ export default async function Loading() {
   const t = await getT();
   return (
     <main id="main" className="workspace">
-      <LoadingState label={t("Loading…")} />
+      <LoadingState label={t("Loading…")} variant="cards" lines={4} />
     </main>
   );
 }

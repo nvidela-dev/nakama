@@ -787,32 +787,37 @@ footer {
   border-color: #9eb97b;
 }
 .stage-number {
-  font: 12px monospace;
+  font: 10.5px monospace;
   color: var(--lime);
-  padding-top: 3px;
+  padding-top: 2px;
 }
 .stage-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--lime);
   text-transform: uppercase;
-  letter-spacing: 1.7px;
+  letter-spacing: 1.2px;
 }
 .stage-card h2 {
-  font-size: 20px;
-  margin: 8px 0 12px;
-  letter-spacing: -0.5px;
+  font-size: 15px;
+  line-height: 1.3;
+  margin: 4px 0 6px;
+  letter-spacing: -0.3px;
 }
 .stage-card small {
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--muted);
 }
 .stage-arrow {
   margin-left: auto;
   color: var(--lime);
 }
+.stage-arrow svg {
+  width: 14px;
+  height: 14px;
+}
 .stage-expanded > h2 {
-  font-size: 28px;
-  margin-top: 32px;
+  font-size: 15px;
+  margin-top: 16px;
 }
 .tree-row {
   display: grid;
@@ -968,7 +973,7 @@ footer {
     padding: 14px;
   }
   .stage-card h2 {
-    font-size: 18px;
+    font-size: 14px;
   }
 }
 
@@ -1062,44 +1067,46 @@ footer {
     font-size: 21px;
   }
   html[data-density="compact"] .stage-list {
-    margin: 12px 0;
+    margin: 8px 0;
   }
   html[data-density="compact"] .stage-list > li {
-    padding-bottom: 8px;
+    padding-bottom: 6px;
   }
   html[data-density="compact"] .stage-list > li:not(:last-child)::after {
-    height: 8px;
-    left: 24px;
+    height: 6px;
+    left: 22px;
   }
   html[data-density="compact"] .stage-card {
-    padding: 10px 14px;
-    gap: 14px;
+    padding: 8px 12px;
+    gap: 10px;
     align-items: center;
-    border-radius: 8px;
+    border-radius: 7px;
   }
   html[data-density="compact"] .stage-card > div {
     flex: 1;
     display: grid;
-    grid-template-columns: 130px minmax(0, 1fr) 180px;
+    grid-template-columns: 96px minmax(0, 1fr) 150px;
     align-items: center;
-    gap: 14px;
+    gap: 2px 10px;
   }
-  html[data-density="compact"] .stage-card h2 {
-    font-size: 15px;
+  :is(html[data-density="compact"] .stage-card, html[data-density="compact"] .workspace .stage-card)
+    h2 {
+    font-size: 12.5px;
     margin: 0;
-    line-height: 1.4;
-    letter-spacing: -0.2px;
+    line-height: 1.25;
+    letter-spacing: -0.15px;
   }
   html[data-density="compact"] .stage-label {
-    font-size: 10px;
-    letter-spacing: 1px;
+    font-size: 9px;
+    letter-spacing: 0.8px;
   }
   html[data-density="compact"] .stage-card small {
-    font-size: 11px;
-    line-height: 1.4;
+    font-size: 9.5px;
+    line-height: 1.25;
   }
   html[data-density="compact"] .stage-number {
     padding-top: 0;
+    font-size: 10px;
   }
   html[data-density="compact"] .stage-expanded > h2 {
     margin: 12px 0 8px;
@@ -1152,8 +1159,8 @@ footer {
 }
 @media (min-width: 1024px) and (max-width: 1399px) {
   html[data-density="compact"] .stage-card > div {
-    grid-template-columns: 105px minmax(0, 1fr);
-    gap: 5px 12px;
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 2px 10px;
   }
   html[data-density="compact"] .stage-card small {
     grid-column: 2;
@@ -1219,8 +1226,8 @@ footer {
 .timeline-placeholder-bar {
   display: inline-block;
   width: 65%;
-  height: 6px;
-  border-radius: 3px;
+  height: 4px;
+  border-radius: 2px;
   background: var(--line);
 }
 .timeline-placeholder-bar.short {
@@ -1445,22 +1452,111 @@ footer {
 
 .loading-state {
   display: grid;
-  gap: 12px;
+  gap: 10px;
+}
+.loading-state.loading-cards {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+.loading-state.loading-workspace {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.loading-state.loading-compact {
+  gap: 6px;
 }
 .loading-placeholder {
-  min-height: 70px;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  min-height: 64px;
+  padding: 12px 14px;
   border-radius: 9px;
   background: var(--panel);
   border: 1px solid var(--line);
-  animation: loading-pulse 1.4s ease-in-out infinite alternate;
+  animation: loading-pulse 1.5s ease-in-out infinite alternate;
+}
+.loading-state.loading-compact .loading-placeholder {
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  gap: 4px;
+}
+.loading-state.loading-map .loading-placeholder {
+  min-height: 110px;
+  padding: 16px;
+}
+.loading-bone {
+  display: block;
+  height: 9px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #243b31 20%, #345244 50%, #243b31 80%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.8s ease-in-out infinite;
+}
+.loading-bone-title {
+  width: 48%;
+  height: 12px;
+}
+.loading-bone-line {
+  width: 86%;
+}
+.loading-bone-short {
+  width: 56%;
+  height: 7px;
+}
+.loading-bone-tiny {
+  width: 62%;
+  height: 5px;
+  margin: 0 auto;
+}
+.loading-bone-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+.loading-bone-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 2px;
+}
+.loading-bone-stage {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+.loading-bone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.loading-bone-col {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
 }
 @keyframes loading-pulse {
   to {
-    opacity: 0.45;
+    opacity: 0.65;
+  }
+}
+@keyframes loading-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .loading-placeholder {
+  .loading-placeholder,
+  .loading-bone {
     animation: none;
   }
 }

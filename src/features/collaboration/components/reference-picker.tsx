@@ -4,6 +4,7 @@ import { Button } from "@/shared/ui/button";
 import { Dialog } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/controls";
 import { Icon } from "@/shared/ui/icon";
+import { LoadingState } from "@/shared/ui/loading-state";
 import { useT } from "@/shared/i18n/provider";
 import type { ChatReference, ReferenceResults } from "../references";
 type Props = {
@@ -114,7 +115,7 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
             </Button>
           </>
         ) : !results ? (
-          <p>{t("Loading…")}</p>
+          <LoadingState label={t("Loading…")} variant="compact" lines={3} />
         ) : results.items.length ? (
           <ul>
             {results.items.map((item) => (

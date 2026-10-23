@@ -22,10 +22,16 @@ import {
 } from "@/features/artifacts/model";
 import dynamic from "next/dynamic";
 import { Dialog } from "@/shared/ui/dialog";
-const MarkdownReader = dynamic(() =>
-  import("@/shared/ui/markdown-reader").then((module) => module.MarkdownReader),
-);
+import { LoadingState } from "@/shared/ui/loading-state";
 import { useT } from "@/shared/i18n/provider";
+function MarkdownLoading() {
+  const t = useT();
+  return <LoadingState label={t("Loading…")} lines={3} />;
+}
+const MarkdownReader = dynamic(
+  () => import("@/shared/ui/markdown-reader").then((module) => module.MarkdownReader),
+  { loading: MarkdownLoading },
+);
 
 const draftOf = (a: ArtifactDetail) => ({
   name: a.name,
