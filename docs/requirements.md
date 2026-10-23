@@ -23,3 +23,7 @@ These are intended behaviors, not existing features. [Flows](flows.md) define th
 Initial scope is small groups incubating ideas, not public discovery, fundraising, marketplaces, billing, enterprise administration, or autonomous business operation. Public links, uploads, live cursors, notifications beyond invitations, and custom flow builders are not initial commitments.
 
 “Share” in a flow means a human decision about showing what was made, not automatic publication or a public Nakama link. “Finished enough” is the group's chosen scope, not a guarantee of commercial success.
+
+## Project tasks and Lock-In interchange — 2026-10-22
+
+Each private project supports a shared hierarchical to-do list without selecting a guided flow. Members can add/edit tasks and nested subtasks, change explicit statuses, filter/search, expand/collapse, confirm subtree completion/deletion, and reload saved work. Unauthorized and removed users cannot read/write/import/export tasks. Stale destructive operations fail without data loss. Import previews and atomically appends a selected Lock-In version 1 project; export produces a compatible single-project file. Neither operation imports memberships nor changes guided progress.

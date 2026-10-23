@@ -1,3 +1,6 @@
+import { taskService } from "@/lib/tasks";
+import { TaskList } from "@/components/task-list";
+import { ProjectWork } from "@/components/project-work";
 import { invitationCandidates } from "@/lib/invitation-candidates";
 import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
@@ -26,18 +29,19 @@ export default async function ProjectPage({
   const { projectId } = await params;
   const service = projectService(database());
   const query = await searchParams;
-  let project, people, guidance, comments, activity;
+  let project, people, guidance, comments, activity, tasks;
   let history: Awaited<
     ReturnType<ReturnType<typeof guidanceService>["history"]>
   > = [];
   try {
-    [project, people, guidance, history, comments, activity] = await Promise.all([
+    [project, people, guidance, history, comments, activity, tasks] = await Promise.all([
       service.get(person, projectId),
       service.people(person, projectId),
       guidanceService(database()).get(person, projectId),
       query.node ? guidanceService(database()).history(person, projectId, query.node) : Promise.resolve([]),
       collaborationService(database()).comments(person, projectId, { stageId: query.stage, nodeId: query.node }, query.commentsBefore),
       collaborationService(database()).activity(person, projectId, query.activityBefore),
+      taskService(database()).list(person, projectId),
     ]);
   } catch (error) {
     if (error instanceof ProjectError) notFound();
@@ -149,11 +153,14 @@ export default async function ProjectPage({
           names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
           sidebar={sidebar}
           discussion={discussion}
+          tasks={<TaskList projectId={projectId} initial={tasks} />}
         />
       ) : (
         <div className="workspace-columns project-capture-workspace has-discussion">
           <div className="project-working-column">
-            <FlowChooser projectId={projectId} />
+            <ProjectWork tasks={<TaskList projectId={projectId} initial={tasks} />}>
+              <FlowChooser projectId={projectId} />
+            </ProjectWork>
           </div>
           <div className="project-discussion-column">{discussion}</div>
           <div className="project-sidebar">{sidebar}</div>

@@ -101,3 +101,9 @@ The interface uses a system monospace font throughout. Selected-stage headings s
 The approved-person dropdown supersedes the earlier Members disclosure: Members stays expanded, while owners select an approved non-member from the invitation form.
 
 The header carries a fine lime dot mesh with a sweeping wave-shaped gradient fade. It remains decorative behind readable navigation, with no animation or interactive surface.
+
+## Project To-do tab — 2026-10-22
+
+Every private project has Project steps and To-do tabs. Both panels remain mounted, preserving local editor drafts when switching views. The To-do view provides numbered hierarchical rows, a status menu, click-to-edit titles, add-task/subtask buttons, explicit completion/deletion dialogs, search by title/number, status filters, and saved expansion controls. Filtering reveals matching descendants and ancestors without altering numbering. Parent completion offers Only this task or Task and subtasks; deletion names the task and subtree count. Conflicts show the refreshed list and preserve draft input until the user explicitly adopts the latest revision.
+
+Import Lock-In accepts a user-selected JSON file and previews a chosen source project's tree, states, and task count before appending. Export Lock-In downloads a version 1 file for this project after a fresh access check. The existing project metadata stays intact. These are user-driven file operations, not background sync. Native dialogs provide focus handling and Escape/cancel; mobile rows wrap controls without horizontal scrolling.

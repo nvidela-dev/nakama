@@ -5,6 +5,7 @@ import type { Flow } from "@/lib/flows";
 import { useLocale, useT } from "./language";
 import { formatDate } from "@/lib/i18n";
 const labels: Record<string, string> = {
+  task_created: "added a task", task_edited: "edited a task", task_status_changed: "changed a task status", task_deleted: "deleted a task", tasks_imported: "imported Lock-In tasks",
   project_created: "created the project", project_edited: "updated project details", flow_selected: "selected a flow",
   invitation_created: "created an invitation", invitation_revoked: "revoked an invitation", member_joined: "joined the project", member_removed: "removed a member",
   comment_created: "posted a comment", comment_edited: "edited a comment", comment_deleted: "removed a comment", comment_moderated: "moderated a comment",
@@ -22,10 +23,11 @@ export function ActivityFeed({ projectId, activity, flow, olderHref, latestHref,
       const query = new URLSearchParams();
       if (stage) query.set("stage", stage.id);
       if (node) query.set("node", node.id);
+      if (event.kind.startsWith("task")) query.set("view", "tasks");
       const href = `/projects/${projectId}${query.size ? `?${query}` : ""}`;
       return <li key={event.sort_key}>
         <p><strong>{event.actor_name || t("Former member")}</strong>{event.former_member && event.actor_name ? ` · ${t("Former member")}` : ""} {t(labels[event.kind] ?? "Recorded activity")} {event.subject_name && <span>· {event.subject_name}</span>}</p>
-        {(stage || node || event.comment_id) && <Link href={href}>{node ? t(node.label) : stage ? t(stage.name) : t("Project discussion")}</Link>}
+        {(stage || node || event.comment_id || event.kind.startsWith("task")) && <Link href={href}>{event.kind.startsWith("task") ? t("To-do") : node ? t(node.label) : stage ? t(stage.name) : t("Project discussion")}</Link>}
         {event.detail && <small>{t(event.detail)}</small>}
         <time dateTime={new Date(event.created_at).toISOString()}>{formatDate(event.created_at, locale)}</time>
       </li>;

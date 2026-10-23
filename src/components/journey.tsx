@@ -1,4 +1,5 @@
 "use client";
+import { ProjectWork } from "@/components/project-work";
 import { WaveMark } from "@/components/wave-mark";
 
 import dynamic from "next/dynamic";
@@ -40,6 +41,7 @@ export function Journey({
   preview = false,
   sidebar,
   discussion,
+  tasks,
 }: {
   projectId: string;
   guidance: Guidance;
@@ -50,6 +52,7 @@ export function Journey({
   preview?: boolean;
   sidebar?: React.ReactNode;
   discussion?: React.ReactNode;
+  tasks?: React.ReactNode;
 }) {
   const t = useT();
   const [showMap, setShowMap] = useState(false);
@@ -61,7 +64,8 @@ export function Journey({
     if (!root || !working || !content) return;
     // Follow real heading/map height, including translations and responsive wrapping.
     const alignSidebar = () => {
-      const offset = Math.max(0, content.getBoundingClientRect().top - working.getBoundingClientRect().top);
+      const activeContent = root.querySelector<HTMLElement>(".project-work-panel:not([hidden]) .journey-content, .project-work-panel:not([hidden]) .task-list") ?? content;
+      const offset = Math.max(0, activeContent.getBoundingClientRect().top - working.getBoundingClientRect().top);
       root.style.setProperty("--sidebar-content-offset", `${offset}px`);
     };
     const observer = new ResizeObserver(alignSidebar);
@@ -124,6 +128,7 @@ export function Journey({
   return (
     <div ref={workspace} className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
       <div className="project-working-column">
+      <ProjectWork tasks={tasks}>
       <div id="project-stage-map">
         {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
       </div>
@@ -367,6 +372,7 @@ export function Journey({
       )}
       </div>
     </section>
+      </ProjectWork>
       </div>
       {discussion && <div className="project-discussion-column">{discussion}</div>}
       <div className="project-sidebar">

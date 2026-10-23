@@ -12,7 +12,7 @@ const projects = projectService(db), guidance = guidanceService(db), collaborati
 const owner = { userId: "owner", displayName: "Owner", verifiedEmails: ["owner@example.com"] };
 const member = { userId: "member", displayName: "Friend", verifiedEmails: ["friend@example.com"] };
 const outsider = { userId: "outsider", verifiedEmails: [] };
-before(async () => { for (const file of ["001_private_projects.sql","002_guided_flows.sql","003_comments_activity.sql", "004_investigation_flow.sql", "005_business_flows.sql"]) await sql.exec(await readFile(`migrations/${file}`,"utf8")); });
+before(async () => { for (const file of ["001_private_projects.sql","002_guided_flows.sql","003_comments_activity.sql", "004_investigation_flow.sql", "005_business_flows.sql", "006_project_tasks.sql"]) await sql.exec(await readFile(`migrations/${file}`,"utf8")); });
 after(async () => { await sql.close(); });
 async function fixture() {
   const id = await projects.create(owner,{name:"Discussion test",description:"Synthetic collaboration fixture."});
