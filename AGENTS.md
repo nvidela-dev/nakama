@@ -4,7 +4,7 @@ The user wants help coding and wants to understand solutions and gain insights i
 
 Read [README.md](README.md), then the relevant canonical document it links. See the README and development guide for implementation status. Do not describe planned features as implemented or locally tested integrations as deployed.
 
-- Preserve existing work. Inspect Git status and use a `codex/` branch before edits.
+- Preserve existing work. Inspect Git status and use a `codex/` branch before edits. Reuse a suitable current branch; never switch a shared checkout underneath another agent.
 - Separate accepted decisions from proposals. Record new accepted decisions in [the decision register](docs/roadmap.md).
 - Use [the domain vocabulary](docs/domain.md). Update canonical documents instead of adding competing specifications.
 - Check project authorization for every read, write, export, and future AI operation. Authentication alone does not grant membership.
@@ -12,6 +12,14 @@ Read [README.md](README.md), then the relevant canonical document it links. See 
 - Do not provision services or implement beyond the current request. Platform selection alone is not provisioning authorization.
 - For backend diagnosis, follow [the logging workflow](docs/development.md#backend-logging--2026-10-23): inspect `npm run logs -- doctor` and the [typed diagnostic catalog](docs/development.md#typed-diagnostic-catalog--2026-10-23), or import validated hosted/CI events, follow trace/query IDs, and compare the matching release before changing code. Do not dump raw provider logs, log arguments/content, or replay writes automatically.
 - Validate changed links and diagrams. Explain what was tested and what remains unverified.
+
+## Harness and collaboration
+
+- Follow [harness ownership, knowledge conventions, and verification](docs/agent-harness.md). Agree file ownership before concurrent edits; message delivery alone is not acknowledgement. Avoid simultaneous builds or broad formatters in a shared checkout.
+- Start with `make doctor`. Use `make check` for the standard code checks and `make verify` for the CI-equivalent production checks. See the harness guide for separate browser/service setup and change-specific evidence.
+- Keep command implementations in `package.json` and existing scripts; Make and CI orchestrate the same commands. Fix the source of failed checks instead of weakening checks.
+- Explain consequential choices and their tradeoffs so the user can learn. Report observed results, skipped verification, and remaining uncertainty; a build is not deployment evidence.
+- Keep accumulated changes local until the user authorizes pushing. Do not stage, commit, or overwrite another agent's work without explicit coordination.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
