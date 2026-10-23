@@ -49,7 +49,7 @@ export default async function ProjectsPage() {
           )}
         </section>
         <aside className="main-screen-sidebar">
-        <NewProjectButton />
+        <NewProjectButton projects={projects.map(({id,name})=>({id,name}))} />
         {allowed && <section className="panel main-whitelist">
           <h2>{t("Allow a person")}</h2>
           <AddAllowedEmail />

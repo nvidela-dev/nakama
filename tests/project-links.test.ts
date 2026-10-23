@@ -1,0 +1,43 @@
+import {test} from "node:test";
+import assert from "node:assert/strict";
+import {readFile,readdir} from "node:fs/promises";
+import {PGlite} from "@electric-sql/pglite";
+import type {Database} from "../src/lib/database";
+import {projectService} from "../src/lib/projects";
+import {projectLinksService} from "../src/lib/project-links";
+import {startProject} from "../src/lib/project-start";
+test("many-to-many lineage: atomic spawning, authorization, visibility, cycles, duplicates and independent deletion",async()=>{
+ const sql=new PGlite();
+ try {
+  for(const name of (await readdir("migrations")).filter(n=>n.endsWith(".sql")).sort()) await sql.exec(await readFile(`migrations/${name}`,"utf8"));
+  const db:Database={query:(q,v)=>sql.query(q,v),transaction:work=>sql.transaction(tx=>work(tx))};
+  const owner={userId:"lineage-owner",verifiedEmails:[]},friend={userId:"lineage-friend",verifiedEmails:[]},stranger={userId:"stranger",verifiedEmails:[]};
+  const projects=projectService(db),links=projectLinksService(db);
+  const a=await projects.create(owner,{name:"Source A",description:"Synthetic"}),b=await projects.create(owner,{name:"Source B",description:"Synthetic"});
+  const child=await startProject(db,owner,{name:"Child",description:"Synthetic",flow:"creative",sourceIds:[a,b,a]});
+  const second=await startProject(db,owner,{name:"Second child",description:"Synthetic",sourceIds:[a]});
+  assert.deepEqual((await links.list(owner,child)).sources.map(p=>p.id).sort(),[a,b].sort());
+  assert.deepEqual((await links.list(owner,a)).children.map(p=>p.id).sort(),[child,second].sort());
+  await links.change(owner,a,child);assert.equal((await links.list(owner,a)).children.length,2);
+  await assert.rejects(links.change(owner,child,a),/circular/);
+  await links.change(owner,child,second);await assert.rejects(links.change(owner,second,b),/circular/);
+  await assert.rejects(links.change(owner,a,a),/itself/);
+  await assert.rejects(links.list(stranger,a));await assert.rejects(links.change(stranger,a,child));
+  await db.query("INSERT INTO project_memberships(project_id,user_id,display_name,role) VALUES($1,$2,'Friend','member')",[child,friend.userId]);
+  assert.deepEqual(await links.list(friend,child),{sources:[],children:[]});
+  await assert.rejects(links.change(friend,a,child,true));
+  await db.query("INSERT INTO project_memberships(project_id,user_id,display_name,role) VALUES($1,$2,'Friend','member')",[a,friend.userId]);
+  assert.deepEqual((await links.list(friend,child)).sources.map(p=>p.id),[a]);
+  await links.change(friend,a,child,true);await links.change(friend,a,child);
+  await db.query("DELETE FROM project_memberships WHERE project_id=$1 AND user_id=$2",[a,friend.userId]);
+  assert.equal((await links.list(friend,child)).sources.length,0);await assert.rejects(links.change(friend,a,child));
+  const before=(await projects.list(friend)).length;
+  await assert.rejects(startProject(db,friend,{name:"Must roll back",description:"Synthetic",flow:"creative",sourceIds:[child,a]}));
+  assert.equal((await projects.list(friend)).length,before);
+  await assert.rejects(startProject(db,owner,{name:"Malformed",description:"Synthetic",sourceIds:["forged"]}));
+  assert.equal((await db.query("SELECT id FROM projects WHERE name IN ('Must roll back','Malformed')")).rows.length,0);
+  await projects.deleteProject(owner,a,"Source A");
+  assert.equal((await links.list(owner,child)).sources.length,1);
+  assert.equal((await projects.get(owner,second)).id,second);
+ }finally{await sql.close();}
+});

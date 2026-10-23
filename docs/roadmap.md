@@ -259,3 +259,7 @@ The user requested moving Administration to the footer. Keep the same verified-a
 ## Single-button guided project setup — 2026-10-23
 
 The user requested replacing the standing New project form with a button, moving name/description into the overall starting process, and making project-type choices much smaller and a grid. Implement a two-step modal (type, then details), shared compact type tiles for new/existing projects, local draft retention across Back/Close, and a single final create action. Keep Choose later so previously accepted flow-free tasks/artifacts remain possible. Atomically create project, owner membership, flow and captured answers; failed setup must leave no partial project.
+
+## Accepted: many-to-many project spawning — 2026-10-23
+
+The user requested that projects spawn other projects, with several source projects and several resulting projects. Implement directed lineage and reuse guided project setup, with the current source preselected and additional sources optional. Also allow linking existing projects and removing links. Each endpoint remains an independent project/access boundary; current membership in both permits a link change, with no membership or content inheritance. Use acyclic ancestry (reject self-links and cycles) so origin remains meaningful. Deleting an endpoint removes its links, never other projects. This supersedes the earlier future-work status for relationships/spawning; universal outcome records remain deferred.

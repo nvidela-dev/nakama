@@ -5,6 +5,7 @@ import { invitationCandidates } from "@/lib/invitation-candidates";
 import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
 import { ProjectError, projectService } from "@/lib/projects";
+import { projectLinksService } from "@/lib/project-links";
 import { startProject } from "@/lib/project-start";
 import { guidanceService } from "@/lib/guidance";
 export type ActionState = { error?: string; token?: string; success?: string };
@@ -24,11 +25,12 @@ export async function createProject(
       name: field(data, "name"),
       description: field(data, "description"),
       flow: field(data, "flow"),
+      sourceIds: data.getAll("sourceIds"),
     });
   } catch (error) {
     return { error: message(error) };
   }
-  revalidatePath("/projects");
+  revalidatePath("/projects", "layout");
   redirect(`/projects/${id}`);
 }
 export async function invitePerson(
@@ -117,4 +119,17 @@ export async function deleteProject(
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
   redirect("/projects");
+}
+
+export async function changeProjectLink(projectId: string, _state: ActionState, data: FormData): Promise<ActionState> {
+  const person = await actor();
+  const otherId = field(data,"otherId"), direction = field(data,"direction");
+  if (direction !== "source" && direction !== "child") return {error:"Choose a relationship direction."};
+  const [sourceId,childId] = direction === "source" ? [otherId,projectId] : [projectId,otherId];
+  try {
+    await projectLinksService(database()).change(person,sourceId,childId,field(data,"operation")==="remove");
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${otherId}`);
+    return {success:"Project links updated."};
+  } catch(error) { return {error:message(error)}; }
 }

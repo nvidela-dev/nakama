@@ -1,3 +1,5 @@
+import { ProjectRelations } from "@/components/project-relations";
+import { projectLinksService } from "@/lib/project-links";
 import { ArtifactLibrary } from "@/components/artifact-library";
 import { artifactService } from "@/lib/artifacts";
 import { taskService } from "@/lib/tasks";
@@ -31,12 +33,12 @@ export default async function ProjectPage({
   const { projectId } = await params;
   const service = projectService(database());
   const query = await searchParams;
-  let project, people, guidance, comments, activity, tasks, artifacts;
+  let project, people, guidance, comments, activity, tasks, artifacts, links, accessibleProjects;
   let history: Awaited<
     ReturnType<ReturnType<typeof guidanceService>["history"]>
   > = [];
   try {
-    [project, people, guidance, history, comments, activity, tasks, artifacts] = await Promise.all([
+    [project, people, guidance, history, comments, activity, tasks, artifacts, links, accessibleProjects] = await Promise.all([
       service.get(person, projectId),
       service.people(person, projectId),
       guidanceService(database()).get(person, projectId),
@@ -45,6 +47,8 @@ export default async function ProjectPage({
       collaborationService(database()).activity(person, projectId, query.activityBefore),
       taskService(database()).list(person, projectId),
       artifactService(database()).list(person, projectId),
+      projectLinksService(database()).list(person,projectId),
+      service.list(person),
     ]);
   } catch (error) {
     if (error instanceof ProjectError) notFound();
@@ -66,6 +70,7 @@ export default async function ProjectPage({
   }
   const sidebar = (
 <>
+        <ProjectRelations projectId={projectId} links={links} projects={accessibleProjects.map(({id,name})=>({id,name}))}/>
         <aside className="panel">
           <div className="project-members">
           <h2>{t("Members")} <span className="count">{people.members.length}</span></h2>

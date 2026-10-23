@@ -33,3 +33,11 @@ Each private project supports a shared hierarchical to-do list without selecting
 Members can track in-progress or ready project outputs, optionally tied to a stage, in both a project tab and a membership-scoped global library. Image/design outputs require image uploads, software requires a GitHub repository/release/source link, and Markdown requires an uploaded UTF-8 document before becoming Ready. Images can expand to a viewport-sized viewer; Markdown has a safe reader and original-file download. Each artifact has independent shared to-dos and a stable authorized link. Creation, edits, uploads/downloads, deletion and conflicts preserve project access boundaries and unrelated guided/task data.
 
 Project creation starts with a single button and guided type/details setup. Name and description are entered inside that process; compact project-type tiles use a responsive grid. Back/Close preserve a local draft, and only the final submission persists anything. Creation with a flow is atomic; choosing a flow later remains supported.
+
+## Project spawning and relationships — 2026-10-23
+
+- One source can spawn multiple projects; one spawned project can have multiple sources.
+- Create a follow-up from its source, choose additional sources, or connect existing projects in either direction. Remove a link without deleting projects.
+- Keep membership and content independent; require current access to both endpoints for writes and hide inaccessible endpoints from lists.
+- Reject self-links and cycles; concurrent graph edits must not create circular ancestry. A failed source check must roll back the complete new project.
+- Support destination navigation, keyboard forms, phone layouts, and English/Spanish labels.

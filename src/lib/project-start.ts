@@ -1,9 +1,10 @@
 import type { Database } from "./database";
 import { projectService, type Actor } from "./projects";
+import { projectLinksService, sourceProjectIds } from "./project-links";
 import { guidanceService } from "./guidance";
 
 // Capture and optional flow initialization must commit as a single project.
-export function startProject(db: Database, person: Actor, input: {name:string;description:string;flow?:string}) {
+export function startProject(db: Database, person: Actor, input: {name:string;description:string;flow?:string;sourceIds?:unknown}) {
   return db.transaction(async tx => {
     const scoped: Database = {
       query: (sql,values) => tx.query(sql,values),
@@ -11,6 +12,7 @@ export function startProject(db: Database, person: Actor, input: {name:string;de
     };
     const id = await projectService(scoped).create(person,input);
     if (input.flow) await guidanceService(scoped).select(person,id,input.flow);
+    for (const sourceId of sourceProjectIds(input.sourceIds)) await projectLinksService(scoped).change(person,sourceId,id);
     return id;
   });
 }

@@ -59,13 +59,13 @@ Activity describes attributable recorded actions. Current comment bodies are not
 
 ## Outcomes and related projects — accepted direction, 2026-10-22
 
-A project can produce one or more outcomes, such as a conclusion, actionable next steps, or an artifact. An outcome may motivate several follow-up projects; projects may be related to each other. These are distinct from answer counts or a stage-review flag. The first Investigation implementation records an output choice and developed result as ordinary answers. Artifacts now have dedicated project-scoped records; universal outcome records, cross-project relationships, and spawning remain future work. Related projects retain independent membership boundaries, including when listing or following relationships.
+A project can produce one or more outcomes, such as a conclusion, actionable next steps, or an artifact. An outcome may motivate several follow-up projects; projects may be related to each other. These are distinct from answer counts or a stage-review flag. The first Investigation implementation records an output choice and developed result as ordinary answers. Artifacts now have dedicated project-scoped records; universal outcome records remain future work. Directed project relationships and spawning are implemented locally. Related projects retain independent membership boundaries, including when listing or following relationships.
 
 ## Project tasks — 2026-10-22
 
 A Task is a project-scoped unit of work with a stable ID, title, Ready/In progress/Done status, optional parent task, saved collapsed state, attribution, and timestamps. It is independent of guided-flow nodes and question progress. Display numbers such as 1.2.1 are derived from sibling insertion order and change after deletion. Completing a parent never infers child completion: explicitly choose only the parent or its entire subtree. Reopening a task does not change its children. Deleting a task removes its subtree after confirmation. All task mutations compare the project task-list revision; conflicts retain the draft and require review before retrying.
 
-Lock-In imports append a selected source tree into one authorized Nakama project, assigning new stable IDs and retaining task metadata. An import receipt prevents re-importing the exact same normalized source project. Export produces a version 1 Lock-In state with only the current project, no application memberships, guided answers, or comments. Cross-project relationships and spawning are separate future work.
+Lock-In imports append a selected source tree into one authorized Nakama project, assigning new stable IDs and retaining task metadata. An import receipt prevents re-importing the exact same normalized source project. Export produces a version 1 Lock-In state with only the current project, no application memberships, guided answers, or comments. Cross-project relationships and spawning are separate from task import/export.
 
 ## Project artifacts — 2026-10-23
 
@@ -74,3 +74,9 @@ An Artifact belongs to exactly one project and optionally one of its selected fl
 Artifacts begin In progress and may exist before their output. Ready (shown as Ready to use / Listo para usar) is an explicit state requiring at least one correctly typed image, a Markdown file, or a GitHub link. An artifact's own shared to-do list holds up to 100 flat, individually named Ready/In progress/Done tasks. Tasks do not automatically set artifact readiness, guided progress, or project state; these tasks are separate from the project's hierarchical To-do list and its Lock-In file interchange.
 
 One artifact revision protects metadata, to-dos, uploads, file removal, and deletion. A stale writer receives the latest authorized snapshot and retains drafts for explicit reconciliation. Replacing Markdown removes the earlier file after validation in the same transaction; this slice does not retain artifact version history. Removing an image artifact's last ready output requires first returning it to In progress. Deleting an artifact removes its files/to-dos; project deletion cascades through artifacts too.
+
+## Project lineage — 2026-10-23
+
+A directed project link records a source project and a spawned project. Either endpoint can have several links: several projects can contribute to one new project, and one project can spawn several follow-ups. Self-links and circular ancestry are rejected. Repeated links are idempotent. Links describe origin, not task dependencies or shared ownership.
+
+Spawning atomically creates the new project, creator's owner membership, optional selected flow, and selected source links. No memberships, answers, comments, tasks, artifacts, or files are copied. Links can also connect existing projects or be removed without deleting either endpoint. Deleting a project cascades only its incident links; linked projects survive.
