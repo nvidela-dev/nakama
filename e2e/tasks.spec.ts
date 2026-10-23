@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import {test,expect} from "@playwright/test";
 import {clerk} from "@clerk/testing/playwright";
 import {readFile} from "node:fs/promises";
@@ -15,7 +16,8 @@ test.afterEach(async()=>{
 test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts, and preserved guided drafts",async({page})=>{
  test.setTimeout(240_000);
  await page.goto("/");await clerk.signIn({page,emailAddress:process.env.NAKAMA_ADMIN_EMAIL!});
- await page.goto("/projects");await page.getByLabel("Project name",{exact:true}).fill(fixtureName);await page.getByLabel("Description",{exact:true}).fill("Synthetic browser to-do and interchange verification.");await page.getByRole("button",{name:"Create project",exact:true}).click();await expect(page.getByRole("heading",{name:fixtureName,exact:true})).toBeVisible();const path=new URL(page.url()).pathname;fixtureId=path.split("/").at(-1);
+ await page.goto("/projects");await openProjectSetup(page);
+  await page.getByLabel("Project name",{exact:true}).fill(fixtureName);await page.getByLabel("Description",{exact:true}).fill("Synthetic browser to-do and interchange verification.");await page.getByRole("button",{name:"Create project",exact:true}).click();await expect(page.getByRole("heading",{name:fixtureName,exact:true})).toBeVisible();const path=new URL(page.url()).pathname;fixtureId=path.split("/").at(-1);
  await page.getByRole("tab",{name:"To-do",exact:true}).click();const list=page.getByRole("region",{name:"Project to-do list"});
  await list.getByRole("button",{name:"Add task",exact:true}).click();let dialog=page.getByRole("dialog");await dialog.getByLabel("Task title",{exact:true}).fill("Root task");await dialog.getByRole("button",{name:"Save task",exact:true}).click();await expect(list.locator(".task-row")).toHaveCount(1);
  await list.getByRole("button",{name:"Add subtask 1",exact:true}).click();await dialog.getByLabel("Task title",{exact:true}).fill("Nested child");await dialog.getByRole("button",{name:"Save task",exact:true}).click();await expect(list.locator(".task-row")).toHaveCount(2);await expect(list.locator(".task-number").nth(1)).toHaveText("1.1");

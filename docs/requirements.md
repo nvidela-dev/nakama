@@ -27,3 +27,9 @@ Initial scope is small groups incubating ideas, not public discovery, fundraisin
 ## Project tasks and Lock-In interchange — 2026-10-22
 
 Each private project supports a shared hierarchical to-do list without selecting a guided flow. Members can add/edit tasks and nested subtasks, change explicit statuses, filter/search, expand/collapse, confirm subtree completion/deletion, and reload saved work. Unauthorized and removed users cannot read/write/import/export tasks. Stale destructive operations fail without data loss. Import previews and atomically appends a selected Lock-In version 1 project; export produces a compatible single-project file. Neither operation imports memberships nor changes guided progress.
+
+## Project artifacts — 2026-10-23
+
+Members can track in-progress or ready project outputs, optionally tied to a stage, in both a project tab and a membership-scoped global library. Image/design outputs require image uploads, software requires a GitHub repository/release/source link, and Markdown requires an uploaded UTF-8 document before becoming Ready. Images can expand to a viewport-sized viewer; Markdown has a safe reader and original-file download. Each artifact has independent shared to-dos and a stable authorized link. Creation, edits, uploads/downloads, deletion and conflicts preserve project access boundaries and unrelated guided/task data.
+
+Project creation starts with a single button and guided type/details setup. Name and description are entered inside that process; compact project-type tiles use a responsive grid. Back/Close preserve a local draft, and only the final submission persists anything. Creation with a flow is atomic; choosing a flow later remains supported.

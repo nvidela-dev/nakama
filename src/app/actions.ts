@@ -5,6 +5,7 @@ import { invitationCandidates } from "@/lib/invitation-candidates";
 import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
 import { ProjectError, projectService } from "@/lib/projects";
+import { startProject } from "@/lib/project-start";
 import { guidanceService } from "@/lib/guidance";
 export type ActionState = { error?: string; token?: string; success?: string };
 const field = (data: FormData, name: string) => String(data.get(name) ?? "");
@@ -19,9 +20,10 @@ export async function createProject(
   const person = await actor();
   let id: string;
   try {
-    id = await projectService(database()).create(person, {
+    id = await startProject(database(), person, {
       name: field(data, "name"),
       description: field(data, "description"),
+      flow: field(data, "flow"),
     });
   } catch (error) {
     return { error: message(error) };

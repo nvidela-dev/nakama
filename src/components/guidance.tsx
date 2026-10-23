@@ -12,6 +12,7 @@ import {
 } from "@/app/guidance-actions";
 import { flows, type FlowNode, type NodeStatus } from "@/lib/flows";
 import type { Answer, Revision } from "@/lib/guidance";
+import { FlowOptions } from "./flow-options";
 import { Feedback } from "./forms";
 import { formatDate } from "@/lib/i18n";
 const initial: GuidanceActionState = {};
@@ -26,23 +27,7 @@ export function FlowChooser({ projectId }: { projectId: string }) {
       <h2>{t("Project type")}</h2>
       <p>{t("Choose a workflow for this project.")}</p>
       <form action={action}>
-        <div className="flow-options">
-          {Object.values(flows).map((flow) => (
-            <button
-              className="flow-option"
-              key={flow.id}
-              name="flow"
-              value={flow.id}
-              disabled={pending}
-            >
-              <span aria-hidden="true">
-                {flow.id === "investigation" ? "⌕" : flow.id === "creative" ? "✳" : flow.id.includes("eshop") ? "▣" : flow.id === "saas" ? "⌘" : flow.id === "importation" ? "⇄" : flow.id === "consultancy" ? "◇" : "↗"}
-              </span>
-              <strong>{t(flow.name)}</strong>
-              <span>{t(flow.description)}</span>
-            </button>
-          ))}
-        </div>
+        <FlowOptions pending={pending} />
         <Feedback state={state} />
         <small className="muted">
           {t(

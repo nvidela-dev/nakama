@@ -54,3 +54,11 @@ Use Clerk's existing waitlist-entry Backend API as a small pending request queue
 ## Project tasks and Lock-In interchange — 2026-10-22
 
 `task-model.ts` owns browser-safe tree numbering/types; `lockin-format.ts` owns version 1 file validation/conversion; `tasks.ts` owns project-authorized transactional writes, list revisions, import receipts, and export snapshots. Server Actions resolve current app admission before invoking services. Project-row locks serialize task writers and protect consistent reads/exports. A composite parent foreign key prevents cross-project trees. Import validates one selected project, remaps IDs, and inserts its ordered tree in one statement inside the event/receipt transaction. File previews/downloads use the browser; the server does not read the user's local Lock-In store.
+
+## Bounded private artifact storage — 2026-10-23
+
+Migration 008 adds project artifacts and private file bytes in the existing Postgres database, plus artifact activity kinds. This bounded initial implementation provisions no service. There are at most 200 artifacts per project, six images per image artifact, 2 MiB per image (40 million decoded pixels across frames), and 512,000 bytes per Markdown document. Uploads are sequential single-file Server Actions, bounded to 3 MB request bodies; Markdown replacement is atomic. Images are validated with Sharp, using detected format for response MIME and normalizing a mismatched image filename extension.
+
+Library queries return metadata and a cover file ID, never file bytes. Image bytes load through a private, noncached file route that checks current membership and all three nested IDs. Markdown detail reads only its single bounded text payload. The global library uses membership joins and exposes no unrelated project metadata. A future larger-file workload should move blobs behind an equivalent private object-storage gateway; no such service is configured now.
+
+React Markdown with GFM provides headings, lists, task boxes, tables, and code blocks. Raw HTML is skipped, default safe URL handling remains enabled, and external image tags render as links. No MDX, arbitrary HTML, code execution, or syntax-highlighting runtime is enabled. The image lightbox is a viewport-sized native dialog with keyboard close/previous/next and focus restoration.

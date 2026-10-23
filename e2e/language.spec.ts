@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import { test, expect, type Page } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 async function language(page: Page, code: "en" | "es") {
@@ -78,9 +79,12 @@ test("switching languages preserves drafts, stored content, canonical decisions 
   });
   await page.goto("/projects");
   const name = `E2E idiomas ${Date.now()}`;
+  await openProjectSetup(page);
   await page.getByLabel("Project name").fill(name);
   await page.getByLabel("Description").fill("What inspires us?");
+  await page.getByRole("button",{name:"Close setup",exact:true}).click();
   await language(page, "es");
+  await openProjectSetup(page);
   await expect(page.getByLabel("Nombre del proyecto")).toHaveValue(name);
   await expect(page.getByLabel("Descripción")).toHaveValue("What inspires us?");
   await page.getByRole("button", { name: "Crear proyecto" }).click();

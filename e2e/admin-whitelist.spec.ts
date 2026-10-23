@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 
@@ -29,7 +30,8 @@ test("administrator manages exact-email admission without granting project membe
     await expect(member.getByRole("heading", { name: "This project isn't available." })).toBeVisible();
     await page.goto("/projects");
     const name = `E2E whitelist ${Date.now()}`;
-    await page.getByLabel("Project name", { exact: true }).fill(name);
+    await openProjectSetup(page);
+  await page.getByLabel("Project name", { exact: true }).fill(name);
     await page.getByLabel("Description", { exact: true }).fill("Disposable whitelist access boundary check.");
     await page.getByRole("button", { name: "Create project", exact: true }).click();
     await expect(page.getByRole("heading", { name, exact: true })).toBeVisible({ timeout: 15000 });

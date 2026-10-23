@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 
@@ -6,6 +7,7 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   await clerk.signIn({ page, emailAddress: process.env.E2E_OWNER_EMAIL || "nakama-owner+clerk_test@example.com" });
   await page.goto("/projects");
   const original = `E2E settings ${Date.now()}`;
+  await openProjectSetup(page);
   await page.getByLabel("Project name", { exact: true }).fill(original);
   await page.getByLabel("Description", { exact: true }).fill("Synthetic settings check.");
   await page.getByRole("button", { name: "Create project", exact: true }).click();

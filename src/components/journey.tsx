@@ -42,6 +42,7 @@ export function Journey({
   sidebar,
   discussion,
   tasks,
+  artifacts,
 }: {
   projectId: string;
   guidance: Guidance;
@@ -53,6 +54,7 @@ export function Journey({
   sidebar?: React.ReactNode;
   discussion?: React.ReactNode;
   tasks?: React.ReactNode;
+  artifacts?: React.ReactNode;
 }) {
   const t = useT();
   const [showMap, setShowMap] = useState(false);
@@ -128,7 +130,7 @@ export function Journey({
   return (
     <div ref={workspace} className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
       <div className="project-working-column">
-      <ProjectWork tasks={tasks}>
+      <ProjectWork tasks={tasks} artifacts={artifacts}>
       <div id="project-stage-map">
         {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
       </div>

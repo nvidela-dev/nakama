@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 
@@ -11,6 +12,7 @@ test("project edits, deletion, and whitelist management work from the main scree
   const sidebar = page.locator(".main-whitelist");
   await expect(sidebar).toBeVisible();
   const name = `E2E main controls ${Date.now()}`;
+  await openProjectSetup(page);
   await page.getByLabel("Project name", { exact: true }).fill(name);
   await page.getByLabel("Description", { exact: true }).fill("Disposable main screen controls check.");
   await page.getByRole("button", { name: "Create project", exact: true }).click();

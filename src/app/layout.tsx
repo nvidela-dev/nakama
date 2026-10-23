@@ -5,8 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { authConfigured } from "@/lib/auth";
 import { Header } from "@/components/header";
 import "./globals.css";
-import { DensitySwitcher } from "@/components/density";
-import { LanguageSwitcher } from "@/components/language";
+import { Footer } from "@/components/footer";
 import { LanguageProvider } from "@/components/language";
 import { enUS } from "@clerk/localizations/en-US";
 import { esUY } from "@clerk/localizations/es-UY";
@@ -48,13 +47,7 @@ export default async function RootLayout({
       </a>
       <Header />
       {children}
-      <footer>
-        <span>{t("Nakama")}</span>
-        <div className="footer-preferences">
-          <LanguageSwitcher />
-          <DensitySwitcher density={density} />
-        </div>
-      </footer>
+      <Footer density={density} />
     </>
   );
   return (

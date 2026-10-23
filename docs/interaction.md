@@ -56,7 +56,7 @@ Compact desktop project cards stretch to the tallest card in each grid row. Mixe
 
 The Projects screen exposes edit and delete controls on owner project cards. These open a native modal dialog over the existing list, with a close control, Escape dismissal, keyboard focus containment/restoration, and the same revision-aware edit and exact-name delete forms used on project pages. Card titles/timelines remain navigation links; action buttons are separate siblings, never controls nested inside links. Settings forms mount only while the dialog is open, keeping the ordinary list light and avoiding duplicate active fields.
 
-For the application administrator, the sidebar also provides an allowed-email form and an expandable whitelist with removal controls. Non-admins receive no whitelist data or controls. Full project and Administration pages remain available. New project capture stays in the main sidebar. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.
+For the application administrator, the sidebar also provides an allowed-email form and an expandable whitelist with removal controls. Non-admins receive no whitelist data or controls. Full project and Administration pages remain available. A New project button in the main sidebar opens guided setup. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.
 
 ## Access-request review — 2026-10-22
 
@@ -119,3 +119,21 @@ The footer keeps the Nakama name on the left and language/layout controls on the
 ## Header project dropdown — 2026-10-23
 
 Your projects remains a link to the project list, with a separate chevron opening a 320px-tall scrollable project dropdown (bounded by the viewport on short screens). Each entry links to its project, highlights the current project, and wraps long names. Fetch current authorized project names on every opening, with loading, empty, retry and Spanish states. Escape closes and restores chevron focus; outside clicks and project selection close it. Keyboard users can tab through the ordinary links.
+
+## Artifact library and workspaces — 2026-10-23
+
+Header navigation includes Artifacts, listing outputs across current memberships. Cards combine an image cover or type motif, title, project, explicit readiness, to-do count and file count. Filters cover name/content, project, type and status. Each private project additionally exposes an Artifacts tab beside Project steps and To-do, keeping the other panels mounted. A New artifact dialog captures project, name, type, description and optional stage; the resulting in-progress workspace presents the required output controls.
+
+Image workspaces show thumbnail buttons and filenames/download/remove controls. Expanding an image opens a full-viewport modal with previous/next buttons, arrow-key navigation, Escape close and focus restoration. Markdown workspaces show the readable document with a download link and a clearly labeled replacement upload. Software workspaces show their GitHub link. Side panels edit metadata/readiness and the artifact's own explicit-save to-do list. Destructive removal uses exact-name confirmation; stale edits retain drafts and offer explicit reconciliation. Normal navigation warns before discarding unsaved drafts.
+
+English/Spanish labels, keyboard focus, modal containment, wrapping text, horizontally scrollable code/tables, and phone stacking apply throughout. In progress may have no output; Ready requires the relevant file or GitHub link and does not imply completed tasks or a reviewed stage.
+
+Footer language and layout controls share a compact 30px outer height, with 11px labels and a 10px gap, following the user’s request for matching smaller controls.
+
+Administration is a footer link beside the preference controls, omitted from the header. It remains visible only to the signed-in administrator; the Administration page/actions retain their existing server-side authorization.
+
+## Guided project setup and compact type grid — 2026-10-23
+
+The Projects sidebar contains a single New project button instead of permanent name/description fields. Its native modal guides type selection, then name and description, with explicit stage progress, Back, Continue, Close/Escape and focus restoration. Closing/backing up retains the local draft while the page remains mounted. No project exists until the final Create project submission. Selecting a type initializes that flow and its capture answers in the same transaction as the project/owner membership. Choose later retains flow-free projects for tasks, artifacts, or later flow selection. The chosen-flow limitation is shown before submission.
+
+Type cards are shared by setup and the existing project chooser: a responsive grid of compact tiles with small symbols/titles and two-line descriptions. Full descriptions remain in accessible names/tooltips. Selected tiles have a clear border and pressed state; keyboard buttons, English/Spanish copy and two-column phone layouts remain available. Project/private access semantics are unchanged.

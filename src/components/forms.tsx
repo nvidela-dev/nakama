@@ -4,7 +4,6 @@ import { useT } from "@/components/language";
 import { useActionState, useEffect, useRef, useState } from "react";
 import {
   acceptInvitation,
-  createProject,
   invitePerson,
   managePerson,
   type ActionState,
@@ -25,42 +24,6 @@ export function Feedback({ state }: { state: ActionState }) {
         </p>
       )}
     </>
-  );
-}
-export function CaptureForm() {
-  const t = useT();
-  const [state, action, pending] = useActionState(createProject, initial);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  return (
-    <form action={action} className="form-stack">
-      <label htmlFor="name">{t("Project name")}</label>
-      <input
-        id="name"
-        name="name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        maxLength={100}
-        placeholder={t("Audio production project")}
-      />
-      <label htmlFor="description">{t("Description")}</label>
-      <textarea
-        id="description"
-        name="description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        required
-        maxLength={2000}
-        rows={4}
-        placeholder={t("Describe the project's purpose and scope.")}
-      />
-      <Feedback state={state} />
-      <button disabled={pending}>
-        {pending ? t("Creating project…") : t("Create project")}
-      </button>
-      <small>{t("Only invited members can access this project.")}</small>
-    </form>
   );
 }
 export function InviteForm({ projectId, candidates }: { projectId: string; candidates: string[] }) {

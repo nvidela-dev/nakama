@@ -1,17 +1,12 @@
 import { ProjectNavigation } from "./project-navigation";
 import { NotificationBell } from "./notification-bell";
 import { WaveMark } from "@/components/wave-mark";
-import { currentUser } from "@clerk/nextjs/server";
-import { isAppAdmin } from "@/lib/app-access";
-import { adminEmail } from "@/lib/whitelist";
 import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { authConfigured } from "@/lib/auth";
 export async function Header() {
   const t = await getT();
-  const user = authConfigured() ? await currentUser() : null;
-  const admin = !!user && isAppAdmin({ userId: user.id, verifiedEmails: user.emailAddresses.filter((email) => email.verification?.status === "verified").map((email) => email.emailAddress) }, adminEmail());
   return (
     <header className="site-header">
       <Link href="/" className="brand" aria-label={t("Nakama home")}>
@@ -27,7 +22,7 @@ export async function Header() {
           <>
             <Show when="signed-in">
               <ProjectNavigation />
-              {admin && <Link href="/admin">{t("Administration")}</Link>}
+              <Link href="/artifacts">{t("Artifacts")}</Link>
               <NotificationBell />
               <UserButton />
             </Show>

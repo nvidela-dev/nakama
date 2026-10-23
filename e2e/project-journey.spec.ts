@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import { test, expect, type Page } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 const ownerEmail =
@@ -26,6 +27,7 @@ test("private capture, invitation, guided editing, conflict, and removal on real
     page.getByRole("button", { name: "Open user menu" }),
   ).toBeVisible();
   const name = `E2E radio play ${Date.now()}`;
+  await openProjectSetup(page);
   await page.getByLabel("Project name").fill(name);
   await page
     .getByLabel("Description")

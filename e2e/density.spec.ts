@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import { test, expect, type Page } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 async function density(page: Page, value: "compact" | "comfortable") {
@@ -78,11 +79,16 @@ test("density changes keep capture and answer drafts, selections and saving inta
   });
   await page.goto("/projects");
   const name = `E2E compact ${Date.now()}`;
+  await openProjectSetup(page);
   await page.getByLabel("Project name").fill(name);
   await page.getByLabel("Description").fill("A compact desktop workspace.");
+  await page.getByRole("button",{name:"Close setup",exact:true}).click();
   await density(page, "comfortable");
+  await openProjectSetup(page);
   await expect(page.getByLabel("Project name")).toHaveValue(name);
+  await page.getByRole("button",{name:"Close setup",exact:true}).click();
   await density(page, "compact");
+  await openProjectSetup(page);
   await page.getByRole("button", { name: "Create project" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Creative/ }).click();

@@ -1,0 +1,40 @@
+import {test,expect} from "@playwright/test";
+import {clerk} from "@clerk/testing/playwright";
+import {Pool} from "pg";
+import {projectService} from "../src/lib/projects";
+import type {Database} from "../src/lib/database";
+const names:string[]=[];
+test.afterEach(async()=>{
+ const pool=new Pool({connectionString:process.env.DATABASE_URL,max:1});
+ const db:Database={query:(q,v)=>pool.query(q,v),transaction:async work=>{const tx=await pool.connect();try{await tx.query("BEGIN");const r=await work(tx);await tx.query("COMMIT");return r;}catch(e){await tx.query("ROLLBACK");throw e;}finally{tx.release();}}};
+ try{for(const name of names){const row=(await pool.query("SELECT p.id,m.user_id FROM projects p JOIN project_memberships m ON m.project_id=p.id AND m.role='owner' WHERE p.name=$1 AND p.description='Disposable guided setup verification.'",[name])).rows[0];if(row)await projectService(db).deleteProject({userId:row.user_id,verifiedEmails:[]},row.id,name);}}finally{await pool.end();}
+});
+test("single-button project setup, compact type grid, retained drafts, atomic selection, deferred types and phone layout",async({page})=>{
+ test.setTimeout(120000);page.setDefaultTimeout(15000);
+ await page.setViewportSize({width:1440,height:1000});await page.goto("/");await clerk.signIn({page,emailAddress:process.env.NAKAMA_ADMIN_EMAIL!});await page.goto("/projects");
+ await expect(page.getByLabel("Project name",{exact:true})).toHaveCount(0);
+ await page.getByRole("button",{name:"New project",exact:true}).click();
+ const dialog=page.getByRole("dialog");await expect(dialog).toBeVisible();await expect(dialog.locator(".flow-option")).toHaveCount(8);
+ const tiles=await dialog.locator(".flow-option").evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return{x:Math.round(r.x),height:r.height};}));
+ expect(new Set(tiles.map(t=>t.x)).size).toBeGreaterThan(1);expect(Math.max(...tiles.map(t=>t.height))).toBeLessThan(120);
+ await dialog.screenshot({path:test.info().outputPath("project-type-grid-desktop.png")});
+ await dialog.locator('button[value="creative"]').click();await dialog.getByRole("button",{name:/Continue/}).click();
+ const name="E2E guided setup "+Date.now();names.push(name);await dialog.getByLabel("Project name",{exact:true}).fill(name);await dialog.getByLabel("Description",{exact:true}).fill("Disposable guided setup verification.");
+ await dialog.getByRole("button",{name:/Back/}).click();await expect(dialog.locator('button[value="creative"]')).toHaveAttribute("aria-pressed","true");
+ await dialog.getByRole("button",{name:/Continue/}).click();await expect(dialog.getByLabel("Project name",{exact:true})).toHaveValue(name);
+ await dialog.getByRole("button",{name:"Close setup",exact:true}).click();await expect(page.getByRole("button",{name:"New project",exact:true})).toBeFocused();
+ await page.getByRole("button",{name:"New project",exact:true}).click();await expect(dialog.getByLabel("Project name",{exact:true})).toHaveValue(name);
+ await dialog.getByRole("button",{name:"Create project",exact:true}).click();await expect(page.getByRole("heading",{name,exact:true})).toBeVisible();await expect(page.locator(".stage-card")).toHaveCount(5);
+ await page.goto("/projects");await page.setViewportSize({width:390,height:844});await page.getByRole("button",{name:"New project",exact:true}).click();
+ const positions=await dialog.locator(".flow-option").evaluateAll(es=>es.map(e=>Math.round(e.getBoundingClientRect().x)));expect(new Set(positions).size).toBeGreaterThan(1);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
+ await dialog.screenshot({path:test.info().outputPath("project-type-grid-phone.png")});
+ await dialog.getByRole("button",{name:"Choose later",exact:true}).click();await dialog.getByRole("button",{name:/Continue/}).click();
+ const later="E2E deferred setup "+Date.now();names.push(later);await dialog.getByLabel("Project name",{exact:true}).fill(later);await dialog.getByLabel("Description",{exact:true}).fill("Disposable guided setup verification.");
+ await dialog.getByRole("button",{name:"Create project",exact:true}).click();await expect(page.getByRole("heading",{name:later,exact:true})).toBeVisible();
+ await expect(page.locator(".flow-options")).toBeVisible();await expect(page.locator(".flow-option")).toHaveCount(8);
+ await page.locator(".flow-options").screenshot({path:test.info().outputPath("existing-project-type-grid.png")});
+ await page.goto("/projects");await page.getByRole("button",{name:"Español",exact:true}).click();await page.getByRole("button",{name:"Nuevo proyecto",exact:true}).click();
+ await expect(dialog.getByText("Paso 1 de 2 · Tipo de proyecto",{exact:true})).toBeVisible();await dialog.getByRole("button",{name:"Elegir más adelante",exact:true}).click();await dialog.getByRole("button",{name:/Continuar/}).click();
+ await expect(dialog.getByLabel("Nombre del proyecto",{exact:true})).toBeVisible();await page.keyboard.press("Escape");await expect(dialog).not.toBeVisible();
+});

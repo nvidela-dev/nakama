@@ -90,7 +90,7 @@ export function projectService(db: Database) {
         if (!project || confirmation !== project.name)
           throw new ProjectError("Type the project name exactly to confirm deletion.");
         // Delete dependent records first. All removals are scoped to this project and atomic.
-        for (const table of ["answer_revisions", "node_answers", "stage_review_history", "stage_reviews", "project_flows", "project_invitations", "project_memberships"])
+        for (const table of ["project_artifacts", "answer_revisions", "node_answers", "stage_review_history", "stage_reviews", "project_flows", "project_invitations", "project_memberships"])
           await tx.query(`DELETE FROM ${table} WHERE project_id = $1`, [projectId]);
         await tx.query("DELETE FROM projects WHERE id = $1", [projectId]);
       });

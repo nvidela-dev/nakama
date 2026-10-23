@@ -241,3 +241,21 @@ The user requested a chevron to the right of Your projects that opens a fixed-he
 ## Clean centered progress circles — 2026-10-23
 
 The user requested removing exclamation marks and showing only concentric circles on project-list timelines. Remove all interior symbols and review-based border coloring, and explicitly center each progress disc with 50% positioning and translation. Keep review/revisit information in tooltips and accessible labels; counts remain visible.
+
+## Artifact outputs, viewers, and to-dos — 2026-10-23
+
+The user authorized implementing artifacts as named project/optional-phase outputs, with an across-project library and links back to context. They explicitly allowed artifacts in progress with their own to-dos, requested image uploads with full-screen expansion, software GitHub links, Markdown-file uploads and a Markdown reader. In progress may precede the payload; Ready requires the appropriate upload/link. Use image sets (up to six), one replaceable Markdown document, and an immutable artifact type.
+
+Implement the initial bounded private uploads in the existing database rather than provisioning a service, preserving current membership checks for library/detail/file/actions. Artifact checklist tasks are flat and independent of project To-do/Lock-In and guided progress. All current members may edit/delete, using one artifact revision, draft-preserving conflicts and exact-name deletion confirmation. Safe Markdown skips HTML and external image loads; image expansion uses an accessible viewport dialog. Larger files, retained artifact versions, cross-project artifact sharing, repository provisioning, and generation remain outside this request.
+
+## Matching compact footer controls — 2026-10-23
+
+The user requested matching footer preference heights at the smaller control’s scale and reducing the overall size. Use a 30px outer height for language and layout controls, smaller text/padding and a tighter gap.
+
+## Footer administration link — 2026-10-23
+
+The user requested moving Administration to the footer. Keep the same verified-administrator visibility and protected destination/actions, and place the small link alongside footer preferences.
+
+## Single-button guided project setup — 2026-10-23
+
+The user requested replacing the standing New project form with a button, moving name/description into the overall starting process, and making project-type choices much smaller and a grid. Implement a two-step modal (type, then details), shared compact type tiles for new/existing projects, local draft retention across Back/Close, and a single final create action. Keep Choose later so previously accepted flow-free tasks/artifacts remain possible. Atomically create project, owner membership, flow and captured answers; failed setup must leave no partial project.

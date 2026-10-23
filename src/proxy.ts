@@ -11,6 +11,7 @@ export default function proxy(
   ) {
     if (
       request.nextUrl.pathname.startsWith("/admin") ||
+      request.nextUrl.pathname.startsWith("/artifacts") ||
       request.nextUrl.pathname.startsWith("/projects") ||
       request.nextUrl.pathname.startsWith("/invitations")
     ) {

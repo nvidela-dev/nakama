@@ -1,3 +1,4 @@
+import {openProjectSetup} from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 import { createClerkClient } from "@clerk/backend";
@@ -29,7 +30,8 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await page.getByRole("button",{name:"Allow email",exact:true}).click();
   await expect(page.getByText(friendEmail,{exact:true})).toBeVisible();
   allowance=(await client.allowlistIdentifiers.getAllowlistIdentifierList({limit:100})).data.find(e=>e.identifier===friendEmail)!.id;
-  await page.goto("/projects");await page.getByLabel("Project name",{exact:true}).fill(fixtureName);
+  await page.goto("/projects");await openProjectSetup(page);
+  await page.getByLabel("Project name",{exact:true}).fill(fixtureName);
   await page.getByLabel("Description",{exact:true}).fill("Disposable collaboration browser check.");
   await page.getByRole("button",{name:"Create project",exact:true}).click();
   await expect(page.getByRole("heading",{name:fixtureName,exact:true})).toBeVisible({timeout:15000});

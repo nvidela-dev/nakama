@@ -1,3 +1,5 @@
+import { ArtifactLibrary } from "@/components/artifact-library";
+import { artifactService } from "@/lib/artifacts";
 import { taskService } from "@/lib/tasks";
 import { TaskList } from "@/components/task-list";
 import { ProjectWork } from "@/components/project-work";
@@ -29,12 +31,12 @@ export default async function ProjectPage({
   const { projectId } = await params;
   const service = projectService(database());
   const query = await searchParams;
-  let project, people, guidance, comments, activity, tasks;
+  let project, people, guidance, comments, activity, tasks, artifacts;
   let history: Awaited<
     ReturnType<ReturnType<typeof guidanceService>["history"]>
   > = [];
   try {
-    [project, people, guidance, history, comments, activity, tasks] = await Promise.all([
+    [project, people, guidance, history, comments, activity, tasks, artifacts] = await Promise.all([
       service.get(person, projectId),
       service.people(person, projectId),
       guidanceService(database()).get(person, projectId),
@@ -42,11 +44,13 @@ export default async function ProjectPage({
       collaborationService(database()).comments(person, projectId, { stageId: query.stage, nodeId: query.node }, query.commentsBefore, query.comment),
       collaborationService(database()).activity(person, projectId, query.activityBefore),
       taskService(database()).list(person, projectId),
+      artifactService(database()).list(person, projectId),
     ]);
   } catch (error) {
     if (error instanceof ProjectError) notFound();
     throw error;
   }
+  const artifactLibrary=<ArtifactLibrary items={artifacts} projects={[{id:projectId,name:project.name}]} projectId={projectId} stages={guidance?.flow.stages.map(({id,name})=>({id,name}))??[]} stageId={query.stage}/>;
   const candidates = project.role === "owner" ? await invitationCandidates(person, projectId) : [];
   const selectedStage = guidance?.flow.stages.find((stage) => stage.id === query.stage);
   const selectedNode = selectedStage?.nodes.find((node) => node.id === query.node);
@@ -153,12 +157,12 @@ export default async function ProjectPage({
           names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
           sidebar={sidebar}
           discussion={discussion}
-          tasks={<TaskList projectId={projectId} initial={tasks} />}
+          tasks={<TaskList projectId={projectId} initial={tasks} />} artifacts={artifactLibrary}
         />
       ) : (
         <div className="workspace-columns project-capture-workspace has-discussion">
           <div className="project-working-column">
-            <ProjectWork tasks={<TaskList projectId={projectId} initial={tasks} />}>
+            <ProjectWork tasks={<TaskList projectId={projectId} initial={tasks} />} artifacts={artifactLibrary}>
               <FlowChooser projectId={projectId} />
             </ProjectWork>
           </div>

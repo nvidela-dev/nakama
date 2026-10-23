@@ -12,7 +12,7 @@ import { database } from "@/lib/db";
 import { projectService } from "@/lib/projects";
 import { projectProgress } from "@/lib/project-progress";
 import { ProjectTimeline } from "@/components/project-timeline";
-import { CaptureForm } from "@/components/forms";
+import { NewProjectButton } from "@/components/new-project";
 export const dynamic = "force-dynamic";
 export default async function ProjectsPage() {
   const t = await getT();
@@ -49,10 +49,7 @@ export default async function ProjectsPage() {
           )}
         </section>
         <aside className="main-screen-sidebar">
-        <section className="panel capture">
-          <h2>{t("New project")}</h2>
-          <CaptureForm />
-        </section>
+        <NewProjectButton />
         {allowed && <section className="panel main-whitelist">
           <h2>{t("Allow a person")}</h2>
           <AddAllowedEmail />
