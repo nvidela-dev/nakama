@@ -54,6 +54,8 @@ make verify
 npm run storybook
 npm run test:components
 # After a production build:
+npm run frontend:report
+npm run frontend:measure
 npm run test:frontend
 ```
 
