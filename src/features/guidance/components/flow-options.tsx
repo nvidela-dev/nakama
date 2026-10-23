@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
 
 import { flowCatalog } from "@/features/guidance/model/flow-catalog.generated";
@@ -28,19 +29,23 @@ export function FlowOptions({
           title={t(flow.description)}
         >
           <span aria-hidden="true">
-            {flow.id === "investigation"
-              ? "⌕"
-              : flow.id === "creative"
-                ? "✳"
-                : flow.id.includes("eshop")
-                  ? "▣"
-                  : flow.id === "saas"
-                    ? "⌘"
-                    : flow.id === "importation"
-                      ? "⇄"
-                      : flow.id === "consultancy"
-                        ? "◇"
-                        : "↗"}
+            <Icon
+              name={
+                flow.id === "investigation"
+                  ? "search"
+                  : flow.id === "creative"
+                    ? "creative"
+                    : flow.id.includes("eshop")
+                      ? "shop"
+                      : flow.id === "saas"
+                        ? "software"
+                        : flow.id === "importation"
+                          ? "import"
+                          : flow.id === "consultancy"
+                            ? "consultancy"
+                            : "idea"
+              }
+            />
           </span>
           <strong>{t(flow.name)}</strong>
           <span>{t(flow.description)}</span>

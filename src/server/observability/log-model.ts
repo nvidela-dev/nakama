@@ -18,6 +18,7 @@ export const operationNames = [
   "task.import",
   "task.export",
   "comment.post",
+  "comment.references",
   "comment.change",
   "flow.choose",
   "answer.save",

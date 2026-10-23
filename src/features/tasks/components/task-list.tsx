@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Panel } from "@/shared/ui/panel";
 
 import { Input, Select } from "@/shared/ui/controls";
@@ -315,7 +316,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                       run({ kind: "collapse", ids: [node.id], collapsed: !node.collapsed })
                     }
                   >
-                    {filtering || !node.collapsed ? "▾" : "▸"}
+                    <Icon name={filtering || !node.collapsed ? "chevronDown" : "chevronRight"} />
                   </Button>
                 ) : (
                   <span className="task-leaf" aria-hidden="true">
@@ -357,7 +358,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                     open({ kind: "add", parentId: node.id, title: "", revision: list.revision })
                   }
                 >
-                  +
+                  <Icon name="plus" />
                 </Button>
                 <Button
                   type="button"
@@ -369,7 +370,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                     open({ kind: "delete", task: node, title: node.title, revision: list.revision })
                   }
                 >
-                  ×
+                  <Icon name="delete" />
                 </Button>
               </div>
             </li>

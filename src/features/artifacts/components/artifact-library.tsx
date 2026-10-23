@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
@@ -160,7 +161,16 @@ export function ArtifactLibrary({
                   />
                 ) : (
                   <span aria-hidden="true">
-                    {a.kind === "markdown" ? "#" : a.kind === "software" ? "</>" : "▧"}
+                    <Icon
+                      name={
+                        a.kind === "markdown"
+                          ? "markdown"
+                          : a.kind === "software"
+                            ? "code"
+                            : "image"
+                      }
+                      size={32}
+                    />
                   </span>
                 )}
               </div>
@@ -200,7 +210,7 @@ export function ArtifactLibrary({
             <div className="artifact-library-heading">
               <h2 id="new-artifact-heading">{t("New artifact")}</h2>
               <Button type="button" className="text-button" onClick={close} aria-label={t("Close")}>
-                ×
+                <Icon name="close" />
               </Button>
             </div>
             {projectId ? (

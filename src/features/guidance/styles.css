@@ -148,51 +148,8 @@
     margin: 9px 0;
     font-size: 21px;
   }
-  html[data-density="compact"] .answer-form {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 250px;
-    column-gap: 16px;
-    align-items: start;
-  }
-  html[data-density="compact"] .answer-form > * {
-    grid-column: 1 / -1;
-  }
-  html[data-density="compact"] .answer-form label[for="answer"] {
-    grid-column: 1;
-    grid-row: 1;
-  }
   html[data-density="compact"] .answer-form #answer {
-    grid-column: 1;
-    grid-row: 2 / 5;
-    height: 150px;
     min-height: 150px;
-  }
-  html[data-density="compact"] .answer-form label[for="status"] {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  html[data-density="compact"] .answer-form #status {
-    grid-column: 2;
-    grid-row: 2;
-    width: 100%;
-  }
-  html[data-density="compact"] .answer-form:has(#choice) label[for="choice"] {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  html[data-density="compact"] .answer-form:has(#choice) #choice {
-    grid-column: 2;
-    grid-row: 2;
-    width: 100%;
-  }
-  html[data-density="compact"] .answer-form:has(#choice) label[for="status"] {
-    grid-row: 3;
-  }
-  html[data-density="compact"] .answer-form:has(#choice) #status {
-    grid-row: 4;
-  }
-  html[data-density="compact"] .answer-form > small:first-of-type {
-    grid-row: 5;
   }
   html[data-density="compact"] .review-note,
   html[data-density="compact"] .review-warning {
@@ -204,11 +161,6 @@
   }
   html[data-density="compact"] .flow-option {
     padding: 14px;
-  }
-}
-@media (min-width: 1024px) and (max-width: 1399px) {
-  html[data-density="compact"] .answer-form {
-    grid-template-columns: minmax(0, 1fr) 210px;
   }
 }
 @media (min-width: 1024px) {
@@ -472,11 +424,6 @@
   }
 }
 
-@media (min-width: 1280px) {
-  html[data-density="compact"] .has-discussion .answer-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 .journey-content {
   min-width: 0;
 }
@@ -810,4 +757,14 @@ html[data-density="compact"] .flow-option {
     min-width: 44px;
     min-height: 44px;
   }
+}
+
+.answer-form {
+  min-width: 0;
+}
+.answer-form > textarea,
+.answer-form > select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }

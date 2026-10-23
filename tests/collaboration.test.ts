@@ -1,3 +1,5 @@
+import { referenceService } from "../src/features/collaboration/server/references";
+import { artifactService } from "../src/features/artifacts/server/artifacts";
 import { required } from "../src/server/database/query";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -193,4 +195,70 @@ test("failed event recording rolls back the comment, and whole-project deletion 
     (await db.query("SELECT id FROM project_activity WHERE project_id=$1", [id])).rows.length,
     0,
   );
+});
+
+test("reference search returns only authorized metadata, handles search and immediately rejects removed source membership", async () => {
+  const source = await projects.create(owner, {
+    name: "Reference source",
+    description: "Synthetic",
+  });
+  const destination = await projects.create(owner, {
+    name: "Reference destination",
+    description: "Synthetic",
+  });
+  const hidden = await projects.create(outsider, {
+    name: "Reference private",
+    description: "Synthetic",
+  });
+  const output = await artifactService(db).create(owner, destination, {
+    name: "Reference design",
+    kind: "image",
+  });
+  await artifactService(db).create(outsider, hidden, {
+    name: "Reference hidden artifact",
+    kind: "markdown",
+  });
+  const references = referenceService(db);
+  const visible = await references.search(owner, source, "reference");
+  assert.ok(visible.items.some((item) => item.id === destination));
+  assert.ok(visible.items.some((item) => item.id === output && item.kind === "artifact"));
+  assert.ok(visible.items.every((item) => item.projectId !== hidden));
+  assert.ok(
+    visible.items.every(
+      (item) => Object.keys(item).sort().join(",") === "id,kind,name,projectId,projectName",
+    ),
+  );
+  assert.deepEqual(
+    (await references.search(owner, source, "REFERENCE DESIGN")).items.map((item) => item.id),
+    [output],
+  );
+  assert.deepEqual((await references.search(owner, source, "%_")).items, []);
+  await assert.rejects(references.search(outsider, source, ""));
+  await assert.rejects(references.search(owner, source, "x".repeat(101)));
+  for (let i = 0; i < 42; i++)
+    await artifactService(db).create(owner, destination, {
+      name: `Catalog fixture ${i}`,
+      kind: "markdown",
+    });
+  const bounded = await references.search(owner, source, "Catalog fixture");
+  assert.equal(bounded.items.length, 40);
+  assert.equal(bounded.hasMore, true);
+  assert.deepEqual(
+    (await references.search(owner, source, "Catalog fixture")).items.map((item) => item.id),
+    bounded.items.map((item) => item.id),
+  );
+  await db.query("DELETE FROM project_memberships WHERE project_id=$1 AND user_id=$2", [
+    destination,
+    owner.userId,
+  ]);
+  assert.ok(
+    (await references.search(owner, source, "reference")).items.every(
+      (item) => item.projectId !== destination,
+    ),
+  );
+  await db.query("DELETE FROM project_memberships WHERE project_id=$1 AND user_id=$2", [
+    source,
+    owner.userId,
+  ]);
+  await assert.rejects(references.search(owner, source, ""));
 });

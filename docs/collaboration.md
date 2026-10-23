@@ -31,7 +31,7 @@ Use one access policy implementation; provider identity establishes who the pers
 
 ## Comments and shared editing
 
-Each comment has one validated target, author, created/edited timestamps, and content. Implemented policy: plain text with safe HTTP(S) links, flat chronological discussions per target, editing/deleting one's own comments, and owner removal with an attributable moderation event. Deletion permanently clears the body and leaves a tombstone; a future export must omit the former body. Whole-project deletion removes the discussion and its activity. No old comment bodies are retained as hidden revisions.
+Each comment has one validated target, author, created/edited timestamps, and content. Implemented policy: plain text with safe HTTP(S) links and named internal project/artifact references, flat chronological discussions per target, editing/deleting one's own comments, and owner removal with an attributable moderation event. Deletion permanently clears the body and leaves a tombstone; a future export must omit the former body. Whole-project deletion removes the discussion and its activity. No old comment bodies are retained as hidden revisions.
 
 Comments are suggestions/discussion until a person explicitly incorporates them into an answer or decision with attribution. Use revision checks for simultaneous edits and show the new saved answer alongside the stale draft for reconciliation. Do not promise real-time editing in the first release.
 
@@ -92,3 +92,9 @@ Metadata, files, and to-dos share a revision; conflicts preserve the editing per
 ## Project lineage access — 2026-10-23
 
 Creating or removing a relationship requires current membership in both source and spawned projects; either Owner or Member may do this. Spawning gives only its creator membership in the new project. Linking does not invite or admit anyone. A project's relationship list includes only other projects the viewer currently belongs to, with no hidden names, IDs, placeholders, or counts. Direct navigation checks the destination's membership as usual. Source selection lists only the viewer's projects; the server rechecks submitted IDs inside the creation transaction. Removing membership hides that endpoint and prevents subsequent link changes.
+
+## Chat references — 2026-10-23
+
+The chat composer offers an on-demand searchable picker for projects and artifacts. Each search verifies current membership in the source discussion project and filters destinations by the viewer's current membership. Results contain only names, kinds and route IDs, at most 40 items plus a more-results flag; search text is bounded to 100 characters. No files, descriptions, answer content or hidden-project metadata are fetched by the picker.
+
+Selection inserts a named internal link into the existing plain-text draft at the cursor, replacing selected text. These references use `[name](/projects/id)` or `[name](/projects/id/artifacts/id)` text and render only for canonical UUID routes. They do not enable general Markdown/HTML, create project relationships, notify anyone, copy files or grant access. A link's label is author-shared message content, so it remains visible to discussion readers even if they lack access to the linked destination. Navigation independently checks destination membership; names are never automatically fetched to enrich pasted links.

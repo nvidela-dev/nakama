@@ -6,6 +6,7 @@ This document records preferences stated in this Nakama conversation. The exact 
 
 - Help build the product and explain the important choices, consequences, and evidence in plain language. The user wants to understand the solutions.
 - Organize code by feature. Establish one obvious place and pattern for new work instead of adding another general components or utilities folder.
+- Use the shared icon catalog for interface icons; preserve the custom Nakama wave.
 - Reuse components throughout the application. Maintain an attached component library and Storybook, with examples and documentation.
 - Improve frontend performance and UX. Measure improvements and preserve the workflow semantics already accepted.
 - Keep TypeScript strict and useful. Align types with the normalized database and validate values crossing runtime seams. Distinguish type/build, contract, backend/database, external service, and compute failures in the diagnostic catalog.

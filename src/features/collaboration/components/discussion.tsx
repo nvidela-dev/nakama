@@ -1,11 +1,17 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
+import { ActionMenu } from "@/shared/ui/action-menu";
+import { CommentBubble } from "./comment-bubble";
+import { CommentComposer } from "./comment-composer";
+import { CommentText } from "./comment-text";
+import { searchChatReferences } from "../reference-actions";
 import { Panel } from "@/shared/ui/panel";
 
 import { Input, Textarea } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Comment, CommentTarget, Page } from "@/features/collaboration/model";
 import { readComments } from "@/features/notifications/actions";
@@ -13,21 +19,6 @@ import { postComment, changeComment } from "@/features/collaboration/actions";
 import { useLocale, useT } from "@/shared/i18n/provider";
 import { formatDate } from "@/shared/i18n/index";
 import { Feedback } from "@/shared/ui/feedback";
-function CommentText({ content }: { content: string }) {
-  return (
-    <p className="preserve-lines comment-body">
-      {content.split(/(https?:\/\/[^\s<>]+)/g).map((part, index) =>
-        /^https?:\/\//.test(part) ? (
-          <a key={index} href={part} target="_blank" rel="noopener noreferrer">
-            {part}
-          </a>
-        ) : (
-          part
-        ),
-      )}
-    </p>
-  );
-}
 function CommentItem({
   comment,
   projectId,
@@ -92,112 +83,124 @@ function CommentItem({
   );
   return (
     <li ref={item} id={`comment-${comment.id}`} tabIndex={-1} className="comment-item">
-      <div className="comment-meta">
-        <strong>
-          {comment.author_name}
-          {comment.former_member ? ` · ${t("Former member")}` : ""}
-        </strong>
-        <time dateTime={new Date(comment.created_at).toISOString()}>
-          {formatDate(comment.created_at, locale)}
-        </time>
-        {comment.edited_at && <span>{t("Edited")}</span>}
-      </div>
-      {comment.deleted_at ? (
-        <p className="muted">{t("Comment removed.")}</p>
-      ) : (
-        <>
-          {!editing && <CommentText content={comment.content} />}
-          {editing && (
-            <form action={action} className="form-stack comment-edit">
-              <Input type="hidden" name="operation" value="edit" />
-              <label htmlFor={`edit-comment-${comment.id}`}>{t("Edit comment")}</label>
-              <Textarea
-                autoFocus
-                id={`edit-comment-${comment.id}`}
-                name="content"
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                required
-                maxLength={4000}
-                rows={3}
-              />
-              <div className="comment-controls">
-                <Button type="submit" disabled={pending}>
-                  {pending ? t("Saving…") : t("Save changes")}
-                </Button>
+      <CommentBubble
+        own={comment.author_id === userId}
+        author={`${comment.author_name}${comment.former_member ? ` · ${t("Former member")}` : ""}`}
+        dateTime={new Date(comment.created_at).toISOString()}
+        dateLabel={formatDate(comment.created_at, locale)}
+        timeLabel={new Intl.DateTimeFormat(locale, {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "UTC",
+        }).format(new Date(comment.created_at))}
+        edited={comment.edited_at ? t("Edited") : undefined}
+        actions={
+          !comment.deleted_at &&
+          !editing &&
+          !confirming &&
+          (comment.author_id === userId || owner) ? (
+            <ActionMenu id={`comment-actions-${comment.id}`} label={t("Comment actions")}>
+              {comment.author_id === userId && (
                 <Button
                   type="button"
-                  className="button secondary"
+                  variant="ghost"
                   onClick={() => {
-                    setEditing(false);
-                    requestAnimationFrame(() =>
-                      document.getElementById(`edit-comment-button-${comment.id}`)?.focus(),
-                    );
+                    setExpectedRevision(comment.revision);
+                    setDraft(comment.content);
+                    setEditing(true);
                   }}
                 >
-                  {t("Cancel")}
+                  <Icon name="edit" /> {t("Edit comment")}
                 </Button>
-              </div>
-            </form>
-          )}
-          <div className="comment-controls">
-            {comment.author_id === userId && !editing && !confirming && (
+              )}
               <Button
-                id={`edit-comment-button-${comment.id}`}
                 type="button"
-                className="button secondary"
-                onClick={() => {
-                  setExpectedRevision(comment.revision);
-                  setDraft(comment.content);
-                  setEditing(true);
-                }}
-              >
-                {t("Edit comment")}
-              </Button>
-            )}
-            {(comment.author_id === userId || owner) && !confirming && !editing && (
-              <Button
-                id={`remove-comment-button-${comment.id}`}
-                type="button"
-                className="button secondary"
+                variant="ghost"
                 onClick={() => {
                   setExpectedRevision(comment.revision);
                   setConfirming(true);
                 }}
               >
-                {t("Remove comment")}
+                <Icon name="delete" /> {t("Remove comment")}
               </Button>
+            </ActionMenu>
+          ) : undefined
+        }
+      >
+        {comment.deleted_at ? (
+          <p className="muted">{t("Comment removed.")}</p>
+        ) : (
+          <>
+            {!editing && <CommentText content={comment.content} />}
+            {editing && (
+              <form action={action} className="form-stack comment-edit">
+                <Input type="hidden" name="operation" value="edit" />
+                <label htmlFor={`edit-comment-${comment.id}`}>{t("Edit comment")}</label>
+                <Textarea
+                  autoFocus
+                  id={`edit-comment-${comment.id}`}
+                  name="content"
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  required
+                  maxLength={4000}
+                  rows={3}
+                />
+                <div className="comment-controls">
+                  <Button type="submit" disabled={pending}>
+                    {pending ? t("Saving…") : t("Save changes")}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => {
+                      setEditing(false);
+                      requestAnimationFrame(() =>
+                        document.getElementById(`comment-actions-${comment.id}`)?.focus(),
+                      );
+                    }}
+                  >
+                    {t("Cancel")}
+                  </Button>
+                </div>
+              </form>
             )}
-          </div>
-          {confirming && (
-            <form action={action} className="comment-confirm">
-              <p>
-                {t(
-                  "Remove this comment? Its text will be permanently removed; a deletion marker will remain.",
-                )}
-              </p>
-              <div className="comment-controls">
-                <Button type="submit" autoFocus name="operation" value="delete" disabled={pending}>
-                  {t("Confirm removal")}
-                </Button>
-                <Button
-                  type="button"
-                  className="button secondary"
-                  onClick={() => {
-                    setConfirming(false);
-                    requestAnimationFrame(() =>
-                      document.getElementById(`remove-comment-button-${comment.id}`)?.focus(),
-                    );
-                  }}
-                >
-                  {t("Cancel")}
-                </Button>
-              </div>
-            </form>
-          )}
-        </>
-      )}
-      <Feedback state={state} />
+            {confirming && (
+              <form action={action} className="comment-confirm">
+                <p>
+                  {t(
+                    "Remove this comment? Its text will be permanently removed; a deletion marker will remain.",
+                  )}
+                </p>
+                <div className="comment-controls">
+                  <Button
+                    type="submit"
+                    autoFocus
+                    name="operation"
+                    value="delete"
+                    disabled={pending}
+                  >
+                    {t("Confirm removal")}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => {
+                      setConfirming(false);
+                      requestAnimationFrame(() =>
+                        document.getElementById(`comment-actions-${comment.id}`)?.focus(),
+                      );
+                    }}
+                  >
+                    {t("Cancel")}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </>
+        )}
+        <Feedback state={state} />
+      </CommentBubble>
     </li>
   );
 }
@@ -222,10 +225,16 @@ export function Discussion({
 }) {
   const t = useT();
   const [content, setContent] = useState("");
+  const loadReferences = useCallback(
+    (search: string) => searchChatReferences(projectId, search),
+    [projectId],
+  );
   const [state, action, pending] = useActionState(
     async (previous: { error?: string; success?: string }, data: FormData) => {
       const result = await postComment(projectId, target, previous, data);
-      if (result.success) setContent("");
+      if (result.success) {
+        setContent("");
+      }
       return result;
     },
     {},
@@ -235,9 +244,6 @@ export function Discussion({
       <h2>
         {t("Discussion")} · {label}
       </h2>
-      <p className="muted">
-        {t("Comments are discussion, not saved answers or agreed decisions.")}
-      </p>
       {latestHref && <Link href={latestHref}>{t("Latest comments")}</Link>}
       {comments.items.length ? (
         <ol className="comment-list">
@@ -259,22 +265,14 @@ export function Discussion({
           {t("Older comments")}
         </Link>
       )}
-      <form action={action} className="form-stack comment-compose">
-        <label htmlFor="new-comment">{t("Add a comment")}</label>
-        <Textarea
-          id="new-comment"
-          name="content"
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          maxLength={4000}
-          required
-          rows={3}
-        />
-        <Feedback state={state} />
-        <Button type="submit" disabled={pending}>
-          {pending ? t("Posting…") : t("Post comment")}
-        </Button>
-      </form>
+      <CommentComposer
+        action={action}
+        content={content}
+        onContentChange={setContent}
+        pending={pending}
+        state={state}
+        loadReferences={loadReferences}
+      />
     </Panel>
   );
 }

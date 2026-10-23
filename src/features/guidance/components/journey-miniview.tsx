@@ -1,4 +1,5 @@
 "use client";
+import { Icon, type IconName } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -16,15 +17,15 @@ type Point = {
   revisit: boolean;
   position: THREE.Vector3;
 };
-const symbols: Record<string, string> = {
-  unanswered: "○",
-  draft: "◐",
-  answered: "✓",
-  skipped: "↷",
-  blocked: "!",
-  reviewed: "✓",
-  "In progress": "◐",
-  "Not started": "○",
+const symbols: Record<string, IconName> = {
+  unanswered: "unanswered",
+  draft: "draft",
+  answered: "answered",
+  skipped: "skipped",
+  blocked: "warning",
+  reviewed: "answered",
+  "In progress": "draft",
+  "Not started": "unanswered",
 };
 
 export default function JourneyMiniview({
@@ -243,7 +244,7 @@ export default function JourneyMiniview({
             disabled={failed || angle === -2}
             aria-label={t("Rotate left")}
           >
-            ↶
+            <Icon name="rotateLeft" />
           </Button>
           <Button type="button" onClick={() => setAngle(0)} disabled={failed || angle === 0}>
             {t("Reset view")}
@@ -254,7 +255,7 @@ export default function JourneyMiniview({
             disabled={failed || angle === 2}
             aria-label={t("Rotate right")}
           >
-            ↷
+            <Icon name="rotateRight" />
           </Button>
         </div>
       </div>
@@ -290,7 +291,9 @@ export default function JourneyMiniview({
                   aria-label={`${t(point.label)} · ${t(point.status)}${point.revisit ? t(" · revisit") : ""}`}
                 >
                   <span className="miniview-label">
-                    {!point.nodeId && `${symbols[point.status]} `}
+                    {!point.nodeId && (
+                      <Icon name={symbols[point.status] ?? "unanswered"} size={12} />
+                    )}
                     {t(point.label)}
                     <small>
                       {t(point.status)}

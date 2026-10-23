@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Panel } from "@/shared/ui/panel";
 
 import { Button } from "@/shared/ui/button";
@@ -67,17 +68,7 @@ function ProjectNavigationMenu() {
           setOpen(!open);
         }}
       >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          aria-hidden="true"
-        >
-          <path d="m4 6 4 4 4-4" />
-        </svg>
+        <Icon name="chevronDown" />
       </Button>
       {open && (
         <Panel

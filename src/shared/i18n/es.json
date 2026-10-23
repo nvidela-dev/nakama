@@ -480,6 +480,7 @@
   "Comment removed.": "Comentario eliminado.",
   "Former member": "Exmiembro",
   "Edited": "Editado",
+  "Comment actions": "Acciones del comentario",
   "Edit comment": "Editar comentario",
   "Cancel": "Cancelar",
   "Remove comment": "Eliminar comentario",
@@ -962,5 +963,13 @@
   "Choose a relationship direction.": "Elige la dirección del vínculo.",
   "Only software artifacts use a GitHub link.": "Solo los artefactos de software usan un enlace de GitHub.",
   "Completed item": "Elemento completado",
-  "Incomplete item": "Elemento pendiente"
+  "Incomplete item": "Elemento pendiente",
+  "Link a project or artifact": "Vincular un proyecto o artefacto",
+  "Search projects and artifacts": "Buscar proyectos y artefactos",
+  "Links do not grant access. Names you share become part of your message.": "Los enlaces no dan acceso. Los nombres que compartas serán parte de tu mensaje.",
+  "Could not load references.": "No se pudieron cargar las referencias.",
+  "No matching projects or artifacts.": "No hay proyectos ni artefactos que coincidan.",
+  "More results available. Narrow your search.": "Hay más resultados. Refina tu búsqueda.",
+  "This link would exceed the comment limit. Shorten your draft first.": "Este enlace superaría el límite del comentario. Acorta tu borrador primero.",
+  "Invalid reference search.": "La búsqueda de referencias no es válida."
 }

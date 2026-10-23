@@ -3,7 +3,8 @@ import { Button } from "@/shared/ui/button";
 import { useT } from "@/shared/i18n/provider";
 import { Feedback } from "@/shared/ui/feedback";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { Input, Select, Textarea } from "@/shared/ui/controls";
+import { AnswerFields } from "./answer-fields";
+import { Input } from "@/shared/ui/controls";
 import { Panel } from "@/shared/ui/panel";
 import { useLocale } from "@/shared/i18n/provider";
 import { formatDate } from "@/shared/i18n/index";
@@ -105,62 +106,25 @@ export function AnswerEditor({
       )}
       <form action={action} className="form-stack answer-form">
         <Input type="hidden" name="revision" value={revision} />
-        <label htmlFor="answer">{t("Your answer, learning, or uncertainty")}</label>
-        <Textarea
-          disabled={pending}
-          id="answer"
-          name="content"
-          rows={7}
-          maxLength={20000}
-          value={content}
-          onChange={(e) => {
-            setContent(e.target.value);
+        <AnswerFields
+          node={node}
+          content={content}
+          status={status}
+          choice={choice}
+          pending={pending}
+          onContentChange={(value) => {
+            setContent(value);
             setDirty(true);
           }}
-          placeholder={t("It's okay to say what you don't know yet.")}
+          onChoiceChange={(value) => {
+            setChoice(value);
+            setDirty(true);
+          }}
+          onStatusChange={(value) => {
+            setStatus(value);
+            setDirty(true);
+          }}
         />
-        {node.choices && (
-          <>
-            <label htmlFor="choice">{t("Your direction")}</label>
-            <Select
-              disabled={pending}
-              id="choice"
-              name="choice"
-              value={choice}
-              onChange={(e) => {
-                setChoice(e.target.value);
-                setDirty(true);
-              }}
-            >
-              <option value="">{t("Not decided yet")}</option>
-              {node.choices.map((c) => (
-                <option key={c} value={c}>
-                  {t(c)}
-                </option>
-              ))}
-            </Select>
-          </>
-        )}
-        <label htmlFor="status">{t("Where does this stand?")}</label>
-        <Select
-          disabled={pending}
-          id="status"
-          name="status"
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value as NodeStatus);
-            setDirty(true);
-          }}
-        >
-          <option value="draft">{t("Draft — still thinking")}</option>
-          <option value="answered">{t("Answered — including an honest unknown")} </option>
-          <option value="blocked">{t("Blocked — explain the help you need")}</option>
-          <option value="skipped">{t("Skipped — explain why")}</option>
-          <option value="unanswered">{t("Unanswered — clear the current answer")} </option>
-        </Select>
-        <small>
-          {t("Answered means recorded, not proven right. Earlier revisions stay in history.")}{" "}
-        </small>
         <Feedback
           state={{
             ...(state.error ? { error: state.error } : {}),

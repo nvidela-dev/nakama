@@ -53,3 +53,17 @@ test("architecture rejects primitive bypasses and runtime cycles while permittin
     [],
   );
 });
+
+test("interface icons must use the catalog while the brand wave remains custom", () => {
+  assert.ok(
+    check({ "src/features/tasks/components/icon.tsx": "export const Bad=()=> <svg/>;" }).some((x) =>
+      x.includes("shared icon catalog"),
+    ),
+  );
+  assert.ok(
+    check({
+      "src/features/tasks/components/icon.tsx": 'import { Bell } from "lucide-react";',
+    }).some((x) => x.includes("shared icon catalog")),
+  );
+  assert.deepEqual(check({ "src/shared/ui/wave-mark.tsx": "export const Wave=()=> <svg/>;" }), []);
+});

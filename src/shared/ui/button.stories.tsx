@@ -1,3 +1,4 @@
+import { Icon as Glyph } from "./icon";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Button, IconButton } from "./button";
 const meta = {
@@ -15,7 +16,7 @@ export const Disabled: Story = { args: { disabled: true } };
 export const Icon: Story = {
   render: () => (
     <IconButton variant="ghost" label="Unread comments">
-      ♧
+      <Glyph name="bell" />
     </IconButton>
   ),
 };

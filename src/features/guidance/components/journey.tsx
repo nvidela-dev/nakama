@@ -1,4 +1,5 @@
 "use client";
+import { Icon, type IconName } from "@/shared/ui/icon";
 import { Panel } from "@/shared/ui/panel";
 
 import { Button } from "@/shared/ui/button";
@@ -30,12 +31,12 @@ const StageReviewForm = dynamic(
 const JourneyMiniview = dynamic(() => import("@/features/guidance/components/journey-miniview"), {
   ssr: false,
 });
-const symbols: Record<string, string> = {
-  unanswered: "○",
-  draft: "◐",
-  answered: "✓",
-  skipped: "↷",
-  blocked: "!",
+const symbols: Record<string, IconName> = {
+  unanswered: "unanswered",
+  draft: "draft",
+  answered: "answered",
+  skipped: "skipped",
+  blocked: "warning",
 };
 function levels(stage: FlowStage) {
   const depth = new Map<string, number>();
@@ -110,18 +111,7 @@ export function Journey({
         aria-controls="project-stage-map"
         onClick={() => setShowMap(!showMap)}
       >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5" />
-        </svg>
+        <Icon name="box" />
       </Button>
       <div
         className="progress-ring"
@@ -153,25 +143,12 @@ export function Journey({
                   <ol>
                     <li>
                       <Link href={base}>
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          aria-hidden="true"
-                        >
-                          <rect x="3" y="3" width="5" height="5" rx="1" />
-                          <rect x="12" y="3" width="5" height="5" rx="1" />
-                          <rect x="3" y="12" width="5" height="5" rx="1" />
-                          <rect x="12" y="12" width="5" height="5" rx="1" />
-                        </svg>
+                        <Icon name="overview" />
                         {t("All stages")}
                       </Link>
                     </li>
                     <li className="breadcrumb-separator" aria-hidden="true">
-                      ›
+                      <Icon name="chevronRight" />
                     </li>
                     <li>
                       {activeNode ? (
@@ -183,7 +160,7 @@ export function Journey({
                     {activeNode && (
                       <>
                         <li className="breadcrumb-separator" aria-hidden="true">
-                          ›
+                          <Icon name="chevronRight" />
                         </li>
                         <li>
                           <span aria-current="page">{t(activeNode.label)}</span>
@@ -265,7 +242,7 @@ export function Journey({
                               </small>
                             </div>
                             <span className="stage-arrow" aria-hidden="true">
-                              ↗
+                              <Icon name="arrowUpRight" />
                             </span>
                           </Link>
                         </li>
@@ -274,7 +251,8 @@ export function Journey({
                   </ol>
                   {next && (
                     <Link className="button secondary" href={href(next.stage.id, next.node.id)}>
-                      {t("Next unanswered question:")} {t(next.node.label)} ↗
+                      {t("Next unanswered question:")} {t(next.node.label)}{" "}
+                      <Icon name="arrowUpRight" />
                     </Link>
                   )}
                 </>
@@ -325,7 +303,10 @@ export function Journey({
                                   className={`question-node ${answer?.status ?? "unanswered"}`}
                                 >
                                   <span className="node-state">
-                                    {symbols[answer?.status ?? "unanswered"]}{" "}
+                                    <Icon
+                                      name={symbols[answer?.status ?? "unanswered"] ?? "unanswered"}
+                                      size={12}
+                                    />{" "}
                                     {t(answer?.status ?? "unanswered")}
                                     {answer?.needs_review ? t(" · revisit") : ""}
                                   </span>

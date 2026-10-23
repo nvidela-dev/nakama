@@ -99,11 +99,19 @@ export function architectureViolations(sources: ReadonlyMap<string, string>): st
         ["button", "input", "select", "textarea", "dialog"].includes(node.tagName.getText(tree))
       )
         errors.add(`${file}: use the shared UI ${node.tagName.getText(tree)} primitive`);
+      if (
+        (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
+        node.tagName.getText(tree) === "svg" &&
+        file !== "src/shared/ui/wave-mark.tsx"
+      )
+        errors.add(`${file}: use the shared icon catalog instead of drawing interface SVGs`);
       ts.forEachChild(node, visit);
     }
     visit(tree);
     const edges: string[] = [];
     for (const dependency of dependencies) {
+      if (dependency.specifier.startsWith("lucide-react") && file !== "src/shared/ui/icon.tsx")
+        errors.add(`${file}: choose icons through the shared icon catalog`);
       const dest = target(file, dependency.specifier);
       if (/^(?:@\/)?(?:lib|components)\//.test(dependency.specifier))
         errors.add(`${file}: legacy folder import ${dependency.specifier}`);

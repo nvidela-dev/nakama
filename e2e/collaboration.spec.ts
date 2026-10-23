@@ -112,6 +112,7 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await friendDiscussion.getByLabel("Add a comment").fill("Friend node comment");
   await friendDiscussion.getByRole("button", { name: "Post comment", exact: true }).click();
   await expect(friendDiscussion.locator(".comment-body")).toHaveText("Friend node comment");
+  await friendDiscussion.getByRole("button", { name: "Comment actions", exact: true }).click();
   await friendDiscussion.getByRole("button", { name: "Edit comment", exact: true }).click();
   await expect(friendDiscussion.getByLabel("Edit comment", { exact: true })).toBeFocused();
   await friendDiscussion.getByLabel("Edit comment", { exact: true }).fill("Friend edited comment");
@@ -120,8 +121,13 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   // Keep an older page open, then save a newer revision in a second tab.
   const second = await context.newPage();
   await second.goto(node);
+  await friendDiscussion.getByRole("button", { name: "Comment actions", exact: true }).click();
   await friendDiscussion.getByRole("button", { name: "Edit comment", exact: true }).click();
   await friendDiscussion.getByLabel("Edit comment", { exact: true }).fill("Stale local draft");
+  await second
+    .locator(".discussion")
+    .getByRole("button", { name: "Comment actions", exact: true })
+    .click();
   await second
     .locator(".discussion")
     .getByRole("button", { name: "Edit comment", exact: true })
@@ -147,6 +153,10 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
     "Stale local draft",
   );
   await page.goto(node);
+  await page
+    .locator(".discussion")
+    .getByRole("button", { name: "Comment actions", exact: true })
+    .click();
   await expect(
     page.locator(".discussion").getByRole("button", { name: "Edit comment", exact: true }),
   ).toHaveCount(0);

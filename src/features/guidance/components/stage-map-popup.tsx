@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import type { ReactNode } from "react";
 import { useT } from "@/shared/i18n/provider";
 import { Dialog } from "@/shared/ui/dialog";
@@ -26,7 +27,7 @@ export function StageMapPopup({ children, onClose }: { children: ReactNode; onCl
     >
       <div className="stage-map-popup-toolbar">
         <IconButton variant="ghost" label={t("Close")} onClick={onClose} autoFocus>
-          ×
+          <Icon name="close" />
         </IconButton>
       </div>
       {children}

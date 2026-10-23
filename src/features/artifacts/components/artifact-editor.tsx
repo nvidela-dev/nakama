@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Panel } from "@/shared/ui/panel";
 
 import { Input, Select, Textarea } from "@/shared/ui/controls";
@@ -173,7 +174,7 @@ export function ArtifactEditor({
         {artifact.kind === "software" ? (
           <div className="software-output">
             <span className="software-symbol" aria-hidden="true">
-              &lt;/&gt;
+              <Icon name="code" size={32} />
             </span>
             {artifact.github_url ? (
               <>
@@ -184,7 +185,7 @@ export function ArtifactEditor({
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {t("Open on GitHub")} ↗
+                  {t("Open on GitHub")} <Icon name="arrowUpRight" />
                 </a>
                 <p className="preserve-lines">{artifact.github_url}</p>
               </>
@@ -212,7 +213,9 @@ export function ArtifactEditor({
                         src={artifactFileUrl(artifact.project_id, artifact.id, file.id)}
                         alt={file.name}
                       />
-                      <span>{t("Expand image")} ↗</span>
+                      <span>
+                        {t("Expand image")} <Icon name="arrowUpRight" />
+                      </span>
                     </Button>
                     <figcaption>
                       <span>{file.name}</span>
@@ -263,7 +266,9 @@ export function ArtifactEditor({
             )}
             {!artifact.files.length && (
               <div className="artifact-empty-output">
-                <span aria-hidden="true">{artifact.kind === "image" ? "▧" : "#"}</span>
+                <span aria-hidden="true">
+                  <Icon name={artifact.kind === "image" ? "image" : "markdown"} />
+                </span>
                 <p>
                   {t("No output attached yet. Keep working and upload a draft when you have one.")}
                 </p>

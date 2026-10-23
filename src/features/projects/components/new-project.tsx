@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Input, Textarea } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
@@ -12,15 +13,12 @@ import { Feedback } from "@/shared/ui/feedback";
 import { useT } from "@/shared/i18n/provider";
 
 export function NewProjectButton({
-  projects = [],
   initialSourceIds = [],
   label = "New project",
 }: {
-  projects?: { id: string; name: string }[];
   initialSourceIds?: string[];
   label?: string;
 }) {
-  const [sourceIds, setSourceIds] = useState(initialSourceIds);
   const t = useT(),
     trigger = useRef<HTMLButtonElement>(null),
     heading = useRef<HTMLHeadingElement>(null);
@@ -46,7 +44,7 @@ export function NewProjectButton({
         className="new-project-trigger"
         onClick={() => setOpen(true)}
       >
-        {t(label)} <span aria-hidden="true">+</span>
+        {t(label)} <Icon name="plus" />
       </Button>
       <Dialog
         open={open}
@@ -77,7 +75,7 @@ export function NewProjectButton({
                 disabled={pending}
                 onClick={close}
               >
-                ×
+                <Icon name="close" />
               </Button>
             </div>
             {step === "type" ? (
@@ -94,7 +92,7 @@ export function NewProjectButton({
                     {t("Choose later")}
                   </Button>
                   <Button type="button" disabled={!flow} onClick={() => setStep("details")}>
-                    {t("Continue")} →
+                    {t("Continue")} <Icon name="arrowRight" />
                   </Button>
                 </div>
               </>
@@ -137,36 +135,9 @@ export function NewProjectButton({
                   rows={3}
                   placeholder={t("Describe the project's purpose and scope.")}
                 />
-                {projects.length > 0 && (
-                  <fieldset className="project-source-picker">
-                    <legend>{t("Spawned from (optional)")}</legend>
-                    <p className="muted">
-                      {t(
-                        "Select the projects this grows from. Members and content are not copied.",
-                      )}
-                    </p>
-                    <div className="project-source-options">
-                      {projects.map((project) => (
-                        <label key={project.id}>
-                          <Input
-                            type="checkbox"
-                            name="sourceIds"
-                            value={project.id}
-                            checked={sourceIds.includes(project.id)}
-                            onChange={(e) =>
-                              setSourceIds((ids) =>
-                                e.target.checked
-                                  ? [...ids, project.id]
-                                  : ids.filter((id) => id !== project.id),
-                              )
-                            }
-                          />
-                          <span>{project.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
-                )}
+                {initialSourceIds.map((id) => (
+                  <Input key={id} type="hidden" name="sourceIds" value={id} />
+                ))}
                 <Feedback state={state} />
                 <small>{t("Only invited members can access this project.")}</small>
                 <div className="project-setup-actions">
@@ -176,7 +147,7 @@ export function NewProjectButton({
                     disabled={pending}
                     onClick={() => setStep("type")}
                   >
-                    ← {t("Back")}
+                    <Icon name="arrowLeft" /> {t("Back")}
                   </Button>
                   <Button type="submit" disabled={pending}>
                     {pending ? t("Creating project…") : t("Create project")}

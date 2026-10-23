@@ -45,7 +45,7 @@ test.afterEach(async () => {
     await pool.end();
   }
 });
-test("spawn with several sources, navigate both ways, link/unlink existing projects, phone and Spanish", async ({
+test("spawn, add several sources, navigate both ways, link/unlink existing projects, phone and Spanish", async ({
   page,
 }) => {
   page.setDefaultTimeout(15000);
@@ -95,26 +95,29 @@ test("spawn with several sources, navigate both ways, link/unlink existing proje
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Choose later", exact: true }).click();
   await dialog.getByRole("button", { name: /Continue/ }).click();
-  await expect(dialog.getByRole("checkbox", { name: aName, exact: true })).toBeChecked();
-  await dialog.getByRole("checkbox", { name: bName, exact: true }).check();
+  await expect(dialog.getByRole("checkbox")).toHaveCount(0);
   await dialog.getByLabel("Project name", { exact: true }).fill(cName);
   await dialog.getByLabel("Description", { exact: true }).fill("Disposable lineage verification.");
   await dialog.getByRole("button", { name: "Create project", exact: true }).click();
   await expect(page.getByRole("heading", { name: cName, exact: true })).toBeVisible();
   const childUrl = page.url();
-  await expect(panel.getByRole("link", { name: aName + " ↗", exact: true })).toBeVisible();
-  await expect(panel.getByRole("link", { name: bName + " ↗", exact: true })).toBeVisible();
-  await panel.getByRole("link", { name: aName + " ↗", exact: true }).click();
-  await expect(panel.getByRole("link", { name: cName + " ↗", exact: true })).toBeVisible();
+  await panel.getByText("Link an existing project", { exact: true }).click();
+  await panel.getByLabel("Relationship", { exact: true }).selectOption("source");
+  await panel.getByLabel("Project", { exact: true }).selectOption(b);
+  await panel.getByRole("button", { name: "Link project", exact: true }).click();
+  await expect(panel.getByRole("link", { name: aName, exact: true })).toBeVisible();
+  await expect(panel.getByRole("link", { name: bName, exact: true })).toBeVisible();
+  await panel.getByRole("link", { name: aName, exact: true }).click();
+  await expect(panel.getByRole("link", { name: cName, exact: true })).toBeVisible();
   await panel.getByText("Link an existing project", { exact: true }).click();
   await panel.getByLabel("Project", { exact: true }).selectOption(b);
   await panel.getByRole("button", { name: "Link project", exact: true }).click();
-  await expect(panel.getByRole("link", { name: bName + " ↗", exact: true })).toBeVisible();
+  await expect(panel.getByRole("link", { name: bName, exact: true })).toBeVisible();
   await panel.getByRole("button", { name: "Unlink " + bName, exact: true }).click();
-  await expect(panel.getByRole("link", { name: bName + " ↗", exact: true })).toHaveCount(0);
+  await expect(panel.getByRole("link", { name: bName, exact: true })).toHaveCount(0);
   await page.goto(childUrl);
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(panel.getByRole("link", { name: aName + " ↗", exact: true })).toBeVisible();
+  await expect(panel.getByRole("link", { name: aName, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await panel.screenshot({ path: "/tmp/nakama-lineage-phone.png" });
   await page.getByRole("button", { name: "Español", exact: true }).click();

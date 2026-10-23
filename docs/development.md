@@ -419,3 +419,27 @@ The artifact regression run exposed input accepted before hydration. Shared cont
 The final local public `/preview` sample loaded 673,284 raw / 199,255 gzip JavaScript bytes across 12 same-origin scripts at desktop and phone widths, compared with 786,317 raw / 236,662 gzip bytes across 14 scripts before the refactor: 37,407 fewer gzip bytes (15.8%). Neither sample overflowed horizontally. The 220,000-byte gzip budget allows approximately 10% headroom above the new sample. External provider resources are excluded; this does not establish field Web Vitals or authenticated-route payload performance.
 
 Canonical links were checked. Browser error context/screenshots and local measurements remain ignored; temporary test runner output is removed after review. The disposable database and test app servers are stopped after verification. Storybook can remain running locally for component review. Remote CI and a deployed user journey for this refactor remain unverified until release.
+
+## Shared interface icons — 2026-10-23
+
+Implemented locally on `codex/icon-library`: a pinned Lucide React dependency, a typed 31-icon shared catalog, and a Storybook catalog. Common control, navigation, workflow, artifact and saved-state symbols use the library. The custom Nakama wave and concentric progress geometry remain unchanged. Architecture checks reject direct Lucide imports outside the catalog and custom inline SVGs outside the wave.
+
+Verification: 86 tests, strict type checking, lint, formatting, production build and static Storybook build passed. All 14 component browser checks passed on rerun after a development-server reload interrupted two initial accessibility checks. The Storybook catalog was visually inspected. No database migrations, push, or deployment was performed.
+
+## Compact discussion conversation — 2026-10-23
+
+Local implementation: compact incoming/outgoing message bubbles, author labels, short UTC timestamps with complete dates available to assistive technology and on hover, and a small composer. A shared native chevron disclosure holds permitted edit/remove actions, with keyboard activation, Escape/focus restoration, outside dismissal and automatic closure after action selection. Existing author/owner permission conditions, delete confirmation, revision conflicts, link parsing and read tracking remain in Discussion. Added a synthetic conversation story and browser checks; updated the authenticated collaboration scenario for the new disclosure, but did not rerun that service-backed scenario for this visual change.
+
+Verification: 86 tests, strict types, lint, formatting, production build and static Storybook build passed. All 15 component browser checks passed, including compact phone layout, action selection, keyboard and dismissal behavior, and serious/critical accessibility checks on the conversation. Visual inspection caught the initial small-text contrast issue, confirmed by Axe and corrected. Changes remain local; no push or deployment.
+
+## Answer field sizing — 2026-10-23
+
+Fixed the compact answer form's grid placement: a narrow-layout override removed its second explicit column while status/choice fields still occupied column two, causing an implicit column to squeeze the answer. Forms now use the normal vertical stack in both densities; answer, direction and status controls are bounded to the full available form width. Extracted the actual fields into a presentation component for reuse in responsive stories; editor draft, conflict and save behavior stays in AnswerEditor.
+
+Type checking, lint, production and static Storybook builds passed. All 17 component browser checks passed. The two answer-layout cases cover widths 390/1024/1280/1440/1900, both densities and narrow/wide panels, with and without direction choices; they verify full-width answers, status underneath, no page overflow and draft retention across resizing. Visually inspected the narrow desktop story. Service-backed save/conflict workflows were not rerun for this presentation change. Local only, not pushed.
+
+## Project/artifact picker in chat — 2026-10-23
+
+Local implementation: the composer opens a searchable, fixed-height dialog and inserts a named project/artifact reference at the selection. Queries verify source membership and filter destination membership, decode bounded metadata and return at most 40 matches plus a continuation hint. No file data or descriptions are loaded, no link grants access, and reference navigation does not prefetch private destination pages. Link labels are explicitly shared text. Existing HTTP(S) links remain supported without enabling arbitrary Markdown or HTML. No database migration or hosted service is required.
+
+Verification: 89 unit/service/contract tests passed, including isolated SQL authorization, removed memberships, literal search, bounded results, safe parsing and insertion limits. All 19 component browser checks passed, including search errors/retry, no matches, keyboard/focus, phone sizing, contrast, actual composer selection replacement, preventing Enter in search from posting, synthetic submission/rendering and retained over-limit drafts. Type checking, lint, formatting, production and static Storybook builds passed; the phone picker was visually inspected. The full Clerk-backed multi-user journey and live deployment were not rerun. Changes remain local and unpushed.

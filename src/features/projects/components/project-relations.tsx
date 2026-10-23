@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Input, Select } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
@@ -66,7 +67,9 @@ export function ProjectRelations({
             <ul className="project-link-list">
               {items.map((other) => (
                 <li key={other.id}>
-                  <Link href={`/projects/${other.id}`}>{other.name} ↗</Link>
+                  <Link href={`/projects/${other.id}`}>
+                    {other.name} <Icon name="arrowUpRight" />
+                  </Link>
                   <RemoveLink projectId={projectId} other={other} direction={direction} />
                 </li>
               ))}
@@ -76,7 +79,7 @@ export function ProjectRelations({
           )}
         </div>
       ))}
-      <NewProjectButton projects={projects} initialSourceIds={[projectId]} label="Spawn project" />
+      <NewProjectButton initialSourceIds={[projectId]} label="Spawn project" />
       <details>
         <summary>{t("Link an existing project")}</summary>
         <form action={action} className="form-stack">

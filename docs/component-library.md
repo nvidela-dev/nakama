@@ -20,11 +20,13 @@ The browser checks use installed Chrome by default. For a managed Playwright Chr
 | `@/shared/ui/controls` | Input, Select, Textarea with native attributes, form actions, and React 19 refs |
 | `@/shared/ui/panel` | Panel surface, StatusMessage alert/status semantics, EmptyState |
 | `@/shared/ui/feedback` | Translated shared action feedback, independent of domain actions |
+| `@/shared/ui/action-menu` | Native chevron disclosure with labeled trigger, Escape/outside dismissal and ordinary button navigation |
 | `@/shared/ui/dialog` | Named native Dialog with focus trapping/restoration, Escape/backdrop dismissal, scroll locking, and pending dismissal control |
 | `@/shared/ui/tabs` | Controlled Tabs with Arrow/Home/End navigation and mounted inactive panels to preserve drafts |
 | `@/shared/ui/progress-marker` | Bounded concentric progress fill; accessible name or explicit decorative use |
 | `@/shared/ui/loading-state` | Named loading placeholders with reduced-motion support |
 | `@/shared/ui/markdown-reader` | Safe Markdown/GFM reader; no raw HTML, executable URLs, or automatic remote-image loading; named read-only task checkboxes |
+| `@/shared/ui/icon` | Typed Lucide interface icon catalog, consistent sizing and decorative SVG semantics |
 | `@/shared/ui/wave-mark` | Shared brand mark |
 
 `tokens.css` owns colors and typography variables. `styles.css` owns base elements and shared visual patterns. Each feature owns its prefixed product styles. Import `src/app/globals.css` once at the application root; Storybook uses the same entrypoint. Do not copy component markup or CSS into stories.
@@ -59,3 +61,13 @@ Controlled fields remain disabled in SSR until hydration attaches their change h
 ```
 
 Dialogs require either `label` or `labelledBy`. A pending operation can prevent dismissal. Individual features still decide whether closing retains or discards a draft; the shared dialog does not perform mutations.
+
+## Icon catalog
+
+Use `Icon` from `@/shared/ui/icon` for interface icons. The typed catalog uses [Lucide React](https://lucide.dev/guide/react/) with explicit imports; it does not load a remote font or a dynamic whole-library icon lookup. Browse **UI/Icon → Catalog** in Storybook before choosing an icon. Add a real Lucide export to this catalog when a new meaning is needed; do not invent SVG paths or use Unicode glyphs for interface controls.
+
+```tsx
+<IconButton label="Delete project"><Icon name="delete" /></IconButton>
+```
+
+Icons inherit text color, default to 16px with a consistent stroke, and are decorative. Keep the accessible name on the containing control or visible text. The Nakama wave remains the custom brand mark; concentric progress indicators and the 3D map remain data visualizations. Architecture checks reject direct library imports outside the catalog and custom inline SVGs outside the wave.

@@ -317,3 +317,23 @@ The user requested a feature-based codebase, frontend performance/UX improvement
 Enforce explicit feature dependencies, acyclic module imports, shared-layer independence, client/server graph separation, and shared native-control usage. Combine those checks with strict types, generated-contract/catalog drift checks, zero-warning lint, formatting, Storybook and behavior/accessibility verification. Record user-expressed preferences separately from chosen engineering defaults in the preferences document. Preserve current project authorization, workflow revisions, task hierarchy/Lock-In interchange, safe artifact readers, drafts and diagnostic privacy.
 
 Remove full templates from the picker/browser graph through a generated summary catalog, isolate language context from preference actions, pass only the selected dictionary, and conditionally load expensive editors/readers/maps. Measure the local production preview before and after; do not equate this with field performance or a deployed release. No hosted migration or service provisioning is needed for this refactor, and no push/deployment is included without further user direction.
+
+## Shared icon library — 2026-10-23
+
+Accepted: use an established icon library for most interface icons while preserving the Nakama wave. Use a typed, explicitly imported Lucide catalog in the shared component library, documented in Storybook. Keep progress geometry and 3D visualizations custom. This implementation is local until pushed and released.
+
+## Project setup source selection — 2026-10-23
+
+Accepted: remove the optional source-project checklist from new-project setup. The contextual Spawn project action still links its source automatically; additional relationships are managed in the Linked projects panel.
+
+## Compact discussion messages — 2026-10-23
+
+Accepted: size discussions like a compact messaging conversation, with author-owned bubbles aligned right, short timestamps and a smaller composer. Move edit/delete into a per-message chevron disclosure. Preserve author editing, owner moderation, explicit delete confirmation, revision conflicts, message links and read tracking.
+
+## Full-width answer editing — 2026-10-23
+
+Accepted: the answer field occupies the full form width, with direction (where applicable) and status stacked underneath at every resolution and density. Remove compact-mode two-column placement and its conflicting breakpoint overrides.
+
+## Project and artifact links in chat — 2026-10-23
+
+Accepted: a composer picker inserts named links to projects and artifacts into chat drafts. Search is bounded and membership-filtered, preserves existing draft text/selection and does not grant destination access. Names are deliberately shared as message text, without automatic metadata previews or new project relationships. No migration or additional service is needed.

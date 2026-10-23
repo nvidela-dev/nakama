@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
 
 import { useState, type ReactNode } from "react";
@@ -44,7 +45,7 @@ export function ProjectCard({
               aria-label={t("Edit project")}
               onClick={() => open("edit")}
             >
-              ✎
+              <Icon name="edit" />
             </Button>
             <Button
               type="button"
@@ -52,19 +53,7 @@ export function ProjectCard({
               aria-label={t("Delete project")}
               onClick={() => open("delete")}
             >
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />
-              </svg>
+              <Icon name="delete" />
             </Button>
           </div>
           <Dialog
@@ -76,7 +65,7 @@ export function ProjectCard({
             <div className="project-dialog-heading">
               <strong>{project.name}</strong>
               <Button type="button" onClick={() => setIsOpen(false)} aria-label={t("Close")}>
-                ×
+                <Icon name="close" />
               </Button>
             </div>
             {isOpen && (
