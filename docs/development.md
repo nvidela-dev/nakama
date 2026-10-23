@@ -78,7 +78,7 @@ Live verification found and fixed a development Strict Mode effect that read the
 
 ## English and Spanish
 
-The language switch uses a validated Server Action to set an HTTP-only, same-site preference cookie. Next.js refreshes server-rendered text while keeping client forms mounted. The document language and metadata follow the preference. English source strings are translation keys; `src/lib/i18n/es.json` owns Spanish copy. Only display text is translated. In particular, select option values, node IDs, saved names, answers, review rationales, and member names are not rewritten. Revision timestamps use an explicit UTC zone with localized formatting so server/client output agrees.
+The language switch uses a validated Server Action to set an HTTP-only, same-site preference cookie. Next.js refreshes server-rendered text while keeping client forms mounted. The document language and metadata follow the preference. English source strings are translation keys; `src/shared/i18n/es.json` owns Spanish copy. Only display text is translated. In particular, select option values, node IDs, saved names, answers, review rationales, and member names are not rewritten. Revision timestamps use an explicit UTC zone with localized formatting so server/client output agrees.
 
 `tests/i18n.test.ts` checks all flow questions/examples/choices and UI lookup keys for Spanish coverage. `e2e/language.spec.ts` checks switching both ways, reload/navigation persistence, Clerk's embedded sign-in, mobile overflow, preservation of capture/answer drafts and selected decisions, saved content, and translated validation feedback. It uses the same opt-in development-service setup described above.
 
@@ -391,3 +391,31 @@ The hosted importer was exercised read-only. Vercel accepted 15-, 30-, 31-, 45-,
 Main commit `b1fd062ca30de1f2344568299be22cea3ffff890` was confirmed READY and PROMOTED on the production alias. Migration 013 was applied to the shared `nakama` database after verifying migrations 001–012 and their checksums; afterward all 13 checksums matched, `project_tasks_order` was absent, and `task_sibling_order` still backed the unique position constraint. The migration changes no rows or generated types. A private schema-only preflight record is retained under ignored `.nakama/backups/`.
 
 The local Vercel importer now defaults to the provider's documented 30-minute window. `npm run logs:pull` successfully imported 69 validated events; the subsequent local summary covered 82 events over 69 traces and contained five dependency diagnostics from rejected collection-window probes, zero unexpected application errors, and no sink warnings. This is a bounded log sample, not a production health assertion. A preview build for the importer-default adjustment is still pending its PR.
+
+## Feature architecture and component-library verification — 2026-10-23
+
+Implemented locally on `codex/feature-architecture`; no hosted migration, push or frontend deployment was performed for this pass. [Architecture](architecture.md#feature-ownership-and-frontend-composition--2026-10-23), [engineering preferences](engineering-preferences.md), [the component library](component-library.md), and [frontend measurement](frontend-performance.md) define the ownership and contribution pattern. The separate agent-harness work remains independently owned; do not accidentally include its working copies in this refactor's commit.
+
+The flat `src/components` / `src/lib` trees and route-owned action files have been replaced by feature ownership, shared contracts/UI and server infrastructure. The component library is consumed by the application and Storybook. Storybook 10.6.3 builds successfully with 23 synthetic stories and nine documentation entries; its locale/density toolbar shares the application translator and styles. No component hosting service or package publication is configured.
+
+Local verification on the final application source:
+
+| Check | Result |
+| --- | --- |
+| Strict type/schema checks, architecture checks, catalog drift, zero-warning ESLint and Prettier | Passed |
+| Service/SQL/diagnostic/type/architecture/SSR-control tests | 85 passed |
+| Production build | Passed |
+| Operational-file deployment exclusion | 22 traces passed |
+| Storybook/story/test-tooling deployment exclusion | 20 server traces passed |
+| Static Storybook build | Passed |
+| Component browser checks | 14 passed: keyboard/focus, retained panels, serious/critical Axe checks on selected examples, Spanish phone picker, centered progress |
+| Production-preview browser checks | 2 passed at 1440px / 390px, including JS budget, overflow, and map dismissal/focus |
+| Authenticated integrated workflows | 11 distinct checks passed across artifact output/files/Markdown/conflicts, collaboration, density, language, logging, notifications, project lineage/setup and hierarchical task/Lock-In behavior |
+
+The authenticated checks used an explicitly overridden disposable PostgreSQL database and existing Clerk development test setup. The older density/language tests need `E2E_OWNER_EMAIL` set to the existing admitted administrator identity; their old default owner is not currently admitted. No admission bypass was added. The old standalone three-identity invitation journey was not included in this final set; service authorization tests and the scoped collaboration workflow cover access behavior, but that is not a substitute for an independently prepared three-person live journey.
+
+The artifact regression run exposed input accepted before hydration. Shared controlled fields now wait until handlers are attached, while uncontrolled/hidden server-form fields remain usable. The artifact journey then passed, including two-tab draft retention. A stale density test's transient success-message assertion was replaced with the existing stage-return navigation plus reopening the answer and verifying persisted content. Column ordering/shared top edges passed at 1280/1440/1900px in both densities. The desktop answer screenshot was inspected.
+
+The final local public `/preview` sample loaded 673,284 raw / 199,255 gzip JavaScript bytes across 12 same-origin scripts at desktop and phone widths, compared with 786,317 raw / 236,662 gzip bytes across 14 scripts before the refactor: 37,407 fewer gzip bytes (15.8%). Neither sample overflowed horizontally. The 220,000-byte gzip budget allows approximately 10% headroom above the new sample. External provider resources are excluded; this does not establish field Web Vitals or authenticated-route payload performance.
+
+Canonical links were checked. Browser error context/screenshots and local measurements remain ignored; temporary test runner output is removed after review. The disposable database and test app servers are stopped after verification. Storybook can remain running locally for component review. Remote CI and a deployed user journey for this refactor remain unverified until release.

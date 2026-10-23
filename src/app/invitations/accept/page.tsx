@@ -1,11 +1,13 @@
-import { getT } from "@/lib/i18n/server";
+import { Panel } from "@/shared/ui/panel";
+import { Button } from "@/shared/ui/button";
+import { getT } from "@/shared/i18n/server";
 import { Show, SignInButton } from "@clerk/nextjs";
-import { AcceptForm } from "@/components/forms";
+import { AcceptForm } from "@/features/collaboration/components/forms";
 export default async function Page() {
   const t = await getT();
   return (
     <main id="main" className="workspace narrow">
-      <section className="panel">
+      <Panel className="">
         <span className="eyebrow">{t("PROJECT INVITATION")}</span>
         <h1>{t("Project invitation")}</h1>
         <p>
@@ -18,10 +20,10 @@ export default async function Page() {
         </Show>
         <Show when="signed-out">
           <SignInButton mode="modal">
-            <button>{t("Sign in to accept")}</button>
+            <Button type="submit">{t("Sign in to accept")}</Button>
           </SignInButton>
         </Show>
-      </section>
+      </Panel>
     </main>
   );
 }

@@ -3,9 +3,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const pkg = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
-);
+const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 let failures = 0;
 function check(ok, message) {
   console.log(`${ok ? "OK" : "MISSING"} ${message}`);
@@ -25,14 +23,7 @@ for (const file of [
 ]) {
   check(existsSync(new URL(`../${file}`, import.meta.url)), file);
 }
-const requiredScripts = [
-  "dev",
-  "typecheck",
-  "test",
-  "build",
-  "logs:check-bundle",
-  "test:e2e",
-];
+const requiredScripts = ["dev", "typecheck", "test", "build", "logs:check-bundle", "test:e2e"];
 if (process.argv.includes("--frontend")) {
   requiredScripts.push(
     "lint",

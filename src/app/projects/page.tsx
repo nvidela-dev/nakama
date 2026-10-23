@@ -1,18 +1,19 @@
-import { WaveMark } from "@/components/wave-mark";
-import { requestPolicy } from "@/lib/request-store";
-import { AccessRequestList } from "@/components/access-request-list";
-import { getT } from "@/lib/i18n/server";
-import { ProjectCard } from "@/components/project-card";
-import { WhitelistList } from "@/components/whitelist-list";
-import { AddAllowedEmail } from "@/components/whitelist";
-import { isAppAdmin } from "@/lib/app-access";
-import { accessPolicy, adminEmail } from "@/lib/whitelist";
-import { actor } from "@/lib/auth";
-import { database } from "@/lib/db";
-import { projectService } from "@/lib/projects";
-import { projectProgress } from "@/lib/project-progress";
-import { ProjectTimeline } from "@/components/project-timeline";
-import { NewProjectButton } from "@/components/new-project";
+import { Panel } from "@/shared/ui/panel";
+import { WaveMark } from "@/shared/ui/wave-mark";
+import { requestPolicy } from "@/features/access/server/request-store";
+import { AccessRequestList } from "@/features/access/components/access-request-list";
+import { getT } from "@/shared/i18n/server";
+import { ProjectCard } from "@/features/projects/components/project-card";
+import { WhitelistList } from "@/features/access/components/whitelist-list";
+import { AddAllowedEmail } from "@/features/access/components/whitelist";
+import { isAppAdmin } from "@/features/access/server/app-access";
+import { accessPolicy, adminEmail } from "@/features/access/server/whitelist";
+import { actor } from "@/features/access/server/auth";
+import { database } from "@/server/database/db";
+import { projectService } from "@/features/projects/server/projects";
+import { projectProgress } from "@/features/projects/server/project-progress";
+import { ProjectTimeline } from "@/features/projects/components/project-timeline";
+import { NewProjectButton } from "@/features/projects/components/new-project";
 export const dynamic = "force-dynamic";
 export default async function ProjectsPage() {
   const t = await getT();
@@ -42,24 +43,41 @@ export default async function ProjectsPage() {
             ))
           ) : (
             <div className="empty-state">
-              <span aria-hidden="true"><WaveMark /></span>
+              <span aria-hidden="true">
+                <WaveMark />
+              </span>
               <h3>{t("No projects yet")}</h3>
               <p>{t("Create a project to get started.")}</p>
             </div>
           )}
         </section>
         <aside className="main-screen-sidebar">
-        <NewProjectButton projects={projects.map(({id,name})=>({id,name}))} />
-        {allowed && <section className="panel main-whitelist">
-          <h2>{t("Allow a person")}</h2>
-          <AddAllowedEmail />
-          <details>
-            <summary>{t("Allowed emails")} <span className="count">{allowed.length}</span></summary>
-            <p className="muted">{t("Removing access blocks future private requests. It does not delete the account or project history.")}</p>
-            <WhitelistList entries={allowed} />
-          </details>
-          {requests && <details><summary>{t("Access requests")} <span className="count">{requests.length}</span></summary><AccessRequestList requests={requests} /></details>}
-        </section>}
+          <NewProjectButton projects={projects.map(({ id, name }) => ({ id, name }))} />
+          {allowed && (
+            <Panel className="main-whitelist">
+              <h2>{t("Allow a person")}</h2>
+              <AddAllowedEmail />
+              <details>
+                <summary>
+                  {t("Allowed emails")} <span className="count">{allowed.length}</span>
+                </summary>
+                <p className="muted">
+                  {t(
+                    "Removing access blocks future private requests. It does not delete the account or project history.",
+                  )}
+                </p>
+                <WhitelistList entries={allowed} />
+              </details>
+              {requests && (
+                <details>
+                  <summary>
+                    {t("Access requests")} <span className="count">{requests.length}</span>
+                  </summary>
+                  <AccessRequestList requests={requests} />
+                </details>
+              )}
+            </Panel>
+          )}
         </aside>
       </div>
     </main>

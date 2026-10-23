@@ -2,7 +2,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 const root = new URL("../", import.meta.url),
-  output = new URL("src/lib/database.generated.ts", root);
+  output = new URL("src/shared/contracts/database.generated.ts", root);
 const sql = new PGlite();
 try {
   for (const file of (await readdir(new URL("migrations/", root)))
@@ -58,8 +58,7 @@ try {
     source += `  ${table}: {\n`;
     for (const column of columns.filter((c) => c.table_name === table)) {
       const type = primitive[column.udt_name];
-      if (!type)
-        throw new Error(`Unsupported database type: ${column.udt_name}`);
+      if (!type) throw new Error(`Unsupported database type: ${column.udt_name}`);
       source += `    ${column.column_name}: ${type}${column.is_nullable === "YES" ? " | null" : ""};\n`;
     }
     source += "  };\n";

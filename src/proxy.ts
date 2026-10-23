@@ -1,8 +1,8 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
-import { callClerk } from "./lib/provider-diagnostics";
-import { telemetry } from "./lib/observability";
-import { routeName } from "./lib/log-model";
+import { callClerk } from "@/server/observability/provider-diagnostics";
+import { telemetry } from "@/server/observability/observability";
+import { routeName } from "@/server/observability/log-model";
 function tracedNext(request: NextRequest) {
   const traceId = crypto.randomUUID();
   const values = new Headers(request.headers);
@@ -14,14 +14,8 @@ function tracedNext(request: NextRequest) {
   return response;
 }
 const clerk = clerkMiddleware((_auth, request) => tracedNext(request));
-export default function proxy(
-  request: NextRequest,
-  event: Parameters<typeof clerk>[1],
-) {
-  if (
-    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-    !process.env.CLERK_SECRET_KEY
-  ) {
+export default function proxy(request: NextRequest, event: Parameters<typeof clerk>[1]) {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
     if (
       request.nextUrl.pathname.startsWith("/admin") ||
       request.nextUrl.pathname.startsWith("/artifacts") ||
@@ -32,8 +26,13 @@ export default function proxy(
     }
     return tracedNext(request);
   }
-  return telemetry.observe("server.request", () => callClerk("middleware", async () => clerk(request, event)), { route: routeName(request.nextUrl.pathname) })
-    .catch(error => { throw telemetry.sanitizeError(error); });
+  return telemetry
+    .observe("server.request", () => callClerk("middleware", async () => clerk(request, event)), {
+      route: routeName(request.nextUrl.pathname),
+    })
+    .catch((error) => {
+      throw telemetry.sanitizeError(error);
+    });
 }
 export const config = {
   matcher: [

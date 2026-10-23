@@ -1,12 +1,12 @@
-import { required } from "../src/lib/query";
+import { required } from "../src/server/database/query";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
-import type { Database } from "../src/lib/database";
-import { projectService, type Actor } from "../src/lib/projects";
-import { guidanceService, ConflictError } from "../src/lib/guidance";
-import { flows } from "../src/lib/flows";
+import type { Database } from "../src/server/database/database";
+import { projectService, type Actor } from "../src/features/projects/server/projects";
+import { guidanceService, ConflictError } from "../src/features/guidance/server/guidance";
+import { flows } from "../src/features/guidance/model/flows";
 const sql = new PGlite();
 const db: Database = {
   query: (q, v) => sql.query(q, v),
@@ -32,7 +32,7 @@ const answer = (content: string, revision = 0) => ({
   choice: null,
 });
 before(async () => {
-  for (const file of (await readdir("migrations")).filter(name=>name.endsWith(".sql")).sort())
+  for (const file of (await readdir("migrations")).filter((name) => name.endsWith(".sql")).sort())
     await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {
@@ -65,10 +65,7 @@ test("templates preserve five stages, valid within-stage edges, guidance, and cr
         ids.add(node.id);
         assert.ok(node.question && node.example);
         for (const parent of node.after)
-          assert.ok(
-            seen.has(parent),
-            `${node.id} has invalid or cyclic parent ${parent}`,
-          );
+          assert.ok(seen.has(parent), `${node.id} has invalid or cyclic parent ${parent}`);
         seen.add(node.id);
       }
     }
@@ -110,40 +107,26 @@ test("two members cannot silently overwrite an answer, and conflicts expose only
   await guidance.save(bob, id, "audience", answer("Apartment neighbors", 1));
   await assert.rejects(
     guidance.save(alice, id, "audience", answer("Stale edit", 1)),
-    (error) =>
-      error instanceof ConflictError &&
-      error.current.content === "Apartment neighbors",
+    (error) => error instanceof ConflictError && error.current.content === "Apartment neighbors",
   );
   assert.equal((await guidance.history(alice, id, "audience")).length, 2);
   await assert.rejects(
     guidance.save(outsider, id, "audience", answer("Not allowed", 1)),
     (error) => !(error instanceof ConflictError),
   );
-  await guidance.save(
-    alice,
-    id,
-    "audience",
-    answer("Combined understanding", 2),
-  );
+  await guidance.save(alice, id, "audience", answer("Combined understanding", 2));
   const history = await guidance.history(alice, id, "audience");
   assert.deepEqual(
     history.map((r) => r.author_id),
     ["alice", "bob", "alice"],
   );
   await projects.remove(alice, id, "bob");
-  await assert.rejects(
-    guidance.save(bob, id, "audience", answer("Removed", 3)),
-  );
+  await assert.rejects(guidance.save(bob, id, "audience", answer("Removed", 3)));
 });
 
 test("upstream edits flag dependent conclusions without erasing content and reject stale reviews", async () => {
   const id = await project();
-  await guidance.save(
-    alice,
-    id,
-    "problem",
-    answer("Buying a tool for one job"),
-  );
+  await guidance.save(alice, id, "problem", answer("Buying a tool for one job"));
   await guidance.save(alice, id, "affordability", answer("Two evenings"));
   let state = (await guidance.get(alice, id))!;
   await guidance.reviewStage(
@@ -155,27 +138,15 @@ test("upstream edits flag dependent conclusions without erasing content and reje
   );
   await guidance.save(alice, id, "audience", answer("People in our building"));
   state = (await guidance.get(alice, id))!;
-  assert.equal(
-    state.answers.find((a) => a.node_id === "problem")?.needs_review,
-    true,
-  );
+  assert.equal(state.answers.find((a) => a.node_id === "problem")?.needs_review, true);
   assert.equal(
     state.answers.find((a) => a.node_id === "problem")?.content,
     "Buying a tool for one job",
   );
-  assert.equal(
-    state.answers.find((a) => a.node_id === "affordability")?.needs_review,
-    true,
-  );
+  assert.equal(state.answers.find((a) => a.node_id === "affordability")?.needs_review, true);
   assert.equal(required(state.reviews[0]).reviewed, false);
   await assert.rejects(
-    guidance.reviewStage(
-      alice,
-      id,
-      "exploration",
-      "Old review",
-      state.contentRevision - 1,
-    ),
+    guidance.reviewStage(alice, id, "exploration", "Old review", state.contentRevision - 1),
   );
   await guidance.reviewStage(
     alice,
@@ -185,12 +156,7 @@ test("upstream edits flag dependent conclusions without erasing content and reje
     state.contentRevision,
   );
   assert.equal(
-    (
-      await sql.query(
-        "SELECT id FROM stage_review_history WHERE project_id=$1",
-        [id],
-      )
-    ).rows.length,
+    (await sql.query("SELECT id FROM stage_review_history WHERE project_id=$1", [id])).rows.length,
     2,
   );
 });
@@ -198,21 +164,9 @@ test("upstream edits flag dependent conclusions without erasing content and reje
 test("unknowns, blocked/skipped reasons, negative findings, and parking remain distinct", async () => {
   const id = await project();
   await assert.rejects(guidance.save(alice, id, "problem", answer("")));
-  await assert.rejects(
-    guidance.save(alice, id, "problem", { ...answer(""), status: "blocked" }),
-  );
-  await guidance.save(
-    alice,
-    id,
-    "problem",
-    answer("We do not know yet; ask a neighbor."),
-  );
-  await guidance.save(
-    alice,
-    id,
-    "learnings",
-    answer("The test did not support our idea."),
-  );
+  await assert.rejects(guidance.save(alice, id, "problem", { ...answer(""), status: "blocked" }));
+  await guidance.save(alice, id, "problem", answer("We do not know yet; ask a neighbor."));
+  await guidance.save(alice, id, "learnings", answer("The test did not support our idea."));
   await guidance.save(alice, id, "cheap-test", {
     ...answer("Need a friend to help"),
     status: "blocked",
@@ -237,16 +191,9 @@ test("unknowns, blocked/skipped reasons, negative findings, and parking remain d
     choice: "Revise",
   });
   assert.equal((await guidance.get(alice, id))?.projectState, "active");
-  assert.equal(
-    (await guidance.history(alice, id, "venture-direction")).length,
-    2,
-  );
-  await assert.rejects(
-    guidance.save(alice, id, "spark-name", answer("Wrong flow")),
-  );
-  await assert.rejects(
-    guidance.save(alice, id, "idea-name", answer("a".repeat(101), 1)),
-  );
+  assert.equal((await guidance.history(alice, id, "venture-direction")).length, 2);
+  await assert.rejects(guidance.save(alice, id, "spark-name", answer("Wrong flow")));
+  await assert.rejects(guidance.save(alice, id, "idea-name", answer("a".repeat(101), 1)));
 });
 
 test("creative decisions can save for later, resume, and finish without commercial questions", async () => {
@@ -264,22 +211,16 @@ test("creative decisions can save for later, resume, and finish without commerci
     ...answer("We love our small episode"),
     choice: "Finished enough",
   });
-  assert.equal(
-    (await guidance.get(alice, id))?.projectState,
-    "finished_enough",
-  );
+  assert.equal((await guidance.get(alice, id))?.projectState, "finished_enough");
   await guidance.save(alice, id, "sharing", {
     ...answer("This is just for us"),
     choice: "Keep among friends",
   });
-  assert.equal(
-    (await guidance.get(alice, id))?.projectState,
-    "finished_enough",
-  );
+  assert.equal((await guidance.get(alice, id))?.projectState, "finished_enough");
 });
 
 test("card timelines expose only member status metadata and preserve honest question progress", async () => {
-  const { projectProgress } = await import("../src/lib/project-progress");
+  const { projectProgress } = await import("../src/features/projects/server/project-progress");
   const id = await project("creative");
   const summaries = await projectProgress(db, alice);
   const stages = summaries.get(id)!;
@@ -303,8 +244,15 @@ test("owner project edits are atomic, revision checked, and retain answer histor
   const id = await project();
   const original = await projects.get(alice, id);
   const before = (await guidance.get(alice, id))!;
-  assert.equal((await projects.list(alice)).find((p) => p.id === id)?.content_revision, before.contentRevision);
-  const expected = { name: original.name, description: original.description, contentRevision: before.contentRevision };
+  assert.equal(
+    (await projects.list(alice)).find((p) => p.id === id)?.content_revision,
+    before.contentRevision,
+  );
+  const expected = {
+    name: original.name,
+    description: original.description,
+    contentRevision: before.contentRevision,
+  };
   const input = { name: "Updated project", description: "Updated purpose." };
   await assert.rejects(guidance.editProject(outsider, id, input, expected));
   const invite = await projects.invite(alice, id, bob.verifiedEmails[0]);
@@ -313,26 +261,51 @@ test("owner project edits are atomic, revision checked, and retain answer histor
   await guidance.editProject(alice, id, input, expected);
   assert.equal((await projects.get(alice, id)).name, input.name);
   const after = (await guidance.get(alice, id))!;
-  assert.equal((await projects.list(alice)).find((p) => p.id === id)?.content_revision, after.contentRevision);
+  assert.equal(
+    (await projects.list(alice)).find((p) => p.id === id)?.content_revision,
+    after.contentRevision,
+  );
   assert.equal(after.answers.find((a) => a.node_id === "idea-name")?.content, input.name);
-  assert.equal(after.answers.find((a) => a.node_id === "idea-description")?.content, input.description);
+  assert.equal(
+    after.answers.find((a) => a.node_id === "idea-description")?.content,
+    input.description,
+  );
   assert.equal((await guidance.history(alice, id, "idea-name")).length, 2);
   assert.equal((await guidance.history(alice, id, "idea-description")).length, 2);
-  await assert.rejects(guidance.editProject(alice, id, { ...input, name: "Stale overwrite" }, expected));
+  await assert.rejects(
+    guidance.editProject(alice, id, { ...input, name: "Stale overwrite" }, expected),
+  );
   assert.equal((await projects.get(alice, id)).name, input.name);
   const fresh = { ...input, contentRevision: after.contentRevision };
   const failing: Database = {
     query: db.query,
-    transaction: (work) => db.transaction((tx) => work({ query: (q, values) => {
-      if (q.startsWith("INSERT INTO answer_revisions") && values?.[1] === "idea-description") throw new Error("simulated history failure");
-      return tx.query(q, values);
-    } })),
+    transaction: (work) =>
+      db.transaction((tx) =>
+        work({
+          query: (q, values) => {
+            if (q.startsWith("INSERT INTO answer_revisions") && values?.[1] === "idea-description")
+              throw new Error("simulated history failure");
+            return tx.query(q, values);
+          },
+        }),
+      ),
   };
-  await assert.rejects(guidanceService(failing).editProject(alice, id, { name: "Must roll back", description: "Must also roll back" }, fresh));
+  await assert.rejects(
+    guidanceService(failing).editProject(
+      alice,
+      id,
+      { name: "Must roll back", description: "Must also roll back" },
+      fresh,
+    ),
+  );
   assert.equal((await projects.get(alice, id)).name, input.name);
   assert.equal((await guidance.history(alice, id, "idea-name")).length, 2);
   const bare = await projects.create(alice, { name: "Before flow", description: "No flow yet." });
-  await guidance.editProject(alice, bare, input, { name: "Before flow", description: "No flow yet.", contentRevision: 0 });
+  await guidance.editProject(alice, bare, input, {
+    name: "Before flow",
+    description: "No flow yet.",
+    contentRevision: 0,
+  });
   assert.equal((await projects.get(alice, bare)).name, input.name);
 });
 
@@ -348,17 +321,35 @@ test("owner deletion confirms the name and removes only the selected project ato
   await assert.rejects(projects.deleteProject(alice, id, "wrong name"));
   const failing: Database = {
     query: db.query,
-    transaction: (work) => db.transaction((tx) => work({ query: (q, values) => {
-      if (q.startsWith("DELETE FROM project_flows")) throw new Error("simulated delete failure");
-      return tx.query(q, values);
-    } })),
+    transaction: (work) =>
+      db.transaction((tx) =>
+        work({
+          query: (q, values) => {
+            if (q.startsWith("DELETE FROM project_flows"))
+              throw new Error("simulated delete failure");
+            return tx.query(q, values);
+          },
+        }),
+      ),
   };
   await assert.rejects(projectService(failing).deleteProject(alice, id, "Little idea"));
   assert.equal((await guidance.history(alice, id, "idea-name")).length, 1);
   await projects.deleteProject(alice, id, "Little idea");
-  for (const table of ["projects", "project_memberships", "project_invitations", "project_flows", "node_answers", "answer_revisions", "stage_reviews", "stage_review_history"]) {
+  for (const table of [
+    "projects",
+    "project_memberships",
+    "project_invitations",
+    "project_flows",
+    "node_answers",
+    "answer_revisions",
+    "stage_reviews",
+    "stage_review_history",
+  ]) {
     const column = table === "projects" ? "id" : "project_id";
-    assert.equal((await db.query(`SELECT * FROM ${table} WHERE ${column} = $1`, [id])).rows.length, 0);
+    assert.equal(
+      (await db.query(`SELECT * FROM ${table} WHERE ${column} = $1`, [id])).rows.length,
+      0,
+    );
   }
   await assert.rejects(projects.get(alice, id));
   await assert.rejects(guidance.get(bob, id));
@@ -370,18 +361,40 @@ test("owner deletion confirms the name and removes only the selected project ato
 test("investigation captures metadata, saves evidence and outcome choices, and isolates members", async () => {
   const id = await project("investigation");
   const initial = await guidance.get(alice, id);
-  assert.deepEqual(initial!.flow.stages.map((stage) => stage.name), ["Frame", "Explore", "Gather", "Synthesize", "Deliver"]);
-  assert.equal(initial!.answers.find((answer) => answer.node_id === "inquiry-name")?.content, "Little idea");
+  assert.deepEqual(
+    initial!.flow.stages.map((stage) => stage.name),
+    ["Frame", "Explore", "Gather", "Synthesize", "Deliver"],
+  );
+  assert.equal(
+    initial!.answers.find((answer) => answer.node_id === "inquiry-name")?.content,
+    "Little idea",
+  );
   await guidance.save(alice, id, "inquiry-name", answer("Energy investigation", 1));
   assert.equal((await projects.get(alice, id)).name, "Energy investigation");
-  await guidance.save(alice, id, "inquiry-evidence", answer("Source 1: technical guide, date, URL, findings and limitations."));
-  await guidance.save(alice, id, "inquiry-output", { ...answer("Report and prioritized actions"), choice: "Combination" });
+  await guidance.save(
+    alice,
+    id,
+    "inquiry-evidence",
+    answer("Source 1: technical guide, date, URL, findings and limitations."),
+  );
+  await guidance.save(alice, id, "inquiry-output", {
+    ...answer("Report and prioritized actions"),
+    choice: "Combination",
+  });
   const saved = await guidance.get(alice, id);
-  assert.equal(saved!.answers.find((item) => item.node_id === "inquiry-output")?.choice, "Combination");
+  assert.equal(
+    saved!.answers.find((item) => item.node_id === "inquiry-output")?.choice,
+    "Combination",
+  );
   assert.equal(saved!.projectState, "active");
   await assert.rejects(guidance.get(outsider, id));
   await assert.rejects(guidance.save(outsider, id, "inquiry-conclusion", answer("Unauthorized")));
-  await assert.rejects(guidance.save(alice, id, "inquiry-output", { ...answer("Invalid", 1), choice: "Invented output" }));
+  await assert.rejects(
+    guidance.save(alice, id, "inquiry-output", {
+      ...answer("Invalid", 1),
+      choice: "Invented output",
+    }),
+  );
 });
 
 test("business project types retain distinct flows, metadata, saved work, and access boundaries", async () => {
@@ -392,20 +405,42 @@ test("business project types retain distinct flows, metadata, saved work, and ac
     const captured = await guidance.get(alice, id);
     assert.equal(captured!.flow.id, flowId);
     assert.equal(captured!.answers.length, 2);
-    await guidance.save(alice, id, required(required(flow.stages[0]).nodes[0]).id, answer(`${flow.name} test`, 1));
-    await guidance.save(alice, id, required(required(flow.stages[0]).nodes[1]).id, answer(`Purpose for ${flow.name}`, 1));
+    await guidance.save(
+      alice,
+      id,
+      required(required(flow.stages[0]).nodes[0]).id,
+      answer(`${flow.name} test`, 1),
+    );
+    await guidance.save(
+      alice,
+      id,
+      required(required(flow.stages[0]).nodes[1]).id,
+      answer(`Purpose for ${flow.name}`, 1),
+    );
     const metadata = await projects.get(alice, id);
     assert.equal(metadata.name, `${flow.name} test`);
     assert.equal(metadata.description, `Purpose for ${flow.name}`);
     const node = required(flow.stages[1]).nodes[0];
-    await guidance.save(alice, id, required(node).id, answer("A supported finding with source references."));
-    assert.equal((await guidance.get(alice, id))!.answers.find((item) => item.node_id === required(node).id)?.content, "A supported finding with source references.");
+    await guidance.save(
+      alice,
+      id,
+      required(node).id,
+      answer("A supported finding with source references."),
+    );
+    assert.equal(
+      (await guidance.get(alice, id))!.answers.find((item) => item.node_id === required(node).id)
+        ?.content,
+      "A supported finding with source references.",
+    );
     assert.equal((await guidance.history(alice, id, required(node).id)).length, 1);
     await assert.rejects(guidance.get(outsider, id));
     await assert.rejects(guidance.save(outsider, id, required(node).id, answer("Unauthorized", 1)));
     await assert.rejects(guidance.save(alice, id, "inquiry-evidence", answer("Wrong flow")));
     await assert.rejects(guidance.select(alice, id, flowId === "eshop" ? "shirt-eshop" : "eshop"));
   }
-  const id = await projects.create(alice, { name: "Invalid type", description: "Validation fixture" });
+  const id = await projects.create(alice, {
+    name: "Invalid type",
+    description: "Validation fixture",
+  });
   await assert.rejects(guidance.select(alice, id, "__proto__"));
 });

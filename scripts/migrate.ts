@@ -3,9 +3,7 @@ import { createHash } from "node:crypto";
 import { Pool } from "pg";
 
 if (!process.env.DATABASE_URL_UNPOOLED)
-  throw new Error(
-    "Set DATABASE_URL_UNPOOLED for the intended isolated database.",
-  );
+  throw new Error("Set DATABASE_URL_UNPOOLED for the intended isolated database.");
 if (new URL(process.env.DATABASE_URL_UNPOOLED).hostname.includes("-pooler"))
   throw new Error("Use a direct, non-pooled connection for migrations.");
 class MigrationIntegrityError extends Error {}
@@ -22,13 +20,9 @@ try {
   await client.query(
     "CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())",
   );
-  const files = (await readdir("migrations"))
-    .filter((name) => name.endsWith(".sql"))
-    .sort();
+  const files = (await readdir("migrations")).filter((name) => name.endsWith(".sql")).sort();
   const history = (
-    await client.query<{ name: string }>(
-      "SELECT name FROM schema_migrations ORDER BY name",
-    )
+    await client.query<{ name: string }>("SELECT name FROM schema_migrations ORDER BY name")
   ).rows;
   if (history.some((row, index) => row.name !== files[index]))
     throw new MigrationIntegrityError(
@@ -38,10 +32,7 @@ try {
     const sql = await readFile(`migrations/${name}`, "utf8");
     const checksum = createHash("sha256").update(sql).digest("hex");
     const previous = (
-      await client.query(
-        "SELECT checksum FROM schema_migrations WHERE name = $1",
-        [name],
-      )
+      await client.query("SELECT checksum FROM schema_migrations WHERE name = $1", [name])
     ).rows[0];
     if (previous) {
       if (previous.checksum !== checksum)
@@ -50,10 +41,10 @@ try {
     }
     applying = name;
     await client.query(sql);
-    await client.query(
-      "INSERT INTO schema_migrations (name, checksum) VALUES ($1, $2)",
-      [name, checksum],
-    );
+    await client.query("INSERT INTO schema_migrations (name, checksum) VALUES ($1, $2)", [
+      name,
+      checksum,
+    ]);
     applied.push(name);
   }
   await client.query("COMMIT");
