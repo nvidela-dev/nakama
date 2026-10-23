@@ -36,18 +36,25 @@ async function targetFlow(tx: Queryable, projectId: string, target: CommentTarge
 }
 export function collaborationService(db: Database) {
   return {
-    async comments(actor: Actor, projectId: string, target: CommentTarget, before?: string) {
+    async comments(actor: Actor, projectId: string, target: CommentTarget, before?: string, focusId?: string) {
       return db.transaction(async (tx) => {
         await membership(tx, actor, projectId);
         await targetFlow(tx, projectId, target);
-        const [time, id] = cursor(before);
+        let [time, id] = cursor(before);
+        if (!before && focusId) {
+          if (!uuid.safeParse(focusId).success) throw new ProjectError("Comment not found.");
+          const focused = (await tx.query<{ cursor_time: string }>(`SELECT to_char(created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'Z' AS cursor_time FROM project_comments WHERE id=$1 AND project_id=$2 AND stage_id IS NOT DISTINCT FROM $3 AND node_id IS NOT DISTINCT FROM $4`, [focusId,projectId,target.stageId ?? null,target.nodeId ?? null])).rows[0];
+          if (!focused) throw new ProjectError("Comment not found.");
+          time = focused.cursor_time;
+          id = focusId;
+        }
         const rows = (await tx.query<Comment>(`SELECT c.id,c.author_id,c.author_name,c.content,c.revision,c.created_at,c.edited_at,c.deleted_at,
           m.user_id IS NULL AS former_member,
           to_char(c.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'Z' AS cursor_time FROM project_comments c
           LEFT JOIN project_memberships m ON m.project_id=c.project_id AND m.user_id=c.author_id
           WHERE c.project_id=$1 AND c.stage_id IS NOT DISTINCT FROM $2 AND c.node_id IS NOT DISTINCT FROM $3
-          AND ($4::timestamptz IS NULL OR (c.created_at,c.id::text)<($4::timestamptz,$5::text))
-          ORDER BY c.created_at DESC,c.id DESC LIMIT 26`, [projectId, target.stageId ?? null, target.nodeId ?? null, time, id])).rows;
+          AND ($4::timestamptz IS NULL OR (c.created_at,c.id::text)<($4::timestamptz,$5::text) OR ($6::boolean AND c.id::text=$5::text))
+          ORDER BY c.created_at DESC,c.id DESC LIMIT 26`, [projectId, target.stageId ?? null, target.nodeId ?? null, time, id, !before && !!focusId])).rows;
         return page(rows, (comment) => comment.id);
       });
     },

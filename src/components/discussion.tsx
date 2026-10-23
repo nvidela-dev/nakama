@@ -1,7 +1,8 @@
 "use client";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Comment, CommentTarget, Page } from "@/lib/collaboration";
+import { readComments } from "@/app/notification-actions";
 import { postComment, changeComment } from "@/app/comment-actions";
 import { useLocale, useT } from "./language";
 import { formatDate } from "@/lib/i18n";
@@ -15,9 +16,32 @@ function CommentItem({ comment, projectId, userId, owner }: { comment: Comment; 
   const [editing, setEditing] = useState(false), [confirming, setConfirming] = useState(false);
   const [expectedRevision, setExpectedRevision] = useState(comment.revision);
   const [draft, setDraft] = useState(comment.content);
+  const item = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (!item.current || comment.deleted_at || comment.author_id === userId) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let visible = false, read = false;
+    const schedule = () => {
+      clearTimeout(timer);
+      if (!read && visible && document.visibilityState === "visible") {
+        timer = setTimeout(() => {
+          if (document.visibilityState !== "visible") return;
+          void readComments([comment.id]).then(() => {
+            read = true;
+            observer.disconnect();
+            window.dispatchEvent(new Event("nakama-comments-read"));
+          }).catch(() => {});
+        },1000);
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); });
+    observer.observe(item.current);
+    document.addEventListener("visibilitychange",schedule);
+    return () => { clearTimeout(timer); observer.disconnect(); document.removeEventListener("visibilitychange",schedule); };
+  },[comment.id,comment.deleted_at,comment.author_id,userId]);
   const [state, action, pending] = useActionState(changeComment.bind(null, projectId, comment.id, expectedRevision), {});
   useEffect(() => { if (state.success) { setEditing(false); setConfirming(false); document.getElementById(`comment-${comment.id}`)?.focus(); } }, [state]);
-  return <li id={`comment-${comment.id}`} tabIndex={-1} className="comment-item">
+  return <li ref={item} id={`comment-${comment.id}`} tabIndex={-1} className="comment-item">
     <div className="comment-meta"><strong>{comment.author_name}{comment.former_member ? ` · ${t("Former member")}` : ""}</strong><time dateTime={new Date(comment.created_at).toISOString()}>{formatDate(comment.created_at, locale)}</time>{comment.edited_at && <span>{t("Edited")}</span>}</div>
     {comment.deleted_at ? <p className="muted">{t("Comment removed.")}</p> : <>
       {!editing && <CommentText content={comment.content} />}

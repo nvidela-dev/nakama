@@ -843,5 +843,14 @@
   "imported Lock-In tasks": "importó tareas de Lock-In",
   "Latest task title:": "Título actual de la tarea:",
   "Task no longer exists.": "La tarea ya no existe.",
-  "Ready": "Pendiente"
+  "Ready": "Pendiente",
+  "Unread comments": "Comentarios sin leer",
+  "Could not load notifications.": "No se pudieron cargar las notificaciones.",
+  "No unread comments.": "No hay comentarios sin leer.",
+  "Mark as read": "Marcar como leído",
+  "Older unread comments": "Comentarios sin leer anteriores",
+  "Retry": "Reintentar",
+  "Loading…": "Cargando…",
+  "Sign in first.": "Primero inicia sesión.",
+  "Invalid notification page.": "Página de notificaciones inválida."
 }

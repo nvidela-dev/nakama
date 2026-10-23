@@ -1,3 +1,4 @@
+import { NotificationBell } from "./notification-bell";
 import { WaveMark } from "@/components/wave-mark";
 import { currentUser } from "@clerk/nextjs/server";
 import { isAppAdmin } from "@/lib/app-access";
@@ -35,6 +36,7 @@ export async function Header() {
             <Show when="signed-in">
               <Link href="/projects">{t("Your projects")}</Link>
               {admin && <Link href="/admin">{t("Administration")}</Link>}
+              <NotificationBell />
               <UserButton />
             </Show>
             <Show when="signed-out">

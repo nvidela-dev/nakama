@@ -217,3 +217,15 @@ The user requested Lock-In functionality inside every Nakama project with a brow
 All current project members may read/write/import/export tasks, using the same admission and membership checks as other project work. Use stable server IDs and a project task-list revision to reject stale edits, deletions, and cascades; retain drafts and require explicit reconciliation. Task events retain actor/action without task bodies. Whole-project deletion cascades through tasks, list revisions, and import receipts.
 
 Import previews a selected project from a Lock-In version 1 file and appends its tree after confirmation; it does not replace project metadata or existing tasks. Remap source IDs, preserve titles/statuses/hierarchy/collapse/timestamps, and block an exact repeated project import. Export the authorized current project's tasks as a standalone Lock-In version 1 state file. This is file interchange, not ongoing synchronization or importing application memberships. Bound files to 512 KB, projects to 2,000 tasks and 32 levels. No automatic reading or mutation of the local Lock-In state file is authorized or performed. Migration 006 adds task tables and activity kinds.
+
+## Concentric project progress — 2026-10-23
+
+The user requested concentric circles that fill the larger circle on project cards. Replace the rim sweep with a centered lime disc whose diameter follows answered-question coverage, filling the interior at 100%. Keep counts, explicit review checks, revisit flags, and accessible status text; coverage still does not imply review.
+
+## Standard widescreen three-column workspace — 2026-10-23
+
+The user requested the three-column private-project workspace on normal widescreen monitors, with contextual discussion/chat on the left. Enable it at 1280px in both densities, using bounded flexible sidebars and the remaining width for project work. Keep compact stage summaries and answer forms stacked inside the narrower center column. Smaller screens retain the existing layout and one contextual composer.
+
+## Unread comment notifications — 2026-10-23
+
+The user requested a notification bell for all unread comments on their projects. Add a per-person in-app inbox across current memberships, excluding own/deleted comments, with durable read receipts, counts, paginated previews, exact-context links and explicit mark-as-read. Opening the inbox does not mark comments read; viewing a comment in discussion for one second in a foreground tab does. Existing comments begin unread, and edits do not reset read status. Keep app admission and current project membership checks on all reads/writes. Refresh on opening/navigation/focus/confirmed read and each visible minute. No email/push delivery is included.

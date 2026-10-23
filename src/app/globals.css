@@ -1773,10 +1773,10 @@ footer {
 .project-timeline { display: flex; list-style: none; margin: 18px 0 0; padding: 0; }
 .project-timeline li { position: relative; flex: 1; min-width: 0; text-align: center; font-size: 10px; line-height: 1.3; color: var(--muted); }
 .project-timeline li:not(:last-child)::before { content: ""; position: absolute; top: 11px; left: 50%; width: 100%; height: 1px; background: var(--line); }
-.project-timeline .timeline-marker { position: relative; display: grid; place-items: center; width: 24px; height: 24px; margin: 0 auto 7px; border-radius: 50%; background: conic-gradient(var(--lime) var(--stage-progress), var(--line) 0); }
-.project-timeline .timeline-marker > span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--panel); color: var(--pink); font-size: 14px; font-weight: 700; }
-.project-timeline .reviewed .timeline-marker { background: var(--lime); }
-.project-timeline .reviewed .timeline-marker > span { color: var(--lime); }
+.project-timeline .timeline-marker { position: relative; display: grid; place-items: center; width: 24px; height: 24px; margin: 0 auto 7px; border: 2px solid var(--line); border-radius: 50%; background: var(--panel); isolation: isolate; }
+.project-timeline .timeline-marker::before { content: ""; position: absolute; width: var(--stage-progress, 0%); height: var(--stage-progress, 0%); border-radius: 50%; background: var(--lime); }
+.project-timeline .timeline-marker > span { position: relative; display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; color: var(--ink); font-size: 14px; font-weight: 700; text-shadow: 0 1px 2px var(--bg), 0 -1px 2px var(--bg); }
+.project-timeline .reviewed .timeline-marker { border-color: var(--lime); }
 .project-timeline .revisit .timeline-marker > span { color: var(--pink); }
 .project-timeline .timeline-name { display: block; padding-inline: 2px; overflow-wrap: anywhere; }
 .project-timeline .started .timeline-name { color: var(--ink); }
@@ -1883,11 +1883,11 @@ footer {
 @media (max-width: 700px) {
   .has-discussion > .project-sidebar { grid-column: 1; grid-row: 3; }
 }
-@media (min-width: 2000px) {
+@media (min-width: 1280px) {
   .workspace-columns.has-discussion,
   html[data-density="compact"] .workspace-columns.has-discussion {
-    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr) 340px;
-    gap: 28px;
+    grid-template-columns: clamp(240px, 20vw, 380px) minmax(0, 1fr) clamp(220px, 18vw, 340px);
+    gap: 20px;
   }
   .has-discussion > .project-working-column { grid-column: 2; grid-row: 1; }
   .has-discussion > .project-discussion-column {
@@ -1908,8 +1908,15 @@ footer {
   .project-discussion-column .comment-compose { flex: 0 0 auto; }
   .project-discussion-column .comment-meta { flex-wrap: wrap; }
 }
-@media (min-width: 2000px) {
-  .workspace:has(> .has-discussion) { max-width: none; padding-inline: 40px; }
+@media (min-width: 1280px) {
+  .workspace:has(> .has-discussion) { max-width: none; padding-inline: 24px; }
+}
+
+@media (min-width: 1280px) {
+  html[data-density="compact"] .has-discussion .stage-card > div { grid-template-columns: minmax(0, 1fr); }
+  html[data-density="compact"] .has-discussion .stage-card small { grid-column: 1; }
+  html[data-density="compact"] .has-discussion .stage-label { grid-row: auto; }
+  html[data-density="compact"] .has-discussion .answer-form { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Overall stages form a separate rail beside their question steps. */
@@ -2096,3 +2103,19 @@ html[data-density="compact"] .workspace .journey-stage-heading .stage-heading-ro
 @media(pointer:coarse) {
   .task-row-controls select,.task-toolbar input,.task-toolbar select { min-height:44px; }
 }
+
+/* Private unread comments stay in a keyboard-accessible header disclosure. */
+.site-header:has(.notification-panel) { z-index: 60; }
+.notification-bell { position: relative; }
+.notification-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.notification-badge { position: absolute; top: 0; right: -4px; padding: 2px 5px; border-radius: 12px; background: var(--lime); color: var(--bg); font-size: 10px; font-weight: 700; }
+.notification-panel { position: absolute; z-index: 50; right: 0; top: calc(100% + 8px); width: min(390px, calc(100vw - 32px)); max-height: min(650px, 75dvh); overflow-y: auto; box-shadow: 0 12px 36px #0008; }
+.notification-panel h2 { font-size: 16px; }
+.notification-list { list-style: none; padding: 0; margin: 0; }
+.notification-list li { padding-block: 14px; border-top: 1px solid var(--line); }
+.site-header .notification-list a { display: block; white-space: normal; overflow-wrap: anywhere; }
+.notification-list strong, .notification-list span { display: block; }
+.notification-list span { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.notification-list p { font-size: 13px; margin-block: 8px; }
+.notification-list button { font-size: 12px; }
+@media (max-width: 700px) { .notification-panel { position: fixed; top: 100px; right: 16px; } }

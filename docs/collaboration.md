@@ -72,3 +72,11 @@ Members remains expanded. Only project owners see the approved-person dropdown f
 ## Shared tasks and task files — 2026-10-22
 
 Current owners and members may create, edit, change task status/expansion, delete, import, and export a project's tasks. Outsiders, removed members, and application administrators without project membership receive no task access. Every operation rechecks membership; IDs and parent references are scoped to the same project. Project-serialized writes compare a task-list revision, protecting bulk operations from newly added descendants. Import preview is local until confirmed; the server validates the selected tree and current revision before one atomic append. Export rechecks membership and returns only the current project's Lock-In task representation. Expansion state is shared, matching Lock-In's saved tree state. Task changes and generic activity events commit together without embedding deleted titles in the feed. Whole-project deletion removes all task data and import receipts.
+
+## Unread comment inbox — 2026-10-23
+
+The header bell lists active comments by other people across the viewer's current project memberships, with an unread count and paginated project/author/text previews. Existing comments begin unread; own comments and deleted bodies are excluded. No administrator bypass applies. Server Actions recheck app admission, and each list/count/read-receipt statement joins current project membership.
+
+Read receipts are per person and comment, stored in migration 007. A comment becomes read after it is visible in its discussion for one second in a foreground tab, or through its explicit Mark as read control. Merely opening the bell does not clear comments. Edits to an already-read comment do not create another unread notification. Project deletion cascades through receipts. Removal immediately excludes a project's comments from subsequent requests.
+
+Notification links select the exact project/stage/node and comment, including comments older than the default discussion page. The comment-page lookup rechecks membership and target scope. Previews contain at most 240 characters of current text; full text remains in the authorized discussion. The bell refreshes on navigation, window focus, confirmed reads, opening, and once per minute while visible; this is in-app polling, with no email or push delivery.
