@@ -3,17 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "npm run db:check && tsc --noEmit",
+    "dev": "tsx scripts/check.ts dev",
+    "build": "tsx scripts/check.ts build",
+    "start": "tsx scripts/check.ts start",
+    "typecheck": "tsx scripts/check.ts typecheck",
     "test": "tsx --test tests/*.test.ts",
     "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
     "test:e2e": "node --env-file=.env.local node_modules/@playwright/test/cli.js test",
     "db:types": "tsx scripts/database-types.ts",
     "db:check": "tsx scripts/database-types.ts --check",
     "db:local": "tsx scripts/local-database.ts",
-    "db:verify-local": "tsx scripts/check-local-integrity.ts"
+    "db:verify-local": "tsx scripts/check-local-integrity.ts",
+    "logs": "node --env-file-if-exists=.env.local --import tsx scripts/logs.ts",
+    "logs:pull": "node --env-file-if-exists=.env.local --import tsx scripts/pull-logs.ts",
+    "logs:check-bundle": "tsx scripts/check-log-bundle.ts",
+    "typecheck:explain": "tsc --noEmit"
   },
   "engines": {
     "node": ">=22.0.0"

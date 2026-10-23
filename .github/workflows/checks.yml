@@ -5,6 +5,8 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      NAKAMA_LOG_FILE: .nakama/logs/checks.jsonl
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -13,5 +15,25 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run logs:check-bundle -- --seed
       - run: npm run build
+      - run: npm run logs:check-bundle
       - run: npm run typecheck
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-diagnostics
+          path: .nakama/logs/checks.jsonl*
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: backend-source-maps
+          path: |
+            .next/BUILD_ID
+            .next/nakama-build.json
+            .next/server/**/*.map
+          include-hidden-files: true
+          retention-days: 7

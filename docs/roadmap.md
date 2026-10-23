@@ -292,3 +292,16 @@ Apply the same compact sidebar treatment to Members, invitation creation/history
 ## Accepted refinement: translucent 3D map popup — 2026-10-23
 
 Move the 3D stage map from the inline workspace to a modal popup with a 10% transparent surface (90% opacity), following the user’s correction. Keep graph/controls readable, preserve stage navigation and narrow-screen scrolling, and provide keyboard dismissal and focus restoration. Opening the map must not move the project columns.
+
+## Accepted refinement: complete read validation and remove duplicate task index — 2026-10-23
+
+The user selected two audit findings: finish validating consumed database results, and remove project_tasks_order because task_sibling_order already indexes the same columns. Make raw driver rows unknown, infer read types from explicit decoders, and preserve authorization, locking, revision checks, pagination, and file decoding. Migration 013 removes only the redundant index; the unique constraint and task data remain. The separate ownership-guard proposal is not included. Implementation and migration testing are local; hosted migration and release remain pending.
+
+## Accepted: private operational logging and autonomous diagnosis — 2026-10-23
+
+The user requested a strong backend logging system that supports autonomous diagnosis and explicitly authorized local file storage. Implement structured, correlated operation/database/error events, a private rotating local copy, production stdout/stderr, Next error hooks, and read-only local inspection/import tools. Keep private project content and secrets out of logs through allowlisted schemas and safe propagated errors. Preserve existing feedback, authorization, transaction semantics and framework navigation. No external logging service, public viewer, automatic repair/replay, release, or hosted migration is authorized by this request.
+
+
+## Accepted: complete typed failure classification — 2026-10-23
+
+The user requested implementing the complete diagnostic pass: distinct type/build, runtime contract, backend/database, external service and compute failure families; required evidence per family; an exhaustive explanation/retry catalog; compiler/build/CI collection; safe service and hosting adapters; matching build/source locations; and a unified local reader. Preserve private-data exclusion, framework navigation, access rules and transaction semantics. Hard termination requires supervisor/platform evidence, and unknown cause must not be presented as timeout or memory exhaustion. This authorizes implementation and local verification, not a deployment, hosted migration, new service, or automatic mutation replay.

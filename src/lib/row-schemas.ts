@@ -8,6 +8,7 @@ import {
   flowIdSchema,
   membershipRoleSchema,
   nodeStatusSchema,
+  projectStateSchema,
   revisionOriginSchema,
   taskStatusSchema,
 } from "./domain-schemas";
@@ -157,3 +158,31 @@ export const activityRowSchema = z.object({
 }) satisfies z.ZodType<
   import("./collaboration").Activity & { cursor_time: string }
 >;
+
+export const selectedFlowSchema = z.object({
+  flow_id: flowIdSchema,
+  template_version: z.number().int().positive(),
+  project_state: projectStateSchema,
+  content_revision: z.number().int().nonnegative(),
+}) satisfies z.ZodType<Pick<DatabaseRows["project_flows"], "flow_id" | "template_version" | "project_state" | "content_revision">>;
+export const taskListRevisionSchema = z.object({ revision: z.number().int().nonnegative() }) satisfies z.ZodType<Pick<DatabaseRows["project_task_lists"], "revision">>;
+export const artifactBytesSchema = z.object({ data: z.instanceof(Uint8Array) }) satisfies z.ZodType<Pick<DatabaseRows["artifact_files"], "data">>;
+export const cursorTimeSchema = z.object({ cursor_time: z.iso.datetime({ offset: true }) });
+export const commentMutationSchema = commentRowSchema.pick({ author_id: true, revision: true, deleted_at: true }).extend({
+  stage_id: z.string().nullable(),
+  node_id: z.string().nullable(),
+}) satisfies z.ZodType<Pick<DatabaseRows["project_comments"], "author_id" | "revision" | "deleted_at" | "stage_id" | "node_id">>;
+export const invitationAcceptanceSchema = invitationSchema.pick({ email: true, revoked_at: true }).extend({
+  project_id: id,
+  invited_by: z.string(),
+  accepted_by: z.string().nullable(),
+  expired: z.boolean(),
+}) satisfies z.ZodType<Pick<DatabaseRows["project_invitations"], "email" | "revoked_at" | "project_id" | "invited_by" | "accepted_by"> & { expired: boolean }>;
+export const unreadCommentSchema = commentRowSchema.pick({ id: true, author_name: true, content: true, created_at: true })
+  .extend({
+    project_id: id,
+    project_name: z.string(),
+    stage_id: z.string().nullable(),
+    node_id: z.string().nullable(),
+    ...cursorTimeSchema.shape,
+  }) satisfies z.ZodType<Pick<DatabaseRows["project_comments"], "id" | "author_name" | "content" | "created_at" | "project_id" | "stage_id" | "node_id"> & { project_name: string; cursor_time: string }>;

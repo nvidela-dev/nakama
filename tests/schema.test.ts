@@ -288,7 +288,7 @@ test("database guards reject invalid statuses, cross-project references, cycles 
 });
 test("query decoders fail closed without including row contents in errors", async () => {
   const tx = {
-    query: async <T extends object>() => ({
+    query: async () => ({
       rows: [
         {
           id: randomUUID(),
@@ -299,7 +299,7 @@ test("query decoders fail closed without including row contents in errors", asyn
           created_at: new Date(),
           updated_at: new Date(),
         },
-      ] as unknown as T[],
+      ],
     }),
   };
   await assert.rejects(
@@ -374,4 +374,24 @@ test("artifact library returns task counts without titles and bulk saves have bo
   } finally {
     await sql.close();
   }
+});
+
+test("redundant-index migration preserves task data, ordering and unique positions", async () => {
+  const sql = new PGlite();
+  try {
+    await migrate(sql, "012_graph_and_artifact_guards.sql");
+    const projectId = await projectService(database(sql)).create(actor, { name: "Index fixture", description: "Synthetic only" });
+    await sql.query("INSERT INTO project_tasks(id,project_id,title,created_by,updated_by) VALUES($1,$3,'First',$4,$4),($2,$3,'Second',$4,$4)", [randomUUID(), randomUUID(), projectId, actor.userId]);
+    const before = (await sql.query("SELECT * FROM project_tasks ORDER BY position")).rows;
+    const migration = await readFile("migrations/013_remove_redundant_task_index.sql", "utf8");
+    await sql.transaction(tx => tx.exec(migration));
+    assert.deepEqual((await sql.query("SELECT * FROM project_tasks ORDER BY position")).rows, before);
+    const indexes = (await sql.query<{ indexname: string }>("SELECT indexname FROM pg_indexes WHERE tablename='project_tasks'")).rows.map(row => row.indexname);
+    assert.ok(!indexes.includes("project_tasks_order"));
+    assert.ok(indexes.includes("task_sibling_order"));
+    await assert.rejects(sql.query("INSERT INTO project_tasks(id,project_id,position,title,created_by,updated_by) OVERRIDING SYSTEM VALUE SELECT $1,project_id,position,'Duplicate',$2,$2 FROM project_tasks WHERE project_id=$3 ORDER BY position LIMIT 1", [randomUUID(), actor.userId, projectId]), (error: unknown) => {
+      assert.ok(error && typeof error === "object" && "code" in error);
+      return error.code === "23505";
+    });
+  } finally { await sql.close(); }
 });

@@ -1,7 +1,7 @@
+import { selectedFlowSchema, projectSchema, memberSchema, answerSchema, revisionSchema, stageReviewSchema } from "./row-schemas";
 import type { DatabaseRows, ProjectState } from "./database.generated";
 import { nodeStatusSchema } from "./domain-schemas";
 import { queryRows } from "./query";
-import { answerSchema, revisionSchema, stageReviewSchema } from "./row-schemas";
 import { recordActivity } from "./activity-log";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
@@ -12,7 +12,6 @@ import {
   findNode,
   flows,
   type Flow,
-  type FlowId,
   isFlowId,
 } from "./flows";
 export type Answer = Omit<DatabaseRows["node_answers"],"project_id">;
@@ -26,6 +25,8 @@ export type Guidance = {
   contentRevision: number;
 };
 export class ConflictError extends ProjectError {
+  override readonly diagnosticType = "ConflictError";
+  override readonly diagnosticCategory = "conflict";
   constructor(public current: Answer) {
     super(
       "A friend saved a newer answer. Your draft is still here. Compare it with their version before saving again.",
@@ -33,14 +34,7 @@ export class ConflictError extends ProjectError {
   }
 }
 async function selectedFlow(tx: Queryable, projectId: string) {
-  const row = (
-    await tx.query<{
-      flow_id: FlowId;
-      template_version: number;
-      project_state: ProjectState;
-      content_revision: number;
-    }>("SELECT * FROM project_flows WHERE project_id = $1", [projectId])
-  ).rows[0];
+  const row = (await queryRows(tx,selectedFlowSchema,"SELECT * FROM project_flows WHERE project_id = $1", [projectId]))[0];
   if (!row) throw new ProjectError("Choose a flow first.");
   const flow = flows[row.flow_id];
   if (flow.version !== row.template_version)
@@ -64,22 +58,8 @@ export function guidanceService(db: Database) {
         throw new ProjectError("Choose one of the available flows.");
       return db.transaction(async (tx) => {
         await membership(tx, actor, projectId);
-        const project = (
-          await tx.query<{
-            name: string;
-            description: string;
-            created_at: Date;
-          }>(
-            "SELECT name, description, created_at FROM projects WHERE id = $1 FOR UPDATE",
-            [projectId],
-          )
-        ).rows[0];
-        const existing = (
-          await tx.query<{ flow_id: string }>(
-            "SELECT flow_id FROM project_flows WHERE project_id = $1",
-            [projectId],
-          )
-        ).rows[0];
+        const project = (await queryRows(tx,projectSchema.pick({name:true,description:true,created_at:true}),"SELECT name, description, created_at FROM projects WHERE id = $1 FOR UPDATE", [projectId]))[0];
+        const existing = (await queryRows(tx,selectedFlowSchema.pick({flow_id:true}),"SELECT flow_id FROM project_flows WHERE project_id = $1", [projectId]))[0];
         if (existing) {
           if (existing.flow_id !== flowId)
             throw new ProjectError(
@@ -92,12 +72,7 @@ export function guidanceService(db: Database) {
           [projectId, flowId, actor.userId],
         );
         await recordActivity(tx, actor, projectId, "flow_selected");
-        const owner = (
-          await tx.query<{ user_id: string }>(
-            "SELECT user_id FROM project_memberships WHERE project_id = $1 AND role = 'owner'",
-            [projectId],
-          )
-        ).rows[0];
+        const owner = (await queryRows(tx,memberSchema.pick({user_id:true}),"SELECT user_id FROM project_memberships WHERE project_id = $1 AND role = 'owner'", [projectId]))[0];
         if (!project || !owner) throw new ProjectError("Project not found.");
         const {stage,name: nameNode,description: descriptionNode} = captureNodes(flows[flowId]);
         for (const [index, content] of [
@@ -131,11 +106,11 @@ export function guidanceService(db: Database) {
         ]);
         if (
           !(
-            await tx.query(
+            await queryRows(tx,z.object({project_id:z.uuid()}),
               "SELECT project_id FROM project_flows WHERE project_id = $1",
               [projectId],
             )
-          ).rows.length
+          ).length
         )
           return null;
         const selected = await selectedFlow(tx, projectId);
@@ -167,12 +142,8 @@ export function guidanceService(db: Database) {
         throw new ProjectError("Add a name (up to 100 characters) and a description (up to 2,000).");
       return db.transaction(async (tx) => {
         await membership(tx, actor, projectId, true);
-        const current = (await tx.query<{ name: string; description: string }>(
-          "SELECT name, description FROM projects WHERE id = $1 FOR UPDATE", [projectId],
-        )).rows[0];
-        const selected = (await tx.query<{ content_revision: number }>(
-          "SELECT content_revision FROM project_flows WHERE project_id = $1", [projectId],
-        )).rows[0];
+        const current = (await queryRows(tx,projectSchema.pick({name:true,description:true}),"SELECT name, description FROM projects WHERE id = $1 FOR UPDATE", [projectId]))[0];
+        const selected = (await queryRows(tx,selectedFlowSchema.pick({content_revision:true}),"SELECT content_revision FROM project_flows WHERE project_id = $1", [projectId]))[0];
         if (!current || current.name !== expected.name || current.description !== expected.description || (selected?.content_revision ?? 0) !== expected.contentRevision)
           throw new ProjectError("Project changed. Reload before saving; your edits are still here.");
         if (!selected) {
@@ -191,9 +162,7 @@ export function guidanceService(db: Database) {
           if (value === (index === 0 ? current.name : current.description)) continue;
           const captured = captureNodes(flow);
           const node = index===0?captured.name:captured.description;
-          const answer = (await tx.query<{ revision: number }>(
-            "SELECT revision FROM node_answers WHERE project_id = $1 AND node_id = $2", [projectId, node.id],
-          )).rows[0];
+          const answer = (await queryRows(tx,answerSchema.pick({revision:true}),"SELECT revision FROM node_answers WHERE project_id = $1 AND node_id = $2", [projectId, node.id]))[0];
           await guidanceService(scoped).save(actor, projectId, node.id, {
             revision: answer?.revision ?? 0, content: value, status: "answered", choice: null,
           });

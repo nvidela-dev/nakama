@@ -1,12 +1,13 @@
+import { invitationAcceptanceSchema, projectSchema, membershipSchema, memberSchema, invitationSchema } from "./row-schemas";
 import type { DatabaseRows } from "./database.generated";
 import { queryRows, required } from "./query";
-import { projectSchema, membershipSchema, memberSchema, invitationSchema } from "./row-schemas";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { recordActivity } from "./activity-log";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
 
-export class ProjectError extends Error {}
+import { ProjectError } from "./errors";
+export { ProjectError } from "./errors";
 export type Actor = {
   userId: string;
   verifiedEmails: string[];
@@ -70,9 +71,7 @@ export function projectService(db: Database) {
     async deleteProject(actor: Actor, projectId: string, confirmation: string) {
       await db.transaction(async (tx) => {
         await membership(tx, actor, projectId, true);
-        const project = (await tx.query<{ name: string }>(
-          "SELECT name FROM projects WHERE id = $1 FOR UPDATE", [projectId],
-        )).rows[0];
+        const project = (await queryRows(tx,projectSchema.pick({name:true}),"SELECT name FROM projects WHERE id = $1 FOR UPDATE", [projectId]))[0];
         if (!project || confirmation !== project.name)
           throw new ProjectError("Type the project name exactly to confirm deletion.");
         // Delete dependent records first. All removals are scoped to this project and atomic.
@@ -149,11 +148,11 @@ export function projectService(db: Database) {
         throw new ProjectError("Invitation not found.");
       await db.transaction(async (tx) => {
         await membership(tx, actor, projectId, true);
-        const revoked = await tx.query(
+        const revoked = await queryRows(tx,invitationSchema.pick({id:true}),
           "UPDATE project_invitations SET revoked_at = now() WHERE id = $1 AND project_id = $2 AND accepted_at IS NULL AND revoked_at IS NULL RETURNING id",
           [invitationId, projectId],
         );
-        if (revoked.rows.length) await recordActivity(tx, actor, projectId, "invitation_revoked");
+        if (revoked.length) await recordActivity(tx, actor, projectId, "invitation_revoked");
       });
     },
     async accept(actor: Actor, token: string) {
@@ -161,17 +160,7 @@ export function projectService(db: Database) {
       if (!/^[A-Za-z0-9_-]{43}$/.test(token))
         throw new ProjectError("This invitation is unavailable.");
       return db.transaction(async (tx) => {
-        const { rows } = await tx.query<{
-          project_id: string;
-          email: string;
-          invited_by: string;
-          accepted_by: string | null;
-          revoked_at: Date | null;
-          expired: boolean;
-        }>(
-          "SELECT project_id, email, invited_by, accepted_by, revoked_at, expires_at <= now() AS expired FROM project_invitations WHERE token_hash = $1 FOR UPDATE",
-          [digest(token)],
-        );
+        const rows = await queryRows(tx,invitationAcceptanceSchema,"SELECT project_id, email, invited_by, accepted_by, revoked_at, expires_at <= now() AS expired FROM project_invitations WHERE token_hash = $1 FOR UPDATE", [digest(token)]);
         const invitation = rows[0];
         if (
           !invitation ||
@@ -199,7 +188,7 @@ export function projectService(db: Database) {
           invitation.project_id,
           true,
         );
-        const joined = await tx.query(
+        const joined = await queryRows(tx,memberSchema.pick({user_id:true}),
           "INSERT INTO project_memberships (project_id, user_id, display_name, role) VALUES ($1, $2, $3, 'member') ON CONFLICT DO NOTHING RETURNING user_id",
           [
             invitation.project_id,
@@ -211,7 +200,7 @@ export function projectService(db: Database) {
           "UPDATE project_invitations SET accepted_by = $1, accepted_at = now() WHERE token_hash = $2",
           [actor.userId, digest(token)],
         );
-        if (joined.rows.length) await recordActivity(tx, actor, invitation.project_id, "member_joined");
+        if (joined.length) await recordActivity(tx, actor, invitation.project_id, "member_joined");
         return invitation.project_id;
       });
     },
@@ -223,20 +212,14 @@ export function projectService(db: Database) {
         ]);
         // Lock invitation rows before deleting membership, matching accept's lock order.
         // Revoke unused links to addresses this member previously used to join.
-        const emails = await tx.query<{ email: string }>(
-          "SELECT DISTINCT email FROM project_invitations WHERE project_id = $1 AND accepted_by = $2",
-          [projectId, userId],
-        );
-        if (emails.rows.length)
+        const emails = await queryRows(tx,invitationSchema.pick({email:true}),"SELECT DISTINCT email FROM project_invitations WHERE project_id = $1 AND accepted_by = $2", [projectId, userId]);
+        if (emails.length)
           await tx.query(
             "UPDATE project_invitations SET revoked_at = now() WHERE project_id = $1 AND email = ANY($2::text[]) AND accepted_at IS NULL AND revoked_at IS NULL",
-            [projectId, emails.rows.map((row) => row.email)],
+            [projectId, emails.map((row) => row.email)],
           );
-        const removed = await tx.query<{ display_name: string }>(
-          "DELETE FROM project_memberships WHERE project_id = $1 AND user_id = $2 AND role = 'member' RETURNING display_name",
-          [projectId, userId],
-        );
-        const removedMember=removed.rows[0];
+        const removed = await queryRows(tx,memberSchema.pick({display_name:true}),"DELETE FROM project_memberships WHERE project_id = $1 AND user_id = $2 AND role = 'member' RETURNING display_name", [projectId, userId]);
+        const removedMember=removed[0];
         if (removedMember) await recordActivity(tx, actor, projectId, "member_removed", { subjectName: removedMember.display_name });
       });
     },

@@ -1,11 +1,11 @@
+import { selectedFlowSchema, cursorTimeSchema, commentMutationSchema, commentRowSchema, activityRowSchema } from "./row-schemas";
 import type { DatabaseRows, ActivityKind } from "./database.generated";
 import { queryRows } from "./query";
-import { commentRowSchema, activityRowSchema } from "./row-schemas";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
 import { membership, ProjectError, type Actor } from "./projects";
-import { flows, type FlowId } from "./flows";
+import { flows } from "./flows";
 import { recordActivity } from "./activity-log";
 export type CommentTarget = {stageId?:never;nodeId?:never} | {stageId:string;nodeId?:string};
 export function commentTarget(stageId?:string,nodeId?:string):CommentTarget {
@@ -36,7 +36,7 @@ async function targetFlow(tx: Queryable, projectId: string, target: CommentTarge
   if ((target.stageId !== undefined && !z.string().min(1).max(100).safeParse(target.stageId).success) || (target.nodeId !== undefined && !z.string().min(1).max(100).safeParse(target.nodeId).success)) throw new ProjectError("Comment target not found.");
   if (target.nodeId && !target.stageId) throw new ProjectError("Comment target not found.");
   if (!target.stageId) return null;
-  const row = (await tx.query<{ flow_id: FlowId; template_version: number }>("SELECT flow_id, template_version FROM project_flows WHERE project_id=$1", [projectId])).rows[0];
+  const row = (await queryRows(tx,selectedFlowSchema.pick({flow_id:true,template_version:true}),"SELECT flow_id, template_version FROM project_flows WHERE project_id=$1", [projectId]))[0];
   const flow = row && flows[row.flow_id];
   const stage = flow?.stages.find((stage) => stage.id === target.stageId);
   if (!flow || flow.version !== row.template_version || !stage || (target.nodeId && !stage.nodes.some((node) => node.id === target.nodeId))) throw new ProjectError("Comment target not found.");
@@ -51,7 +51,7 @@ export function collaborationService(db: Database) {
         let [time, id] = cursor(before);
         if (!before && focusId) {
           if (!uuid.safeParse(focusId).success) throw new ProjectError("Comment not found.");
-          const focused = (await tx.query<{ cursor_time: string }>(`SELECT to_char(created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'Z' AS cursor_time FROM project_comments WHERE id=$1 AND project_id=$2 AND stage_id IS NOT DISTINCT FROM $3 AND node_id IS NOT DISTINCT FROM $4`, [focusId,projectId,target.stageId ?? null,target.nodeId ?? null])).rows[0];
+          const focused = (await queryRows(tx,cursorTimeSchema,`SELECT to_char(created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'Z' AS cursor_time FROM project_comments WHERE id=$1 AND project_id=$2 AND stage_id IS NOT DISTINCT FROM $3 AND node_id IS NOT DISTINCT FROM $4`, [focusId,projectId,target.stageId ?? null,target.nodeId ?? null]))[0];
           if (!focused) throw new ProjectError("Comment not found.");
           time = focused.cursor_time;
           id = focusId;
@@ -89,7 +89,7 @@ export function collaborationService(db: Database) {
       await db.transaction(async (tx) => {
         const member = await membership(tx, actor, projectId);
         await tx.query("SELECT id FROM projects WHERE id=$1 FOR UPDATE", [projectId]);
-        const comment = (await tx.query<{ author_id: string; stage_id: string | null; node_id: string | null; revision: number; deleted_at: Date | null }>("SELECT author_id,stage_id,node_id,revision,deleted_at FROM project_comments WHERE project_id=$1 AND id=$2 FOR UPDATE", [projectId, commentId])).rows[0];
+        const comment = (await queryRows(tx,commentMutationSchema,"SELECT author_id,stage_id,node_id,revision,deleted_at FROM project_comments WHERE project_id=$1 AND id=$2 FOR UPDATE", [projectId, commentId]))[0];
         if (!comment || comment.deleted_at || (comment.author_id !== actor.userId && (operation === "edit" || member.role !== "owner"))) throw new ProjectError("Comment not found or this action is not allowed.");
         if (comment.revision !== revision) throw new ProjectError("This comment changed. Reload before saving; your draft is still here.");
         if (operation === "edit") await tx.query("UPDATE project_comments SET content=$1, revision=revision+1, edited_at=now() WHERE id=$2 AND project_id=$3", [content?.success ? content.data : "", commentId, projectId]);

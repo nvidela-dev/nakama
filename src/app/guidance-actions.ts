@@ -1,4 +1,7 @@
 "use server";
+import { observeAction } from "@/lib/request-observability";
+import { telemetry } from "@/lib/observability";
+
 import { revalidatePath } from "next/cache";
 import { actor } from "@/lib/auth";
 import { database } from "@/lib/db";
@@ -40,18 +43,21 @@ export async function chooseFlow(
   _state: GuidanceActionState,
   data: FormData,
 ): Promise<GuidanceActionState> {
-  const person = await actor();
-  try {
-    await guidanceService(database()).select(
-      person,
-      projectId,
-      field(data, "flow"),
-    );
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath(`/projects/${projectId}`);
-  return { success: "Workflow selected." };
+  return observeAction("flow.choose", async () => {
+    const person = await actor();
+    try {
+      await guidanceService(database()).select(
+        person,
+        projectId,
+        field(data, "flow"),
+      );
+    } catch (error) {
+      telemetry.reportError(error);
+      return failure(error);
+    }
+    revalidatePath(`/projects/${projectId}`);
+    return { success: "Workflow selected." };
+  });
 }
 export async function saveAnswer(
   projectId: string,
@@ -59,25 +65,28 @@ export async function saveAnswer(
   _state: GuidanceActionState,
   data: FormData,
 ): Promise<GuidanceActionState> {
-  const person = await actor();
-  try {
-    const savedRevision = await guidanceService(database()).save(
-      person,
-      projectId,
-      nodeId,
-      {
-        content: field(data, "content"),
-        status: field(data, "status"),
-        choice: field(data, "choice") || null,
-        revision: Number(field(data, "revision")),
-      },
-    );
-    revalidatePath(`/projects/${projectId}`);
-    revalidatePath("/projects");
-    return { savedRevision, success: "Saved." };
-  } catch (error) {
-    return failure(error);
-  }
+  return observeAction("answer.save", async () => {
+    const person = await actor();
+    try {
+      const savedRevision = await guidanceService(database()).save(
+        person,
+        projectId,
+        nodeId,
+        {
+          content: field(data, "content"),
+          status: field(data, "status"),
+          choice: field(data, "choice") || null,
+          revision: Number(field(data, "revision")),
+        },
+      );
+      revalidatePath(`/projects/${projectId}`);
+      revalidatePath("/projects");
+      return { savedRevision, success: "Saved." };
+    } catch (error) {
+      telemetry.reportError(error);
+      return failure(error);
+    }
+  });
 }
 export async function reviewStage(
   projectId: string,
@@ -85,20 +94,23 @@ export async function reviewStage(
   _state: GuidanceActionState,
   data: FormData,
 ): Promise<GuidanceActionState> {
-  const person = await actor();
-  try {
-    await guidanceService(database()).reviewStage(
-      person,
-      projectId,
-      stageId,
-      field(data, "rationale"),
-      Number(field(data, "revision")),
-    );
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath(`/projects/${projectId}`);
-  return {
-    success: "Stage review saved.",
-  };
+  return observeAction("stage.review", async () => {
+    const person = await actor();
+    try {
+      await guidanceService(database()).reviewStage(
+        person,
+        projectId,
+        stageId,
+        field(data, "rationale"),
+        Number(field(data, "revision")),
+      );
+    } catch (error) {
+      telemetry.reportError(error);
+      return failure(error);
+    }
+    revalidatePath(`/projects/${projectId}`);
+    return {
+      success: "Stage review saved.",
+    };
+  });
 }

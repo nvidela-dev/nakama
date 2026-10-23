@@ -62,7 +62,7 @@ test("Lock-In import/export preserves trees, statuses, collapse, timestamps, and
  assert.equal((await tasks.list(owner,id)).revision,list.revision);
 });
 test("task writes and imports roll back with their events, and whole-project deletion removes tasks",async()=>{
- const id=await project();const faulty:Database={...db,transaction:work=>db.transaction(tx=>work({query:async<T extends object>(q:string,v?:unknown[])=>{if(q.startsWith("INSERT INTO project_activity"))throw Error("Event failure");return tx.query<T>(q,v);}}))};
+ const id=await project();const faulty:Database={...db,transaction:work=>db.transaction(tx=>work({query:async(q:string,v?:unknown[])=>{if(q.startsWith("INSERT INTO project_activity"))throw Error("Event failure");return tx.query(q,v);}}))};
  await assert.rejects(taskService(faulty).change(owner,id,0,{kind:"add",parentId:null,title:"Rolled back"}));
  await assert.rejects(taskService(faulty).import(owner,id,0,source));assert.equal((await tasks.list(owner,id)).tasks.length,0);
  const list=await tasks.import(owner,id,0,source);assert.equal(list.tasks.length,2);

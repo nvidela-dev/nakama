@@ -9,3 +9,6 @@ out/
 playwright-report/
 test-results/
 .DS_Store
+
+# Private, rotating operational logs and imported production diagnostics
+.nakama/

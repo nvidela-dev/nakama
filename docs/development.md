@@ -307,3 +307,81 @@ A consistent private public-schema archive and row snapshot were saved outside t
 The production alias [Nakama](https://nakama-brown-eight.vercel.app) was confirmed on a READY deployment from main with the exact implementation SHA. All twelve applied migration checksums were rechecked against the repository. Authenticated Chrome passed the full artifact, project-lineage, guided-setup and project-task/Lock-In journeys against this live alias. This includes typed image/Markdown/software outputs, private file responses, artifact task saves, two-tab conflicts, multiple project sources, link/unlink/navigation, guided-draft preservation, phone layouts and Spanish controls. Disposable browser projects and their dependent records were removed by fixture cleanup. The 53 local tests, strict type checks, and build had already passed for this implementation.
 
 The normalized schema and matching code are now released. No credentials, backups, private row snapshots, or project contents were added to Git. Future migrations should retain the same preflight, backup/restore rehearsal, and code/schema coordination discipline.
+
+## Complete read validation and duplicate index removal — 2026-10-23
+
+Implemented locally on the read-validation branch. The raw Database/Queryable contract returns unknown rows and has no caller-supplied result generic. Every consumed SELECT/RETURNING projection in application services uses queryRows with explicit validators, including notifications, invitation acceptance, revisions, comment mutation, file bytes, and existence checks. Unused lock/write results remain raw. Notification types are inferred from their decoder, and projection schemas remain checked against generated storage types.
+
+Migration 013 removes project_tasks_order only; task_sibling_order retains uniqueness and its ordered index. Populated migration tests preserve all task fields/order and confirm duplicate positions still fail with SQLSTATE 23505. No generated row types change because no columns or enum values change. This migration has not been applied to the hosted database.
+
+Validation: 56 tests passed, including malformed-driver-result rejection with safe errors, invitation/comment rollback, and compile-time rejection of undeclared raw fields and query result generics. Schema generation check, TypeScript, and production build passed. Disposable native PostgreSQL checks passed for concurrent integrity, migration rollback, notification dates/cursors, invitation acceptance, and Markdown/file bytes. No deployment or hosted-data changes were performed.
+
+## Backend logging — 2026-10-23
+
+Local operational logs default to `.nakama/logs/backend.jsonl` and its `.1`–`.3` archives. The folder is Git-ignored and excluded from deployment bundles. Use `NAKAMA_LOG_LEVEL=debug` when reproducing a problem to include every query; normal `info` retains outcomes, slow work, and failures. `NAKAMA_LOG_FILE` can select another trusted local `.jsonl` path; `off` disables the local copy. Vercel always uses stdout/stderr instead of a persistent file. Local production-mode runs are tagged `local`, hosted releases use their Vercel environment and commit SHA.
+
+```sh
+npm run logs -- summary
+npm run logs -- errors --since 30m
+npm run logs -- recent --limit 40
+npm run logs -- trace TRACE_UUID --since 1h --json
+npm run logs -- query QUERY_FINGERPRINT --json
+npm run logs -- summary --file /absolute/path/backend.jsonl --json
+npm run logs:pull -- --since 1h --environment production
+```
+
+Summaries read both local backend logs and imported `.nakama/logs/vercel.jsonl` archives. They show repeat-error fingerprints, safe source locations, sample trace IDs, operation latency percentiles, and slow/failed query fingerprints. A returned `x-nakama-request-id` header identifies the request trace; `error.id` links repeated reporting of the same failure across layers. Query fingerprints intentionally contain no SQL: inspect the logged code location in the matching commit. `--since` accepts minutes/hours/days; `--limit` bounds displayed entries. Malformed/truncated/unrelated records are counted and skipped, and overlapping pulls are deduplicated when reading. An empty window is not evidence of successful operations; check the log level, environment, release, and whether import/collection covered the relevant time.
+
+Production import uses the existing linked Vercel project and CLI login. It fetches at most 1000 platform entries by default (10000 maximum) with a 45-second process timeout, and retains only validated application records and recognized system-failure evidence; see the diagnostic catalog below. On busy windows narrow `--since` or adjust `--limit`; retained provider history and pagination can limit coverage. It never deploys or changes environment variables. Use `npm run logs:pull` before diagnosing a hosted incident, then inspect the summary, trace, and matching source. Never print raw provider logs or read project contents just to diagnose an error. Retain request/function argument logging as disabled in Next configuration.
+
+Failure investigations should distinguish expected validation/permission/conflict rejections from unexpected backend errors. A successful database statement can still be followed by a decoder rejection and transaction rollback; use the transaction/action outcome, not a single query-success event, to determine whether a write committed. A commit_unknown outcome means the connection failed after the transaction callback completed; rollback_failed means the rollback could not be confirmed. Neither establishes that replay is safe. Do not replay mutations merely because a client lost its response. Sink warnings indicate the local file may be incomplete; use stdout/provider records as the fallback.
+
+Logging validation (local): all 68 tests, generated-schema/type checks, and the production build passed. Tests cover private-data exclusion, hostile error properties, concurrent trace isolation, handled/conflict/navigation classification, production-minified domain errors, sink-failure isolation, rotation/permissions/symlink rejection, bounded imports, CLI summaries, slow-query visibility, write commits, and ambiguous commit outcomes. Four authenticated browser journeys passed during this change (guided setup, unread notifications, complete artifact workflow, and explicit logging verification); the latter verifies replaced caller trace headers, normalized private routes, query totals, and expected private-file 404 rejection. Native PostgreSQL verified row-DETAIL redaction, safe SQLSTATE propagation, correlated errors and actual rollback. The build bundle check inspected 22 deployment traces with populated local logs and found zero operational files. CI now seeds a synthetic ignored log file before building and runs this exclusion guard afterward.
+
+The Vercel importer was exercised read-only against the linked production project: unrelated platform records were excluded and zero application events were imported, as this logging implementation is not deployed yet. No production logger behavior is claimed from that empty result. Existing development services and authentication were reused for isolated browser tests; synthetic projects were removed and the disposable database was stopped. Nothing was pushed, no hosted migration ran, and no new service was provisioned.
+
+
+## Typed diagnostic catalog — 2026-10-23
+
+Implemented locally on the existing read-validation/logging branch. `diagnostics.ts` owns runtime-validated discriminated unions and inferred TypeScript types. Each diagnostic code has an exhaustive catalog entry with a title, severity, investigation guidance, and retry policy. Expectedness (`unexpected`, `rejected`, `conflict`, `navigation`) stays separate from failure family. No collector automatically retries writes or changes services.
+
+| Family | Evidence |
+| --- | --- |
+| type | TypeScript diagnostic number, config/compile phase, and safe source position |
+| build | Failing Next or generated-schema check; generic build failure does not claim a root cause |
+| contract | Invalid database results, consumed Clerk response shapes, or invalid inputs, distinguished by boundary |
+| backend | Unexpected application failures, policy rejection, revision conflict, and navigation |
+| database | Explicit driver boundary with SQLSTATE, approved transport code, or an unknown driver cause |
+| dependency | Clerk operation/status/code/request ID/retry delay, or a safe Vercel collection-failure reason |
+| compute | Explicit hosting failure code/system event, V8 fatal heap-exhaustion diagnostic, supervised process exit/signal, or local log-storage failure |
+
+```sh
+npm run logs -- doctor
+npm run logs -- diagnostics --family dependency --since 1h
+npm run logs -- diagnostics --code DB_RESULT_INVALID --json
+npm run logs -- show ERROR_OR_TRACE_UUID --since 1d
+npm run logs -- diagnostics --maps /absolute/path/to/matching/.next --json
+npm run logs -- diagnostics --file /absolute/path/to/downloaded/checks.jsonl --since 7d
+```
+
+The reader includes backend, imported Vercel, and `.nakama/logs/checks.jsonl` archives. It deduplicates the same opaque error across layers and adds observed transaction outcomes to the explanation. SQLSTATE-specific checks supplement the catalog. `--json` returns structured evidence and guidance; `--family`/`--code` select displayed entries. Legacy version-1 errors remain readable and are counted separately when they lack the newer diagnostic field. An empty result is never a health assertion.
+
+`npm run typecheck` now supervises the generated-schema check and a TypeScript compiler-API worker. Compiler errors become `TYPESCRIPT_COMPILE_FAILED` records with diagnostic numbers and locations; neither diagnostic messages, source excerpts, literal types nor compiler suggestions are persisted. The process exits nonzero on errors. For the full compiler explanation in a trusted local terminal, use `npm run typecheck:explain`; this intentionally prints ordinary compiler text and must not be redirected into the private diagnostic archive. `npm run build` runs these checks before Next and records Next failure separately. CI always uploads its validated `checks.jsonl` files as a seven-day `backend-diagnostics` artifact, including failed runs; download an artifact through existing GitHub access and inspect it with `--file`. This workflow has been tested locally; remote CI execution remains pending push. Successful CI also retains a private seven-day `backend-source-maps` artifact containing server maps and the matching build identity for offline symbolication.
+
+Build/start/dev commands supervise the child process. They scan a bounded, transient stderr window for the documented V8 fatal heap-exhaustion diagnostic and record only a fixed runtime code, discarding the text from diagnostic storage. Other failures record abnormal exit codes/signals without installing handlers that suppress Node crashes; SIGINT/SIGTERM are operator shutdowns. A killed supervisor or entire machine cannot record its own termination. Typecheck/build stages share a trace across their child processes. Builds carry a unique build ID derived from source/configuration, Git revision, Node version and a random per-compilation nonce. The build metadata records the committed release separately from the uncommitted checkout identity. Production start reads the built identity rather than assigning the current checkout's identity to an older bundle. Development identity describes its startup snapshot; hot edits are not immutable release artifacts.
+
+Server production source maps are enabled; browser source maps remain disabled. The offline `--maps` reader requires a record's build ID to match `.next/BUILD_ID`, reads bounded map files and returns only validated original code positions. It never emits embedded source contents. Mismatched or unavailable maps are explicitly labeled. Preserve the matching build privately when investigating a release; maps are not downloaded or published by the logging tools. Operational files remain excluded from deployment tracing.
+
+Clerk calls, including middleware, identity lookup, allowlist, waitlist and invitation candidate reads, use the provider adapter. Consumed response projections are decoded independently of SDK declarations. Pagination with an incomplete response is a contract failure. Original response/error bodies, messages, unknown provider codes and credential material are discarded. Framework navigation is preserved. Provider request IDs are retained only when they match the narrow approved format, so some provider failures may have no usable request ID. No automatic service retries were added.
+
+The Vercel importer uses the installed CLI's typed runtime-log envelopes. In addition to validated application JSON, it accepts explicit approved compute codes or system-produced error/fatal events. System errors without a specific code become `COMPUTE_FAILURE_UNKNOWN`; `FUNCTION_INVOCATION_FAILED` likewise does not prove memory exhaustion. Ordinary app messages mentioning a timeout cannot assert a compute incident. Raw system messages, request paths/queries, headers and envelopes are never saved; only a normalized route, timestamp, safe request/deployment correlation and catalog evidence survive. Imported platform-only events use `release: unknown` unless matching application evidence provides source identity. Match the deployment ID with application records before diagnosing code. Log access/history, sampling and pagination still bound coverage; missing events are not success evidence. See [Vercel runtime log CLI](https://vercel.com/docs/cli/logs), [timeout semantics](https://vercel.com/docs/errors/function_invocation_timeout) and [generic invocation failure](https://vercel.com/docs/errors/function_invocation_failed).
+
+
+Collection failures are themselves catalogued as Vercel dependency diagnostics. CLI stdout/stderr is inspected transiently against fixed patterns; only a safe reason such as authentication, project access, unsupported CLI, invalid time window, timeout, or unknown is retained. A failed import does not make an empty incident window healthy.
+
+A memory failure requires Node's explicit fatal heap-exhaustion diagnostic, observed by the supervisor or in a system-produced hosting log. An OS-level memory kill without that evidence stays unclassified; SIGKILL alone is insufficient. The recognizer follows the documented [Node CLI heap-limit diagnostic](https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-mib), not an assumed Vercel memory error code.
+
+
+Diagnostic-pass local verification: 81 tests passed, including compiler rejection and recovery, typed negative contracts, provider privacy/contract/navigation checks, real process termination, explicit memory evidence, database boundary/transaction certainty, hosting normalization and request/deployment correlation, collector failures, CLI output and source-map mismatch protection. Strict type checks and production build passed. A real compiled server map was resolved back to its original project-service line; the deployment trace guard inspected 22 traces and excluded operational files. Four distinct authenticated browser workflows passed (artifacts, project setup, notifications and logging); logging additionally verifies the typed rejection family and built identity. Real PostgreSQL concurrency, decoded activity and safe migration rollback checks passed. Local app/database processes were stopped and synthetic fixtures removed. No hosted migration, push, deployment, or provisioning was performed. Remote CI execution and production behavior of the new instrumentation remain unverified until release.
+
+The hosted importer was also exercised read-only. The provider rejected a recent one-hour window as outside available log data; this is recorded as `DEPENDENCY_REJECTED` with `invalid_time_window`, not as an empty successful incident report. Use a window within retained history; `--since`/`--until` accept relative intervals or explicit UTC timestamps. No raw provider output was saved.

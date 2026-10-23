@@ -1,4 +1,5 @@
-import { required } from "../src/lib/query";
+import { z } from "zod";
+import { queryRows, required } from "../src/lib/query";
 import {test,before,after} from "node:test";
 import assert from "node:assert/strict";
 import {PGlite} from "@electric-sql/pglite";
@@ -34,5 +35,5 @@ test("deferred type remains supported, and invalid/failed setup leaves no partia
  }}))};
  await assert.rejects(startProject(broken,owner,{name:"Rolled back",description:"No partial capture.",flow:"creative"}));
  assert.equal((await projectService(db).list(owner)).length,before);
- assert.equal(required((await db.query<{count:number}>("SELECT count(*)::int AS count FROM projects WHERE name='Rolled back'")).rows[0]).count,0);
+ assert.equal(required((await queryRows(db,z.object({count:z.number().int()}),"SELECT count(*)::int AS count FROM projects WHERE name='Rolled back'"))[0]).count,0);
 });

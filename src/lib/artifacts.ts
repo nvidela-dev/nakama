@@ -1,12 +1,12 @@
+import { selectedFlowSchema, artifactBytesSchema, artifactRowSchema, artifactFileSchema, countSchema } from "./row-schemas";
 import { artifactKindSchema, artifactStatusSchema, artifactTaskSchema } from "./domain-schemas";
 import { queryRows, required } from "./query";
-import { artifactRowSchema, artifactFileSchema, countSchema } from "./row-schemas";
 import type { ArtifactMediaType } from "./database.generated";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
 import { membership, ProjectError, type Actor } from "./projects";
-import { flows, type FlowId } from "./flows";
+import { flows } from "./flows";
 import { recordActivity } from "./activity-log";
 import type { ArtifactDetail, ArtifactKind } from "./artifact-model";
 
@@ -20,6 +20,8 @@ const metadata = z.object({
 });
 const tasksSchema = z.array(artifactTaskSchema).max(100).refine(items=>new Set(items.map(t=>t.id)).size===items.length);
 export class ArtifactConflictError extends ProjectError {
+  override readonly diagnosticType = "ArtifactConflictError";
+  override readonly diagnosticCategory = "conflict";
   constructor(public current: ArtifactDetail) { super("This artifact changed. Your draft is still here. Review the latest version before saving."); }
 }
 const columns = "a.id,a.project_id,p.name AS project_name,a.flow_id,a.stage_id,a.name,a.description,a.kind,a.status,a.github_url,a.revision,a.updated_at";
@@ -31,7 +33,7 @@ async function detail(tx: Queryable, projectId: string, artifactId: string): Pro
   const tasks = await queryRows(tx,artifactTaskSchema,"SELECT id,title,status FROM artifact_tasks WHERE project_id=$1 AND artifact_id=$2 ORDER BY position",[projectId,artifactId]);
   let markdown: string | null = null;
   if (artifact.kind==="markdown" && files.length) {
-    const row = (await tx.query<{data: Uint8Array}>("SELECT data FROM artifact_files WHERE project_id=$1 AND artifact_id=$2 AND id=$3",[projectId,artifactId,required(files[0]).id])).rows[0];
+    const row = (await queryRows(tx,artifactBytesSchema,"SELECT data FROM artifact_files WHERE project_id=$1 AND artifact_id=$2 AND id=$3", [projectId,artifactId,required(files[0]).id]))[0];
     markdown = Buffer.from(required(row).data).toString("utf8");
   }
   return {...artifact,tasks,files,markdown};
@@ -54,7 +56,7 @@ function github(input: string) {
 }
 async function stageFlow(tx: Queryable, projectId: string, stageId: string | null) {
   if (!stageId) return null;
-  const row = (await tx.query<{flow_id: FlowId}>("SELECT flow_id FROM project_flows WHERE project_id=$1",[projectId])).rows[0];
+  const row = (await queryRows(tx,selectedFlowSchema.pick({flow_id:true}),"SELECT flow_id FROM project_flows WHERE project_id=$1", [projectId]))[0];
   if (!row || !flows[row.flow_id]?.stages.some(stage=>stage.id===stageId)) throw new ProjectError("Choose a stage from this project.");
   return row.flow_id;
 }
