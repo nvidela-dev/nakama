@@ -1,9 +1,10 @@
 "use client";
 import { ProjectWork } from "@/components/project-work";
 import { WaveMark } from "@/components/wave-mark";
+import { StageMapPopup } from "@/components/stage-map-popup";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useT } from "@/components/language";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -58,24 +59,6 @@ export function Journey({
 }) {
   const t = useT();
   const [showMap, setShowMap] = useState(false);
-  const workspace = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const root = workspace.current;
-    const working = root?.querySelector<HTMLElement>(".project-working-column");
-    const content = root?.querySelector<HTMLElement>(".journey-content");
-    if (!root || !working || !content) return;
-    // Follow real heading/map height, including translations and responsive wrapping.
-    const alignSidebar = () => {
-      const activeContent = root.querySelector<HTMLElement>(".project-work-panel:not([hidden]) .journey-content, .project-work-panel:not([hidden]) .task-list") ?? content;
-      const offset = Math.max(0, activeContent.getBoundingClientRect().top - working.getBoundingClientRect().top);
-      root.style.setProperty("--sidebar-content-offset", `${offset}px`);
-    };
-    const observer = new ResizeObserver(alignSidebar);
-    observer.observe(working);
-    observer.observe(content);
-    alignSidebar();
-    return () => observer.disconnect();
-  }, [stageId, nodeId, showMap]);
   const { flow, answers, reviews } = guidance;
   const base = preview ? "/preview" : `/projects/${projectId}`;
   const href = (stage?: string, node?: string) =>
@@ -110,7 +93,7 @@ export function Journey({
   const review = reviews.find((r) => r.stage_id === stageId);
   const progressControls = (
         <div className="journey-progress-controls">
-          <button type="button" className="button secondary miniview-icon" aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
+          <button type="button" className="button secondary miniview-icon" aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")} aria-haspopup="dialog" aria-expanded={showMap} aria-controls="project-stage-map" onClick={() => setShowMap(!showMap)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
               <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5" />
             </svg>
@@ -128,12 +111,10 @@ export function Journey({
         </div>
   );
   return (
-    <div ref={workspace} className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
+    <div className={`workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`}>
+      {showMap && <StageMapPopup onClose={() => setShowMap(false)}><JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} /></StageMapPopup>}
       <div className="project-working-column">
       <ProjectWork tasks={tasks} artifacts={artifacts}>
-      <div id="project-stage-map">
-        {showMap && <JourneyMiniview guidance={guidance} base={base} stageId={stageId} nodeId={nodeId} />}
-      </div>
     <section className={`journey${activeStage ? " has-stage-rail" : ""}`}>
       {activeStage && <header className="journey-stage-heading">
           <nav className="journey-breadcrumb" aria-label={t("Project path")}>

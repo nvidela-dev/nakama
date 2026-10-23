@@ -274,3 +274,21 @@ Migrations 010–012 are implemented and verified locally. They change the artif
 ## Released: normalized schema and strict domain types — 2026-10-23
 
 After explicit user authorization, the schema/type implementation was applied to main and migrations 010–012 were committed to the shared database with a coordinated deployment cutover. A private backup restoration rehearsal and in-transaction preservation checks passed. The exact main implementation SHA and all twelve migration checksums were verified, followed by four authenticated live browser journeys. See the development guide's release evidence. This supersedes the earlier local-only/pending-release status for this refinement.
+
+## Accepted refinement: align project columns — 2026-10-23
+
+The user requested a shared top edge for the three project columns. Align discussion, project-work tabs, and progress/sidebar at the workspace start in both densities. Remove the measured content offset; expanded headings and maps do not move the sidebar. Preserve the existing responsive stacking and sticky discussion behavior.
+
+Local validation: production build passed; a disposable authenticated project verified aligned column tops at 1280/1440/1900px in both densities across overview, stage, question, to-do, and artifact views, plus the expanded map. Responsive stacking and no horizontal overflow were checked at 1024/768/390px. No deployment was performed.
+
+## Accepted refinement: compact linked projects — 2026-10-23
+
+The user requested a much smaller Linked projects panel with smaller fonts. Reduce panel padding, section gaps, heading/body sizes, and desktop controls in both display densities, while retaining touch targets and the existing project-link behavior. Keep these rules scoped so the project setup dialog retains its own layout.
+
+## Accepted refinement: compact members and activity — 2026-10-23
+
+Apply the same compact sidebar treatment to Members, invitation creation/history, and Activity, preserving all actions, disclosure behavior, and touch targets. Scope styles to the private project panel so other member lists and forms retain their layout.
+
+## Accepted refinement: translucent 3D map popup — 2026-10-23
+
+Move the 3D stage map from the inline workspace to a modal popup with a 90% transparent surface. Keep graph/controls readable, preserve stage navigation and narrow-screen scrolling, and provide keyboard dismissal and focus restoration. Opening the map must not move the project columns.

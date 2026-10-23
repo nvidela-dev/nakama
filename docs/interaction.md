@@ -92,7 +92,7 @@ The optional 3D map opens above the full project-working area, spanning both the
 
 The stage rail uses lighter green, superseding the previous pink treatment. Breadcrumb, stage question, and guidance occupy a shared heading above the rail and substeps, aligning their first items. The private project title sits beside Your projects, with description directly underneath.
 
-On desktop the right progress/members stack starts at the same height as the stage rail and substeps/editor, below the shared heading (and expanded map). Its offset follows actual content size across density, language, and viewport changes.
+On desktop the discussion, project-work tabs, and right progress/members stack share the same top edge. Stage headings and expanded maps stay inside the working column without shifting the right sidebar. This supersedes the earlier alignment to stage content below the tabs and heading; both density settings use the same alignment.
 
 Breadcrumbs use an ordered path with an overview icon, muted chevrons, and a highlighted current-location pill. Only ancestor locations are links. Paths wrap on narrow screens; coarse-pointer links retain 44px targets.
 
@@ -140,4 +140,8 @@ Type cards are shared by setup and the existing project chooser: a responsive gr
 
 ## Linked follow-up projects — 2026-10-23
 
-Each project's sidebar includes Linked projects, separated into Spawned from and Spawned projects, with destination links and explicit Unlink actions. Spawn project opens the existing two-step setup with the current project preselected as a source; details allow selecting several source projects in a bounded scroll area. The normal New project entry supports the same optional source selector. A collapsed Link an existing project form lets members choose a source or spawned destination. Links retain independent access and do not copy content. Lists show only destinations accessible to the viewer; empty lists say only that there are no linked projects to show.
+The Linked projects panel uses compact spacing and smaller typography in both densities: a 14px title, 11px section labels and controls, and a 10px access note. Touch controls retain 44px targets. Each project's sidebar includes Linked projects, separated into Spawned from and Spawned projects, with destination links and explicit Unlink actions. Spawn project opens the existing two-step setup with the current project preselected as a source; details allow selecting several source projects in a bounded scroll area. The normal New project entry supports the same optional source selector. A collapsed Link an existing project form lets members choose a source or spawned destination. Links retain independent access and do not copy content. Lists show only destinations accessible to the viewer; empty lists say only that there are no linked projects to show.
+
+The Members/invitations/Activity sidebar panel shares Linked projects’ compact typography and padding in both densities, with 14px title, 11px content/controls, and 10px supporting text. Activity entries and people rows use tighter spacing; touch controls retain 44px targets.
+
+The 3D stage map opens in a modal popup rather than expanding the working column. Its background is 90% transparent (10% opacity); map geometry, labels, and controls keep their own opacity. Escape, Close, outside click, or choosing a map destination closes it; focus returns to the opener. Background scrolling is paused while open, and narrow screens retain horizontal map scrolling.

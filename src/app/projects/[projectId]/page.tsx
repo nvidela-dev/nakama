@@ -71,7 +71,7 @@ export default async function ProjectPage({
   const sidebar = (
 <>
         <ProjectRelations projectId={projectId} links={links} projects={accessibleProjects.map(({id,name})=>({id,name}))}/>
-        <aside className="panel">
+        <aside className="panel project-people-panel">
           <div className="project-members">
           <h2>{t("Members")} <span className="count">{people.members.length}</span></h2>
           <ul className="people-list">

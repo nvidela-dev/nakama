@@ -1997,10 +1997,6 @@ footer {
   html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"] { background: #405b39; border-color: var(--lime); box-shadow: inset 3px 0 var(--lime); }
 }
 
-@media (min-width: 1024px) {
-  .journey-workspace > .project-sidebar { margin-top: var(--sidebar-content-offset, 0px); }
-}
-
 .journey-breadcrumb ol { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; list-style: none; margin: 0; padding: 0; }
 .journey-breadcrumb li { min-width: 0; }
 .journey-breadcrumb a,
@@ -2287,9 +2283,88 @@ html[data-density="compact"] .flow-option { grid-template-columns:18px minmax(0,
 .project-source-options label { display:flex; align-items:center; gap:8px; padding:4px; }
 .project-source-options input[type="checkbox"] { width:16px; height:16px; flex:none; margin:0; }
 .project-source-options span,.project-link-list a { overflow-wrap:anywhere; }
-.project-relations { display:grid; gap:12px; min-width:0; }
-.project-relations h2,.project-relations h3 { margin:0; }
+.project-relations.panel,
+html[data-density="compact"] .project-relations.panel { display:grid; gap:10px; min-width:0; padding:12px; border-radius:8px; }
+.project-relations>h2,
+html[data-density="compact"] .project-relations>h2 { margin:0; font-size:14px; line-height:1.3; }
+.project-relations>div>h3,
+html[data-density="compact"] .project-relations>div>h3 { margin:0 0 3px; font-size:11px; line-height:1.4; }
+.project-relations>div>p { margin:0; font-size:11px; line-height:1.4; }
+.project-relations>small { font-size:10px; line-height:1.45; }
+.project-relations>.new-project-trigger,
+html[data-density="compact"] .project-relations>.new-project-trigger { margin:0; min-height:28px; padding:5px 8px; font-size:11px; line-height:1.4; }
+.project-relations>.new-project-trigger>span { font-size:16px; }
+.project-relations>details>summary { font-size:11px; line-height:1.5; }
+.project-relations>details>.form-stack { gap:6px; margin-top:8px; }
+.project-relations>details label { font-size:11px; }
+.project-relations>details select,
+html[data-density="compact"] .project-relations>details select,
+.project-relations>details button,
+html[data-density="compact"] .project-relations>details button { min-height:28px; padding:5px 8px; font-size:11px; }
+.project-relations .project-link-list { margin:0; font-size:11px; line-height:1.4; }
+.project-relations .project-link-list .text-button,
+html[data-density="compact"] .project-relations .project-link-list .text-button { margin:0; min-height:28px; padding:4px; font-size:10px; }
+@media (pointer:coarse) {
+  .project-relations>.new-project-trigger,
+  html[data-density="compact"] .project-relations>.new-project-trigger,
+  .project-relations>details>summary,
+  .project-relations>details select,
+  html[data-density="compact"] .project-relations>details select,
+  .project-relations>details button,
+  html[data-density="compact"] .project-relations>details button,
+  .project-relations .project-link-list a,
+  .project-relations .project-link-list .text-button,
+  html[data-density="compact"] .project-relations .project-link-list .text-button { min-height:44px; }
+  .project-relations>details>summary { align-content:center; }
+  .project-relations .project-link-list a { display:flex; align-items:center; }
+}
 .project-link-list { list-style:none; padding:0; margin:8px 0; max-height:220px; overflow-y:auto; }
 .project-link-list li { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 0; }
 .project-link-list li>div { flex:none; }
 .project-relations summary { cursor:pointer; }
+
+/* Match the compact linked-project panel without changing other people lists. */
+.project-people-panel.panel,
+html[data-density="compact"] .project-people-panel.panel { padding:12px; border-radius:8px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-members>h2 { margin:0 0 8px; font-size:14px; line-height:1.3; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .count { font-size:10px; padding:2px 6px; margin-left:5px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-members>h3 { margin:10px 0 6px; font-size:11px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .people-list { margin:0 0 8px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .people-list li { padding:6px 0; gap:6px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .people-list strong { font-size:11px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .people-list small { font-size:10px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-members p { margin:0; font-size:11px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .form-stack { gap:6px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .form-stack label { font-size:11px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .form-stack small { font-size:10px; line-height:1.45; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) select { min-width:0; width:100%; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) input { min-width:0; font-size:11px; padding:5px 8px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) select { font-size:11px; padding:5px 8px; min-height:28px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) button { margin:0; min-height:28px; padding:5px 8px; font-size:11px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-activity { margin-top:12px; padding-top:10px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-activity>summary { font-size:11px; line-height:1.5; cursor:pointer; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-activity>p { margin:8px 0; font-size:10px; line-height:1.45; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .activity-list { margin:8px 0; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .activity-list li { padding-block:7px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .activity-list p { font-size:11px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .activity-list time { font-size:10px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .activity-list small { font-size:10px; line-height:1.4; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-activity a { font-size:11px; }
+@media (pointer:coarse) {
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) button,
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) select,
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-activity>summary { min-height:44px; }
+:is(.project-people-panel.panel, html[data-density="compact"] .project-people-panel.panel) .project-activity>summary { align-content:center; }
+}
+
+/* Only the popup surface is transparent; map geometry and controls stay legible. */
+.stage-map-popup { position:fixed; inset:0; width:min(1200px,94vw); max-width:94vw; max-height:90dvh; margin:auto; padding:12px; overflow:auto; border:1px solid var(--line); border-radius:10px; background:rgb(16 28 27 / 10%); color:var(--ink); }
+.stage-map-popup::backdrop { background:transparent; }
+.stage-map-popup-toolbar { display:flex; justify-content:flex-end; margin-bottom:4px; }
+.stage-map-popup .stage-map-popup-toolbar .text-button { margin:0; min-width:32px; min-height:32px; padding:4px; font-size:22px; line-height:1; background:var(--panel); }
+.stage-map-popup .journey-miniview { margin:0; padding:0; border:0; background:transparent; box-shadow:none; }
+.stage-map-popup .miniview-scene::after { display:none; }
+.stage-map-popup .miniview-scene { height:min(60dvh,560px); }
+@media (pointer:coarse) {
+  .stage-map-popup .stage-map-popup-toolbar .text-button { min-width:44px; min-height:44px; }
+}
