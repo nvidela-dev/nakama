@@ -1,6 +1,6 @@
+import { taskListRevisionSchema, projectSchema, projectTaskSchema } from "./row-schemas";
 import { taskStatusSchema } from "./domain-schemas";
 import { queryRows, required } from "./query";
-import { projectTaskSchema } from "./row-schemas";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
@@ -19,10 +19,12 @@ const operation=z.discriminatedUnion("kind",[
 ]);
 export type TaskOperation=z.input<typeof operation>;
 export class TaskConflictError extends ProjectError {
+  override readonly diagnosticType = "TaskConflictError";
+  override readonly diagnosticCategory = "conflict";
   constructor(public snapshot:TaskSnapshot){super("The task list changed. Your draft is still here. Review the latest list before trying again.");}
 }
 async function snapshot(tx:Queryable,projectId:string):Promise<TaskSnapshot>{
-  const revision=(await tx.query<{revision:number}>("SELECT revision FROM project_task_lists WHERE project_id=$1",[projectId])).rows[0]?.revision??0;
+  const revision=(await queryRows(tx,taskListRevisionSchema,"SELECT revision FROM project_task_lists WHERE project_id=$1", [projectId]))[0]?.revision??0;
   const tasks=await queryRows(tx,projectTaskSchema,"SELECT id,parent_id,title,status,collapsed,created_at,updated_at FROM project_tasks WHERE project_id=$1 ORDER BY position",[projectId]);
   return {revision,tasks};
 }
@@ -77,7 +79,7 @@ export function taskService(db:Database){return{
     const current=await lock(tx,actor,projectId,revision);
     let project;try{if(Buffer.byteLength(JSON.stringify(input),"utf8")>512_000)throw new Error();project=validateLockInProject(input);}catch{throw new ProjectError("Choose a valid Lock-In version 1 project with up to 2,000 tasks and 32 nesting levels.");}
     const fingerprint=createHash("sha256").update(JSON.stringify(project)).digest("hex");
-    if((await tx.query("SELECT fingerprint FROM project_task_imports WHERE project_id=$1 AND fingerprint=$2",[projectId,fingerprint])).rows.length)throw new ProjectError("This exact Lock-In project has already been imported.");
+    if((await queryRows(tx,z.object({fingerprint:z.string()}),"SELECT fingerprint FROM project_task_imports WHERE project_id=$1 AND fingerprint=$2",[projectId,fingerprint])).length)throw new ProjectError("This exact Lock-In project has already been imported.");
     let count=0;const countTasks=(items:typeof project.tasks)=>{for(const t of items){count++;countTasks(t.subtasks);}};countTasks(project.tasks);
     if(!count)throw new ProjectError("The selected project has no tasks to import.");
     if(current.tasks.length+count>2000)throw new ProjectError("This project has reached the 2,000-task limit.");
@@ -95,7 +97,7 @@ export function taskService(db:Database){return{
   export:(actor:Actor,projectId:string)=>db.transaction(async tx=>{
     await membership(tx,actor,projectId);
     await tx.query("SELECT id FROM projects WHERE id=$1 FOR SHARE",[projectId]);
-    const project=(await tx.query<{id:string;name:string;created_at:Date}>("SELECT id,name,created_at FROM projects WHERE id=$1",[projectId])).rows[0];
+    const project=(await queryRows(tx,projectSchema.pick({id:true,name:true,created_at:true}),"SELECT id,name,created_at FROM projects WHERE id=$1", [projectId]))[0];
     return toLockIn(required(project),await snapshot(tx,projectId));
   }),
 };}

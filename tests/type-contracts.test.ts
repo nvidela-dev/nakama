@@ -1,3 +1,4 @@
+import type { Queryable } from "../src/lib/database";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { TaskResult } from "../src/app/task-actions";
@@ -29,3 +30,13 @@ function contracts(snapshot: TaskSnapshot, artifact: ArtifactDetail) {
 }
 test("compile-time contracts are checked by typecheck and build", () =>
   assert.equal(typeof contracts, "function"));
+
+async function rawQueryContracts(tx: Queryable) {
+  const result = await tx.query("SELECT id FROM projects");
+  // @ts-expect-error Raw rows must be decoded before reading their fields.
+  const id = result.rows[0].id;
+  // @ts-expect-error A caller cannot declare an arbitrary SQL result type.
+  await tx.query<{ id: string }>("SELECT id FROM projects");
+  void id;
+}
+test("raw database reads require runtime decoding", () => assert.equal(typeof rawQueryContracts, "function"));

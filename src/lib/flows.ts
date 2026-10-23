@@ -1,4 +1,4 @@
-import { required } from "./query";
+import { required } from "./required";
 import { businessFlows } from "./business-flows";
 import { investigationFlow } from "./investigation-flow";
 export type { FlowId, NodeStatus } from "./database.generated";

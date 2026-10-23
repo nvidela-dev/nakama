@@ -1,4 +1,5 @@
-import { required } from "../src/lib/query";
+import { z } from "zod";
+import { queryRows, required } from "../src/lib/query";
 import {test,before,after} from "node:test";
 import assert from "node:assert/strict";
 import {readFile,readdir} from "node:fs/promises";
@@ -95,14 +96,14 @@ test("whole-artifact and project deletion remove their files; failures leave dat
  const detail=await artifacts.upload(owner,projectId,id,1,{name:"notes.md",data:Buffer.from("Sensitive content fixture")});
  await assert.rejects(artifacts.remove(owner,projectId,id,detail.revision,"Wrong name"));
  assert.equal((await artifacts.get(owner,projectId,id)).files.length,1);
- const activity=(await db.query<{subject_name:string|null}>("SELECT subject_name FROM project_activity WHERE project_id=$1",[projectId])).rows;
+ const activity=(await queryRows(db,z.object({subject_name:z.string().nullable()}),"SELECT subject_name FROM project_activity WHERE project_id=$1",[projectId]));
  assert.ok(!JSON.stringify(activity).includes("Sensitive content fixture"));
  await artifacts.remove(owner,projectId,id,detail.revision,"Delete me");
  await assert.rejects(artifacts.get(owner,projectId,id));
  const another=await artifacts.create(owner,projectId,{name:"Cascade",kind:"markdown",stageId:"imagine"});
  await artifacts.upload(owner,projectId,another,1,{name:"notes.md",data:Buffer.from("Cascade fixture")});
  await projects.deleteProject(owner,projectId,"Artifact fixture");
- assert.equal(required((await db.query<{count:number}>("SELECT count(*)::int AS count FROM artifact_files WHERE project_id=$1",[projectId])).rows[0]).count,0);
+ assert.equal(required((await queryRows(db,z.object({count:z.number().int()}),"SELECT count(*)::int AS count FROM artifact_files WHERE project_id=$1",[projectId]))[0]).count,0);
 });
 test("a failed activity write rolls back Markdown replacement and preserves the original file and revision",async()=>{
  const projectId=await fixture(),id=await artifacts.create(owner,projectId,{name:"Atomic plan",kind:"markdown"});

@@ -32,11 +32,11 @@ export function projectLinksService(db: Database) {
           await tx.query("DELETE FROM project_links WHERE source_id=$1 AND child_id=$2", [sourceId,childId]);
           return;
         }
-        const cycle = await tx.query(`WITH RECURSIVE descendants(id) AS (
+        const cycle = await queryRows(tx,z.object({found:z.literal(1)}),`WITH RECURSIVE descendants(id) AS (
           SELECT child_id FROM project_links WHERE source_id=$1
           UNION SELECT l.child_id FROM project_links l JOIN descendants d ON l.source_id=d.id
-        ) SELECT 1 FROM descendants WHERE id=$2 LIMIT 1`, [childId,sourceId]);
-        if (cycle.rows.length) throw new ProjectError("This link would create a circular project lineage.");
+        ) SELECT 1 AS found FROM descendants WHERE id=$2 LIMIT 1`, [childId,sourceId]);
+        if (cycle.length) throw new ProjectError("This link would create a circular project lineage.");
         await tx.query("INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3) ON CONFLICT DO NOTHING", [sourceId,childId,person.userId]);
       });
     },

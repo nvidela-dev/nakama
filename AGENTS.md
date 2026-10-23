@@ -10,6 +10,7 @@ Read [README.md](README.md), then the relevant canonical document it links. See 
 - Check project authorization for every read, write, export, and future AI operation. Authentication alone does not grant membership.
 - Keep secrets and private project context out of commits, logs, fixtures, and PRs.
 - Do not provision services or implement beyond the current request. Platform selection alone is not provisioning authorization.
+- For backend diagnosis, follow [the logging workflow](docs/development.md#backend-logging--2026-10-23): inspect `npm run logs -- doctor` and the [typed diagnostic catalog](docs/development.md#typed-diagnostic-catalog--2026-10-23), or import validated hosted/CI events, follow trace/query IDs, and compare the matching release before changing code. Do not dump raw provider logs, log arguments/content, or replay writes automatically.
 - Validate changed links and diagrams. Explain what was tested and what remains unverified.
 
 <!-- BEGIN:nextjs-agent-rules -->

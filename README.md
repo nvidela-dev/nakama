@@ -34,8 +34,12 @@ Start with requirements and flows. Read the domain and collaboration rules befor
 
 ## Schema and type maintenance
 
-SQL migrations generate the storage types and domain vocabularies. Run `npm run db:types` after changing the schema; `npm run typecheck` verifies the generated contract before compiling. Principal data reads validate their query projections. The [development guide](docs/development.md#database-normalization-and-strict-typescript--2026-10-23) documents isolated database testing and the verified release of migrations 010–012.
+SQL migrations generate the storage types and domain vocabularies. Run `npm run db:types` after changing the schema; `npm run typecheck` verifies the generated contract before compiling. All consumed database results pass through query decoders; the raw database interface returns unknown rows and cannot accept a caller-declared result type. The [development guide](docs/development.md#database-normalization-and-strict-typescript--2026-10-23) documents isolated database testing and the verified release of migrations 010–012.
 
 ## First useful outcome
 
 A friend can capture an idea, invite the right people, work through a selected guided flow, discuss what they learn, and export authorized project context as readable Markdown for use in ChatGPT. Embedded chat and agent execution come later.
+
+## Backend diagnostics
+
+Structured backend logs link operations, query timings, rollbacks, and safe errors without recording private project content. Local files rotate under the ignored `.nakama/logs/` directory. Type/build, contract, backend/database, service and compute diagnostics share a typed catalog and troubleshooting guidance. Start with `npm run logs -- doctor` or `npm run logs -- summary`; use `npm run logs:pull` to import validated production events through your existing Vercel CLI access. See the [logging workflow](docs/development.md#backend-logging--2026-10-23) and [typed diagnostic catalog](docs/development.md#typed-diagnostic-catalog--2026-10-23).

@@ -1,6 +1,19 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
-const clerk = clerkMiddleware();
+import { callClerk } from "./lib/provider-diagnostics";
+import { telemetry } from "./lib/observability";
+import { routeName } from "./lib/log-model";
+function tracedNext(request: NextRequest) {
+  const traceId = crypto.randomUUID();
+  const values = new Headers(request.headers);
+  // Replace caller-supplied context; never forward private IDs or query strings.
+  values.set("x-nakama-request-id", traceId);
+  values.set("x-nakama-route", routeName(request.nextUrl.pathname));
+  const response = NextResponse.next({ request: { headers: values } });
+  response.headers.set("x-nakama-request-id", traceId);
+  return response;
+}
+const clerk = clerkMiddleware((_auth, request) => tracedNext(request));
 export default function proxy(
   request: NextRequest,
   event: Parameters<typeof clerk>[1],
@@ -17,9 +30,10 @@ export default function proxy(
     ) {
       return NextResponse.redirect(new URL("/", request.url));
     }
-    return NextResponse.next();
+    return tracedNext(request);
   }
-  return clerk(request, event);
+  return telemetry.observe("server.request", () => callClerk("middleware", async () => clerk(request, event)), { route: routeName(request.nextUrl.pathname) })
+    .catch(error => { throw telemetry.sanitizeError(error); });
 }
 export const config = {
   matcher: [
