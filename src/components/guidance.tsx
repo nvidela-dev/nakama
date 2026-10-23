@@ -10,7 +10,7 @@ import {
   saveAnswer,
   type GuidanceActionState,
 } from "@/app/guidance-actions";
-import { flows, type FlowNode, type NodeStatus } from "@/lib/flows";
+import { type FlowNode, type NodeStatus } from "@/lib/flows";
 import type { Answer, Revision } from "@/lib/guidance";
 import { FlowOptions } from "./flow-options";
 import { Feedback } from "./forms";
@@ -48,7 +48,7 @@ export function AnswerEditor({
 }: {
   projectId: string;
   node: FlowNode;
-  answer?: Answer;
+  answer?: Answer | undefined;
   history: Revision[];
   names: Record<string, string>;
   backHref: string;
@@ -200,8 +200,8 @@ export function AnswerEditor({
         </small>
         <Feedback
           state={{
-            error: state.error,
-            success: dirty ? undefined : state.success,
+            ...(state.error ? {error:state.error} : {}),
+            ...(!dirty && state.success ? {success:state.success} : {}),
           }}
         />
         {answer && (

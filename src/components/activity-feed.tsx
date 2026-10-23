@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import type { Activity, Page } from "@/lib/collaboration";
+import type { Activity, Page, FeedKind } from "@/lib/collaboration";
 import type { Flow } from "@/lib/flows";
 import { useLocale, useT } from "./language";
 import { formatDate } from "@/lib/i18n";
-const labels: Record<string, string> = {
+const labels: Record<FeedKind, string> = {
   artifact_created: "created an artifact", artifact_updated: "updated an artifact", artifact_deleted: "deleted an artifact",
   task_created: "added a task", task_edited: "edited a task", task_status_changed: "changed a task status", task_deleted: "deleted a task", tasks_imported: "imported Lock-In tasks",
   project_created: "created the project", project_edited: "updated project details", flow_selected: "selected a flow",
@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
   comment_created: "posted a comment", comment_edited: "edited a comment", comment_deleted: "removed a comment", comment_moderated: "moderated a comment",
   answer_captured: "captured an answer", answer_saved: "saved an answer", stage_reviewed: "reviewed a stage",
 };
-export function ActivityFeed({ projectId, activity, flow, olderHref, latestHref, open }: { projectId: string; activity: Page<Activity>; flow?: Flow; olderHref?: string; latestHref?: string; open: boolean }) {
+export function ActivityFeed({ projectId, activity, flow, olderHref, latestHref, open }: { projectId: string; activity: Page<Activity>; flow?: Flow | undefined; olderHref?: string | undefined; latestHref?: string | undefined; open: boolean }) {
   const t = useT(), locale = useLocale();
   return <details className="project-activity" open={open}>
     <summary>{t("Activity")}</summary>

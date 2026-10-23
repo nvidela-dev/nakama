@@ -3,7 +3,7 @@ import type { StageProgress } from "@/lib/project-progress";
 import { translator } from "@/lib/i18n";
 
 export function ProjectTimeline({ stages, t }: {
-  stages?: StageProgress[];
+  stages?: StageProgress[] | undefined;
   t: ReturnType<typeof translator>;
 }) {
   if (!stages) return (

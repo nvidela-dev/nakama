@@ -270,3 +270,29 @@ Migration 009 and the lineage service support multiple sources and multiple spaw
 All 46 unit/SQL tests, type checking, and the production build passed. New coverage exercises multi-source/multi-child graphs, duplicate links, direct/transitive cycles, member/non-member and removed-member access, hidden destinations, rollback after a valid first source and an inaccessible later source, malformed IDs, and independent project deletion. Authenticated Chrome verified preselected source setup, additional sources, both navigation directions, existing-project link/unlink, phone bounds, and Spanish controls. A real concurrent pair of opposite link writes against the development database admitted exactly one edge and rejected the other. The existing guided setup browser journey also passed; its closed dialog now unmounts its controls while keeping page-local draft state. The phone relationship panel screenshot was inspected, and canonical document links resolve.
 
 Before applying migration 009 to the configured development database, pooled/direct target pairing, all eight earlier migration checksums, and the absent new table were verified. A private migration-ledger/activity snapshot was saved outside the repository. After application, the ninth checksum, previous ledger, and pre-existing activity were verified. Disposable browser projects were removed. No service was provisioned. Changes remain local on `codex/project-lineage`; they have not been pushed or verified in the live deployment.
+
+## Database normalization and strict TypeScript — 2026-10-23
+
+The schema/type contract is described in [architecture](architecture.md#schema-and-typescript-contracts--2026-10-23). For a schema change, add a migration without modifying applied files, run `npm run db:types`, and commit the migration and generated types together. `npm run typecheck` first runs `db:check`; the unit suite independently checks generated output too. Keep query projections explicit and decoded, and use generated enums in validators instead of repeating string unions.
+
+A disposable real Postgres database is available for browser and concurrency checks:
+
+```sh
+npm run db:local
+```
+
+This starts a fresh local cluster at `127.0.0.1:54331`, applies all migrations transactionally, reads no hosted database credentials, and removes its temporary data on shutdown. It uses the development-only embedded-postgres binaries; it does not create system users. The displayed local password is a synthetic fixture credential. In separate terminals, explicitly override the database for both application and tests:
+
+```sh
+DATABASE_URL='postgresql://postgres:nakama-local@127.0.0.1:54331/postgres' npm run dev -- --port 3011
+DATABASE_URL='postgresql://postgres:nakama-local@127.0.0.1:54331/postgres' npm run test:e2e -- e2e/artifacts.spec.ts e2e/tasks.spec.ts e2e/project-links.spec.ts e2e/project-setup.spec.ts
+npm run db:verify-local
+```
+
+Clerk development authentication/admission still uses the existing local test configuration. `db:verify-local` is deliberately restricted to this fixed local database and uses disposable synthetic projects. It checks real concurrent opposite project links, task-parent cycles, and uploads past the six-file limit; each rejected write must return the database constraint SQLSTATE. It also reads scoped comments/derived activity through node-postgres decoders and verifies a failing migration rolls back, emits no premature Applied message, and omits its synthetic private row from logs. PGlite remains the fast isolated SQL/migration test engine; production-style contention is checked separately with real Postgres. See the [embedded-postgres project](https://github.com/leinelissen/embedded-postgres) for local binary support.
+
+Migrations 010–012 have **not** been applied to the configured shared development/public-release database. They remove the old artifact JSON task column and make file size generated; old application queries are incompatible. Back up and coordinate these migrations with the matching application release, with writes paused during the cutover. Build/test success is not a deployed schema or live verification.
+
+The migration runner now rejects a pooled endpoint, non-prefix migration history, and altered applied checksums. Applied messages are emitted only after commit; database failures report the migration name/SQLSTATE without row-bearing Postgres DETAIL. A failed legacy-data conversion preserves the old JSON column and rows transactionally. No automatic production migration step has been added.
+
+Verification completed locally: all 53 tests, schema-generation drift check, strict type checking, and the production build passed. The populated migration fixture preserves task IDs/order, file bytes, revisions and unrelated project data; malformed legacy data rolls back without dropping the original JSON. A 100-task save stays within 20 database queries, and library results contain counts without task titles/IDs. Authenticated Chrome passed the artifact, project-task/Lock-In, project-lineage and guided-setup journeys against the disposable real Postgres database, including conflicts, draft retention, private files, phone layouts and Spanish. Artifact/setup checks were repeated after the final projection changes. Native concurrent writes and safe migration failure/rollback checks passed. Canonical file links and heading anchors resolve. The local app/database processes were stopped after verification. The shared database's nine original migration checksums were verified unchanged. Changes remain local on `codex/schema-and-domain-types`, unpushed and undeployed.

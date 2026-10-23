@@ -1,10 +1,11 @@
+import { required } from "../src/lib/query";
 import { test, expect } from "@playwright/test";
 import { createClerkClient } from "@clerk/backend";
 import { clerk } from "@clerk/testing/playwright";
 
 const fixtures = new Set<string>();
 test.afterEach(async () => {
-  const client = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+  const client = createClerkClient({ secretKey: required(process.env.CLERK_SECRET_KEY) });
   const allowed = await client.allowlistIdentifiers.getAllowlistIdentifierList({ limit: 100 });
   for (const entry of allowed.data) if (fixtures.has(entry.identifier)) await client.allowlistIdentifiers.deleteAllowlistIdentifier(entry.id);
   for (const email of fixtures) {

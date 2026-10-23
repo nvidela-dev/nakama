@@ -1,3 +1,6 @@
+import type { DatabaseRows } from "./database.generated";
+import { queryRows, required } from "./query";
+import { projectSchema, membershipSchema, memberSchema, invitationSchema } from "./row-schemas";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { recordActivity } from "./activity-log";
 import { z } from "zod";
@@ -9,26 +12,9 @@ export type Actor = {
   verifiedEmails: string[];
   displayName?: string;
 };
-export type Project = {
-  id: string;
-  name: string;
-  description: string;
-  created_at: Date;
-  role: "owner" | "member";
-};
-export type Member = {
-  user_id: string;
-  display_name: string;
-  role: "owner" | "member";
-  joined_at: Date;
-};
-export type Invitation = {
-  id: string;
-  email: string;
-  expires_at: Date;
-  accepted_at: Date | null;
-  revoked_at: Date | null;
-};
+export type Project = DatabaseRows["projects"] & Pick<DatabaseRows["project_memberships"],"role">;
+export type Member = Pick<DatabaseRows["project_memberships"],"user_id"|"display_name"|"role"|"joined_at">;
+export type Invitation = Pick<DatabaseRows["project_invitations"],"id"|"email"|"expires_at"|"accepted_at"|"revoked_at">;
 const projectInput = z.object({
   name: z.string().trim().min(1).max(100),
   description: z.string().trim().min(1).max(2000),
@@ -48,7 +34,7 @@ export async function membership(
   requireActor(actor);
   if (!uuid.safeParse(projectId).success)
     throw new ProjectError("Project not found.");
-  const { rows } = await tx.query<{ role: "owner" | "member" }>(
+  const rows = await queryRows(tx,membershipSchema,
     "SELECT role FROM project_memberships WHERE project_id = $1 AND user_id = $2 FOR SHARE",
     [projectId, actor.userId],
   );
@@ -97,40 +83,38 @@ export function projectService(db: Database) {
     },
     async list(actor: Actor) {
       requireActor(actor);
-      return (
-        await db.query<Project & { content_revision: number }>(
+      return queryRows(db,projectSchema.extend({content_revision:z.number().int().nonnegative()}),
           "SELECT p.*, m.role, COALESCE(f.content_revision, 0) AS content_revision FROM projects p JOIN project_memberships m ON m.project_id = p.id LEFT JOIN project_flows f ON f.project_id = p.id WHERE m.user_id = $1 ORDER BY p.created_at DESC, p.id",
           [actor.userId],
-        )
-      ).rows;
+      );
     },
     async get(actor: Actor, projectId: string) {
       return db.transaction(async (tx) => {
         const member = await membership(tx, actor, projectId);
-        const { rows } = await tx.query<Project>(
+        const rows = await queryRows(tx,projectSchema.omit({role:true}),
           "SELECT * FROM projects WHERE id = $1",
           [projectId],
         );
-        return { ...rows[0], role: member.role };
+        return { ...required(rows[0]), role: member.role };
       });
     },
     async people(actor: Actor, projectId: string) {
       return db.transaction(async (tx) => {
         const member = await membership(tx, actor, projectId);
         const members = (
-          await tx.query<Member>(
+          await queryRows(tx,memberSchema,
             "SELECT user_id, display_name, role, joined_at FROM project_memberships WHERE project_id = $1 ORDER BY joined_at",
             [projectId],
           )
-        ).rows;
+        );
         const invitations =
           member.role === "owner"
             ? (
-                await tx.query<Invitation>(
+                await queryRows(tx,invitationSchema,
                   "SELECT id, email, expires_at, accepted_at, revoked_at FROM project_invitations WHERE project_id = $1 ORDER BY created_at DESC",
                   [projectId],
                 )
-              ).rows
+              )
             : [];
         return { members, invitations };
       });
@@ -252,7 +236,8 @@ export function projectService(db: Database) {
           "DELETE FROM project_memberships WHERE project_id = $1 AND user_id = $2 AND role = 'member' RETURNING display_name",
           [projectId, userId],
         );
-        if (removed.rows.length) await recordActivity(tx, actor, projectId, "member_removed", { subjectName: removed.rows[0].display_name });
+        const removedMember=removed.rows[0];
+        if (removedMember) await recordActivity(tx, actor, projectId, "member_removed", { subjectName: removedMember.display_name });
       });
     },
   };

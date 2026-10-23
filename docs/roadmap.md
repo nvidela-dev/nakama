@@ -263,3 +263,9 @@ The user requested replacing the standing New project form with a button, moving
 ## Accepted: many-to-many project spawning — 2026-10-23
 
 The user requested that projects spawn other projects, with several source projects and several resulting projects. Implement directed lineage and reuse guided project setup, with the current source preselected and additional sources optional. Also allow linking existing projects and removing links. Each endpoint remains an independent project/access boundary; current membership in both permits a link change, with no membership or content inheritance. Use acyclic ancestry (reject self-links and cycles) so origin remains meaningful. Deleting an endpoint removes its links, never other projects. This supersedes the earlier future-work status for relationships/spawning; universal outcome records remain deferred.
+
+## Accepted refinement: relational storage and schema-derived types — 2026-10-23
+
+The user requested database normalization and a refined TypeScript system that can scale with the repository. Keep reviewed SQL migrations and the existing driver; generate storage types and closed vocabularies from the migrated schema, validate principal query projections, and enable stricter compiler checks. Normalize artifact to-dos while preserving IDs/order/revisions and all project authorization boundaries. Enforce cross-project references, acyclic ancestry, and artifact output invariants in SQL as well as services. Preserve deliberate historical snapshots and source-controlled flow guidance rather than adding competing mutable copies.
+
+Migrations 010–012 are implemented and verified locally. They change the artifact query contract and therefore require a coordinated code/schema release. The shared development/public-release database must not be migrated ahead of its matching code. No hosted service provisioning or push/deployment is part of this refinement.

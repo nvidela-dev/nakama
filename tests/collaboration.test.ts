@@ -1,6 +1,7 @@
+import { required } from "../src/lib/query";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import type { Database } from "../src/lib/database";
 import { projectService } from "../src/lib/projects";
@@ -12,7 +13,7 @@ const projects = projectService(db), guidance = guidanceService(db), collaborati
 const owner = { userId: "owner", displayName: "Owner", verifiedEmails: ["owner@example.com"] };
 const member = { userId: "member", displayName: "Friend", verifiedEmails: ["friend@example.com"] };
 const outsider = { userId: "outsider", verifiedEmails: [] };
-before(async () => { for (const file of ["001_private_projects.sql","002_guided_flows.sql","003_comments_activity.sql", "004_investigation_flow.sql", "005_business_flows.sql", "006_project_tasks.sql", "007_comment_reads.sql", "008_project_artifacts.sql"]) await sql.exec(await readFile(`migrations/${file}`,"utf8")); });
+before(async () => { for (const file of (await readdir("migrations")).filter(name=>name.endsWith(".sql")).sort()) await sql.exec(await readFile(`migrations/${file}`,"utf8")); });
 after(async () => { await sql.close(); });
 async function fixture() {
   const id = await projects.create(owner,{name:"Discussion test",description:"Synthetic collaboration fixture."});
@@ -28,11 +29,12 @@ test("comments isolate project/stage/node scopes and reject foreign resources an
   await collaboration.post(member,id,{stageId:"imagine"},"Stage discussion");
   await collaboration.post(member,id,{stageId:"imagine",nodeId:"inspiration"},"Node discussion");
   assert.deepEqual((await collaboration.comments(member,id,{})).items.map(c=>c.id),[root]);
-  assert.equal((await collaboration.comments(owner,id,{stageId:"imagine"})).items[0].content,"Stage discussion");
-  assert.equal((await collaboration.comments(owner,id,{stageId:"imagine",nodeId:"inspiration"})).items[0].content,"Node discussion");
+  assert.equal(required((await collaboration.comments(owner,id,{stageId:"imagine"})).items[0]).content,"Stage discussion");
+  assert.equal(required((await collaboration.comments(owner,id,{stageId:"imagine",nodeId:"inspiration"})).items[0]).content,"Node discussion");
   assert.equal((await collaboration.comments(owner,other,{})).items.length,0);
   await assert.rejects(collaboration.post(owner,id,{stageId:"validation"},"Wrong flow"));
   await assert.rejects(collaboration.post(owner,id,{stageId:"imagine",nodeId:"rough-version"},"Wrong stage"));
+  // @ts-expect-error Exercise a forged request that lacks its required stage.
   await assert.rejects(collaboration.post(owner,id,{nodeId:"inspiration"},"Missing stage"));
   await assert.rejects(collaboration.post(owner,id,{},"   "));
   await assert.rejects(collaboration.change(owner,other,root,1,"edit","Cross project"));
@@ -46,11 +48,11 @@ test("only authors edit; authors/owners remove with revision checks and body-fre
   await assert.rejects(collaboration.change(owner,id,comment,1,"edit","Owner overwrite"));
   await collaboration.change(member,id,comment,1,"edit","Updated body");
   await assert.rejects(collaboration.change(member,id,comment,1,"edit","Stale edit"));
-  assert.equal((await collaboration.comments(owner,id,{})).items[0].content,"Updated body");
+  assert.equal(required((await collaboration.comments(owner,id,{})).items[0]).content,"Updated body");
   await collaboration.change(owner,id,comment,2,"delete");
   const tombstone = (await collaboration.comments(owner,id,{})).items[0];
-  assert.equal(tombstone.content,"");
-  assert.ok(tombstone.deleted_at);
+  assert.equal(required(tombstone).content,"");
+  assert.ok(required(tombstone).deleted_at);
   await assert.rejects(collaboration.change(member,id,comment,3,"edit","Resurrection"));
   const feed = await collaboration.activity(owner,id);
   assert.ok(feed.items.some(e=>e.kind==="comment_moderated" && e.actor_id===owner.userId));
@@ -62,8 +64,8 @@ test("removed-member attribution survives while read/write access is revoked", a
   const comment = await collaboration.post(member,id,{},"A friend's contribution.");
   await projects.remove(owner,id,member.userId);
   const item = (await collaboration.comments(owner,id,{})).items[0];
-  assert.equal(item.author_name,"Friend");
-  assert.equal(item.former_member,true);
+  assert.equal(required(item).author_name,"Friend");
+  assert.equal(required(item).former_member,true);
   await assert.rejects(collaboration.comments(member,id,{}));
   await assert.rejects(collaboration.activity(member,id));
   await assert.rejects(collaboration.change(member,id,comment,1,"delete"));
@@ -77,7 +79,7 @@ test("activity combines recorded revisions, reviews, and safe membership events 
   for (const kind of ["project_created","flow_selected","invitation_created","member_joined","answer_captured","answer_saved","stage_reviewed"]) assert.ok(feed.items.some(e=>e.kind===kind),kind);
   assert.ok(feed.items.some(e=>e.kind==="answer_saved" && e.detail==="draft"));
   assert.ok(!JSON.stringify(feed).includes(invite.token));
-  assert.ok(!JSON.stringify(feed).includes(member.verifiedEmails[0]));
+  assert.ok(!JSON.stringify(feed).includes(required(member.verifiedEmails[0])));
 });
 test("cursor pagination preserves microseconds and covers all records exactly once", async () => {
   const { id } = await fixture();

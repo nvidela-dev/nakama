@@ -5,7 +5,7 @@ import type { TaskOperation } from "@/lib/tasks";
 import { descendants, taskTree, taskStatusLabels, type LockInProject, type TaskNode, type TaskSnapshot, type TaskStatus } from "@/lib/task-model";
 import { parseLockInFile } from "@/lib/lockin-format";
 import { useT } from "./language";
-type Editor={kind:"add"|"edit"|"delete"|"done";task?:TaskNode;parentId?:string;title:string;revision:number};
+type Editor={title:string;revision:number} & ({kind:"add";parentId?:string;task?:never}|{kind:"edit"|"delete"|"done";task:TaskNode;parentId?:never});
 export function TaskList({projectId,initial}:{projectId:string;initial:TaskSnapshot}){
   const t=useT();const [list,setList]=useState(initial),[pending,startTransition]=useTransition();
   const [editor,setEditor]=useState<Editor|null>(null),[error,setError]=useState(""),[conflict,setConflict]=useState(false),[notice,setNotice]=useState("");
@@ -33,11 +33,12 @@ export function TaskList({projectId,initial}:{projectId:string;initial:TaskSnaps
   const containsMatch=(node:TaskNode):boolean=>matches(node)||node.children.some(containsMatch);
   const visible:TaskNode[]=[];
   const walk=(nodes:TaskNode[])=>{for(const node of nodes){if(filtering&&!containsMatch(node))continue;visible.push(node);if(filtering||!node.collapsed)walk(node.children);}};walk(tree);
-  const errorBox=error&&<div className="task-feedback"><p className="message error" role="alert">{t(error)}</p>{conflict&&editor?.task&&<p>{t("Latest task title:")} {list.tasks.find(task=>task.id===editor.task!.id)?.title??t("Task no longer exists.")}</p>}{conflict&&(editor||imports.length>0)&&<button type="button" className="button secondary" disabled={pending} onClick={()=>{if(editor){
-        const find=(nodes:TaskNode[]):TaskNode|undefined=>{for(const node of nodes){if(node.id===editor.task?.id)return node;const child=find(node.children);if(child)return child;}};
+  const errorBox=error&&<div className="task-feedback"><p className="message error" role="alert">{t(error)}</p>{conflict&&editor?.task&&<p>{t("Latest task title:")} {list.tasks.find(task=>task.id===editor.task?.id)?.title??t("Task no longer exists.")}</p>}{conflict&&(editor||imports.length>0)&&<button type="button" className="button secondary" disabled={pending} onClick={()=>{if(editor){
+        const find=(nodes:TaskNode[]):TaskNode|undefined=>{for(const node of nodes){if(node.id===editor.task?.id)return node;const child=find(node.children);if(child)return child;}return undefined;};
         const fresh=editor.task?find(tree):undefined;
         if(editor.task&&!fresh){setError("Task not found.");setConflict(false);return;}
-        setEditor({...editor,task:fresh,revision:list.revision,title:editor.kind==="edit"||editor.kind==="add"?editor.title:fresh?.title??editor.title});
+        if(editor.kind==="add") setEditor({...editor,revision:list.revision});
+        else if(fresh) setEditor({...editor,task:fresh,revision:list.revision,title:editor.kind==="edit"?editor.title:fresh.title});
       }setImportRevision(list.revision);setError("");setConflict(false);}}>{t("Use latest list and keep my draft")}</button>}</div>;
   const selectedImport=imports[selected];
   function importCount(tasks:LockInProject["tasks"]):number{return tasks.reduce((sum,task)=>sum+1+importCount(task.subtasks),0);}
@@ -69,21 +70,21 @@ export function TaskList({projectId,initial}:{projectId:string;initial:TaskSnaps
       </div>
     </li>)}</ol>}
     {editor&&<dialog ref={dialog} className="task-dialog" aria-labelledby="task-editor-heading" onCancel={event=>{event.preventDefault();if(!pending)close();}}>
-      <form className="form-stack" onSubmit={event=>{event.preventDefault();if(editor.kind==="add")run({kind:"add",title:editor.title,parentId:editor.parentId??null},editor.revision,true);else if(editor.kind==="edit")run({kind:"edit",id:editor.task!.id,title:editor.title},editor.revision,true);else if(editor.kind==="delete")run({kind:"delete",id:editor.task!.id,confirmed:true},editor.revision,true);}}>
+      <form className="form-stack" onSubmit={event=>{event.preventDefault();if(editor.kind==="add")run({kind:"add",title:editor.title,parentId:editor.parentId??null},editor.revision,true);else if(editor.kind==="edit")run({kind:"edit",id:editor.task.id,title:editor.title},editor.revision,true);else if(editor.kind==="delete")run({kind:"delete",id:editor.task.id,confirmed:true},editor.revision,true);}}>
         <h2 id="task-editor-heading">{t(editor.kind==="add"?(editor.parentId?"Add subtask":"Add task"):editor.kind==="edit"?"Edit task":editor.kind==="delete"?"Delete task":"Complete task")}</h2>
         {(editor.kind==="add"||editor.kind==="edit")?<label>{t("Task title")}<input autoFocus required maxLength={300} disabled={pending} value={editor.title} onChange={event=>setEditor({...editor,title:event.target.value})}/></label>:<>
-          <p className="preserve-lines">{editor.task!.number} · {editor.title}</p>
+          <p className="preserve-lines">{editor.task.number} · {editor.title}</p>
           <p>{t(editor.kind==="delete"?"Delete this task and all its subtasks? This cannot be undone.":"Complete only this task, or include all its subtasks?")}</p>
-          <small>{descendants(editor.task!).length} {t("subtasks")}</small>
+          <small>{descendants(editor.task).length} {t("subtasks")}</small>
         </>}
         {errorBox}
         <div className="task-dialog-actions">
-          {editor.kind==="done"?<><button type="button" disabled={pending||conflict} onClick={()=>run({kind:"status",id:editor.task!.id,status:"done",scope:"task",confirmed:true},editor.revision,true)}>{t("Only this task")}</button><button type="button" disabled={pending||conflict} onClick={()=>run({kind:"status",id:editor.task!.id,status:"done",scope:"subtree",confirmed:true},editor.revision,true)}>{t("Task and subtasks")}</button></>:<button disabled={pending||conflict}>{t(pending?"Saving…":editor.kind==="delete"?"Confirm deletion":"Save task")}</button>}
+          {editor.kind==="done"?<><button type="button" disabled={pending||conflict} onClick={()=>run({kind:"status",id:editor.task.id,status:"done",scope:"task",confirmed:true},editor.revision,true)}>{t("Only this task")}</button><button type="button" disabled={pending||conflict} onClick={()=>run({kind:"status",id:editor.task.id,status:"done",scope:"subtree",confirmed:true},editor.revision,true)}>{t("Task and subtasks")}</button></>:<button disabled={pending||conflict}>{t(pending?"Saving…":editor.kind==="delete"?"Confirm deletion":"Save task")}</button>}
           <button type="button" className="button secondary" disabled={pending} onClick={close}>{t("Cancel")}</button>
         </div>
       </form>
     </dialog>}
-    {!!imports.length&&<dialog ref={importDialog} className="task-dialog" aria-labelledby="task-import-heading" onCancel={event=>{event.preventDefault();if(!pending)close();}}>
+    {selectedImport&&<dialog ref={importDialog} className="task-dialog" aria-labelledby="task-import-heading" onCancel={event=>{event.preventDefault();if(!pending)close();}}>
       <h2 id="task-import-heading">{t("Import Lock-In")}</h2>
       <label>{t("Source project")}<select value={selected} disabled={pending} onChange={e=>setSelected(Number(e.target.value))}>{imports.map((p,i)=><option key={p.id} value={i}>{p.name}</option>)}</select></label>
       <p>{importCount(selectedImport.tasks)} {t("tasks to add")}</p>

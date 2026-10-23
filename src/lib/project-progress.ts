@@ -1,5 +1,8 @@
+import { z } from "zod";
+import { queryRows } from "./query";
+import { flowIdSchema, nodeStatusSchema } from "./domain-schemas";
 import type { Database } from "./database";
-import { flows, type FlowId, type NodeStatus } from "./flows";
+import { flows } from "./flows";
 import { ProjectError, type Actor } from "./projects";
 
 export type StageProgress = {
@@ -18,13 +21,7 @@ export type StageProgress = {
 // The membership join scopes the entire read, including its correlated subqueries.
 export async function projectProgress(db: Database, actor: Actor) {
   if (!actor.userId) throw new ProjectError("Please sign in to continue.");
-  const { rows } = await db.query<{
-    project_id: string;
-    flow_id: FlowId;
-    template_version: number;
-    answers: { node_id: string; stage_id: string; status: NodeStatus; needs_review: boolean }[];
-    reviews: { stage_id: string; reviewed: boolean }[];
-  }>(`SELECT f.project_id, f.flow_id, f.template_version,
+  const rows = await queryRows(db,z.object({project_id:z.uuid(),flow_id:flowIdSchema,template_version:z.number().int(),answers:z.array(z.object({node_id:z.string(),stage_id:z.string(),status:nodeStatusSchema,needs_review:z.boolean()})),reviews:z.array(z.object({stage_id:z.string(),reviewed:z.boolean()}))}),`SELECT f.project_id, f.flow_id, f.template_version,
     COALESCE((SELECT jsonb_agg(jsonb_build_object(
       'node_id', a.node_id, 'stage_id', a.stage_id,
       'status', a.status, 'needs_review', a.needs_review))

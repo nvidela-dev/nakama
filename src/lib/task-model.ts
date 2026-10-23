@@ -1,8 +1,6 @@
-export type TaskStatus = "ready" | "in_progress" | "done";
-export type ProjectTask = {
-  id: string; parent_id: string | null; title: string; status: TaskStatus;
-  collapsed: boolean; created_at: Date | string; updated_at: Date | string;
-};
+import type { DatabaseRows, TaskStatus } from "./database.generated";
+export type { TaskStatus } from "./database.generated";
+export type ProjectTask = Pick<DatabaseRows["project_tasks"],"id"|"parent_id"|"title"|"status"|"collapsed"|"created_at"|"updated_at">;
 export type TaskSnapshot = { revision: number; tasks: ProjectTask[] };
 export type TaskNode = ProjectTask & { number: string; depth: number; children: TaskNode[] };
 export const taskStatusLabels: Record<TaskStatus,string> = { ready: "Ready", in_progress: "In progress", done: "Done" };

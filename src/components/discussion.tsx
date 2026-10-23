@@ -34,7 +34,7 @@ function CommentItem({ comment, projectId, userId, owner }: { comment: Comment; 
         },1000);
       }
     };
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); });
+    const observer = new IntersectionObserver(([entry]) => { visible = entry?.isIntersecting ?? false; schedule(); });
     observer.observe(item.current);
     document.addEventListener("visibilitychange",schedule);
     return () => { clearTimeout(timer); observer.disconnect(); document.removeEventListener("visibilitychange",schedule); };
@@ -64,7 +64,7 @@ function CommentItem({ comment, projectId, userId, owner }: { comment: Comment; 
   </li>;
 }
 export function Discussion({ projectId, target, label, comments, userId, owner, olderHref, latestHref }: {
-  projectId: string; target: CommentTarget; label: string; comments: Page<Comment>; userId: string; owner: boolean; olderHref?: string; latestHref?: string;
+  projectId: string; target: CommentTarget; label: string; comments: Page<Comment>; userId: string; owner: boolean; olderHref?: string | undefined; latestHref?: string | undefined;
 }) {
   const t = useT();
   const [content, setContent] = useState("");

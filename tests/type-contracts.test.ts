@@ -1,0 +1,31 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import type { TaskResult } from "../src/app/task-actions";
+import type { ArtifactResult } from "../src/app/artifact-actions";
+import type { TaskSnapshot } from "../src/lib/task-model";
+import type { ArtifactDetail } from "../src/lib/artifact-model";
+import type { CommentTarget } from "../src/lib/collaboration";
+import type { DatabaseRows, NodeStatus } from "../src/lib/database.generated";
+// These compile-time assertions must fail if the contracts are accidentally loosened.
+function contracts(snapshot: TaskSnapshot, artifact: ArtifactDetail) {
+  // @ts-expect-error A success snapshot and a generic error cannot coexist.
+  const mixed: TaskResult = { snapshot, error: "Failure" };
+  // @ts-expect-error Artifact creation and deletion are distinct outcomes.
+  const ambiguous: ArtifactResult = { id: "synthetic", deleted: true };
+  // @ts-expect-error A node discussion requires its stage.
+  const target: CommentTarget = { nodeId: "synthetic" };
+  // @ts-expect-error Database nullability is explicit, not an omitted property.
+  const task: DatabaseRows["artifact_tasks"] = {
+    id: "synthetic",
+    title: "Title",
+    status: "ready",
+    position: 0,
+    artifact_id: artifact.id,
+  };
+  // @ts-expect-error Status literals come from the database enum.
+  const status: NodeStatus = "done";
+  void [mixed, ambiguous, target, task, status];
+  return snapshot;
+}
+test("compile-time contracts are checked by typecheck and build", () =>
+  assert.equal(typeof contracts, "function"));

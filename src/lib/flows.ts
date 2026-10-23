@@ -1,33 +1,29 @@
-import { businessFlows, type BusinessFlowId } from "./business-flows";
+import { required } from "./query";
+import { businessFlows } from "./business-flows";
 import { investigationFlow } from "./investigation-flow";
-export type FlowId = "venture" | "creative" | "investigation" | BusinessFlowId;
-export type NodeStatus =
-  | "unanswered"
-  | "draft"
-  | "answered"
-  | "skipped"
-  | "blocked";
+export type { FlowId, NodeStatus } from "./database.generated";
+import type { FlowId } from "./database.generated";
 export type FlowNode = {
   id: string;
   label: string;
   question: string;
   example: string;
   kind: "question" | "action" | "outcome";
-  after: string[];
-  choices?: string[];
+  after: readonly string[];
+  choices?: readonly string[];
 };
 export type FlowStage = {
   id: string;
   name: string;
   question: string;
-  nodes: FlowNode[];
+  nodes: readonly FlowNode[];
 };
 export type Flow = {
   id: FlowId;
   version: number;
   name: string;
   description: string;
-  stages: FlowStage[];
+  stages: readonly FlowStage[];
 };
 const node = (
   id: string,
@@ -37,8 +33,9 @@ const node = (
   after: string[] = [],
   kind: FlowNode["kind"] = "question",
   choices?: string[],
-): FlowNode => ({ id, label, question, example, after, kind, choices });
-export const flows: Record<FlowId, Flow> = {
+): FlowNode => ({ id, label, question, example, after, kind, ...(choices ? { choices } : {}) });
+export type FlowRegistry = { readonly [Id in FlowId]: Flow & { readonly id: Id } };
+export const flows: FlowRegistry = {
   investigation: investigationFlow,
   ...businessFlows,
   venture: {
@@ -504,4 +501,10 @@ export function descendants(stage: FlowStage, nodeId: string) {
 
 export function isFlowId(value: string): value is FlowId {
   return Object.hasOwn(flows, value);
+}
+
+// The first two question nodes capture project metadata for every supported flow.
+export function captureNodes(flow: Flow) {
+  const stage=required(flow.stages[0],"Flow has no capture stage.");
+  return {stage,name:required(stage.nodes[0],"Flow has no name question."),description:required(stage.nodes[1],"Flow has no description question.")};
 }

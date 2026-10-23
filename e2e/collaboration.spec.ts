@@ -1,3 +1,4 @@
+import { required } from "../src/lib/query";
 import {openProjectSetup} from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
@@ -16,13 +17,13 @@ test.afterEach(async () => {
       if (row?.name === fixtureName) await projectService(db).deleteProject({userId:row.user_id,verifiedEmails:[]},fixtureId,row.name);
     } finally { await pool.end(); }
   }
-  if (allowance) await createClerkClient({secretKey:process.env.CLERK_SECRET_KEY}).allowlistIdentifiers.deleteAllowlistIdentifier(allowance);
+  if (allowance) await createClerkClient({secretKey:required(process.env.CLERK_SECRET_KEY)}).allowlistIdentifiers.deleteAllowlistIdentifier(allowance);
 });
 test("two-person scoped comments, conflict handling, moderation, activity, and removed access", async ({ page, browser }) => {
   const admin=process.env.NAKAMA_ADMIN_EMAIL;
   if(!admin) throw Error("Administrator email required");
   const friendEmail=process.env.E2E_FRIEND_EMAIL||"nakama-friend+clerk_test@example.com";
-  const client=createClerkClient({secretKey:process.env.CLERK_SECRET_KEY});
+  const client=createClerkClient({secretKey:required(process.env.CLERK_SECRET_KEY)});
   const existing=await client.allowlistIdentifiers.getAllowlistIdentifierList({limit:100});
   if(existing.data.some(e=>e.identifier===friendEmail))throw Error("Test identity is already allowed; refusing to modify an existing entry");
   await page.goto("/");await clerk.signIn({page,emailAddress:admin});

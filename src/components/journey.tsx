@@ -46,8 +46,8 @@ export function Journey({
 }: {
   projectId: string;
   guidance: Guidance;
-  stageId?: string;
-  nodeId?: string;
+  stageId?: string | undefined;
+  nodeId?: string | undefined;
   history?: Revision[];
   names?: Record<string, string>;
   preview?: boolean;

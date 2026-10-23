@@ -1,6 +1,7 @@
+import { required } from "../src/lib/query";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { projectService, type Actor } from "../src/lib/projects";
 import type { Database } from "../src/lib/database";
@@ -27,7 +28,7 @@ const cara: Actor = {
   displayName: "Cara",
 };
 before(async () => {
-  for (const file of ["001_private_projects.sql", "002_guided_flows.sql", "003_comments_activity.sql", "004_investigation_flow.sql", "005_business_flows.sql", "006_project_tasks.sql", "007_comment_reads.sql", "008_project_artifacts.sql"])
+  for (const file of (await readdir("migrations")).filter(name=>name.endsWith(".sql")).sort())
     await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {
@@ -91,8 +92,8 @@ test("invitation acceptance requires the intended verified identity, stores only
       [invitation.id],
     )
   ).rows[0];
-  assert.notEqual(stored.token_hash, invitation.token);
-  assert.equal(stored.token_hash.length, 64);
+  assert.notEqual(required(stored).token_hash, invitation.token);
+  assert.equal(required(stored).token_hash.length, 64);
   assert.equal(await service.accept(bob, invitation.token), id);
   assert.equal(await service.accept(bob, invitation.token), id);
   assert.equal((await service.people(alice, id)).members.length, 2);
@@ -115,7 +116,7 @@ test("expired, revoked, replaced, and foreign invitations cannot grant access", 
   await assert.rejects(service.accept(bob, revoked.token));
   const expired = await service.invite(cara, b, "bob@example.com");
   await sql.query(
-    "UPDATE project_invitations SET expires_at = now() - interval '1 second' WHERE id = $1",
+    "UPDATE project_invitations SET created_at = now() - interval '1 day', expires_at = now() - interval '1 second' WHERE id = $1",
     [expired.id],
   );
   await assert.rejects(service.accept(bob, expired.token));

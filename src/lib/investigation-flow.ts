@@ -1,6 +1,6 @@
 import type { Flow } from "./flows";
 
-export const investigationFlow: Flow = {
+export const investigationFlow: Flow & {readonly id:"investigation"} = {
   "id": "investigation",
   "version": 1,
   "name": "Investigation",

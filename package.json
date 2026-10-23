@@ -6,10 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run db:check && tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
-    "test:e2e": "node --env-file=.env.local node_modules/@playwright/test/cli.js test"
+    "test:e2e": "node --env-file=.env.local node_modules/@playwright/test/cli.js test",
+    "db:types": "tsx scripts/database-types.ts",
+    "db:check": "tsx scripts/database-types.ts --check",
+    "db:local": "tsx scripts/local-database.ts",
+    "db:verify-local": "tsx scripts/check-local-integrity.ts"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -31,13 +35,14 @@
   },
   "devDependencies": {
     "@clerk/testing": "^2.2.49",
-    "@electric-sql/pglite": "^0.3.14",
+    "@electric-sql/pglite": "0.3.16",
     "@playwright/test": "^1.56.0",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.15.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.186.0",
+    "embedded-postgres": "18.4.0-beta.17",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"
   },

@@ -6,11 +6,11 @@ import * as THREE from "three";
 import type { Guidance } from "@/lib/guidance";
 import { useT } from "./language";
 
-type Point = { id: string; stageId: string; nodeId?: string; label: string; status: string; revisit: boolean; position: THREE.Vector3 };
+type Point = { id: string; stageId: string; nodeId?: string | undefined; label: string; status: string; revisit: boolean; position: THREE.Vector3 };
 const symbols: Record<string, string> = { unanswered: "○", draft: "◐", answered: "✓", skipped: "↷", blocked: "!", reviewed: "✓", "In progress": "◐", "Not started": "○" };
 
 export default function JourneyMiniview({ guidance, base, stageId, nodeId }: {
-  guidance: Guidance; base: string; stageId?: string; nodeId?: string;
+  guidance: Guidance; base: string; stageId?: string | undefined; nodeId?: string | undefined;
 }) {
   const t = useT();
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -29,7 +29,8 @@ export default function JourneyMiniview({ guidance, base, stageId, nodeId }: {
       points.push({ id: stage.id, stageId: stage.id, label: stage.name,
         status: review?.reviewed ? "reviewed" : worked ? "In progress" : "Not started",
         revisit: !!review && !review.reviewed, position: new THREE.Vector3(x, y, z) });
-      if (index) edges.push([guidance.flow.stages[index - 1].id, stage.id]);
+      const previous=guidance.flow.stages[index-1];
+      if(previous) edges.push([previous.id,stage.id]);
       const depths = new Map<string, number>();
       for (const node of stage.nodes) depths.set(node.id, node.after.length ? Math.max(...node.after.map((id) => depths.get(id) ?? 0)) + 1 : 0);
       for (const node of stage.nodes) {
@@ -89,7 +90,7 @@ export default function JourneyMiniview({ guidance, base, stageId, nodeId }: {
     for (const [index, point] of graph.points.entries()) {
       const selected = nodeId ? point.id === nodeId : point.id === stageId;
       const material = new THREE.MeshBasicMaterial({
-        color: selected ? token("--ink") : colors[point.status],
+        color: selected ? token("--ink") : colors[point.status] ?? token("--muted"),
         wireframe: true, transparent: true, opacity: point.nodeId ? 0.85 : 0.7,
         blending: THREE.NormalBlending,
       });

@@ -1,12 +1,9 @@
-export type ArtifactKind = "image" | "markdown" | "software";
-export type ArtifactTask = { id: string; title: string; status: "ready" | "in_progress" | "done" };
-export type ArtifactFile = { id: string; name: string; media_type: string; size: number };
-export type Artifact = {
-  id: string; project_id: string; project_name: string; flow_id: string | null; stage_id: string | null;
-  name: string; description: string; kind: ArtifactKind; status: "in_progress" | "ready";
-  github_url: string | null; tasks: ArtifactTask[]; revision: number; updated_at: Date;
-};
-export type ArtifactCard = Artifact & { cover_id: string | null; file_count: number; stage_name?: string | null };
+import type { DatabaseRows, ArtifactKind } from "./database.generated";
+export type { ArtifactKind } from "./database.generated";
+export type ArtifactTask = Pick<DatabaseRows["artifact_tasks"],"id"|"title"|"status">;
+export type ArtifactFile = Pick<DatabaseRows["artifact_files"],"id"|"name"|"media_type"|"size">;
+export type Artifact = Omit<DatabaseRows["project_artifacts"],"created_by"|"updated_by"|"created_at"> & {project_name:string;tasks:ArtifactTask[]};
+export type ArtifactCard = Omit<Artifact,"tasks"> & { task_count:number;done_task_count:number; cover_id: string | null; file_count: number; stage_name?: string | null };
 export type ArtifactDetail = Artifact & { files: ArtifactFile[]; markdown: string | null };
 export const artifactKinds: Record<ArtifactKind, string> = { image: "Images / designs", markdown: "Markdown document", software: "Software" };
 export const artifactUrl = (projectId: string, id: string) => `/projects/${projectId}/artifacts/${id}`;

@@ -1,7 +1,7 @@
 import type { Flow } from "./flows";
 
-export type BusinessFlowId = "eshop" | "shirt-eshop" | "saas" | "importation" | "consultancy";
-export const businessFlows: Record<BusinessFlowId, Flow> = {
+export type BusinessFlowId = Exclude<import("./database.generated").FlowId,"venture"|"creative"|"investigation">;
+export const businessFlows: { readonly [Id in BusinessFlowId]: Flow & {readonly id:Id} } = {
   "eshop": {
     "id": "eshop",
     "version": 1,

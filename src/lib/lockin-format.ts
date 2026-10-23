@@ -1,10 +1,11 @@
+import { taskStatusSchema } from "./domain-schemas";
 import { z } from "zod";
 import type { LockInProject, LockInTask, LockInState, TaskSnapshot } from "./task-model";
 import { taskTree } from "./task-model";
 const timestamp = z.iso.datetime({offset:true});
 const taskSchema: z.ZodType<LockInTask> = z.lazy(() => z.object({
   id:z.string().min(1).max(200), title:z.string().trim().min(1).max(300),
-  status:z.enum(["ready","in_progress","done"]), collapsed:z.boolean().default(false),
+  status:taskStatusSchema, collapsed:z.boolean().default(false),
   subtasks:z.array(taskSchema).nullable().transform((value)=>value ?? []).default([]),
   created_at:timestamp, updated_at:timestamp,
 }));

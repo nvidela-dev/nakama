@@ -5,8 +5,9 @@ import { database } from "@/lib/db";
 import { ProjectError } from "@/lib/projects";
 import { taskService, TaskConflictError, type TaskOperation } from "@/lib/tasks";
 import type { LockInState, TaskSnapshot } from "@/lib/task-model";
-export type TaskResult={snapshot?:TaskSnapshot;error?:string;conflict?:boolean};
-function failure(error:unknown):TaskResult{
+type TaskFailure = {error:string;conflict?:false;snapshot?:never}|{error:string;conflict:true;snapshot:TaskSnapshot};
+export type TaskResult=TaskFailure|{snapshot:TaskSnapshot;error?:never;conflict?:never};
+function failure(error:unknown):TaskFailure{
   if(error instanceof TaskConflictError)return {error:error.message,snapshot:error.snapshot,conflict:true};
   return {error:error instanceof ProjectError?error.message:"Could not save tasks. Your draft is still here."};
 }

@@ -10,7 +10,7 @@ export async function requestAccess(_state: AccessEntryState, data: FormData): P
   try {
     const requestHeaders = await headers();
     const source = requestHeaders.get("x-vercel-forwarded-for") || requestHeaders.get("x-forwarded-for") || "local";
-    const key = createHash("sha256").update(source.split(",")[0]).digest("hex");
+    const key = createHash("sha256").update(source.split(",")[0] ?? "local").digest("hex");
     const now = Date.now();
     for (const [id, bucket] of buckets) if (bucket.until < now) buckets.delete(id);
     const bucket = buckets.get(key) ?? { until: now + 15 * 60_000, count: 0 };

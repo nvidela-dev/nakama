@@ -959,5 +959,6 @@
   "Choose up to 25 source projects.": "Elige hasta 25 proyectos de origen.",
   "A project cannot spawn itself.": "Un proyecto no puede derivarse de sí mismo.",
   "This link would create a circular project lineage.": "Este vínculo crearía un ciclo entre los proyectos.",
-  "Choose a relationship direction.": "Elige la dirección del vínculo."
+  "Choose a relationship direction.": "Elige la dirección del vínculo.",
+  "Only software artifacts use a GitHub link.": "Solo los artefactos de software usan un enlace de GitHub."
 }

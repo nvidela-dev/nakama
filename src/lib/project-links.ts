@@ -1,3 +1,4 @@
+import { queryRows } from "./query";
 import { z } from "zod";
 import type { Database } from "./database";
 import { membership, ProjectError, type Actor } from "./projects";
@@ -13,7 +14,7 @@ export function projectLinksService(db: Database) {
     async list(person: Actor, projectId: string): Promise<ProjectLinks> {
       return db.transaction(async tx => {
         await membership(tx, person, projectId);
-        const { rows } = await tx.query<LinkedProject & { direction: "source" | "child" }>(`
+        const rows = await queryRows(tx,z.object({id:z.uuid(),name:z.string(),direction:z.enum(["source","child"])}),`
           SELECT p.id,p.name,CASE WHEN l.child_id=$1 THEN 'source' ELSE 'child' END AS direction
           FROM project_links l JOIN projects p ON p.id=CASE WHEN l.child_id=$1 THEN l.source_id ELSE l.child_id END
           JOIN project_memberships m ON m.project_id=p.id AND m.user_id=$2

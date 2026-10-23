@@ -18,7 +18,7 @@ import { FlowChooser } from "@/components/guidance";
 import { ProjectSettings } from "@/components/project-settings";
 import { Discussion } from "@/components/discussion";
 import { ActivityFeed } from "@/components/activity-feed";
-import { collaborationService } from "@/lib/collaboration";
+import { collaborationService, commentTarget } from "@/lib/collaboration";
 import { Journey } from "@/components/journey";
 export const dynamic = "force-dynamic";
 export default async function ProjectPage({
@@ -43,7 +43,7 @@ export default async function ProjectPage({
       service.people(person, projectId),
       guidanceService(database()).get(person, projectId),
       query.node ? guidanceService(database()).history(person, projectId, query.node) : Promise.resolve([]),
-      collaborationService(database()).comments(person, projectId, { stageId: query.stage, nodeId: query.node }, query.commentsBefore, query.comment),
+      collaborationService(database()).comments(person, projectId, commentTarget(query.stage,query.node), query.commentsBefore, query.comment),
       collaborationService(database()).activity(person, projectId, query.activityBefore),
       taskService(database()).list(person, projectId),
       artifactService(database()).list(person, projectId),
@@ -141,7 +141,7 @@ export default async function ProjectPage({
         </>
   );
   const discussion = (
-<Discussion key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`} projectId={projectId} target={{ stageId: query.stage, nodeId: query.node }} label={discussionLabel} comments={comments} userId={person.userId} owner={project.role === "owner"} olderHref={comments.next ? pageHref("commentsBefore", comments.next) : undefined} latestHref={query.commentsBefore || query.comment ? pageHref("commentsBefore") : undefined} />
+<Discussion key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`} projectId={projectId} target={commentTarget(query.stage,query.node)} label={discussionLabel} comments={comments} userId={person.userId} owner={project.role === "owner"} olderHref={comments.next ? pageHref("commentsBefore", comments.next) : undefined} latestHref={query.commentsBefore || query.comment ? pageHref("commentsBefore") : undefined} />
   );
   return (
     <main id="main" className="workspace">

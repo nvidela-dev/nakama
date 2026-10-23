@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { changeArtifact, uploadArtifactFile, type ArtifactResult } from "@/app/artifact-actions";
+import { changeArtifact, uploadArtifactFile, type ArtifactResult, type ArtifactSaved } from "@/app/artifact-actions";
 import { artifactKinds, artifactFileUrl, type ArtifactDetail, type ArtifactTask } from "@/lib/artifact-model";
 import { MarkdownReader } from "./markdown-reader";
 import { useT } from "./language";
@@ -24,10 +23,10 @@ export function ArtifactEditor({initial,stages}:{initial:ArtifactDetail;stages:{
   },[dirty,t]);
   useEffect(()=>{if(image!==null&&!lightbox.current?.open)lightbox.current?.showModal();},[image]);
   function closeImage(){lightbox.current?.close();setImage(null);imageOpener.current?.focus();}
-  function apply(result:ArtifactResult,metadata=false,taskSave=false) {
+  function apply(result:ArtifactResult,metadata=false,taskSave=false):result is ArtifactSaved {
     if(result.error){setError(result.error);setCurrent(result.current);return false;}
     if(result.artifact){setArtifact(result.artifact);if(metadata)setDraft(draftOf(result.artifact));if(taskSave)setTasks(result.artifact.tasks);}
-    setError("");setCurrent(undefined);setNotice("Artifact saved.");return true;
+    setError("");setCurrent(undefined);setNotice("Artifact saved.");return !!result.artifact;
   }
   function run(operation:"metadata"|"tasks"|"remove-file"|"delete",input:unknown){
     setNotice("");
@@ -47,7 +46,7 @@ export function ArtifactEditor({initial,stages}:{initial:ArtifactDetail;stages:{
           const data=new FormData();data.set("file",file);
           const result=await uploadArtifactFile(artifact.project_id,artifact.id,revision,data);
           if(!apply(result))return;
-          revision=result.artifact!.revision;
+          revision=result.artifact.revision;
         }
       }catch{setError("Could not save the artifact. Your draft is still here.");}
       finally{if(upload.current)upload.current.value="";}
@@ -69,7 +68,7 @@ export function ArtifactEditor({initial,stages}:{initial:ArtifactDetail;stages:{
           </button>
           <figcaption><span>{file.name}</span><a href={artifactFileUrl(artifact.project_id,artifact.id,file.id)+"?download=1"} download>{t("Download")}</a><button className="text-button" disabled={pending} onClick={()=>setRemoveFile(file.id)}>{t("Remove")}</button></figcaption>
         </figure>)}</div>}
-        {artifact.kind==="markdown"&&artifact.markdown&&<><div className="artifact-file-heading"><span>{artifact.files[0]?.name}</span><a className="button secondary" href={artifactFileUrl(artifact.project_id,artifact.id,artifact.files[0].id)+"?download=1"} download>{t("Download Markdown")}</a></div><MarkdownReader content={artifact.markdown}/></>}
+        {artifact.kind==="markdown"&&artifact.markdown&&artifact.files[0]&&<><div className="artifact-file-heading"><span>{artifact.files[0]?.name}</span><a className="button secondary" href={artifactFileUrl(artifact.project_id,artifact.id,artifact.files[0].id)+"?download=1"} download>{t("Download Markdown")}</a></div><MarkdownReader content={artifact.markdown}/></>}
         {!artifact.files.length&&<div className="artifact-empty-output"><span aria-hidden="true">{artifact.kind==="image"?"▧":"#"}</span><p>{t("No output attached yet. Keep working and upload a draft when you have one.")}</p></div>}
         <div className="artifact-upload"><label htmlFor="artifact-upload">{t(artifact.kind==="image"?"Upload images":"Upload / replace Markdown")}</label>
           <input ref={upload} id="artifact-upload" type="file" disabled={pending} multiple={artifact.kind==="image"} accept={artifact.kind==="image"?"image/png,image/jpeg,image/webp,image/gif":".md,.markdown,text/markdown"} onChange={uploadFiles}/>

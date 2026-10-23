@@ -1,3 +1,4 @@
+import { required } from "./query";
 import { z } from "zod";
 import type { Database } from "./database";
 import { ProjectError, type Actor } from "./projects";
@@ -20,7 +21,7 @@ export function notificationService(db: Database) {
         JOIN project_memberships m ON m.project_id=c.project_id AND m.user_id=$1
         WHERE c.author_id<>$1 AND c.deleted_at IS NULL
         AND NOT EXISTS (SELECT 1 FROM comment_reads r WHERE r.comment_id=c.id AND r.user_id=$1)`;
-      const count = (await db.query<{ count: number }>(`SELECT count(*)::int AS count ${predicate}`, [person.userId])).rows[0].count;
+      const count = required((await db.query<{ count: number }>(`SELECT count(*)::int AS count ${predicate}`, [person.userId])).rows[0]).count;
       const rows = (await db.query<UnreadComment>(`SELECT c.id,c.project_id,
         (SELECT name FROM projects WHERE id=c.project_id) AS project_name,
         c.author_name,left(c.content,240) AS content,c.stage_id,c.node_id,c.created_at,

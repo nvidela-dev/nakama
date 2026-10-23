@@ -32,6 +32,10 @@ The visual ambition is spatial, 3D, chill, piratey/hackery, and warm. Readable f
 
 Start with requirements and flows. Read the domain and collaboration rules before implementing persistence or access. Use the [development guide](docs/development.md) to run the public shell, connect isolated services, and verify private workflows.
 
+## Schema and type maintenance
+
+SQL migrations generate the storage types and domain vocabularies. Run `npm run db:types` after changing the schema; `npm run typecheck` verifies the generated contract before compiling. Principal data reads validate their query projections. The [development guide](docs/development.md#database-normalization-and-strict-typescript--2026-10-23) documents isolated database testing and the pending coordinated release of migrations 010–012.
+
 ## First useful outcome
 
 A friend can capture an idea, invite the right people, work through a selected guided flow, discuss what they learn, and export authorized project context as readable Markdown for use in ChatGPT. Embedded chat and agent execution come later.

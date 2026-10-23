@@ -1,3 +1,4 @@
+import { required } from "../src/lib/query";
 import {test,before,after} from "node:test";
 import assert from "node:assert/strict";
 import {PGlite} from "@electric-sql/pglite";
@@ -15,9 +16,9 @@ test("guided setup atomically starts every project type with capture answers and
  for(const flow of Object.values(flows)){
    const id=await startProject(db,owner,{name:"Setup "+flow.id,description:"Typed in the setup process.",flow:flow.id});
    const state=await guidanceService(db).get(owner,id);
-   assert.equal(state?.flow.id,flow.id);
-   assert.equal(state?.answers.find(a=>a.node_id===flow.stages[0].nodes[0].id)?.content,"Setup "+flow.id);
-   assert.equal(state?.answers.find(a=>a.node_id===flow.stages[0].nodes[1].id)?.content,"Typed in the setup process.");
+   assert.equal(required(state?.flow).id,flow.id);
+   assert.equal(required(state?.answers).find(a=>a.node_id===required(required(flow.stages[0]).nodes[0]).id)?.content,"Setup "+flow.id);
+   assert.equal(required(state?.answers).find(a=>a.node_id===required(required(flow.stages[0]).nodes[1]).id)?.content,"Typed in the setup process.");
    await assert.rejects(guidanceService(db).get(outsider,id));
  }
 });
@@ -33,5 +34,5 @@ test("deferred type remains supported, and invalid/failed setup leaves no partia
  }}))};
  await assert.rejects(startProject(broken,owner,{name:"Rolled back",description:"No partial capture.",flow:"creative"}));
  assert.equal((await projectService(db).list(owner)).length,before);
- assert.equal((await db.query<{count:number}>("SELECT count(*)::int AS count FROM projects WHERE name='Rolled back'")).rows[0].count,0);
+ assert.equal(required((await db.query<{count:number}>("SELECT count(*)::int AS count FROM projects WHERE name='Rolled back'")).rows[0]).count,0);
 });

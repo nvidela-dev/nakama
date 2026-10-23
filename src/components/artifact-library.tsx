@@ -3,11 +3,11 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createArtifact } from "@/app/artifact-actions";
-import { artifactKinds, artifactUrl, artifactFileUrl, type ArtifactCard, type ArtifactKind } from "@/lib/artifact-model";
+import { artifactKinds, artifactUrl, artifactFileUrl, type ArtifactCard } from "@/lib/artifact-model";
 import { useT } from "./language";
 
 export function ArtifactLibrary({items,projects,projectId,stages=[],stageId}:{
-  items:ArtifactCard[]; projects:{id:string;name:string}[]; projectId?:string; stages?:{id:string;name:string}[]; stageId?:string;
+  items:ArtifactCard[]; projects:{id:string;name:string}[]; projectId?:string; stages?:{id:string;name:string}[]; stageId?:string | undefined;
 }) {
   const t=useT(),router=useRouter(),dialog=useRef<HTMLDialogElement>(null),opener=useRef<HTMLButtonElement>(null);
   const [pending,startTransition]=useTransition(),[error,setError]=useState(""),[search,setSearch]=useState(""),[kind,setKind]=useState("all"),[status,setStatus]=useState("all"),[project,setProject]=useState("all");
@@ -43,7 +43,7 @@ export function ArtifactLibrary({items,projects,projectId,stages=[],stageId}:{
         <div className="artifact-card-body"><div className="artifact-card-meta"><span>{t(artifactKinds[a.kind])}</span><span className={`artifact-status ${a.status}`}>{t(a.status==="ready"?"Ready to use":"In progress")}</span></div>
           <h3>{a.name}</h3><p className="muted">{a.project_name}{a.stage_id? ` · ${t(a.stage_name??stages.find(s=>s.id===a.stage_id)?.name??a.stage_id)}`:""}</p>
           {a.description&&<p className="artifact-excerpt">{a.description}</p>}
-          <small>{a.tasks.filter(task=>task.status==="done").length}/{a.tasks.length} {t("tasks done")}{a.file_count? ` · ${a.file_count} ${t("files")}`:""}</small>
+          <small>{a.done_task_count}/{a.task_count} {t("tasks done")}{a.file_count? ` · ${a.file_count} ${t("files")}`:""}</small>
         </div>
       </Link>)}</div>}
     <dialog ref={dialog} className="artifact-dialog" aria-labelledby="new-artifact-heading" onCancel={e=>{e.preventDefault();close();}}>

@@ -1,13 +1,21 @@
+import type { DatabaseRows, ActivityKind } from "./database.generated";
+import { queryRows } from "./query";
+import { commentRowSchema, activityRowSchema } from "./row-schemas";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
 import { membership, ProjectError, type Actor } from "./projects";
 import { flows, type FlowId } from "./flows";
 import { recordActivity } from "./activity-log";
-export type CommentTarget = { stageId?: string; nodeId?: string };
-export type Comment = { id: string; author_id: string; author_name: string; former_member: boolean; content: string; revision: number; created_at: Date; edited_at: Date | null; deleted_at: Date | null };
-export type Activity = { sort_key: string; kind: string; actor_id: string; actor_name: string; former_member: boolean; stage_id: string | null; node_id: string | null; comment_id: string | null; subject_name: string | null; detail: string | null; created_at: Date };
-export type Page<T> = { items: T[]; next?: string };
+export type CommentTarget = {stageId?:never;nodeId?:never} | {stageId:string;nodeId?:string};
+export function commentTarget(stageId?:string,nodeId?:string):CommentTarget {
+  if(nodeId&&!stageId) throw new ProjectError("Comment target not found.");
+  return stageId ? {stageId,...(nodeId?{nodeId}:{})} : {};
+}
+export type Comment = Pick<DatabaseRows["project_comments"],"id"|"author_id"|"author_name"|"content"|"revision"|"created_at"|"edited_at"|"deleted_at"> & {former_member:boolean};
+export type FeedKind = ActivityKind | "answer_captured" | "answer_saved" | "stage_reviewed";
+export type Activity = Pick<DatabaseRows["project_activity"],"actor_id"|"actor_name"|"stage_id"|"node_id"|"comment_id"|"subject_name"|"created_at"> & {sort_key:string;kind:FeedKind;former_member:boolean;detail:string|null};
+export type Page<T> = { items: T[]; next: string | undefined };
 const body = z.string().trim().min(1).max(4000);
 const uuid = z.uuid();
 function cursor(input?: string) {
@@ -48,13 +56,13 @@ export function collaborationService(db: Database) {
           time = focused.cursor_time;
           id = focusId;
         }
-        const rows = (await tx.query<Comment>(`SELECT c.id,c.author_id,c.author_name,c.content,c.revision,c.created_at,c.edited_at,c.deleted_at,
+        const rows = (await queryRows(tx,commentRowSchema,`SELECT c.id,c.author_id,c.author_name,c.content,c.revision,c.created_at,c.edited_at,c.deleted_at,
           m.user_id IS NULL AS former_member,
           to_char(c.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'Z' AS cursor_time FROM project_comments c
           LEFT JOIN project_memberships m ON m.project_id=c.project_id AND m.user_id=c.author_id
           WHERE c.project_id=$1 AND c.stage_id IS NOT DISTINCT FROM $2 AND c.node_id IS NOT DISTINCT FROM $3
           AND ($4::timestamptz IS NULL OR (c.created_at,c.id::text)<($4::timestamptz,$5::text) OR ($6::boolean AND c.id::text=$5::text))
-          ORDER BY c.created_at DESC,c.id DESC LIMIT 26`, [projectId, target.stageId ?? null, target.nodeId ?? null, time, id, !before && !!focusId])).rows;
+          ORDER BY c.created_at DESC,c.id DESC LIMIT 26`, [projectId, target.stageId ?? null, target.nodeId ?? null, time, id, !before && !!focusId]));
         return page(rows, (comment) => comment.id);
       });
     },
@@ -86,24 +94,24 @@ export function collaborationService(db: Database) {
         if (comment.revision !== revision) throw new ProjectError("This comment changed. Reload before saving; your draft is still here.");
         if (operation === "edit") await tx.query("UPDATE project_comments SET content=$1, revision=revision+1, edited_at=now() WHERE id=$2 AND project_id=$3", [content?.success ? content.data : "", commentId, projectId]);
         else await tx.query("UPDATE project_comments SET content='', revision=revision+1, deleted_at=now(), deleted_by=$1 WHERE id=$2 AND project_id=$3", [actor.userId, commentId, projectId]);
-        await recordActivity(tx, actor, projectId, operation === "edit" ? "comment_edited" : comment.author_id === actor.userId ? "comment_deleted" : "comment_moderated", { stageId: comment.stage_id ?? undefined, nodeId: comment.node_id ?? undefined, commentId });
+        await recordActivity(tx, actor, projectId, operation === "edit" ? "comment_edited" : comment.author_id === actor.userId ? "comment_deleted" : "comment_moderated", { ...commentTarget(comment.stage_id ?? undefined,comment.node_id ?? undefined), commentId });
       });
     },
     async activity(actor: Actor, projectId: string, before?: string) {
       return db.transaction(async (tx) => {
         await membership(tx, actor, projectId);
         const [time, key] = cursor(before);
-        const rows = (await tx.query<Activity>(`WITH events AS (
-          SELECT 'event:'||id::text AS sort_key,kind,actor_id,actor_name,stage_id,node_id,comment_id,subject_name,NULL::text AS detail,created_at FROM project_activity WHERE project_id=$1
+        const rows = (await queryRows(tx,activityRowSchema,`WITH events AS (
+          SELECT 'event:'||id::text AS sort_key,kind::text,actor_id,actor_name,stage_id,node_id,comment_id,subject_name,NULL::text AS detail,created_at FROM project_activity WHERE project_id=$1
           UNION ALL
-          SELECT 'answer:'||node_id||':'||revision::text,CASE WHEN origin='capture' THEN 'answer_captured' ELSE 'answer_saved' END,author_id,NULL, (SELECT stage_id FROM node_answers a WHERE a.project_id=r.project_id AND a.node_id=r.node_id),node_id,NULL::uuid,NULL,CASE WHEN status='answered' THEN COALESCE(choice,status) ELSE status END,created_at FROM answer_revisions r WHERE project_id=$1
+          SELECT 'answer:'||node_id||':'||revision::text,CASE WHEN origin='capture' THEN 'answer_captured' ELSE 'answer_saved' END,author_id,NULL, (SELECT stage_id FROM node_answers a WHERE a.project_id=r.project_id AND a.node_id=r.node_id),node_id,NULL::uuid,NULL,CASE WHEN status='answered' THEN COALESCE(choice,status::text) ELSE status::text END,created_at FROM answer_revisions r WHERE project_id=$1
           UNION ALL
           SELECT 'review:'||id::text,'stage_reviewed',author_id,NULL,stage_id,NULL,NULL::uuid,NULL,NULL,created_at FROM stage_review_history WHERE project_id=$1
         ) SELECT e.*,COALESCE(e.actor_name,m.display_name,'') AS actor_name,m.user_id IS NULL AS former_member,
           to_char(e.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'Z' AS cursor_time
           FROM events e LEFT JOIN project_memberships m ON m.project_id=$1 AND m.user_id=e.actor_id
           WHERE ($2::timestamptz IS NULL OR (e.created_at,e.sort_key)<($2::timestamptz,$3::text))
-          ORDER BY e.created_at DESC,e.sort_key DESC LIMIT 26`, [projectId, time, key])).rows;
+          ORDER BY e.created_at DESC,e.sort_key DESC LIMIT 26`, [projectId, time, key]));
         return page(rows, (event) => event.sort_key);
       });
     },

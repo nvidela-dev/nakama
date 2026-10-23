@@ -1,6 +1,7 @@
+import { required } from "../src/lib/query";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import type { Database } from "../src/lib/database";
 import { projectService, type Actor } from "../src/lib/projects";
@@ -31,7 +32,7 @@ const answer = (content: string, revision = 0) => ({
   choice: null,
 });
 before(async () => {
-  for (const file of ["001_private_projects.sql", "002_guided_flows.sql", "003_comments_activity.sql", "004_investigation_flow.sql", "005_business_flows.sql", "006_project_tasks.sql", "007_comment_reads.sql", "008_project_artifacts.sql"])
+  for (const file of (await readdir("migrations")).filter(name=>name.endsWith(".sql")).sort())
     await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {
@@ -82,14 +83,14 @@ test("templates preserve five stages, valid within-stage edges, guidance, and cr
 test("flow selection preserves capture attribution and cannot replace existing answers", async () => {
   const id = await project("creative");
   let state = await guidance.get(alice, id);
-  assert.equal(state?.answers.length, 2);
+  assert.equal(required(state?.answers).length, 2);
   assert.equal(
-    state?.answers.find((a) => a.node_id === "spark-name")?.content,
+    required(state?.answers).find((a) => a.node_id === "spark-name")?.content,
     "Little idea",
   );
   const capture = await guidance.history(alice, id, "spark-name");
-  assert.equal(capture[0].origin, "capture");
-  assert.equal(capture[0].author_id, "alice");
+  assert.equal(required(capture[0]).origin, "capture");
+  assert.equal(required(capture[0]).author_id, "alice");
   await guidance.select(alice, id, "creative");
   await assert.rejects(guidance.select(alice, id, "venture"));
   await assert.rejects(guidance.select(outsider, id, "creative"));
@@ -98,7 +99,7 @@ test("flow selection preserves capture attribution and cannot replace existing a
   await guidance.save(alice, id, "spark-name", answer("A better name", 1));
   assert.equal((await projects.get(alice, id)).name, "A better name");
   state = await guidance.get(alice, id);
-  assert.equal(state?.answers.length, 2);
+  assert.equal(required(state?.answers).length, 2);
 });
 
 test("two members cannot silently overwrite an answer, and conflicts expose only authorized current content", async () => {
@@ -166,7 +167,7 @@ test("upstream edits flag dependent conclusions without erasing content and reje
     state.answers.find((a) => a.node_id === "affordability")?.needs_review,
     true,
   );
-  assert.equal(state.reviews[0].reviewed, false);
+  assert.equal(required(state.reviews[0]).reviewed, false);
   await assert.rejects(
     guidance.reviewStage(
       alice,
@@ -283,15 +284,15 @@ test("card timelines expose only member status metadata and preserve honest ques
   const summaries = await projectProgress(db, alice);
   const stages = summaries.get(id)!;
   assert.equal(stages.length, 5);
-  assert.equal(stages[0].answered, 2);
-  assert.equal(stages[0].total, 2);
-  assert.equal(stages[0].reviewed, false);
-  assert.equal(stages[1].started, false);
+  assert.equal(required(stages[0]).answered, 2);
+  assert.equal(required(stages[0]).total, 2);
+  assert.equal(required(stages[0]).reviewed, false);
+  assert.equal(required(stages[1]).started, false);
   await guidance.save(alice, id, "inspiration", { ...answer("Unsure"), status: "blocked" });
   const updated = (await projectProgress(db, alice)).get(id)!;
-  assert.equal(updated[1].blocked, 1);
-  assert.equal(updated[1].answered, 0);
-  assert.equal(updated[1].started, true);
+  assert.equal(required(updated[1]).blocked, 1);
+  assert.equal(required(updated[1]).answered, 0);
+  assert.equal(required(updated[1]).started, true);
   assert.equal((await projectProgress(db, outsider)).has(id), false);
   assert.equal((await projectProgress(db, bob)).has(id), false);
   await assert.rejects(projectProgress(db, { userId: "", verifiedEmails: [] }));
@@ -391,17 +392,17 @@ test("business project types retain distinct flows, metadata, saved work, and ac
     const captured = await guidance.get(alice, id);
     assert.equal(captured!.flow.id, flowId);
     assert.equal(captured!.answers.length, 2);
-    await guidance.save(alice, id, flow.stages[0].nodes[0].id, answer(`${flow.name} test`, 1));
-    await guidance.save(alice, id, flow.stages[0].nodes[1].id, answer(`Purpose for ${flow.name}`, 1));
+    await guidance.save(alice, id, required(required(flow.stages[0]).nodes[0]).id, answer(`${flow.name} test`, 1));
+    await guidance.save(alice, id, required(required(flow.stages[0]).nodes[1]).id, answer(`Purpose for ${flow.name}`, 1));
     const metadata = await projects.get(alice, id);
     assert.equal(metadata.name, `${flow.name} test`);
     assert.equal(metadata.description, `Purpose for ${flow.name}`);
-    const node = flow.stages[1].nodes[0];
-    await guidance.save(alice, id, node.id, answer("A supported finding with source references."));
-    assert.equal((await guidance.get(alice, id))!.answers.find((item) => item.node_id === node.id)?.content, "A supported finding with source references.");
-    assert.equal((await guidance.history(alice, id, node.id)).length, 1);
+    const node = required(flow.stages[1]).nodes[0];
+    await guidance.save(alice, id, required(node).id, answer("A supported finding with source references."));
+    assert.equal((await guidance.get(alice, id))!.answers.find((item) => item.node_id === required(node).id)?.content, "A supported finding with source references.");
+    assert.equal((await guidance.history(alice, id, required(node).id)).length, 1);
     await assert.rejects(guidance.get(outsider, id));
-    await assert.rejects(guidance.save(outsider, id, node.id, answer("Unauthorized", 1)));
+    await assert.rejects(guidance.save(outsider, id, required(node).id, answer("Unauthorized", 1)));
     await assert.rejects(guidance.save(alice, id, "inquiry-evidence", answer("Wrong flow")));
     await assert.rejects(guidance.select(alice, id, flowId === "eshop" ? "shirt-eshop" : "eshop"));
   }

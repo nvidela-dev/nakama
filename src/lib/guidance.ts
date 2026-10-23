@@ -1,48 +1,28 @@
+import type { DatabaseRows, ProjectState } from "./database.generated";
+import { nodeStatusSchema } from "./domain-schemas";
+import { queryRows } from "./query";
+import { answerSchema, revisionSchema, stageReviewSchema } from "./row-schemas";
 import { recordActivity } from "./activity-log";
 import { z } from "zod";
 import type { Database, Queryable } from "./database";
 import { membership, ProjectError, type Actor } from "./projects";
 import {
+  captureNodes,
   descendants,
   findNode,
   flows,
   type Flow,
   type FlowId,
   isFlowId,
-  type NodeStatus,
 } from "./flows";
-export type Answer = {
-  node_id: string;
-  stage_id: string;
-  revision: number;
-  content: string;
-  status: NodeStatus;
-  choice: string | null;
-  needs_review: boolean;
-  updated_by: string;
-  updated_at: Date;
-};
-export type Revision = {
-  revision: number;
-  content: string;
-  status: NodeStatus;
-  choice: string | null;
-  author_id: string;
-  origin: "capture" | "human";
-  created_at: Date;
-};
-export type StageReview = {
-  stage_id: string;
-  reviewed: boolean;
-  rationale: string;
-  reviewed_by: string;
-  reviewed_at: Date;
-};
+export type Answer = Omit<DatabaseRows["node_answers"],"project_id">;
+export type Revision = Omit<DatabaseRows["answer_revisions"],"project_id"|"node_id">;
+export type StageReview = Omit<DatabaseRows["stage_reviews"],"project_id">;
 export type Guidance = {
   flow: Flow;
   answers: Answer[];
   reviews: StageReview[];
-  projectState: string;
+  projectState: ProjectState;
   contentRevision: number;
 };
 export class ConflictError extends ProjectError {
@@ -57,7 +37,7 @@ async function selectedFlow(tx: Queryable, projectId: string) {
     await tx.query<{
       flow_id: FlowId;
       template_version: number;
-      project_state: string;
+      project_state: ProjectState;
       content_revision: number;
     }>("SELECT * FROM project_flows WHERE project_id = $1", [projectId])
   ).rows[0];
@@ -74,7 +54,7 @@ async function selectedFlow(tx: Queryable, projectId: string) {
 const answerInput = z.object({
   revision: z.number().int().min(0),
   content: z.string().trim().max(20000),
-  status: z.enum(["unanswered", "draft", "answered", "skipped", "blocked"]),
+  status: nodeStatusSchema,
   choice: z.string().max(100).nullable(),
 });
 export function guidanceService(db: Database) {
@@ -118,12 +98,13 @@ export function guidanceService(db: Database) {
             [projectId],
           )
         ).rows[0];
-        const stage = flows[flowId].stages[0];
+        if (!project || !owner) throw new ProjectError("Project not found.");
+        const {stage,name: nameNode,description: descriptionNode} = captureNodes(flows[flowId]);
         for (const [index, content] of [
           project.name,
           project.description,
         ].entries()) {
-          const nodeId = stage.nodes[index].id;
+          const nodeId = (index===0?nameNode:descriptionNode).id;
           await tx.query(
             "INSERT INTO node_answers (project_id, node_id, stage_id, revision, content, status, updated_by, updated_at) VALUES ($1, $2, $3, 1, $4, 'answered', $5, $6)",
             [
@@ -161,17 +142,17 @@ export function guidanceService(db: Database) {
         return {
           ...selected,
           answers: (
-            await tx.query<Answer>(
+            await queryRows(tx,answerSchema,
               "SELECT * FROM node_answers WHERE project_id = $1 ORDER BY node_id",
               [projectId],
             )
-          ).rows,
+          ),
           reviews: (
-            await tx.query<StageReview>(
+            await queryRows(tx,stageReviewSchema,
               "SELECT * FROM stage_reviews WHERE project_id = $1 ORDER BY stage_id",
               [projectId],
             )
-          ).rows,
+          ),
         };
       });
     },
@@ -208,7 +189,8 @@ export function guidanceService(db: Database) {
         };
         for (const [index, value] of [name, description].entries()) {
           if (value === (index === 0 ? current.name : current.description)) continue;
-          const node = flow.stages[0].nodes[index];
+          const captured = captureNodes(flow);
+          const node = index===0?captured.name:captured.description;
           const answer = (await tx.query<{ revision: number }>(
             "SELECT revision FROM node_answers WHERE project_id = $1 AND node_id = $2", [projectId, node.id],
           )).rows[0];
@@ -256,18 +238,18 @@ export function guidanceService(db: Database) {
         if (target.node.choices && data.status === "answered" && !data.choice)
           throw new ProjectError("Choose a direction and record why.");
         const current = (
-          await tx.query<Answer>(
+          await queryRows(tx,answerSchema,
             "SELECT * FROM node_answers WHERE project_id = $1 AND node_id = $2",
             [projectId, nodeId],
           )
-        ).rows[0];
+        )[0];
         if ((current?.revision ?? 0) !== data.revision) {
           if (current) throw new ConflictError(current);
           throw new ProjectError("This answer changed. Reload before saving.");
         }
-        const isName = nodeId === flow.stages[0].nodes[0].id;
-        const isDescription =
-          nodeId === flow.stages[0].nodes[1].id;
+        const captured = captureNodes(flow);
+        const isName = nodeId === captured.name.id;
+        const isDescription = nodeId === captured.description.id;
         if (
           (isName && data.content.length > 100) ||
           (isDescription && data.content.length > 2000)
@@ -363,11 +345,11 @@ export function guidanceService(db: Database) {
         if (!findNode(flow, nodeId))
           throw new ProjectError("Question not found.");
         return (
-          await tx.query<Revision>(
+          await queryRows(tx,revisionSchema,
             "SELECT revision,content,status,choice,author_id,origin,created_at FROM answer_revisions WHERE project_id = $1 AND node_id = $2 ORDER BY revision DESC",
             [projectId, nodeId],
           )
-        ).rows;
+        );
       });
     },
     async reviewStage(

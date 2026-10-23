@@ -1,3 +1,4 @@
+import { required } from "../src/lib/query";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
@@ -27,7 +28,7 @@ test("unread comments persist per person, paginate, deep link and respect curren
     assert.equal(new Set([...first.items,...older.items].map(c=>c.id)).size,28);
     assert.equal((await notifications.unread(outsider)).count,0);
     await notifications.read(outsider,[ids[0]]);
-    assert.equal((await db.query<{n:number}>("SELECT count(*)::int AS n FROM comment_reads")).rows[0].n,0);
+    assert.equal(required((await db.query<{n:number}>("SELECT count(*)::int AS n FROM comment_reads")).rows[0]).n,0);
     await notifications.read(owner,[ids[0]]);await notifications.read(owner,[ids[0]]);
     assert.equal((await notifications.unread(owner)).count,27);
     assert.equal((await notifications.unread(friend)).count,1);
@@ -35,17 +36,17 @@ test("unread comments persist per person, paginate, deep link and respect curren
     assert.ok(focused.items.some(c=>c.id===ids[0]));
     const other=await projects.create(owner,{name:"Other project",description:"Unrelated"});
     await assert.rejects(comments.comments(owner,other,{},undefined,ids[0]));
-    await comments.change(friend,id,ids[1],1,"delete");
+    await comments.change(friend,id,required(ids[1]),1,"delete");
     assert.equal((await notifications.unread(owner)).count,26);
-    await comments.change(friend,id,ids[0],1,"edit","Edited read comment");
+    await comments.change(friend,id,required(ids[0]),1,"edit","Edited read comment");
     assert.equal((await notifications.unread(owner)).count,26);
     await projects.remove(owner,id,friend.userId);
     assert.equal((await notifications.unread(friend)).count,0);
-    await notifications.read(friend,[(await comments.comments(owner,id,{})).items[0].id]);
+    await notifications.read(friend,[required((await comments.comments(owner,id,{})).items[0]).id]);
     await assert.rejects(notifications.unread(owner,"bad cursor"));
     await assert.rejects(notifications.read(owner,["bad uuid"]));
     await projects.deleteProject(owner,id,"Synthetic notifications");
     assert.equal((await notifications.unread(owner)).count,0);
-    assert.equal((await db.query<{n:number}>("SELECT count(*)::int AS n FROM comment_reads")).rows[0].n,0);
+    assert.equal(required((await db.query<{n:number}>("SELECT count(*)::int AS n FROM comment_reads")).rows[0]).n,0);
   } finally { await sql.close(); }
 });

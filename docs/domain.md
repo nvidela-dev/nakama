@@ -80,3 +80,9 @@ One artifact revision protects metadata, to-dos, uploads, file removal, and dele
 A directed project link records a source project and a spawned project. Either endpoint can have several links: several projects can contribute to one new project, and one project can spawn several follow-ups. Self-links and circular ancestry are rejected. Repeated links are idempotent. Links describe origin, not task dependencies or shared ownership.
 
 Spawning atomically creates the new project, creator's owner membership, optional selected flow, and selected source links. No memberships, answers, comments, tasks, artifacts, or files are copied. Links can also connect existing projects or be removed without deleting either endpoint. Deleting a project cascades only its incident links; linked projects survive.
+
+## Persistence normalization and types — 2026-10-23
+
+Artifact to-dos are now individual rows keyed by project, artifact, and task ID, with explicit position and the shared Task status vocabulary. Their update/reorder still compares and increments the artifact revision in one transaction. File size is computed from the stored payload. Node status, Task status, Artifact kind/readiness/media type, Membership role, Project state, Flow ID, activity kind, and answer origin have database enum types shared with generated TypeScript and input validators.
+
+Current answers and historical revisions enforce the same content/state rules. Activity's optional comment reference resolves to the same project. Project/task ancestry and artifact output invariants are also guarded by the database. Storage types describe actual nullability and driver values; UI projections and untrusted operation inputs are separate contracts.

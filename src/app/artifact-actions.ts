@@ -5,8 +5,12 @@ import { database } from "@/lib/db";
 import { artifactService, ArtifactConflictError } from "@/lib/artifacts";
 import { ProjectError } from "@/lib/projects";
 import type { ArtifactDetail } from "@/lib/artifact-model";
-export type ArtifactResult = { artifact?: ArtifactDetail; id?: string; deleted?: boolean; error?: string; current?: ArtifactDetail };
-function failure(error: unknown): ArtifactResult {
+type ArtifactFailure = {error:string;current?:ArtifactDetail;artifact?:never;id?:never;deleted?:never};
+export type ArtifactSaved = {artifact:ArtifactDetail;error?:never;current?:never;id?:never;deleted?:never};
+type ArtifactCreated = {id:string;artifact?:never;deleted?:never;error?:never;current?:never};
+type ArtifactDeleted = {deleted:true;artifact?:never;id?:never;error?:never;current?:never};
+export type ArtifactResult = ArtifactFailure | ArtifactSaved | ArtifactCreated | ArtifactDeleted;
+function failure(error: unknown): ArtifactFailure {
   if (error instanceof ArtifactConflictError) return {error:error.message,current:error.current};
   return {error:error instanceof ProjectError ? error.message : "Could not save the artifact. Your draft is still here."};
 }
@@ -14,7 +18,7 @@ function refresh(projectId: string) {
   revalidatePath("/artifacts");
   revalidatePath(`/projects/${projectId}`,"layout");
 }
-export async function createArtifact(projectId: string, input: unknown): Promise<ArtifactResult> {
+export async function createArtifact(projectId: string, input: unknown): Promise<ArtifactCreated | ArtifactFailure> {
   const person=await actor();
   try { const id=await artifactService(database()).create(person,projectId,input); refresh(projectId); return {id}; }
   catch(error) { return failure(error); }
@@ -31,7 +35,7 @@ export async function changeArtifact(projectId: string, id: string, revision: nu
     refresh(projectId);return {artifact};
   } catch(error) { return failure(error); }
 }
-export async function uploadArtifactFile(projectId: string, id: string, revision: number, data: FormData): Promise<ArtifactResult> {
+export async function uploadArtifactFile(projectId: string, id: string, revision: number, data: FormData): Promise<ArtifactSaved | ArtifactFailure> {
   const person=await actor();
   try {
     const file=data.get("file");

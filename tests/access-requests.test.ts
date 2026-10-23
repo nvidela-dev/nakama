@@ -1,3 +1,4 @@
+import { required } from "../src/lib/query";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { accessRequests, type AccessRequest } from "../src/lib/access-requests";
@@ -40,13 +41,13 @@ test("request reads and approvals require the verified administrator; dismiss do
   assert.equal(allowed.length, 1);
   await policy.submit("person@example.com");
   await policy.manage(admin, "request-0", "allow");
-  assert.equal(allowed[1].identifier, "person@example.com");
+  assert.equal(required(allowed[1]).identifier, "person@example.com");
   assert.equal((await policy.list(admin)).length, 0);
 });
 test("a cleanup failure retains the request but approved emails do not reappear as pending", async () => {
   const { policy, allowed } = fixture(true);
   await policy.submit("person@example.com");
   await assert.rejects(policy.manage(admin, "request-0", "allow"));
-  assert.equal(allowed[1].identifier, "person@example.com");
+  assert.equal(required(allowed[1]).identifier, "person@example.com");
   assert.equal((await policy.list(admin)).length, 0);
 });
