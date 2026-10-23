@@ -1,0 +1,137 @@
+.form-stack input,
+.form-stack textarea,
+.invite-result input {
+  width: 100%;
+  border: 1px solid #4b6056;
+  background: #101c1b;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  resize: vertical;
+}
+.people-list {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+}
+.people-list li {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+.people-list strong {
+  font-size: 13px;
+}
+.people-list small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.invite-result {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.invite-result input {
+  margin-top: 8px;
+}
+@media (max-width: 700px) {
+  .people-list li {
+    flex-wrap: wrap;
+  }
+}
+@media (min-width: 1024px) {
+  html[data-density="compact"] .form-stack input,
+  html[data-density="compact"] .form-stack textarea,
+  html[data-density="compact"] .form-stack select,
+  html[data-density="compact"] .invite-result input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  html[data-density="compact"] .people-list {
+    margin-bottom: 14px;
+  }
+  html[data-density="compact"] .people-list li {
+    padding: 8px 0;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+.main-whitelist .people-list li {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.access-requests .people-list li {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.discussion {
+  margin-top: 20px;
+}
+.comment-list,
+.activity-list {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+}
+.comment-item,
+.activity-list li {
+  padding-block: 14px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.comment-item:target {
+  outline: 2px solid var(--lime);
+  outline-offset: 4px;
+}
+.comment-meta {
+  display: flex;
+  gap: 6px 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.comment-meta strong {
+  color: var(--ink);
+}
+.comment-body {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.comment-body a,
+.activity-list a {
+  color: var(--lime);
+  text-decoration: underline;
+}
+.comment-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-block: 8px;
+}
+.comment-controls button {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+.comment-compose {
+  margin-top: 20px;
+}
+.activity-list p {
+  margin: 0;
+  font-size: 13px;
+}
+.activity-list time,
+.activity-list small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.activity-list a {
+  font-size: 12px;
+}

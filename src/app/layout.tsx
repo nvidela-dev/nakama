@@ -1,12 +1,13 @@
 import { cookies } from "next/headers";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { messages } from "@/shared/i18n/index";
+import { getLocale, getT } from "@/shared/i18n/server";
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { authConfigured } from "@/lib/auth";
-import { Header } from "@/components/header";
+import { authConfigured } from "@/features/access/server/auth";
+import { Header } from "@/features/shell/components/header";
 import "./globals.css";
-import { Footer } from "@/components/footer";
-import { LanguageProvider } from "@/components/language";
+import { Footer } from "@/features/shell/components/footer";
+import { LanguageProvider } from "@/shared/i18n/provider";
 import { enUS } from "@clerk/localizations/en-US";
 import { esUY } from "@clerk/localizations/es-UY";
 export const viewport: Viewport = {
@@ -29,17 +30,11 @@ export async function generateMetadata(): Promise<Metadata> {
     referrer: "no-referrer",
   };
 }
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const t = await getT();
   const locale = await getLocale();
   const density =
-    (await cookies()).get("nakama-density")?.value === "comfortable"
-      ? "comfortable"
-      : "compact";
+    (await cookies()).get("nakama-density")?.value === "comfortable" ? "comfortable" : "compact";
   const content = (
     <>
       <a className="skip-link" href="#main">
@@ -53,11 +48,9 @@ export default async function RootLayout({
   return (
     <html lang={locale} data-density={density} data-scroll-behavior="smooth">
       <body>
-        <LanguageProvider locale={locale}>
+        <LanguageProvider locale={locale} dictionary={locale === "es" ? messages : {}}>
           {authConfigured() ? (
-            <ClerkProvider localization={locale === "es" ? esUY : enUS}>
-              {content}
-            </ClerkProvider>
+            <ClerkProvider localization={locale === "es" ? esUY : enUS}>{content}</ClerkProvider>
           ) : (
             content
           )}

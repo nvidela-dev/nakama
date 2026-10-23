@@ -1,12 +1,12 @@
-import type { Queryable } from "../src/lib/database";
+import type { Queryable } from "../src/server/database/database";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { TaskResult } from "../src/app/task-actions";
-import type { ArtifactResult } from "../src/app/artifact-actions";
-import type { TaskSnapshot } from "../src/lib/task-model";
-import type { ArtifactDetail } from "../src/lib/artifact-model";
-import type { CommentTarget } from "../src/lib/collaboration";
-import type { DatabaseRows, NodeStatus } from "../src/lib/database.generated";
+import type { TaskResult } from "../src/features/tasks/actions";
+import type { ArtifactResult } from "../src/features/artifacts/actions";
+import type { TaskSnapshot } from "../src/features/tasks/model";
+import type { ArtifactDetail } from "../src/features/artifacts/model";
+import type { CommentTarget } from "../src/features/collaboration/server/collaboration";
+import type { DatabaseRows, NodeStatus } from "../src/shared/contracts/database.generated";
 // These compile-time assertions must fail if the contracts are accidentally loosened.
 function contracts(snapshot: TaskSnapshot, artifact: ArtifactDetail) {
   // @ts-expect-error A success snapshot and a generic error cannot coexist.
@@ -39,4 +39,5 @@ async function rawQueryContracts(tx: Queryable) {
   await tx.query<{ id: string }>("SELECT id FROM projects");
   void id;
 }
-test("raw database reads require runtime decoding", () => assert.equal(typeof rawQueryContracts, "function"));
+test("raw database reads require runtime decoding", () =>
+  assert.equal(typeof rawQueryContracts, "function"));

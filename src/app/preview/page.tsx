@@ -1,8 +1,8 @@
-import { getT } from "@/lib/i18n/server";
+import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
-import { Journey } from "@/components/journey";
-import { flows } from "@/lib/flows";
-import type { Guidance } from "@/lib/guidance";
+import { Journey } from "@/features/guidance/components/journey";
+import { flows } from "@/features/guidance/model/flows";
+import type { Guidance } from "@/features/guidance/model/types";
 export default async function Preview({
   searchParams,
 }: {
@@ -31,8 +31,7 @@ export default async function Preview({
         node_id: "spark-description",
         stage_id: "spark",
         revision: 1,
-        content:
-          "An audio documentary with interviews and original recordings.",
+        content: "An audio documentary with interviews and original recordings.",
         status: "answered",
         choice: null,
         needs_review: false,

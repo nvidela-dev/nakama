@@ -1,0 +1,12 @@
+:root {
+  --font-mono:
+    ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --ink: #edf2e8;
+  --muted: #a6b3ab;
+  --bg: #101c1b;
+  --panel: #182725;
+  --line: #32433d;
+  --lime: #dcf6a3;
+  --dark: #17231c;
+  --pink: #e9b7ae;
+}

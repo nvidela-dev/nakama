@@ -1,10 +1,10 @@
-import { required } from "../src/lib/query";
+import { required } from "../src/server/database/query";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
-import { projectService, type Actor } from "../src/lib/projects";
-import type { Database } from "../src/lib/database";
+import { projectService, type Actor } from "../src/features/projects/server/projects";
+import type { Database } from "../src/server/database/database";
 
 const sql = new PGlite();
 const db: Database = {
@@ -28,7 +28,7 @@ const cara: Actor = {
   displayName: "Cara",
 };
 before(async () => {
-  for (const file of (await readdir("migrations")).filter(name=>name.endsWith(".sql")).sort())
+  for (const file of (await readdir("migrations")).filter((name) => name.endsWith(".sql")).sort())
     await sql.exec(await readFile(`migrations/${file}`, "utf8"));
 });
 after(async () => {
@@ -64,8 +64,7 @@ test("capture is atomic, validated, and private across overlapping project group
     [b],
   );
   assert.equal(
-    (await service.people(alice, a)).members.find((m) => m.user_id === "bob")
-      ?.display_name,
+    (await service.people(alice, a)).members.find((m) => m.user_id === "bob")?.display_name,
     "Bob",
   );
   await assert.rejects(service.get(bob, b));
@@ -83,9 +82,7 @@ test("invitation acceptance requires the intended verified identity, stores only
   });
   const invitation = await service.invite(alice, id, "BOB@example.com");
   await assert.rejects(service.accept(cara, invitation.token));
-  await assert.rejects(
-    service.accept({ ...bob, verifiedEmails: [] }, invitation.token),
-  );
+  await assert.rejects(service.accept({ ...bob, verifiedEmails: [] }, invitation.token));
   const stored = (
     await sql.query<{ token_hash: string }>(
       "SELECT token_hash FROM project_invitations WHERE id = $1",
@@ -144,9 +141,7 @@ test("project and owner membership creation roll back together", async () => {
       description: "Test rollback.",
     }),
   );
-  const rows = await sql.query(
-    "SELECT id FROM projects WHERE name = 'Never partially saved'",
-  );
+  const rows = await sql.query("SELECT id FROM projects WHERE name = 'Never partially saved'");
   assert.equal(rows.rows.length, 0);
 });
 

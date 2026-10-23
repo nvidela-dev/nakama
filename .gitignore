@@ -12,3 +12,6 @@ test-results/
 
 # Private, rotating operational logs and imported production diagnostics
 .nakama/
+
+# Local component documentation build
+storybook-static/

@@ -1,4 +1,4 @@
-import {openProjectSetup} from "./project-setup";
+import { openProjectSetup } from "./project-setup";
 import { test, expect, type Page } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 async function language(page: Page, code: "en" | "es") {
@@ -38,22 +38,14 @@ test("language switches persist across routes and reload, including Clerk and mo
     .locator(".question-node")
     .filter({ has: page.getByText("Inspiración", { exact: true }) })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "¿Qué nos inspira?" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "¿Qué nos inspira?" })).toBeVisible();
   const route = page.url();
   await language(page, "en");
-  await expect(
-    page.getByRole("heading", { name: "What inspires us?" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What inspires us?" })).toBeVisible();
   expect(page.url()).toBe(route);
   await language(page, "es");
   await page.setViewportSize({ width: 390, height: 844 });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth > innerWidth,
-    ),
-  ).toBe(false);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await page.screenshot({
     path: test.info().outputPath("spanish-mobile.png"),
     fullPage: true,
@@ -74,15 +66,14 @@ test("switching languages preserves drafts, stored content, canonical decisions 
   await page.goto("/");
   await clerk.signIn({
     page,
-    emailAddress:
-      process.env.E2E_OWNER_EMAIL || "nakama-owner+clerk_test@example.com",
+    emailAddress: process.env.E2E_OWNER_EMAIL || "nakama-owner+clerk_test@example.com",
   });
   await page.goto("/projects");
   const name = `E2E idiomas ${Date.now()}`;
   await openProjectSetup(page);
   await page.getByLabel("Project name").fill(name);
   await page.getByLabel("Description").fill("What inspires us?");
-  await page.getByRole("button",{name:"Close setup",exact:true}).click();
+  await page.getByRole("button", { name: "Close setup", exact: true }).click();
   await language(page, "es");
   await openProjectSetup(page);
   await expect(page.getByLabel("Nombre del proyecto")).toHaveValue(name);
@@ -99,9 +90,9 @@ test("switching languages preserves drafts, stored content, canonical decisions 
     .fill("Mi borrador stays exactly as typed.");
   await page.getByLabel("Tu rumbo").selectOption("Save for later");
   await language(page, "en");
-  await expect(
-    page.getByLabel("Your answer, learning, or uncertainty"),
-  ).toHaveValue("Mi borrador stays exactly as typed.");
+  await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
+    "Mi borrador stays exactly as typed.",
+  );
   await expect(page.getByLabel("Your direction")).toHaveValue("Save for later");
   await language(page, "es");
   await page.getByLabel("¿En qué estado está?").selectOption("answered");
@@ -117,14 +108,10 @@ test("switching languages preserves drafts, stored content, canonical decisions 
   await page.getByLabel("Tu respuesta, aprendizaje o duda").fill("");
   await page.getByRole("button", { name: "Guardar este paso" }).click();
   await expect(
-    page.getByText(
-      "Registrá una respuesta, duda o motivo antes de elegir este estado.",
-    ),
+    page.getByText("Registrá una respuesta, duda o motivo antes de elegir este estado."),
   ).toBeVisible();
   await language(page, "en");
   await expect(
-    page.getByText(
-      "Record an answer, uncertainty, or reason before choosing this state.",
-    ),
+    page.getByText("Record an answer, uncertainty, or reason before choosing this state."),
   ).toBeVisible();
 });

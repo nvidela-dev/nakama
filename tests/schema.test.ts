@@ -4,29 +4,25 @@ import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { PGlite } from "@electric-sql/pglite";
-import { projectService } from "../src/lib/projects";
-import { artifactService } from "../src/lib/artifacts";
-import type { Database } from "../src/lib/database";
-import { queryRows, required } from "../src/lib/query";
-import { projectTaskSchema } from "../src/lib/row-schemas";
+import { projectService } from "../src/features/projects/server/projects";
+import { artifactService } from "../src/features/artifacts/server/artifacts";
+import type { Database } from "../src/server/database/database";
+import { queryRows, required } from "../src/server/database/query";
+import { projectTaskSchema } from "../src/server/database/row-schemas";
 const actor = { userId: "schema-owner", verifiedEmails: [] };
-const files = async () =>
-  (await readdir("migrations")).filter((f) => f.endsWith(".sql")).sort();
+const files = async () => (await readdir("migrations")).filter((f) => f.endsWith(".sql")).sort();
 const migrate = async (sql: PGlite, through = "999") => {
   for (const name of await files())
-    if (name <= through)
-      await sql.exec(await readFile(`migrations/${name}`, "utf8"));
+    if (name <= through) await sql.exec(await readFile(`migrations/${name}`, "utf8"));
 };
 const database = (sql: PGlite): Database => ({
   query: (q, v) => sql.query(q, v),
   transaction: (work) => sql.transaction((tx) => work(tx)),
 });
 test("generated table types and enum values exactly match a fresh database built from migrations", () => {
-  execFileSync(
-    process.execPath,
-    ["--import", "tsx", "scripts/database-types.ts", "--check"],
-    { stdio: "pipe" },
-  );
+  execFileSync(process.execPath, ["--import", "tsx", "scripts/database-types.ts", "--check"], {
+    stdio: "pipe",
+  });
 });
 test("populated migration preserves artifact tasks, ordering, file bytes, revisions and unrelated project data", async () => {
   const sql = new PGlite();
@@ -53,9 +49,7 @@ test("populated migration preserves artifact tasks, ordering, file bytes, revisi
       [file, project, artifact, bytes, bytes.length, actor.userId],
     );
     const before = (
-      await sql.query(
-        "SELECT id,name,description,created_at FROM projects ORDER BY id",
-      )
+      await sql.query("SELECT id,name,description,created_at FROM projects ORDER BY id")
     ).rows;
     for (const name of await files())
       if (name > "009_project_lineage.sql") {
@@ -63,11 +57,7 @@ test("populated migration preserves artifact tasks, ordering, file bytes, revisi
         await sql.transaction((tx) => tx.exec(migration));
       }
     assert.deepEqual(
-      (
-        await sql.query(
-          "SELECT id,name,description,created_at FROM projects ORDER BY id",
-        )
-      ).rows,
+      (await sql.query("SELECT id,name,description,created_at FROM projects ORDER BY id")).rows,
       before,
     );
     const detail = await artifactService(db).get(actor, project, artifact);
@@ -75,19 +65,14 @@ test("populated migration preserves artifact tasks, ordering, file bytes, revisi
     assert.equal(detail.revision, 7);
     assert.equal(detail.status, "ready");
     assert.deepEqual(
-      Buffer.from(
-        (await artifactService(db).file(actor, project, artifact, file)).data,
-      ),
+      Buffer.from((await artifactService(db).file(actor, project, artifact, file)).data),
       bytes,
     );
     assert.equal(required(detail.files[0]).size, bytes.length);
-    const reordered = await artifactService(db).tasks(
-      actor,
-      project,
-      artifact,
-      7,
-      [required(tasks[1]), required(tasks[0])],
-    );
+    const reordered = await artifactService(db).tasks(actor, project, artifact, 7, [
+      required(tasks[1]),
+      required(tasks[0]),
+    ]);
     assert.deepEqual(reordered.tasks, [tasks[1], tasks[0]]);
     assert.equal(reordered.revision, 8);
     assert.equal(
@@ -98,18 +83,10 @@ test("populated migration preserves artifact tasks, ordering, file bytes, revisi
       ).rows.length,
       0,
     );
-    await assert.rejects(
-      sql.query("UPDATE artifact_files SET size=1 WHERE id=$1", [file]),
-    );
+    await assert.rejects(sql.query("UPDATE artifact_files SET size=1 WHERE id=$1", [file]));
     await projectService(db).deleteProject(actor, project, "Migration fixture");
-    assert.equal(
-      (await sql.query("SELECT 1 FROM artifact_tasks")).rows.length,
-      0,
-    );
-    assert.equal(
-      (await sql.query("SELECT 1 FROM artifact_files")).rows.length,
-      0,
-    );
+    assert.equal((await sql.query("SELECT 1 FROM artifact_tasks")).rows.length, 0);
+    assert.equal((await sql.query("SELECT 1 FROM artifact_files")).rows.length, 0);
   } finally {
     await sql.close();
   }
@@ -123,25 +100,19 @@ test("invalid legacy JSON fails migration atomically without discarding the orig
         description: "Synthetic only",
       }),
       artifact = randomUUID();
-    const tasks = [
-      { id: "not-a-uuid", title: "Original preserved", status: "ready" },
-    ];
+    const tasks = [{ id: "not-a-uuid", title: "Original preserved", status: "ready" }];
     await sql.query(
       "INSERT INTO project_artifacts(id,project_id,name,kind,tasks,created_by,updated_by) VALUES($1,$2,'Draft','image',$3::jsonb,$4,$4)",
       [artifact, project, JSON.stringify(tasks), actor.userId],
     );
-    const migration = await readFile(
-      "migrations/010_relational_artifact_tasks.sql",
-      "utf8",
-    );
+    const migration = await readFile("migrations/010_relational_artifact_tasks.sql", "utf8");
     await assert.rejects(sql.transaction((tx) => tx.exec(migration)));
     assert.deepEqual(
       required(
         (
-          await sql.query<{ tasks: unknown }>(
-            "SELECT tasks FROM project_artifacts WHERE id=$1",
-            [artifact],
-          )
+          await sql.query<{ tasks: unknown }>("SELECT tasks FROM project_artifacts WHERE id=$1", [
+            artifact,
+          ])
         ).rows[0],
       ).tasks,
       tasks,
@@ -180,20 +151,18 @@ test("database guards reject invalid statuses, cross-project references, cycles 
         description: "Synthetic only",
       });
     await assert.rejects(
-      sql.query(
-        "UPDATE project_memberships SET role='admin' WHERE project_id=$1",
-        [a],
-      ),
+      sql.query("UPDATE project_memberships SET role='admin' WHERE project_id=$1", [a]),
     );
     await sql.query(
       "INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$4),($2,$3,$4)",
       [a, b, c, actor.userId],
     );
     await assert.rejects(
-      sql.query(
-        "INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3)",
-        [c, a, actor.userId],
-      ),
+      sql.query("INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3)", [
+        c,
+        a,
+        actor.userId,
+      ]),
     );
     const parent = randomUUID(),
       child = randomUUID();
@@ -202,15 +171,14 @@ test("database guards reject invalid statuses, cross-project references, cycles 
       [a, parent, child, actor.userId],
     );
     await assert.rejects(
-      sql.query(
-        "UPDATE project_tasks SET parent_id=$1 WHERE project_id=$2 AND id=$3",
-        [child, a, parent],
-      ),
+      sql.query("UPDATE project_tasks SET parent_id=$1 WHERE project_id=$2 AND id=$3", [
+        child,
+        a,
+        parent,
+      ]),
     );
     await assert.rejects(
-      sql.query("UPDATE project_tasks SET parent_id=id WHERE project_id=$1", [
-        a,
-      ]),
+      sql.query("UPDATE project_tasks SET parent_id=id WHERE project_id=$1", [a]),
     );
     const comment = randomUUID();
     await sql.query(
@@ -228,18 +196,11 @@ test("database guards reject invalid statuses, cross-project references, cycles 
       kind: "image",
     });
     await assert.rejects(
-      sql.query("UPDATE project_artifacts SET status='ready' WHERE id=$1", [
-        artifact,
-      ]),
+      sql.query("UPDATE project_artifacts SET status='ready' WHERE id=$1", [artifact]),
     );
-    assert.equal(
-      (await artifacts.get(actor, a, artifact)).status,
-      "in_progress",
-    );
+    assert.equal((await artifacts.get(actor, a, artifact)).status, "in_progress");
     await assert.rejects(
-      sql.query("UPDATE project_artifacts SET kind='markdown' WHERE id=$1", [
-        artifact,
-      ]),
+      sql.query("UPDATE project_artifacts SET kind='markdown' WHERE id=$1", [artifact]),
     );
     const file = randomUUID();
     await assert.rejects(
@@ -249,25 +210,17 @@ test("database guards reject invalid statuses, cross-project references, cycles 
       ),
     );
     await sql.transaction(async (tx) => {
-      await tx.query(
-        "UPDATE project_artifacts SET status='ready' WHERE id=$1",
-        [artifact],
-      );
+      await tx.query("UPDATE project_artifacts SET status='ready' WHERE id=$1", [artifact]);
       await tx.query(
         "INSERT INTO artifact_files(id,project_id,artifact_id,name,media_type,data,created_by) VALUES($1,$2,$3,'fixture.png','image/png',$4,$5)",
         [file, a, artifact, Buffer.from("Synthetic bytes"), actor.userId],
       );
     });
-    await assert.rejects(
-      sql.query("DELETE FROM artifact_files WHERE id=$1", [file]),
-    );
+    await assert.rejects(sql.query("DELETE FROM artifact_files WHERE id=$1", [file]));
     assert.equal((await artifacts.get(actor, a, artifact)).files.length, 1);
     await sql.transaction(async (tx) => {
       await tx.query("DELETE FROM artifact_files WHERE id=$1", [file]);
-      await tx.query(
-        "UPDATE project_artifacts SET status='in_progress' WHERE id=$1",
-        [artifact],
-      );
+      await tx.query("UPDATE project_artifacts SET status='in_progress' WHERE id=$1", [artifact]);
     });
     assert.equal((await artifacts.get(actor, a, artifact)).files.length, 0);
     await assert.rejects(
@@ -302,17 +255,11 @@ test("query decoders fail closed without including row contents in errors", asyn
       ],
     }),
   };
-  await assert.rejects(
-    queryRows(tx, projectTaskSchema, "Synthetic query"),
-    (error: Error) => {
-      assert.equal(
-        error.message,
-        "Database result does not match its declared schema.",
-      );
-      assert.ok(!error.message.includes("PRIVATE"));
-      return true;
-    },
-  );
+  await assert.rejects(queryRows(tx, projectTaskSchema, "Synthetic query"), (error: Error) => {
+    assert.equal(error.message, "Database result does not match its declared schema.");
+    assert.ok(!error.message.includes("PRIVATE"));
+    return true;
+  });
 });
 
 test("artifact library returns task counts without titles and bulk saves have bounded round trips", async () => {
@@ -346,13 +293,7 @@ test("artifact library returns task counts without titles and bulk saves have bo
       title: `SYNTHETIC PRIVATE TASK ${i} ` + "x".repeat(250),
       status: i % 2 ? "ready" : "done",
     }));
-    const saved = await artifactService(measured).tasks(
-      actor,
-      project,
-      artifact,
-      1,
-      tasks,
-    );
+    const saved = await artifactService(measured).tasks(actor, project, artifact, 1, tasks);
     assert.equal(saved.tasks.length, 100);
     assert.ok(calls <= 20, `100 tasks required ${calls} queries`);
     const card = required((await artifactService(db).list(actor, project))[0]);
@@ -380,18 +321,39 @@ test("redundant-index migration preserves task data, ordering and unique positio
   const sql = new PGlite();
   try {
     await migrate(sql, "012_graph_and_artifact_guards.sql");
-    const projectId = await projectService(database(sql)).create(actor, { name: "Index fixture", description: "Synthetic only" });
-    await sql.query("INSERT INTO project_tasks(id,project_id,title,created_by,updated_by) VALUES($1,$3,'First',$4,$4),($2,$3,'Second',$4,$4)", [randomUUID(), randomUUID(), projectId, actor.userId]);
+    const projectId = await projectService(database(sql)).create(actor, {
+      name: "Index fixture",
+      description: "Synthetic only",
+    });
+    await sql.query(
+      "INSERT INTO project_tasks(id,project_id,title,created_by,updated_by) VALUES($1,$3,'First',$4,$4),($2,$3,'Second',$4,$4)",
+      [randomUUID(), randomUUID(), projectId, actor.userId],
+    );
     const before = (await sql.query("SELECT * FROM project_tasks ORDER BY position")).rows;
     const migration = await readFile("migrations/013_remove_redundant_task_index.sql", "utf8");
-    await sql.transaction(tx => tx.exec(migration));
-    assert.deepEqual((await sql.query("SELECT * FROM project_tasks ORDER BY position")).rows, before);
-    const indexes = (await sql.query<{ indexname: string }>("SELECT indexname FROM pg_indexes WHERE tablename='project_tasks'")).rows.map(row => row.indexname);
+    await sql.transaction((tx) => tx.exec(migration));
+    assert.deepEqual(
+      (await sql.query("SELECT * FROM project_tasks ORDER BY position")).rows,
+      before,
+    );
+    const indexes = (
+      await sql.query<{ indexname: string }>(
+        "SELECT indexname FROM pg_indexes WHERE tablename='project_tasks'",
+      )
+    ).rows.map((row) => row.indexname);
     assert.ok(!indexes.includes("project_tasks_order"));
     assert.ok(indexes.includes("task_sibling_order"));
-    await assert.rejects(sql.query("INSERT INTO project_tasks(id,project_id,position,title,created_by,updated_by) OVERRIDING SYSTEM VALUE SELECT $1,project_id,position,'Duplicate',$2,$2 FROM project_tasks WHERE project_id=$3 ORDER BY position LIMIT 1", [randomUUID(), actor.userId, projectId]), (error: unknown) => {
-      assert.ok(error && typeof error === "object" && "code" in error);
-      return error.code === "23505";
-    });
-  } finally { await sql.close(); }
+    await assert.rejects(
+      sql.query(
+        "INSERT INTO project_tasks(id,project_id,position,title,created_by,updated_by) OVERRIDING SYSTEM VALUE SELECT $1,project_id,position,'Duplicate',$2,$2 FROM project_tasks WHERE project_id=$3 ORDER BY position LIMIT 1",
+        [randomUUID(), actor.userId, projectId],
+      ),
+      (error: unknown) => {
+        assert.ok(error && typeof error === "object" && "code" in error);
+        return error.code === "23505";
+      },
+    );
+  } finally {
+    await sql.close();
+  }
 });

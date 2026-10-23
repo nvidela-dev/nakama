@@ -43,3 +43,18 @@ A friend can capture an idea, invite the right people, work through a selected g
 ## Backend diagnostics
 
 Structured backend logs link operations, query timings, rollbacks, and safe errors without recording private project content. Local files rotate under the ignored `.nakama/logs/` directory. Type/build, contract, backend/database, service and compute diagnostics share a typed catalog and troubleshooting guidance. Start with `npm run logs -- doctor` or `npm run logs -- summary`; use `npm run logs:pull` to import validated production events through your existing Vercel CLI access. See the [logging workflow](docs/development.md#backend-logging--2026-10-23) and [typed diagnostic catalog](docs/development.md#typed-diagnostic-catalog--2026-10-23).
+
+## Frontend engineering
+
+Product code follows [feature ownership and composition](docs/architecture.md#feature-ownership-and-frontend-composition--2026-10-23). The internal [component library and Storybook](docs/component-library.md) share source and styles with the application. Read [engineering preferences](docs/engineering-preferences.md), [contribution patterns](CONTRIBUTING.md), [frontend measurements](docs/frontend-performance.md), and [the agent harness](docs/agent-harness.md) before extending it.
+
+```sh
+make check
+make verify
+npm run storybook
+npm run test:components
+# After a production build:
+npm run test:frontend
+```
+
+Storybook and the refactor are local development work until explicitly released. No component hosting service or additional database has been provisioned.

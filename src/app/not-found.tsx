@@ -1,4 +1,4 @@
-import { getT } from "@/lib/i18n/server";
+import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
 export default async function NotFound() {
   const t = await getT();

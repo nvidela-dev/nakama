@@ -1,0 +1,7 @@
+node_modules
+.next
+.nakama
+storybook-static
+package-lock.json
+**/*.generated.ts
+next-env.d.ts

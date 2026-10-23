@@ -71,7 +71,7 @@ Migration 009 adds directed `project_links` with a composite primary key, self-l
 
 SQL migrations own storage shape and the closed domain vocabularies. Migrations 010–012 normalize artifact to-dos into `artifact_tasks`, derive file size from its bytes, introduce shared Postgres enum types, and enforce additional state/revision/reference/graph/output integrity. Artifact tasks retain their stable IDs, explicit order, and the artifact-wide optimistic revision; they remain distinct from hierarchical project tasks. The `(project_id,artifact_id)` foreign key prevents cross-project task attachment. Position uniqueness is deferred so an atomic reorder can temporarily reuse positions. File metadata continues to be read independently of payload bytes. Library cards fetch task/done counts rather than task IDs or titles. Task replacement/reordering uses a batched upsert, keeping database round trips bounded independently of the 100-task limit.
 
-`npm run db:types` constructs an empty, disposable PGlite database from every migration, introspects columns/nullability/enums, and generates `src/lib/database.generated.ts`. It needs no credentials or hosted connection. Storage models and shared Zod validators reuse those generated types and enum values. `npm run db:check`, also run by typecheck and the test suite, rejects stale generated output. Unknown SQL types fail generation instead of silently becoming `any`. Timestamps use the normal node-postgres `Date` representation; `bigint`/`numeric` retain the driver's default strings. Generated storage rows are not insert/update payload types: defaults and generated columns still belong to SQL and explicit service inputs.
+`npm run db:types` constructs an empty, disposable PGlite database from every migration, introspects columns/nullability/enums, and generates `src/shared/contracts/database.generated.ts`. It needs no credentials or hosted connection. Storage models and shared Zod validators reuse those generated types and enum values. `npm run db:check`, also run by typecheck and the test suite, rejects stale generated output. Unknown SQL types fail generation instead of silently becoming `any`. Timestamps use the normal node-postgres `Date` representation; `bigint`/`numeric` retain the driver's default strings. Generated storage rows are not insert/update payload types: defaults and generated columns still belong to SQL and explicit service inputs.
 
 `row-schemas.ts` describes named query projections, checked against storage types with `satisfies`; `queryRows` validates actual driver results before returning domain objects and emits a body-free error on mismatch. All consumed application query results use these decoders, including small internal projections and RETURNING/existence checks. The raw Database interface returns unknown rows and accepts no caller-declared result generic. Parameterized SQL and transaction-scoped membership checks remain in place. This is not a compile-time SQL parser or a new ORM.
 
@@ -107,3 +107,42 @@ The operational log envelope now carries a shared diagnostic union for compiler,
 The compiler worker collects safe TypeScript codes/locations, the build supervisor records check and process outcomes, Clerk adapters classify failures and decode consumed projections, and hosting import reduces supported system events into allowlisted evidence. A provider response body, compiler message, platform log message, credential or source excerpt is never the diagnostic payload. Unknown causes remain unknown. SQLSTATE and transaction outcome must be considered together before any proposed repair.
 
 A per-build identity and server-only source maps support offline source-location recovery against the matching build. Logs and maps do not establish release deployment: remote CI/hosting collection and production request behavior need separate verification. No new service, automatic repair, release or migration was introduced. See the [diagnostic workflow](development.md#typed-diagnostic-catalog--2026-10-23).
+
+## Feature ownership and frontend composition — 2026-10-23
+
+```text
+src/
+  app/                     Next routes, layouts, loading/error UI, metadata, HTTP adapters
+  features/
+    access/                admission, administrator controls, identity adapters
+    artifacts/             outputs, uploads, readers, artifact tasks
+    collaboration/         comments, invitations, membership UI, activity
+    guidance/              full templates, generated picker catalog, answers/reviews/map
+    notifications/         unread comment reads and notification interaction
+    preferences/           locale/density controls and cookie actions
+    projects/              capture/setup, cards, workspace composition, lineage
+    shell/                 header/footer composition
+    tasks/                 hierarchical tasks and Lock-In exchange
+  shared/
+    contracts/             generated storage types, closed vocabularies, common identities/results
+    i18n/                  translation functions, selected dictionary provider, server locale adapter
+    lib/                   genuinely shared pure helpers
+    ui/                    internal component library and colocated stories
+  server/
+    database/              pool, transactions, query decoding/projections, activity insert primitive
+    observability/         safe diagnostics, collectors, correlation, local files and offline readers
+```
+
+A feature owns its model, input validation, Server Actions, service implementation, components, and prefixed stylesheet. Models may be a `model.ts` or an organized `model/` directory for the larger guidance definitions. Use explicit import paths; do not introduce mixed environment barrels. Routes assemble features and call authorized services; features never import `app`. Shared code and infrastructure never import features. The shared Actor contract prevents database instrumentation from depending on the project implementation.
+
+The runtime feature dependency policy is explicit in [the architecture checker](../scripts/check-architecture.ts). Projects, guidance and collaboration coordinate through named service functions; a feature-level dependency in both directions is allowed only where the module graph remains acyclic. Shell composes preferences, project navigation, notifications and access. Tasks and artifacts depend on project authorization. Add a new feature/dependency to that policy deliberately rather than bypassing the rule through a general utilities directory.
+
+The checker rejects runtime import cycles, undeclared feature dependencies, infrastructure-to-feature imports, app imports from lower layers, primitive bypasses, and transitive browser paths to server code or full workflow templates. Client code may import explicit `use server` action modules, which Next turns into RPC references. Presentation contracts come from feature models rather than server implementations. Type-only references do not create runtime graph edges. Next's own compiler remains a second check; the custom guard is not a full JavaScript security analyzer.
+
+Reusable UI has no project, identity, database, router or Server Action dependency. React 19 native props and refs preserve form semantics. Shared dialogs and tabs concentrate keyboard behavior; inactive tab panels remain mounted to retain drafts. [Component library](component-library.md) owns the API and Storybook workflow.
+
+Prefer server composition and small interactive components. The language provider receives only the selected locale dictionary, so English pages do not import the complete Spanish dictionary through a shared hook. The type picker uses a generated summary catalog; full templates remain server-owned. Markdown and question/review editors load conditionally, and the 3D module remains conditional on opening its dialog. No shared caching of private project reads is introduced.
+
+The app's global stylesheet is now an ordered import entrypoint: library tokens/foundations, then feature-owned styles. Keep feature selectors domain-prefixed; use the shared controls and tokens instead of duplicating their appearance. Shared global patterns intentionally apply in Storybook too.
+
+See [engineering preferences](engineering-preferences.md), [contribution steps](../CONTRIBUTING.md), and [frontend measurements](frontend-performance.md). Architecture and documentation changes do not establish deployed or production performance by themselves.

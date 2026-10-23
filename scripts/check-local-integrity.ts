@@ -6,14 +6,13 @@ import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { projectService } from "../src/lib/projects";
-import { collaborationService } from "../src/lib/collaboration";
-import { guidanceService } from "../src/lib/guidance";
-import type { Database } from "../src/lib/database";
+import { projectService } from "../src/features/projects/server/projects";
+import { collaborationService } from "../src/features/collaboration/server/collaboration";
+import { guidanceService } from "../src/features/guidance/server/guidance";
+import type { Database } from "../src/server/database/database";
 // Deliberately fixed to db:local; never read an application's hosted connection string.
 const pool = new Pool({
-  connectionString:
-    "postgresql://postgres:nakama-local@127.0.0.1:54331/postgres",
+  connectionString: "postgresql://postgres:nakama-local@127.0.0.1:54331/postgres",
   max: 4,
 });
 const db: Database = {
@@ -58,14 +57,16 @@ try {
     });
   ids.push(a, b);
   await oneSucceeds([
-    pool.query(
-      "INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3)",
-      [a, b, actor.userId],
-    ),
-    pool.query(
-      "INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3)",
-      [b, a, actor.userId],
-    ),
+    pool.query("INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3)", [
+      a,
+      b,
+      actor.userId,
+    ]),
+    pool.query("INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3)", [
+      b,
+      a,
+      actor.userId,
+    ]),
   ]);
   const first = randomUUID(),
     second = randomUUID();
@@ -74,14 +75,16 @@ try {
     [a, first, second, actor.userId],
   );
   await oneSucceeds([
-    pool.query(
-      "UPDATE project_tasks SET parent_id=$1 WHERE project_id=$2 AND id=$3",
-      [first, a, second],
-    ),
-    pool.query(
-      "UPDATE project_tasks SET parent_id=$1 WHERE project_id=$2 AND id=$3",
-      [second, a, first],
-    ),
+    pool.query("UPDATE project_tasks SET parent_id=$1 WHERE project_id=$2 AND id=$3", [
+      first,
+      a,
+      second,
+    ]),
+    pool.query("UPDATE project_tasks SET parent_id=$1 WHERE project_id=$2 AND id=$3", [
+      second,
+      a,
+      first,
+    ]),
   ]);
   const artifact = randomUUID();
   await pool.query(
@@ -109,18 +112,14 @@ try {
   });
   assert.ok(
     comments.items.some(
-      (comment) =>
-        comment.id === commentId && comment.created_at instanceof Date,
+      (comment) => comment.id === commentId && comment.created_at instanceof Date,
     ),
   );
   const activity = await collaboration.activity(actor, a);
   assert.ok(activity.items.some((event) => event.kind === "answer_captured"));
   assert.ok(activity.items.some((event) => event.kind === "comment_created"));
-  const migrationDatabase =
-    "nakama_migration_" + randomUUID().replaceAll("-", "");
-  const migrationFolder = await mkdtemp(
-    join(tmpdir(), "nakama-migration-check-"),
-  );
+  const migrationDatabase = "nakama_migration_" + randomUUID().replaceAll("-", "");
+  const migrationFolder = await mkdtemp(join(tmpdir(), "nakama-migration-check-"));
   await pool.query(`CREATE DATABASE "${migrationDatabase}"`);
   const migrationPool = new Pool({
     connectionString: `postgresql://postgres:nakama-local@127.0.0.1:54331/${migrationDatabase}`,

@@ -22,9 +22,7 @@ try {
   await client.connect();
   try {
     const root = new URL("../migrations/", import.meta.url);
-    for (const file of (await readdir(root))
-      .filter((name) => name.endsWith(".sql"))
-      .sort()) {
+    for (const file of (await readdir(root)).filter((name) => name.endsWith(".sql")).sort()) {
       await client.query("BEGIN");
       try {
         await client.query(await readFile(new URL(file, root), "utf8"));
@@ -37,9 +35,7 @@ try {
   } finally {
     await client.end();
   }
-  console.log(
-    "Disposable database: postgresql://postgres:nakama-local@127.0.0.1:54331/postgres",
-  );
+  console.log("Disposable database: postgresql://postgres:nakama-local@127.0.0.1:54331/postgres");
 } catch {
   await server.stop().catch(() => {});
   await rm(directory, { recursive: true, force: true });

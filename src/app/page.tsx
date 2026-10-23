@@ -1,9 +1,9 @@
-import { WaveMark } from "@/components/wave-mark";
+import { WaveMark } from "@/shared/ui/wave-mark";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { getT } from "@/lib/i18n/server";
+import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
-import { authConfigured } from "@/lib/auth";
+import { authConfigured } from "@/features/access/server/auth";
 export default async function Home() {
   if (authConfigured() && (await auth()).isAuthenticated) redirect("/projects");
   const t = await getT();
@@ -60,7 +60,9 @@ export default async function Home() {
         <div className="island">
           <div className="island-top">
             <div className="flag">
-              <span><WaveMark /></span>
+              <span>
+                <WaveMark />
+              </span>
             </div>
             <span className="tree tree-one">✦</span>
             <span className="tree tree-two">✦</span>
@@ -75,9 +77,7 @@ export default async function Home() {
         <span className="compass" aria-hidden="true">
           N<br />✧
         </span>
-        <span className="scene-caption">
-          {t("Stages, decisions, and revisions.")}{" "}
-        </span>
+        <span className="scene-caption">{t("Stages, decisions, and revisions.")} </span>
       </section>
       <section id="how-it-works" className="how">
         <div>
@@ -98,23 +98,21 @@ export default async function Home() {
           <article>
             <span>03</span>
             <h3>{t("Test and develop.")}</h3>
-            <p>
-              {t("Record answers, test assumptions, and track decisions.")}{" "}
-            </p>
+            <p>{t("Record answers, test assumptions, and track decisions.")} </p>
           </article>
         </div>
       </section>
       <section className="closing-note">
-        <span><WaveMark /></span>
+        <span>
+          <WaveMark />
+        </span>
         <p>
           {t("Business development.")} <br />
           {t("Creative production.")} <br />
           <strong>{t("Choose the workflow that fits your project.")}</strong>
         </p>
         {!authConfigured() && (
-          <small>
-            {t("Sign-in must be configured to use private projects.")}{" "}
-          </small>
+          <small>{t("Sign-in must be configured to use private projects.")} </small>
         )}
       </section>
     </main>

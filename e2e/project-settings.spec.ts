@@ -1,10 +1,15 @@
-import {openProjectSetup} from "./project-setup";
+import { openProjectSetup } from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 
-test("owner edits project metadata, preserves guided answers, and confirms deletion", async ({ page }) => {
+test("owner edits project metadata, preserves guided answers, and confirms deletion", async ({
+  page,
+}) => {
   await page.goto("/");
-  await clerk.signIn({ page, emailAddress: process.env.E2E_OWNER_EMAIL || "nakama-owner+clerk_test@example.com" });
+  await clerk.signIn({
+    page,
+    emailAddress: process.env.E2E_OWNER_EMAIL || "nakama-owner+clerk_test@example.com",
+  });
   await page.goto("/projects");
   const original = `E2E settings ${Date.now()}`;
   await openProjectSetup(page);
@@ -17,7 +22,9 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   const form = page.locator("form[id$='-edit-project-form']");
   await form.getByLabel("Project name", { exact: true }).fill(`${original} renamed`);
   await form.getByRole("button", { name: "Save changes", exact: true }).click();
-  await expect(page.getByRole("heading", { name: `${original} renamed`, exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: `${original} renamed`, exact: true }),
+  ).toBeVisible();
   await expect(form.getByRole("status")).toHaveText("Project updated.");
   await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
@@ -28,7 +35,9 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   await form.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.locator(".page-heading p")).toHaveText("Updated synthetic project purpose.");
   await page.goto(`${path}?stage=spark&node=spark-description`);
-  await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue("Updated synthetic project purpose.");
+  await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
+    "Updated synthetic project purpose.",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await page.getByRole("button", { name: "Delete project", exact: true }).click();
