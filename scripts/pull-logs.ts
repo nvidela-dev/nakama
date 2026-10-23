@@ -8,7 +8,9 @@ import { rotatingFileSink } from "../src/lib/log-file";
 const args = process.argv.slice(2);
 function option(name: string) { const index = args.indexOf(name); return index >= 0 ? args[index + 1] : undefined; }
 const until = option("--until");
-const since = option("--since") ?? "1h", environment = option("--environment") ?? "production", limit = option("--limit") ?? "1000";
+// Vercel's runtime log endpoint rejects a one-hour request window. Match its
+// documented 30-minute default so a plain `npm run logs:pull` works reliably.
+const since = option("--since") ?? "30m", environment = option("--environment") ?? "production", limit = option("--limit") ?? "1000";
 const time = (value: string) => /^\d+(m|h|d)$/.test(value) || /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value) && Number.isFinite(Date.parse(value));
 if (!time(since) || until !== undefined && !time(until) || !['production', 'preview'].includes(environment) || !/^\d+$/.test(limit) || Number(limit) < 1 || Number(limit) > 10000) throw new Error("Use --since 1h, --environment production|preview, --limit 1–10000.");
 try {
