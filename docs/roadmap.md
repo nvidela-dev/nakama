@@ -291,4 +291,4 @@ Apply the same compact sidebar treatment to Members, invitation creation/history
 
 ## Accepted refinement: translucent 3D map popup — 2026-10-23
 
-Move the 3D stage map from the inline workspace to a modal popup with a 90% transparent surface. Keep graph/controls readable, preserve stage navigation and narrow-screen scrolling, and provide keyboard dismissal and focus restoration. Opening the map must not move the project columns.
+Move the 3D stage map from the inline workspace to a modal popup with a 10% transparent surface (90% opacity), following the user’s correction. Keep graph/controls readable, preserve stage navigation and narrow-screen scrolling, and provide keyboard dismissal and focus restoration. Opening the map must not move the project columns.

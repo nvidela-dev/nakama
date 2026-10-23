@@ -144,4 +144,4 @@ The Linked projects panel uses compact spacing and smaller typography in both de
 
 The Members/invitations/Activity sidebar panel shares Linked projects’ compact typography and padding in both densities, with 14px title, 11px content/controls, and 10px supporting text. Activity entries and people rows use tighter spacing; touch controls retain 44px targets.
 
-The 3D stage map opens in a modal popup rather than expanding the working column. Its background is 90% transparent (10% opacity); map geometry, labels, and controls keep their own opacity. Escape, Close, outside click, or choosing a map destination closes it; focus returns to the opener. Background scrolling is paused while open, and narrow screens retain horizontal map scrolling.
+The 3D stage map opens in a modal popup rather than expanding the working column. Its background is 10% transparent (90% opacity); map geometry, labels, and controls keep their own opacity. Escape, Close, outside click, or choosing a map destination closes it; focus returns to the opener. Background scrolling is paused while open, and narrow screens retain horizontal map scrolling.
