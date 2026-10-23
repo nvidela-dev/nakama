@@ -11,7 +11,7 @@ export function ProjectTimeline({ stages, t }: {
       <ol className="project-timeline timeline-placeholder" aria-hidden="true">
         {Array.from({ length: 5 }, (_, index) => (
           <li key={index}>
-            <span className="timeline-marker"><span /></span>
+            <span className="timeline-marker" />
             <span className="timeline-name"><span className="timeline-placeholder-bar" /></span>
             <span className="timeline-count"><span className="timeline-placeholder-bar short" /></span>
           </li>
@@ -25,9 +25,7 @@ export function ProjectTimeline({ stages, t }: {
       const label = `${t(stage.name)} · ${state} · ${stage.answered}/${stage.total} ${t("questions answered")}${stage.revisit ? t(" · revisit") : ""} · ${stage.blocked} ${t("blocked")} · ${stage.skipped} ${t("skipped")}`;
       return <li key={stage.id} title={label} aria-label={label}
         className={`${stage.started ? "started" : ""} ${stage.reviewed ? "reviewed" : ""} ${stage.revisit ? "revisit" : ""}`}>
-        <span className="timeline-marker" aria-hidden="true" style={{ "--stage-progress": `${stage.total ? stage.answered / stage.total * 100 : 0}%` } as CSSProperties}>
-          <span>{stage.revisit ? "!" : stage.reviewed ? "✓" : stage.started ? "·" : ""}</span>
-        </span>
+        <span className="timeline-marker" aria-hidden="true" style={{ "--stage-progress": `${stage.total ? stage.answered / stage.total * 100 : 0}%` } as CSSProperties} />
         <span className="timeline-name" aria-hidden="true">{t(stage.name)}</span>
         <span className="timeline-count" aria-hidden="true">{stage.answered}/{stage.total}</span>
       </li>;

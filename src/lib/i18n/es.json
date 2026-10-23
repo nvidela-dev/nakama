@@ -852,5 +852,8 @@
   "Retry": "Reintentar",
   "Loading…": "Cargando…",
   "Sign in first.": "Primero inicia sesión.",
-  "Invalid notification page.": "Página de notificaciones inválida."
+  "Invalid notification page.": "Página de notificaciones inválida.",
+  "Open project list": "Abrir lista de proyectos",
+  "Could not load projects.": "No se pudieron cargar los proyectos.",
+  "No projects yet.": "Todavía no hay proyectos."
 }

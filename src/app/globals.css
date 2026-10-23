@@ -1774,10 +1774,7 @@ footer {
 .project-timeline li { position: relative; flex: 1; min-width: 0; text-align: center; font-size: 10px; line-height: 1.3; color: var(--muted); }
 .project-timeline li:not(:last-child)::before { content: ""; position: absolute; top: 11px; left: 50%; width: 100%; height: 1px; background: var(--line); }
 .project-timeline .timeline-marker { position: relative; display: grid; place-items: center; width: 24px; height: 24px; margin: 0 auto 7px; border: 2px solid var(--line); border-radius: 50%; background: var(--panel); isolation: isolate; }
-.project-timeline .timeline-marker::before { content: ""; position: absolute; width: var(--stage-progress, 0%); height: var(--stage-progress, 0%); border-radius: 50%; background: var(--lime); }
-.project-timeline .timeline-marker > span { position: relative; display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; color: var(--ink); font-size: 14px; font-weight: 700; text-shadow: 0 1px 2px var(--bg), 0 -1px 2px var(--bg); }
-.project-timeline .reviewed .timeline-marker { border-color: var(--lime); }
-.project-timeline .revisit .timeline-marker > span { color: var(--pink); }
+.project-timeline .timeline-marker::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: var(--stage-progress, 0%); height: var(--stage-progress, 0%); border-radius: 50%; background: var(--lime); }
 .project-timeline .timeline-name { display: block; padding-inline: 2px; overflow-wrap: anywhere; }
 .project-timeline .started .timeline-name { color: var(--ink); }
 .project-timeline .timeline-count { display: block; margin-top: 4px; font-variant-numeric: tabular-nums; font-size: 10px; color: var(--muted); }
@@ -2107,7 +2104,10 @@ html[data-density="compact"] .workspace .journey-stage-heading .stage-heading-ro
 /* Private unread comments stay in a keyboard-accessible header disclosure. */
 .site-header:has(.notification-panel) { z-index: 60; }
 .notification-bell { position: relative; }
-.notification-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.notification-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; padding: 4px; border: 0; border-radius: 50%; background: transparent; color: var(--ink); }
+.notification-trigger:hover { background: transparent; color: var(--lime); }
+.notification-trigger:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+@media (pointer: coarse) { .notification-trigger { min-width: 44px; min-height: 44px; } }
 .notification-badge { position: absolute; top: 0; right: -4px; padding: 2px 5px; border-radius: 12px; background: var(--lime); color: var(--bg); font-size: 10px; font-weight: 700; }
 .notification-panel { position: absolute; z-index: 50; right: 0; top: calc(100% + 8px); width: min(390px, calc(100vw - 32px)); max-height: min(650px, 75dvh); overflow-y: auto; box-shadow: 0 12px 36px #0008; }
 .notification-panel h2 { font-size: 16px; }
@@ -2119,3 +2119,23 @@ html[data-density="compact"] .workspace .journey-stage-heading .stage-heading-ro
 .notification-list p { font-size: 13px; margin-block: 8px; }
 .notification-list button { font-size: 12px; }
 @media (max-width: 700px) { .notification-panel { position: fixed; top: 100px; right: 16px; } }
+
+footer { align-items: center; gap: 16px; }
+.footer-preferences { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 14px; margin-left: auto; }
+
+/* Project navigation keeps the overview link and a separate disclosure. */
+.site-header:has(.project-navigation-panel) { z-index: 60; }
+.project-navigation { position: relative; display: flex; align-items: center; gap: 3px; }
+.project-navigation-trigger { display: inline-flex; min-width: 24px; min-height: 28px; padding: 4px; border: 0; border-radius: 4px; background: transparent; color: var(--ink); }
+.project-navigation-trigger:hover { background: transparent; color: var(--lime); }
+.project-navigation-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+.project-navigation-trigger:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+.project-navigation-panel { position: absolute; z-index: 50; top: calc(100% + 12px); right: 0; width: min(300px, calc(100vw - 32px)); height: 320px; max-height: calc(100dvh - 140px); overflow-y: auto; overscroll-behavior: contain; padding: 8px; box-shadow: 0 12px 36px #0008; }
+.project-navigation-panel ul { list-style: none; margin: 0; padding: 0; }
+.project-navigation-panel li + li { border-top: 1px solid var(--line); }
+.site-header .project-navigation-panel a { display: block; min-height: 44px; padding: 10px 12px; overflow-wrap: anywhere; white-space: normal; border-radius: 4px; }
+.project-navigation-panel a:hover, .project-navigation-panel a[aria-current="page"] { background: #2b4030; color: var(--lime); }
+.project-navigation-panel a:focus-visible { outline: 2px solid var(--lime); outline-offset: -2px; }
+.project-navigation-panel p { margin: 12px; }
+@media (pointer: coarse) { .project-navigation-trigger { min-width: 44px; min-height: 44px; } }
+@media (max-width: 700px) { .project-navigation-panel { position: fixed; top: 100px; right: 16px; } }

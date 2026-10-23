@@ -42,8 +42,8 @@ export function NotificationBell() {
     catch { setError(true); } finally { setBusy(false); }
   }
   return <div className="notification-bell" ref={root}>
-    <button ref={button} className="notification-trigger nav-button" aria-label={`${t("Unread comments")}${inbox ? `: ${inbox.count}` : ""}`} aria-expanded={open} aria-controls="comment-notifications" onClick={() => { setOpen(!open); if (!open) void refresh(); }}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+    <button ref={button} className="notification-trigger" aria-label={`${t("Unread comments")}${inbox ? `: ${inbox.count}` : ""}`} aria-expanded={open} aria-controls="comment-notifications" onClick={() => { setOpen(!open); if (!open) void refresh(); }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
       {!!inbox?.count && <span className="notification-badge">{inbox.count > 99 ? "99+" : inbox.count}</span>}
       {error && <span aria-hidden="true">!</span>}
     </button>

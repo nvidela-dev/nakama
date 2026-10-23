@@ -229,3 +229,15 @@ The user requested the three-column private-project workspace on normal widescre
 ## Unread comment notifications — 2026-10-23
 
 The user requested a notification bell for all unread comments on their projects. Add a per-person in-app inbox across current memberships, excluding own/deleted comments, with durable read receipts, counts, paginated previews, exact-context links and explicit mark-as-read. Opening the inbox does not mark comments read; viewing a comment in discussion for one second in a foreground tab does. Existing comments begin unread, and edits do not reset read status. Keep app admission and current project membership checks on all reads/writes. Refresh on opening/navigation/focus/confirmed read and each visible minute. No email/push delivery is included.
+
+## Header and footer controls — 2026-10-23
+
+The user requested a smaller borderless bell that fits navigation, and moving language plus Compact/Comfortable controls to the footer in place of its right-hand description. Retain saved preferences and accessible focus/touch targets.
+
+## Header project navigation — 2026-10-23
+
+The user requested a chevron to the right of Your projects that opens a fixed-height scrollable list for direct project navigation. Preserve the overview text link and reuse the membership-scoped project list behind app admission; return only project IDs/names and reload each opening. Keep keyboard access, current-project indication and phone viewport bounds.
+
+## Clean centered progress circles — 2026-10-23
+
+The user requested removing exclamation marks and showing only concentric circles on project-list timelines. Remove all interior symbols and review-based border coloring, and explicitly center each progress disc with 50% positioning and translation. Keep review/revisit information in tooltips and accessible labels; counts remain visible.

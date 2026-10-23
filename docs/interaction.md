@@ -30,7 +30,7 @@ Before M5 acceptance, compare capture → stage → answer → comment → expor
 
 ## Desktop density and ultrawide screens — 2026-10-22
 
-Desktop defaults to Compact at 1024px and wider. The header offers Compact / Comfortable and remembers the selection in a browser cookie. Compact uses the available viewport width, including ultrawide displays, with a fixed-width crew/capture sidebar, a responsive project-card grid, short stage rows, tighter question branches, and side-by-side answer/state controls. An open stage or answer retains an overview navigation bar. Comfortable preserves the original roomy layout. Phone and tablet spacing stays unchanged regardless of the saved desktop preference. Density is presentation only: changing it keeps drafts and selected values mounted.
+Desktop defaults to Compact at 1024px and wider. The footer offers Compact / Comfortable and remembers the selection in a browser cookie. Compact uses the available viewport width, including ultrawide displays, with a fixed-width crew/capture sidebar, a responsive project-card grid, short stage rows, tighter question branches, and side-by-side answer/state controls. An open stage or answer retains an overview navigation bar. Comfortable preserves the original roomy layout. Phone and tablet spacing stays unchanged regardless of the saved desktop preference. Density is presentation only: changing it keeps drafts and selected values mounted.
 
 ## Interface language and entry route — 2026-10-22
 
@@ -48,7 +48,7 @@ The user's supplied reference refines the mini-view toward a dark technical disp
 
 Project cards display only the project title as their navigation link. Descriptions, ownership/member labels, and the private-project footer are omitted from the list; project details and membership rules are unchanged.
 
-Each titled project card now includes a compact horizontal stage timeline for its selected flow. Stage labels and answered-question counts remain visible; concentric inner discs grow outward to fill their outer circles with answer coverage, a check indicates explicit human review, and an exclamation flags revisiting. Tooltips and accessible list labels additionally report blocked/skipped counts. Answer coverage does not imply review or validation. Projects without a flow show a muted five-position placeholder timeline with empty rings and short label bars. No stage names or progress counts are invented; accessible text and a tooltip explain that a flow must be chosen. The entire card remains one navigation link.
+Each titled project card now includes a compact horizontal stage timeline for its selected flow. Stage labels and answered-question counts remain visible; concentric inner discs grow outward to fill their outer circles with answer coverage, markers contain no dots, checks, or exclamation marks. Tooltips and accessible list labels report explicit human review, revisit flags, and blocked/skipped counts. Answer coverage does not imply review or validation. Projects without a flow show a muted five-position placeholder timeline with empty rings and short label bars. No stage names or progress counts are invented; accessible text and a tooltip explain that a flow must be chosen. The entire card remains one navigation link.
 
 Compact desktop project cards stretch to the tallest card in each grid row. Mixed cards with and without a selected flow retain aligned bottoms and consistent row gaps.
 
@@ -111,3 +111,11 @@ Import Lock-In accepts a user-selected JSON file and previews a chosen source pr
 ## Unread comment bell — 2026-10-23
 
 Signed-in navigation includes a bell with the unread count and a keyboard-accessible disclosure. It lists project names, comment authors and short previews across current memberships, with links to the exact discussion and explicit Mark as read controls. Opening the disclosure leaves unread status intact. Discussion comments mark read only after being visible for one second in a foreground tab. Escape closes the panel and restores bell focus; outside clicks close it too. Loading, empty, failed/retry and older-page states have English and Spanish copy. On phones the panel stays within the viewport.
+
+## Footer preferences and header bell — 2026-10-23
+
+The footer keeps the Nakama name on the left and language/layout controls on the right, replacing the generic description. The header bell uses a small borderless icon aligned with navigation; coarse pointers retain a larger invisible touch target. Keyboard focus remains visible.
+
+## Header project dropdown — 2026-10-23
+
+Your projects remains a link to the project list, with a separate chevron opening a 320px-tall scrollable project dropdown (bounded by the viewport on short screens). Each entry links to its project, highlights the current project, and wraps long names. Fetch current authorized project names on every opening, with loading, empty, retry and Spanish states. Escape closes and restores chevron focus; outside clicks and project selection close it. Keyboard users can tab through the ordinary links.

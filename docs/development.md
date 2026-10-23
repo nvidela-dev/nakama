@@ -234,3 +234,13 @@ Migration 007 adds per-user comment read receipts with comment-deletion cascades
 All 36 local tests and the production build passed. New SQL coverage checks per-person persistence and idempotence, own/deleted exclusions, removed-member access, unauthorized receipt attempts, pagination, old-comment targeting, cross-project targeting denial, edit semantics, invalid inputs, and project-deletion cleanup. The configured development database's six existing migration checksums and matching pooled/direct targets were checked, and a private pre-migration ledger/count snapshot was saved outside the repository before applying migration 007. Earlier migration checksums were verified unchanged afterward. No service was provisioned. Application push/deployment remains pending.
 
 The authenticated Chrome notification check passed against development services: opening without clearing unread state, explicit marking, paginated older comments, direct links to comments beyond the first discussion page, visible-comment receipts, desktop overlay stacking, 1440px chat positioning, phone overflow/panel layout, and Spanish labels. Desktop/phone screenshots were inspected; disposable projects/comments/receipts were removed.
+
+## Footer preferences and smaller bell — 2026-10-23
+
+Language and desktop-density controls now replace the footer description on the right. The header bell uses an 18px icon in a borderless 28px desktop control, retaining a 44px touch target on coarse pointers. Type checking and the production build passed. Authenticated Chrome checks verified footer placement, language/density changes, bell dimensions/border, and no phone overflow; desktop/phone screenshots were inspected. Local implementation only; not pushed or deployed.
+
+## Header project dropdown and centered card circles — 2026-10-23
+
+The separate Your projects chevron fetches membership-scoped IDs/names on opening and displays ordinary navigation links in a fixed 320px scroll region bounded by viewport height. Authenticated Chrome verified navigation, current-project indication, Escape/focus restoration, outside dismissal, phone bounds and inner scrolling using temporary DOM-only entries. Desktop/phone screenshots were inspected. All 36 tests, type checking and the production build passed.
+
+Project-card markers now contain only concentric discs; tooltips/accessibility retain review/revisit details. Explicit midpoint positioning fixes disc alignment. Chrome confirmed all live local project-card markers have no glyphs and their fill centers align within 0.05px; the screenshot was inspected and the build passed. Both changes remain local and unpushed.
