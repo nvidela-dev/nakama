@@ -337,3 +337,7 @@ Accepted: the answer field occupies the full form width, with direction (where a
 ## Project and artifact links in chat — 2026-10-23
 
 Accepted: a composer picker inserts named links to projects and artifacts into chat drafts. Search is bounded and membership-filtered, preserves existing draft text/selection and does not grant destination access. Names are deliberately shared as message text, without automatic metadata previews or new project relationships. No migration or additional service is needed.
+
+## Frontend performance tracking and bundle diagnostics — 2026-10-23
+
+Accepted: expand local frontend performance tracking so bundle composition, client import hotspots, and interactive browser budgets can be inspected and compared before and after optimizations. Combine static `.next` manifest/chunk decomposition across all App Router pages, AST client-import hotspot detection (`es.json`, `zod`, `three`, `react-markdown`), headless browser route/Web Vitals/CDP measurements (`ttfbMs`, `fcpMs`, `lcpMs`, `cls`, `longTasks`, DOM complexity), interactive `/preview` stage/node/lazy-3D-map timing and chunk verification, and Zod-validated baseline comparison and history under `.nakama/performance/`. Keep measurements content-free and local; no external analytics service or deployment is included.

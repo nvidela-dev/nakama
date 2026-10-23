@@ -30,6 +30,7 @@
     "prebuild": "npm run architecture:check && npm run flows:check",
     "pretypecheck": "npm run architecture:check && npm run flows:check",
     "frontend:measure": "tsx scripts/frontend-metrics.ts",
+    "frontend:report": "tsx scripts/frontend-metrics.ts --static",
     "test:frontend": "playwright test --config playwright.frontend.config.ts",
     "frontend:check-bundle": "tsx scripts/check-frontend-bundle.ts",
     "postbuild": "npm run frontend:check-bundle"
