@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { unreadComments, readComments } from "@/features/notifications/actions";
+import { LoadingState } from "@/shared/ui/loading-state";
 import { useT } from "@/shared/i18n/provider";
 
 type Inbox = Awaited<ReturnType<typeof unreadComments>>;
@@ -136,7 +137,7 @@ function NotificationMenu() {
               </Button>
             </p>
           )}
-          {!inbox && !error && <p role="status">{t("Loading…")}</p>}
+          {!inbox && !error && <LoadingState label={t("Loading…")} variant="compact" lines={3} />}
           {inbox?.count === 0 && <p>{t("No unread comments.")}</p>}
           <ol className="notification-list">
             {inbox?.items.map((c) => {

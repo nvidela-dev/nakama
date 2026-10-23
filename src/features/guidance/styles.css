@@ -54,9 +54,21 @@
   font-size: 11px;
 }
 .journey-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  margin: 20px 0;
+  margin: 12px 0;
+}
+.journey-content > .button.secondary,
+html[data-density="compact"] .workspace .journey-content > .button.secondary {
+  font-size: 11px;
+  min-height: 30px;
+  padding: 6px 10px;
+}
+@media (pointer: coarse) {
+  .journey-content > .button.secondary,
+  html[data-density="compact"] .workspace .journey-content > .button.secondary {
+    min-height: 44px;
+  }
 }
 .journey-breadcrumb {
   display: flex;
@@ -90,8 +102,9 @@
   margin-top: 28px;
 }
 .answer-panel h2 {
-  font-size: 27px;
-  letter-spacing: -0.6px;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -0.25px;
 }
 .answer-panel h2:focus {
   outline: none;
@@ -129,7 +142,8 @@
     font-size: 18px;
   }
   html[data-density="compact"] .journey-hint {
-    margin: 10px 0;
+    font-size: 10.5px;
+    margin: 6px 0;
   }
   html[data-density="compact"] .journey-breadcrumb {
     margin: 14px 0;
@@ -144,9 +158,11 @@
   html[data-density="compact"] .node-kind {
     margin-top: 12px;
   }
-  html[data-density="compact"] .answer-panel h2 {
-    margin: 9px 0;
-    font-size: 21px;
+  html[data-density="compact"] .answer-panel h2,
+  html[data-density="compact"] .workspace .answer-panel h2 {
+    margin: 6px 0;
+    font-size: 14px;
+    line-height: 1.3;
   }
   html[data-density="compact"] .answer-form #answer {
     min-height: 150px;
@@ -523,15 +539,17 @@
 }
 .journey-stage-heading {
   min-width: 0;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .journey-stage-heading .journey-breadcrumb {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
+  font-size: 11px;
 }
 .journey-stage-heading h2 {
-  margin: 0 0 6px;
-  font-size: 22px;
-  letter-spacing: -0.5px;
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
 }
 .journey-stage-heading > .muted {
   margin: 0;
@@ -596,13 +614,17 @@
     color 0.15s;
 }
 .journey-breadcrumb a:hover {
-  background: var(--panel);
+  background: #22372f;
   color: var(--lime);
 }
 .journey-breadcrumb [aria-current="page"] {
   color: var(--ink);
-  background: var(--panel);
+  background: #22372f;
+  border: 1px solid var(--line);
   font-weight: 600;
+}
+.project-working-column .answer-panel {
+  background: #14221f;
 }
 .journey-breadcrumb .breadcrumb-separator {
   color: var(--muted);
@@ -645,9 +667,13 @@ html[data-density="compact"] .workspace .stage-heading-row .miniview-icon {
 }
 .journey-stage-heading .stage-heading-row h2 {
   margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
 }
 html[data-density="compact"] .workspace .journey-stage-heading .stage-heading-row h2 {
   margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
 }
 .flow-options,
 html[data-density="compact"] .flow-options {

@@ -24,7 +24,7 @@ The browser checks use installed Chrome by default. For a managed Playwright Chr
 | `@/shared/ui/dialog` | Named native Dialog with focus trapping/restoration, Escape/backdrop dismissal, scroll locking, and pending dismissal control |
 | `@/shared/ui/tabs` | Controlled Tabs with Arrow/Home/End navigation and mounted inactive panels to preserve drafts |
 | `@/shared/ui/progress-marker` | Bounded concentric progress fill; accessible name or explicit decorative use |
-| `@/shared/ui/loading-state` | Named loading placeholders with reduced-motion support |
+| `@/shared/ui/loading-state` | Named loading skeletons (`stack`, `cards`, `workspace`, `compact`, `map` variants) with subtle shimmer/pulse bone animation and reduced-motion support |
 | `@/shared/ui/markdown-reader` | Safe Markdown/GFM reader; no raw HTML, executable URLs, or automatic remote-image loading; named read-only task checkboxes |
 | `@/shared/ui/icon` | Typed Lucide interface icon catalog, consistent sizing and decorative SVG semantics |
 | `@/shared/ui/wave-mark` | Shared brand mark |

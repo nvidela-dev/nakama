@@ -35,9 +35,14 @@ for (const id of [
   "ui-feedback-and-surfaces--empty",
   "ui-feedback-and-surfaces--error",
   "ui-loading--skeleton",
+  "ui-loading--cards",
+  "ui-loading--workspace",
+  "ui-loading--compact",
+  "ui-loading--map-skeleton",
   "ui-progress-marker--partial",
   "ui-markdown--document",
   "features-guided-flows-type-picker--selectable",
+  "features-projects-project-timeline--compact-cards",
 ]) {
   test(`no serious accessibility violations: ${id}`, async ({ page }) => {
     await story(page, id);
@@ -221,5 +226,66 @@ test("the real chat composer inserts a reference at the selected text and retain
   );
   await expect(draft).toHaveValue("x".repeat(3999));
   await page.setViewportSize({ width: 390, height: 700 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+});
+
+test("loading skeletons render animated bones and respect reduced motion", async ({ page }) => {
+  await story(page, "ui-loading--cards");
+  const status = page.getByRole("status");
+  await expect(status).toHaveAttribute("aria-busy", "true");
+  await expect(status).toHaveText("Loading projects…");
+  await expect(page.locator(".loading-placeholder")).toHaveCount(4);
+  const boneCount = await page.locator(".loading-bone").count();
+  expect(boneCount).toBeGreaterThanOrEqual(44);
+  const animationName = await page
+    .locator(".loading-bone")
+    .first()
+    .evaluate((el) => getComputedStyle(el).animationName);
+  expect(animationName).toBe("loading-shimmer");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reducedAnimationName = await page
+    .locator(".loading-bone")
+    .first()
+    .evaluate((el) => getComputedStyle(el).animationName);
+  expect(reducedAnimationName).toBe("none");
+});
+
+test("project cards and timeline dots stay compact with centered connectors", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await story(page, "features-projects-project-timeline--compact-cards");
+  const metrics = await page.evaluate(() => {
+    const cards = Array.from(document.querySelectorAll(".project-card"));
+    const card = cards[0]!;
+    const placeholderCard = cards[1]!;
+    const title = card.querySelector("h3")!;
+    const firstItem = card.querySelector(".project-timeline li")!;
+    const marker = firstItem.querySelector(".timeline-marker")!;
+    const connector = getComputedStyle(firstItem, "::before");
+    const markerBox = marker.getBoundingClientRect();
+    const itemBox = firstItem.getBoundingClientRect();
+    const connectorCenterY =
+      itemBox.top + parseFloat(connector.top) + parseFloat(connector.height) / 2;
+    const markerCenterY = markerBox.top + markerBox.height / 2;
+    return {
+      cardHeight: card.getBoundingClientRect().height,
+      placeholderHeight: placeholderCard
+        .querySelector(".project-card-link")!
+        .getBoundingClientRect().height,
+      titleFontSize: parseFloat(getComputedStyle(title).fontSize),
+      markerWidth: markerBox.width,
+      markerHeight: markerBox.height,
+      centerDeltaY: Math.abs(connectorCenterY - markerCenterY),
+      overflow: document.documentElement.scrollWidth > innerWidth,
+    };
+  });
+  expect(metrics.markerWidth).toBe(11);
+  expect(metrics.markerHeight).toBe(11);
+  expect(metrics.centerDeltaY).toBeLessThanOrEqual(0.5);
+  expect(metrics.titleFontSize).toBeLessThanOrEqual(15);
+  expect(metrics.cardHeight).toBeLessThan(92);
+  expect(metrics.placeholderHeight).toBeLessThan(56);
+  expect(metrics.overflow).toBe(false);
+
+  await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });

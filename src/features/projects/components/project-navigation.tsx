@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigationProjects } from "@/features/projects/navigation-actions";
+import { LoadingState } from "@/shared/ui/loading-state";
 import { useT } from "@/shared/i18n/provider";
 
 export function ProjectNavigation() {
@@ -91,7 +92,7 @@ function ProjectNavigationMenu() {
               </Button>
             </p>
           ) : !projects ? (
-            <p role="status">{t("Loading…")}</p>
+            <LoadingState label={t("Loading…")} variant="compact" lines={3} />
           ) : projects.length ? (
             <ul>
               {projects.map((project) => (

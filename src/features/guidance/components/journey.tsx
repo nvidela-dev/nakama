@@ -20,6 +20,10 @@ function EditorLoading() {
   const t = useT();
   return <LoadingState label={t("Loading…")} />;
 }
+function MapLoading() {
+  const t = useT();
+  return <LoadingState label={t("Loading…")} variant="map" lines={2} />;
+}
 const AnswerEditor = dynamic(
   () => import("./answer-editor").then((module) => module.AnswerEditor),
   { loading: EditorLoading },
@@ -30,6 +34,7 @@ const StageReviewForm = dynamic(
 );
 const JourneyMiniview = dynamic(() => import("@/features/guidance/components/journey-miniview"), {
   ssr: false,
+  loading: MapLoading,
 });
 const symbols: Record<string, IconName> = {
   unanswered: "unanswered",
