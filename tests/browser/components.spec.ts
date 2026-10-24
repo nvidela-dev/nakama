@@ -339,3 +339,33 @@ for (const id of [
     ).toEqual([]);
   });
 }
+
+for (const width of [390, 1440]) {
+  test(`project setup preserves drafts after dismissal and rejected creation at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await story(page, "features-projects-project-setup--draft");
+    const trigger = page.getByRole("button", { name: "Open setup" });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: "New project" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Choose later", exact: true }).click();
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByLabel("Project name", { exact: true }).fill("Synthetic draft");
+    await dialog.getByLabel("Description", { exact: true }).fill("No external writes");
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await expect(dialog.getByLabel("Project name", { exact: true })).toHaveValue("Synthetic draft");
+    await dialog.getByRole("button", { name: "Create project", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toHaveText("Preview only: your draft is still here.");
+    await expect(dialog.getByLabel("Description", { exact: true })).toHaveValue(
+      "No external writes",
+    );
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
+      false,
+    );
+  });
+}

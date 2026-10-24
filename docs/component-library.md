@@ -35,7 +35,7 @@ Put complete utility strings on the element they style. Use component props and 
 
 Shared primitives use `:where` for low-specificity defaults so caller utilities override them without a runtime class-merging dependency. The small `cn` helper joins complete strings; it does not resolve conflicting utilities. Choose one value per property and variant. Inline styles are reserved for runtime values such as progress percentages, task depth, and 3D label positions.
 
-The architecture check parses CSS and rejects additional stylesheets, custom selectors, nested component rules, and CSS imports outside the Tailwind entrypoint. Globals permits only theme tokens/keyframes, the compact variant, and the documented browser motion resets. Do not copy component markup or styling into stories.
+The architecture check parses CSS and rejects additional stylesheets, custom selectors, nested component rules, and CSS imports outside the Tailwind entrypoint. Globals permits only theme tokens/keyframes, the compact variant, and the documented browser motion resets. Do not copy component markup or styling into stories. The project setup dialog is a feature component loaded on its first opening; it stays mounted afterward to preserve drafts across dismissal. Its creation action is injected so stories can exercise validation without backend writes.
 
 ## How to add UI
 
