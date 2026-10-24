@@ -19,7 +19,7 @@ export default async function ProjectsPage() {
     <main
       id="main"
       className={
-        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0"
+        "workspace w-full max-w-300 lg:max-w-360 lg:compact:max-w-360 min-[1280px]:[&:has(>_.has-discussion)]:max-w-360 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0"
       }
     >
       <div
@@ -45,12 +45,12 @@ export default async function ProjectsPage() {
       </div>
       <div
         className={
-          "workspace-columns grid grid-cols-[1.3fr_1fr] gap-8 items-start max-[1000px]:grid-cols-[1fr_1fr] max-[700px]:grid-cols-[1fr] lg:compact:grid-cols-[minmax(0,_1fr)_300px] lg:compact:gap-5 lg:compact:[&_>_*]:min-w-0 min-[2000px]:compact:grid-cols-[minmax(0,_1fr)_340px] min-[2000px]:compact:gap-7"
+          "workspace-columns grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start"
         }
       >
         <section
           className={
-            "project-list lg:compact:grid lg:compact:grid-cols-[repeat(auto-fill,_minmax(360px,_1fr))] lg:compact:gap-2.5 lg:compact:items-stretch lg:compact:[&_>_.empty-state]:[grid-column:1_/_-1] lg:compact:[&_>_.empty-state]:mb-0 lg:compact:[&_.project-card]:mb-0"
+            "project-list min-w-0 max-w-full col-span-1 min-[701px]:col-span-7 min-[1001px]:col-span-8 min-[1280px]:col-span-9 lg:compact:grid lg:compact:grid-cols-[repeat(auto-fill,_minmax(320px,_1fr))] lg:compact:gap-2.5 lg:compact:items-stretch lg:compact:[&_>_.empty-state]:[grid-column:1_/_-1] lg:compact:[&_>_.empty-state]:mb-0 lg:compact:[&_.project-card]:mb-0"
           }
         >
           <h2
@@ -87,7 +87,9 @@ export default async function ProjectsPage() {
           )}
         </section>
         <aside
-          className={"main-screen-sidebar grid gap-4 min-w-0 content-start max-[700px]:[order:-1]"}
+          className={
+            "main-screen-sidebar grid gap-4 min-w-0 max-w-full overflow-hidden content-start col-span-1 min-[701px]:col-span-5 min-[1001px]:col-span-4 min-[1280px]:col-span-3 max-[700px]:[order:-1]"
+          }
         >
           <NewProjectButton />
         </aside>

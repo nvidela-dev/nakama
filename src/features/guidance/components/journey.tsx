@@ -150,9 +150,7 @@ export function Journey({
     <div
       className={[
         `workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`,
-        "grid grid-cols-[1.3fr_1fr] gap-8 items-start max-[1000px]:grid-cols-2 max-[700px]:grid-cols-1 lg:compact:grid-cols-[minmax(0,_1fr)_300px] lg:compact:gap-5 min-[2000px]:compact:grid-cols-[minmax(0,_1fr)_340px] min-[2000px]:compact:gap-7",
-        discussion &&
-          "min-[1280px]:grid-cols-[clamp(240px,_20vw,_380px)_minmax(0,_1fr)_clamp(220px,_18vw,_340px)] min-[1280px]:gap-5",
+        "grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -163,9 +161,12 @@ export function Journey({
         </StageMapPopup>
       )}
       <div
-        className={
-          "project-working-column min-w-0 bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 col-start-1 row-start-1 min-[1280px]:[.has-discussion_&]:col-start-2"
-        }
+        className={[
+          "project-working-column min-w-0 max-w-full overflow-hidden bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 col-span-1 col-start-1 row-start-1 min-[701px]:col-span-7 min-[1001px]:col-span-8",
+          discussion && "min-[1280px]:col-span-6 min-[1280px]:col-start-4 min-[1280px]:row-start-1",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <ProjectWork tasks={tasks} artifacts={artifacts}>
           <section
@@ -173,7 +174,7 @@ export function Journey({
               `journey${activeStage ? " has-stage-rail" : ""}`,
               "min-w-0",
               activeStage &&
-                "lg:grid lg:grid-cols-[150px_minmax(0,_1fr)] lg:gap-4.5 lg:items-start",
+                "lg:grid lg:grid-cols-[136px_minmax(0,_1fr)] lg:gap-3.5 lg:items-start",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -344,41 +345,38 @@ export function Journey({
                           <Link
                             href={href(stage.id)}
                             className={
-                              "stage-card flex gap-4.5 items-start py-6 px-5 border border-line rounded-[12px] [background:linear-gradient(115deg,_var(--theme-surface,#20332a),_var(--color-panel))] hover:[border-color:var(--theme-border,#9eb97b)] lg:compact:py-2 lg:compact:px-3 lg:compact:gap-2.5 lg:compact:items-center lg:compact:rounded-[7px]"
+                              "stage-card flex gap-4.5 items-start py-6 px-5 border border-line rounded-[12px] min-w-0 max-w-full [background:linear-gradient(115deg,_var(--theme-surface,#20332a),_var(--color-panel))] hover:[border-color:var(--theme-border,#9eb97b)] lg:compact:py-2 lg:compact:px-3 lg:compact:gap-2.5 lg:compact:items-center lg:compact:rounded-[7px]"
                             }
                           >
                             <span
                               className={
-                                "stage-number [font:10.5px_monospace] text-lime pt-0.5 lg:compact:pt-0 lg:compact:text-[10px]"
+                                "stage-number [font:10.5px_monospace] text-lime pt-0.5 shrink-0 lg:compact:pt-0 lg:compact:text-[10px]"
                               }
                             >
                               {String(i + 1).padStart(2, "0")}
                             </span>
                             <div
-                              className={[
-                                "lg:compact:flex-1 lg:compact:grid lg:compact:grid-cols-[96px_minmax(0,_1fr)_150px] lg:compact:items-center lg:compact:gap-[2px_10px] lg:max-[1399.02px]:compact:grid-cols-[90px_minmax(0,_1fr)] lg:max-[1399.02px]:compact:gap-[2px_10px] min-[2000px]:compact:grid-cols-[170px_minmax(0,_1fr)_230px]",
-                                discussion && "min-[1280px]:compact:grid-cols-1",
-                              ]
-                                .filter(Boolean)
-                                .join(" ")}
+                              className={
+                                "flex-1 min-w-0 lg:compact:grid lg:compact:grid-cols-[minmax(0,_1fr)_auto] lg:compact:items-baseline lg:compact:gap-x-3 lg:compact:gap-y-0.5"
+                              }
                             >
                               <span
                                 className={
-                                  "stage-label text-[10px] text-lime uppercase tracking-[1.2px] lg:compact:text-[9px] lg:compact:tracking-[0.8px] lg:max-[1399.02px]:compact:[grid-row:1_/_3] min-[1280px]:compact:[.has-discussion_&]:[grid-row:auto]"
+                                  "stage-label text-[10px] text-lime uppercase tracking-[1.2px] break-words lg:compact:col-start-1 lg:compact:row-start-1 lg:compact:text-[9px] lg:compact:tracking-[0.8px] lg:compact:leading-[1.2]"
                                 }
                               >
                                 {t(stage.name)}
                               </span>
                               <h2
                                 className={
-                                  "font-mono font-medium text-[15px] leading-[1.3] mt-1 mx-0 mb-1.5 tracking-[-0.3px] max-[700px]:text-[14px] lg:compact:text-[12.5px] lg:compact:m-0 lg:compact:leading-[1.25] lg:compact:tracking-[-0.15px]"
+                                  "font-mono font-medium text-[15px] leading-[1.3] mt-1 mx-0 mb-1.5 tracking-[-0.3px] min-w-0 break-words max-[700px]:text-[14px] lg:compact:col-span-2 lg:compact:col-start-1 lg:compact:row-start-2 lg:compact:text-[12.5px] lg:compact:m-0 lg:compact:leading-[1.25] lg:compact:tracking-[-0.15px]"
                                 }
                               >
                                 {t(stage.question)}
                               </h2>
                               <small
                                 className={
-                                  "text-[9.5px] text-muted lg:compact:leading-[1.25] lg:max-[1399.02px]:compact:col-start-2 min-[1280px]:compact:[.has-discussion_&]:col-start-1"
+                                  "text-[9.5px] text-muted break-words lg:compact:col-start-2 lg:compact:row-start-1 lg:compact:text-right lg:compact:leading-[1.2]"
                                 }
                               >
                                 {reviewed
@@ -391,7 +389,7 @@ export function Journey({
                             </div>
                             <span
                               className={
-                                "stage-arrow ml-auto text-lime [&_svg]:w-3.5 [&_svg]:h-3.5"
+                                "stage-arrow ml-auto shrink-0 text-lime [&_svg]:w-3.5 [&_svg]:h-3.5"
                               }
                               aria-hidden="true"
                             >
@@ -649,20 +647,24 @@ export function Journey({
       {discussion && (
         <div
           className={
-            "project-discussion-column min-w-0 col-start-1 row-start-2 [&_>_.discussion]:mt-0 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto"
+            "project-discussion-column min-w-0 max-w-full overflow-hidden col-span-1 col-start-1 row-start-2 min-[701px]:col-span-7 min-[1001px]:col-span-8 [&_>_.discussion]:mt-0 min-[1280px]:col-span-3 min-[1280px]:col-start-1 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto"
           }
         >
           {discussion}
         </div>
       )}
       <div
-        className={
-          "project-sidebar grid gap-4 min-w-0 content-start [&_.project-settings]:mb-0 col-start-2 [grid-row:1_/_span_2] max-[700px]:col-start-1 max-[700px]:row-start-3 min-[1280px]:[.has-discussion_&]:col-start-3 min-[1280px]:[.has-discussion_&]:row-start-1"
-        }
+        className={[
+          "project-sidebar grid gap-4 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-5 min-[701px]:col-start-8 min-[701px]:row-span-2 min-[701px]:row-start-1 min-[1001px]:col-span-4 min-[1001px]:col-start-9",
+          discussion &&
+            "min-[1280px]:col-span-3 min-[1280px]:col-start-10 min-[1280px]:row-span-1 min-[1280px]:row-start-1",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <details
           open
-          className="panel journey-progress-panel p-4 bg-panel border border-line rounded-[10px] min-w-0 [&_.journey-progress-controls]:ml-auto"
+          className="panel journey-progress-panel p-4 bg-panel border border-line rounded-[10px] min-w-0 max-w-full overflow-hidden [&_.journey-progress-controls]:ml-auto"
           aria-label={t("Questions answered, not proof of success")}
         >
           <summary className="cursor-pointer select-none [[open]>&]:mb-3">
@@ -675,12 +677,12 @@ export function Journey({
           </summary>
           <div
             className={
-              "journey-summary flex items-center justify-between gap-3 [&_.eyebrow]:mb-2.5 lg:compact:mb-2.5 lg:compact:[&_.eyebrow]:m-0 flex-wrap mb-3.5"
+              "journey-summary flex items-center justify-between gap-3 [&_.eyebrow]:mb-2.5 lg:compact:mb-2.5 lg:compact:[&_.eyebrow]:m-0 flex-wrap mb-3.5 min-w-0"
             }
           >
             <div
               className={
-                "first:grid first:gap-1 lg:compact:first:flex lg:compact:first:items-center lg:compact:first:flex-wrap lg:compact:first:gap-[8px_18px]"
+                "min-w-0 flex-1 break-words first:grid first:gap-1 lg:compact:first:flex lg:compact:first:items-center lg:compact:first:flex-wrap lg:compact:first:gap-[8px_18px]"
               }
             >
               <p className={"text-[15px] lg:compact:text-[13px] m-0"}>
