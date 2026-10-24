@@ -7,8 +7,8 @@
   display: grid;
   grid-template-columns: 36px 1fr;
   text-align: left;
-  background: #22382d;
-  border: 1px solid #58714b;
+  background: var(--theme-surface, #22382d);
+  border: 1px solid var(--theme-border, #58714b);
   color: var(--ink);
   padding: 22px;
 }
@@ -27,7 +27,7 @@
   line-height: 1.6;
 }
 .flow-option:hover {
-  background: #2b4436;
+  background: var(--theme-selected, #2b4436);
 }
 .journey {
   min-width: 0;
@@ -112,7 +112,7 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
 .review-warning,
 .review-note {
   font-size: 13px;
-  background: #3c3e28;
+  background: var(--theme-warning, #3c3e28);
   padding: 15px;
   border-radius: 8px;
 }
@@ -357,7 +357,7 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(transparent 0 3px, #17231c30 3px 4px);
+  background: repeating-linear-gradient(transparent 0 3px, var(--theme-overlay, #17231c30) 3px 4px);
 }
 .miniview-label {
   background: var(--bg);
@@ -490,7 +490,7 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
     border: 1px solid var(--line);
     border-radius: 6px;
     font-size: 12px;
-    background: #182b23;
+    background: var(--theme-surface-low, #182b23);
     overflow-wrap: anywhere;
   }
   .journey .desktop-stage-nav span {
@@ -500,7 +500,7 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
   }
   .journey .desktop-stage-nav a[aria-current="step"] {
     border-color: var(--lime);
-    background: #2b4030;
+    background: var(--theme-selected, #2b4030);
   }
 }
 @media (min-width: 1024px) {
@@ -516,7 +516,7 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
 @media (min-width: 1024px) {
   html[data-density="compact"] .journey .desktop-stage-nav a[aria-current="step"] {
     border-color: var(--lime);
-    background: #2b4030;
+    background: var(--theme-selected, #2b4030);
   }
 }
 @media (min-width: 1024px) {
@@ -540,12 +540,12 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
   }
   .journey .desktop-stage-nav a.stage-rail-link,
   html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link {
-    background: #241f22;
-    border-color: #544148;
+    background: var(--theme-surface-low, #241f22);
+    border-color: var(--theme-danger, #544148);
   }
   .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"],
   html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"] {
-    background: #433035;
+    background: var(--theme-danger, #433035);
     border-color: var(--pink);
     box-shadow: inset 3px 0 var(--pink);
   }
@@ -553,7 +553,7 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
     color: var(--lime);
   }
   .journey .desktop-stage-nav .stage-rail-link.revisit .rail-label small {
-    color: #d5df8a;
+    color: var(--theme-text, #d5df8a);
   }
 }
 .journey-stage-heading {
@@ -591,12 +591,12 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
   }
   .journey .desktop-stage-nav a.stage-rail-link,
   html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link {
-    background: #2a4034;
-    border-color: #637a55;
+    background: var(--theme-surface, #2a4034);
+    border-color: var(--theme-border, #637a55);
   }
   .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"],
   html[data-density="compact"] .journey .desktop-stage-nav a.stage-rail-link[aria-current="step"] {
-    background: #405b39;
+    background: var(--theme-surface, #405b39);
     border-color: var(--lime);
     box-shadow: inset 3px 0 var(--lime);
   }
@@ -633,17 +633,17 @@ html[data-density="compact"] .workspace .journey-content > .button.secondary {
     color 0.15s;
 }
 .journey-breadcrumb a:hover {
-  background: #22372f;
+  background: var(--theme-surface, #22372f);
   color: var(--lime);
 }
 .journey-breadcrumb [aria-current="page"] {
   color: var(--ink);
-  background: #22372f;
+  background: var(--theme-surface, #22372f);
   border: 1px solid var(--line);
   font-weight: 600;
 }
 .project-working-column .answer-panel {
-  background: #14221f;
+  background: var(--theme-surface-low, #14221f);
 }
 .journey-breadcrumb .breadcrumb-separator {
   color: var(--muted);
@@ -732,7 +732,7 @@ html[data-density="compact"] .flow-option {
 }
 .flow-option[aria-pressed="true"] {
   border-color: var(--lime);
-  background: #304630;
+  background: var(--theme-surface, #304630);
   box-shadow: inset 0 0 0 1px var(--lime);
 }
 .flow-option:focus-visible {
@@ -764,7 +764,7 @@ html[data-density="compact"] .flow-option {
   overflow: auto;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgb(16 28 27 / 90%);
+  background: var(--theme-map, rgb(16 28 27 / 90%));
   color: var(--ink);
 }
 .stage-map-popup::backdrop {

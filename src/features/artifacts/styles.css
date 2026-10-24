@@ -63,7 +63,7 @@
 }
 .artifact-cover {
   height: 180px;
-  background: linear-gradient(135deg, #243b32, #101c1b);
+  background: linear-gradient(135deg, var(--theme-surface, #243b32), var(--bg));
   display: grid;
   place-items: center;
   border-bottom: 1px solid var(--line);
@@ -74,10 +74,14 @@
   opacity: 0.8;
 }
 .artifact-cover-markdown {
-  background: linear-gradient(135deg, #313b2c, #17231c);
+  background: linear-gradient(135deg, var(--theme-surface, #313b2c), var(--dark));
 }
 .artifact-cover-software {
-  background: linear-gradient(135deg, #243736, #142327);
+  background: linear-gradient(
+    135deg,
+    var(--theme-surface, #243736),
+    var(--theme-surface-low, #142327)
+  );
 }
 .artifact-cover img {
   width: 100%;
@@ -120,9 +124,9 @@
   color: var(--muted);
 }
 .artifact-status.ready {
-  background: #304630;
+  background: var(--theme-surface, #304630);
   color: var(--lime);
-  border-color: #5c7544;
+  border-color: var(--theme-border, #5c7544);
 }
 .artifact-excerpt {
   display: -webkit-box;
@@ -143,7 +147,7 @@
 }
 .artifact-dialog::backdrop,
 .artifact-lightbox::backdrop {
-  background: #06100de8;
+  background: var(--theme-overlay, #06100de8);
 }
 .artifact-detail {
   display: grid;
@@ -226,7 +230,7 @@
 .software-output {
   text-align: center;
   padding: 45px 20px;
-  background: #101c1b80;
+  background: var(--theme-overlay, #101c1b80);
   border: 1px dashed var(--line);
   border-radius: 8px;
 }
@@ -329,7 +333,7 @@
   max-width: none;
   max-height: none;
   border: 0;
-  background: #07110ff7;
+  background: var(--theme-overlay, #07110ff7);
   color: var(--ink);
 }
 .artifact-lightbox[open] {

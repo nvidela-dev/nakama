@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #ffffff0c;
+  border-bottom: 1px solid var(--theme-overlay, #ffffff0c);
 }
 .brand {
   font-family: var(--font-mono);
@@ -93,8 +93,13 @@
   z-index: -1;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 1px 1px, #dcf6a35c 0.6px, #dcf6a326 1px, transparent 1.5px),
-    radial-gradient(ellipse at 65% 0%, #dcf6a314, transparent 70%);
+    radial-gradient(
+      circle at 1px 1px,
+      var(--theme-glow, #dcf6a35c) 0.6px,
+      var(--theme-glow, #dcf6a326) 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(ellipse at 65% 0%, var(--theme-glow, #dcf6a314), transparent 70%);
   background-size:
     7px 7px,
     100% 100%;
