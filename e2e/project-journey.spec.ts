@@ -32,6 +32,7 @@ test("private capture, invitation, guided editing, conflict, and removal on real
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
+  await page.locator(".project-people-panel > summary").click();
   await page.getByLabel("Approved person").selectOption(friendEmail);
   await page.getByRole("button", { name: "Create invitation link" }).click();
   const inviteInput = page.getByLabel("Share this link privately");
@@ -100,6 +101,7 @@ test("private capture, invitation, guided editing, conflict, and removal on real
     outsider.getByRole("heading", { name: "This project isn't available." }),
   ).toBeVisible();
   await page.goto(projectPath);
+  await page.locator(".project-people-panel > summary").click();
   await expect(
     page.getByLabel("Approved person").locator(`option[value="${friendEmail}"]`),
   ).toHaveCount(0);

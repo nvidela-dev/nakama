@@ -56,9 +56,8 @@ export function ProjectRelations({
     [state, action, pending] = useActionState(changeProjectLink.bind(null, projectId), {});
   return (
     <details
-      open
       className={
-        "panel project-relations bg-panel border border-line max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] grid gap-2.5 min-w-0 max-w-full overflow-hidden p-3 rounded-[8px] [&_>_div_>_h3]:mt-0 [&_>_div_>_h3]:mx-0 [&_>_div_>_h3]:mb-0.75 [&_>_div_>_h3]:text-[11px] [&_>_div_>_h3]:leading-[1.4] [&_>_div_>_p]:m-0 [&_>_div_>_p]:text-[11px] [&_>_div_>_p]:leading-[1.4] [&_>_.new-project-trigger]:m-0 [&_>_.new-project-trigger]:min-h-7 [&_>_.new-project-trigger]:py-1.25 [&_>_.new-project-trigger]:px-2 [&_>_.new-project-trigger]:text-[11px] [&_>_.new-project-trigger]:leading-[1.4] [&_>_.new-project-trigger_>_span]:text-[16px] [&_.project-link-list_.text-button]:m-0 [&_.project-link-list_.text-button]:min-h-7 [&_.project-link-list_.text-button]:p-1 [&_.project-link-list_.text-button]:text-[10px] pointer-coarse:[&_>_.new-project-trigger]:min-h-11 pointer-coarse:[&_.project-link-list_.text-button]:min-h-11"
+        "panel project-relations bg-panel border border-line max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] grid gap-2.5 min-w-0 max-w-full p-3 rounded-[8px] [&_>_div_>_h3]:mt-0 [&_>_div_>_h3]:mx-0 [&_>_div_>_h3]:mb-0.75 [&_>_div_>_h3]:text-[11px] [&_>_div_>_h3]:leading-[1.4] [&_>_div_>_p]:m-0 [&_>_div_>_p]:text-[11px] [&_>_div_>_p]:leading-[1.4] [&_>_.new-project-trigger]:m-0 [&_>_.new-project-trigger]:min-h-7 [&_>_.new-project-trigger]:py-1.25 [&_>_.new-project-trigger]:px-2 [&_>_.new-project-trigger]:text-[11px] [&_>_.new-project-trigger]:leading-[1.4] [&_>_.new-project-trigger_>_span]:text-[16px] [&_.project-link-list_.text-button]:m-0 [&_.project-link-list_.text-button]:min-h-7 [&_.project-link-list_.text-button]:p-1 [&_.project-link-list_.text-button]:text-[10px] pointer-coarse:[&_>_.new-project-trigger]:min-h-11 pointer-coarse:[&_.project-link-list_.text-button]:min-h-11"
       }
     >
       <summary className="cursor-pointer select-none [[open]>&]:mb-3">
@@ -132,19 +131,44 @@ export function ProjectRelations({
             "form-stack flex flex-col min-w-0 max-w-full [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] [&_input]:w-full [&_input]:border [&_input]:border-[var(--theme-border,#4b6056)] [&_input]:bg-bg [&_input]:text-ink [&_input]:rounded-[8px] [&_input]:p-3 [&_input]:text-[14px] [&_input]:[resize:vertical] lg:compact:[&_input]:py-2 lg:compact:[&_input]:px-2.5 lg:compact:[&_input]:text-[13px] gap-1.5 mt-2"
           }
         >
-          <label className={"grid gap-1 min-w-0 max-w-full text-ink text-[11px]"}>
-            {t("Relationship")}
-            <Select
-              name="direction"
-              aria-label={t("Relationship")}
-              className={
-                "w-full min-w-0 max-w-full overflow-hidden text-ellipsis min-h-7 compact:py-1.25 compact:px-2 compact:text-[11px] pointer-coarse:min-h-11 bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-              }
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <label
+              htmlFor={`link-direction-${projectId}`}
+              className={"text-ink text-[11px] leading-[1.4]"}
             >
-              <option value="child">{t("Spawned project")}</option>
-              <option value="source">{t("Source project")}</option>
-            </Select>
-          </label>
+              {t("Relationship")}
+            </label>
+            <span className="group relative inline-flex items-center shrink-0">
+              <span
+                tabIndex={0}
+                role="note"
+                aria-label={t(
+                  "Links do not share access. Only projects you belong to appear here.",
+                )}
+                title={t("Links do not share access. Only projects you belong to appear here.")}
+                className="inline-grid place-items-center w-4 h-4 rounded-full border border-line text-[9px] leading-none text-muted cursor-help select-none hover:border-lime hover:text-lime focus-visible:outline-2 focus-visible:outline-lime"
+              >
+                ?
+              </span>
+              <span
+                role="tooltip"
+                className="pointer-events-none invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute right-0 bottom-full mb-1.5 w-52 p-2 rounded-[6px] bg-bg border border-line text-[10px] leading-[1.4] text-ink shadow-lg z-20 break-words"
+              >
+                {t("Links do not share access. Only projects you belong to appear here.")}
+              </span>
+            </span>
+          </div>
+          <Select
+            id={`link-direction-${projectId}`}
+            name="direction"
+            aria-label={t("Relationship")}
+            className={
+              "w-full min-w-0 max-w-full overflow-hidden text-ellipsis min-h-7 compact:py-1.25 compact:px-2 compact:text-[11px] pointer-coarse:min-h-11 bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
+            }
+          >
+            <option value="child">{t("Spawned project")}</option>
+            <option value="source">{t("Source project")}</option>
+          </Select>
           <label className={"grid gap-1 min-w-0 max-w-full text-ink text-[11px]"}>
             {t("Project")}
             <Select
@@ -180,9 +204,6 @@ export function ProjectRelations({
           <Feedback state={state} />
         </form>
       </details>
-      <small className={"muted text-muted text-[10px] leading-[1.45]"}>
-        {t("Links do not share access. Only projects you belong to appear here.")}
-      </small>
     </details>
   );
 }

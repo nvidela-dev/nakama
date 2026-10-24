@@ -126,9 +126,8 @@ export default async function ProjectPage({
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
       />
       <details
-        open
         className={
-          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full overflow-hidden max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[10px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] [&_.project-activity]:mt-3 [&_.project-activity]:pt-2.5 [&_.project-activity_>_summary]:text-[11px] [&_.project-activity_>_summary]:leading-[1.5] [&_.project-activity_>_summary]:cursor-pointer [&_.project-activity_>_p]:my-2 [&_.project-activity_>_p]:mx-0 [&_.project-activity_>_p]:text-[10px] [&_.project-activity_>_p]:leading-[1.45] [&_.activity-list]:my-2 [&_.activity-list]:mx-0 [&_.activity-list_li]:py-1.75 [&_.activity-list_p]:text-[11px] [&_.activity-list_p]:leading-[1.4] [&_.activity-list_time]:text-[10px] [&_.activity-list_time]:leading-[1.4] [&_.activity-list_small]:text-[10px] [&_.activity-list_small]:leading-[1.4] [&_.project-activity_a]:text-[11px] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:[align-content:center]"
+          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[10px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
         }
       >
         <summary className="cursor-pointer select-none [[open]>&]:mb-3">
@@ -147,26 +146,20 @@ export default async function ProjectPage({
             </span>
           </h2>
         </summary>
-        <div className="project-members min-w-0 max-w-full">
-          <ul
-            className={
-              "people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2 min-w-0"
-            }
-          >
+        <div className="project-members grid gap-2.5 min-w-0 max-w-full">
+          <ul className={"people-list list-none p-0 m-0 min-w-0"}>
             {people.members.map((m) => (
               <li
                 key={m.user_id}
                 className={
-                  "border-b border-b-line flex items-center justify-between min-w-0 break-words wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
+                  "border-b border-b-line last:border-b-0 flex items-center justify-between min-w-0 break-words wrap-anywhere flex-wrap py-1 px-0 gap-1.5"
                 }
               >
-                <div className="min-w-0 flex-1 break-words wrap-anywhere">
+                <div className="min-w-0 flex-1 flex items-baseline gap-1.5 flex-wrap break-words wrap-anywhere">
                   <strong className={"text-[11px] leading-[1.4] break-words"}>
                     {m.user_id === person.userId ? t("You") : m.display_name}
                   </strong>
-                  <small className={"block text-muted text-[10px] leading-[1.4]"}>
-                    {t(m.role)}
-                  </small>
+                  <small className={"text-muted text-[10px] leading-[1.4]"}>{t(m.role)}</small>
                 </div>
                 {project.role === "owner" && m.role === "member" && (
                   <AccessButton projectId={projectId} id={m.user_id} operation="remove" />
@@ -176,73 +169,60 @@ export default async function ProjectPage({
           </ul>
           {project.role === "owner" && (
             <>
-              <h3
-                className={
-                  "font-mono tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-2.5 mx-0 mb-1.5 text-[11px] leading-[1.4]"
-                }
-              >
-                {t("Invite member")}
-              </h3>
               <InviteForm projectId={projectId} candidates={candidates} />
-              <h3
-                className={
-                  "font-mono tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-2.5 mx-0 mb-1.5 text-[11px] leading-[1.4]"
-                }
-              >
-                {t("Invitations")}
-              </h3>
-              {people.invitations.length ? (
-                <ul
-                  className={
-                    "people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2 min-w-0"
-                  }
-                >
-                  {people.invitations.map((inv) => (
-                    <li
-                      key={inv.id}
-                      className={
-                        "border-b border-b-line flex items-center justify-between min-w-0 break-words wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
-                      }
-                    >
-                      <div className="min-w-0 flex-1 break-words wrap-anywhere">
-                        <strong className={"text-[11px] leading-[1.4] break-words"}>
-                          {inv.email}
-                        </strong>
-                        <small className={"block text-muted text-[10px] leading-[1.4]"}>
-                          {inv.revoked_at
-                            ? t("Revoked")
-                            : inv.accepted_at
-                              ? t("Accepted")
-                              : new Date(inv.expires_at) <= new Date()
-                                ? t("Expired")
-                                : t("Pending")}
-                        </small>
-                      </div>
-                      {!inv.revoked_at &&
-                        !inv.accepted_at &&
-                        new Date(inv.expires_at) > new Date() && (
-                          <AccessButton projectId={projectId} id={inv.id} operation="revoke" />
-                        )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={"muted text-muted m-0 text-[11px] leading-[1.4]"}>
-                  {t("No invitations yet.")}
-                </p>
+              {people.invitations.length > 0 && (
+                <div className="min-w-0 max-w-full pt-1 border-t border-t-line">
+                  <h3
+                    className={
+                      "font-mono tracking-[-0.045em] font-medium text-muted m-0 mb-1 text-[10px] uppercase leading-[1.4]"
+                    }
+                  >
+                    {t("Invitations")}
+                  </h3>
+                  <ul className={"people-list list-none p-0 m-0 min-w-0"}>
+                    {people.invitations.map((inv) => (
+                      <li
+                        key={inv.id}
+                        className={
+                          "border-b border-b-line last:border-b-0 flex items-center justify-between min-w-0 break-words wrap-anywhere flex-wrap py-1 px-0 gap-1.5"
+                        }
+                      >
+                        <div className="min-w-0 flex-1 flex items-baseline gap-1.5 flex-wrap break-words wrap-anywhere">
+                          <strong className={"text-[11px] leading-[1.4] break-words"}>
+                            {inv.email}
+                          </strong>
+                          <small className={"text-muted text-[10px] leading-[1.4]"}>
+                            {inv.revoked_at
+                              ? t("Revoked")
+                              : inv.accepted_at
+                                ? t("Accepted")
+                                : new Date(inv.expires_at) <= new Date()
+                                  ? t("Expired")
+                                  : t("Pending")}
+                          </small>
+                        </div>
+                        {!inv.revoked_at &&
+                          !inv.accepted_at &&
+                          new Date(inv.expires_at) > new Date() && (
+                            <AccessButton projectId={projectId} id={inv.id} operation="revoke" />
+                          )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </>
           )}
         </div>
-        <ActivityFeed
-          projectId={projectId}
-          activity={activity}
-          flow={guidance?.flow}
-          open={!query.stage || !!query.activityBefore}
-          olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined}
-          latestHref={query.activityBefore ? pageHref("activityBefore") : undefined}
-        />
       </details>
+      <ActivityFeed
+        projectId={projectId}
+        activity={activity}
+        flow={guidance?.flow}
+        open={Boolean(query.activityBefore)}
+        olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined}
+        latestHref={query.activityBefore ? pageHref("activityBefore") : undefined}
+      />
       {project.role === "owner" && (
         <ProjectSettings
           projectId={projectId}

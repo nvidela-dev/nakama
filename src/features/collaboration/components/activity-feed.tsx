@@ -45,24 +45,56 @@ export function ActivityFeed({
 }) {
   const t = useT(),
     locale = useLocale();
+  const activityHint = t(
+    "Earlier history includes recorded answers and stage reviews. Other activity starts with this release.",
+  );
   return (
     <details
-      className={"project-activity border-t border-t-line pt-4.5 mt-6 min-w-0 max-w-full"}
+      className={
+        "panel project-activity bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.activity-list]:my-2 [&_.activity-list]:mx-0 [&_.activity-list_li]:py-1.75 [&_.activity-list_p]:text-[11px] [&_.activity-list_p]:leading-[1.4] [&_.activity-list_time]:text-[10px] [&_.activity-list_time]:leading-[1.4] [&_.activity-list_small]:text-[10px] [&_.activity-list_small]:leading-[1.4] [&_a]:text-[11px]"
+      }
       open={open}
     >
       <summary
         className={
-          "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
+          "cursor-pointer select-none [[open]>&]:mb-2 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
         }
       >
-        {t("Activity")}
+        <h2
+          className={
+            "font-mono tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
+          }
+        >
+          {t("Activity")}{" "}
+          <span
+            className={
+              "count align-middle text-muted border border-line rounded-[100px] text-[10px] py-0.5 px-1.5 ml-1.25"
+            }
+          >
+            {activity.items.length}
+          </span>
+        </h2>
       </summary>
-      <p className={"muted mb-[1em] mt-0 text-muted text-[12px] break-words wrap-anywhere"}>
-        {t(
-          "Earlier history includes recorded answers and stage reviews. Other activity starts with this release.",
-        )}
-      </p>
-      {latestHref && <Link href={latestHref}>{t("Latest activity")}</Link>}
+      <div className="flex items-center justify-end gap-2 min-w-0">
+        {latestHref && <Link href={latestHref}>{t("Latest activity")}</Link>}
+        <span className="group relative inline-flex items-center shrink-0 ml-auto">
+          <span
+            tabIndex={0}
+            role="note"
+            aria-label={activityHint}
+            title={activityHint}
+            className="inline-grid place-items-center w-4 h-4 rounded-full border border-line text-[9px] leading-none text-muted cursor-help select-none hover:border-lime hover:text-lime focus-visible:outline-2 focus-visible:outline-lime"
+          >
+            ?
+          </span>
+          <span
+            role="tooltip"
+            className="pointer-events-none invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute right-0 top-full mt-1.5 w-52 p-2 rounded-[6px] bg-bg border border-line text-[10px] leading-[1.4] text-ink shadow-lg z-20 break-words"
+          >
+            {activityHint}
+          </span>
+        </span>
+      </div>
       {activity.items.length ? (
         <ol
           className={

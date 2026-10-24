@@ -91,6 +91,7 @@ test("spawn, add several sources, navigate both ways, link/unlink existing proje
   }
   await page.goto(`/projects/${a}`);
   const panel = page.locator(".project-relations");
+  await panel.locator("> summary").click();
   await panel.getByRole("button", { name: "Spawn project", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Choose later", exact: true }).click();
@@ -101,6 +102,7 @@ test("spawn, add several sources, navigate both ways, link/unlink existing proje
   await dialog.getByRole("button", { name: "Create project", exact: true }).click();
   await expect(page.getByRole("heading", { name: cName, exact: true })).toBeVisible();
   const childUrl = page.url();
+  await panel.locator("> summary").click();
   await panel.getByText("Link an existing project", { exact: true }).click();
   await panel.getByLabel("Relationship", { exact: true }).selectOption("source");
   await panel.getByLabel("Project", { exact: true }).selectOption(b);
@@ -108,6 +110,7 @@ test("spawn, add several sources, navigate both ways, link/unlink existing proje
   await expect(panel.getByRole("link", { name: aName, exact: true })).toBeVisible();
   await expect(panel.getByRole("link", { name: bName, exact: true })).toBeVisible();
   await panel.getByRole("link", { name: aName, exact: true }).click();
+  await panel.locator("> summary").click();
   await expect(panel.getByRole("link", { name: cName, exact: true })).toBeVisible();
   await panel.getByText("Link an existing project", { exact: true }).click();
   await panel.getByLabel("Project", { exact: true }).selectOption(b);
@@ -117,6 +120,7 @@ test("spawn, add several sources, navigate both ways, link/unlink existing proje
   await expect(panel.getByRole("link", { name: bName, exact: true })).toHaveCount(0);
   await page.goto(childUrl);
   await page.setViewportSize({ width: 390, height: 844 });
+  await panel.locator("> summary").click();
   await expect(panel.getByRole("link", { name: aName, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await panel.screenshot({ path: "/tmp/nakama-lineage-phone.png" });

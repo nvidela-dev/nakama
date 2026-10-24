@@ -26,16 +26,39 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
     return result;
   }, initial);
 
+  const inviteHint = t(
+    "They'll need this verified email to join. Links expire after 7 days. A new invitation replaces their previous unused link.",
+  );
+
   return (
     <form
       action={action}
       className={
-        "form-stack flex flex-col gap-3 min-w-0 max-w-full [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
+        "form-stack flex flex-col gap-1.5 pt-2 border-t border-t-line min-w-0 max-w-full [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] lg:compact:gap-1.5 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
       }
     >
-      <label htmlFor="email" className={"text-[13px] text-ink"}>
-        {t("Approved person")}
-      </label>
+      <div className="flex items-center justify-between gap-2 min-w-0">
+        <label htmlFor="email" className={"text-[11px] text-muted leading-[1.4]"}>
+          {t("Approved person")}
+        </label>
+        <span className="group relative inline-flex items-center shrink-0">
+          <span
+            tabIndex={0}
+            role="note"
+            aria-label={inviteHint}
+            title={inviteHint}
+            className="inline-grid place-items-center w-4 h-4 rounded-full border border-line text-[9px] leading-none text-muted cursor-help select-none hover:border-lime hover:text-lime focus-visible:outline-2 focus-visible:outline-lime"
+          >
+            ?
+          </span>
+          <span
+            role="tooltip"
+            className="pointer-events-none invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute right-0 bottom-full mb-1.5 w-52 p-2 rounded-[6px] bg-bg border border-line text-[10px] leading-[1.4] text-ink shadow-lg z-20 break-words"
+          >
+            {inviteHint}
+          </span>
+        </span>
+      </div>
       <Select
         id="email"
         name="email"
@@ -55,19 +78,14 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
         ))}
       </Select>
       {!candidates.length && (
-        <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
+        <p className={"muted m-0 text-muted text-[11px]"}>
           {t("No approved people available to invite.")}
         </p>
       )}
-      <small className={"text-[11px] text-muted"}>
-        {t(
-          "They'll need this verified email to join. Links expire after 7 days. A new invitation replaces their previous unused link.",
-        )}{" "}
-      </small>
       <Button
         type="submit"
         disabled={pending || !email || !candidates.includes(email)}
-        className={"secondary mt-2 lg:compact:mt-1"}
+        className={"secondary mt-1"}
         variant="secondary"
       >
         {pending ? t("Preparing…") : t("Create invitation link")}
