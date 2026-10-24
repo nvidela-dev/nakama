@@ -61,6 +61,9 @@ export const routeNames = [
   "/projects/[projectId]/artifacts/[artifactId]",
   "/projects/[projectId]/artifacts/[artifactId]/files/[fileId]",
   "/admin",
+  "/wiki",
+  "/wiki/glossary",
+  "/glossary",
   "/access-required",
   "/invitations/accept",
   "/sign-in",
@@ -104,6 +107,11 @@ export const errorInfoSchema = z.object({
     )
     .optional(),
   diagnostic: diagnosticSchema.optional(),
+  // Next's opaque identifier for a rendering error; the framework creates it, so it carries no text.
+  digest: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{4,40}$/)
+    .optional(),
   fingerprint: z.string().regex(/^[a-f0-9]{16}$/),
   frames: z
     .array(
@@ -137,6 +145,7 @@ export const logRecordSchema = z.object({
     "db.rollback_error",
     "db.connection",
     "logging.sink_error",
+    "logging.record_invalid",
     "diagnostic",
     "check.finish",
   ]),
@@ -196,6 +205,11 @@ export const logRecordSchema = z.object({
     .optional(),
   sinkFailure: z
     .enum(["busy", "denied", "read_only", "disk_full", "configuration", "unavailable"])
+    .optional(),
+  // Field names (never values) that failed validation when a record had to be replaced.
+  invalidFields: z
+    .array(z.string().regex(/^[A-Za-z][A-Za-z0-9.]{0,39}$/))
+    .max(8)
     .optional(),
 });
 export type LogRecord = z.infer<typeof logRecordSchema>;

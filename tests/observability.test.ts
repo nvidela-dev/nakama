@@ -8,6 +8,7 @@ import {
   rmSync,
   mkdirSync,
   rmdirSync,
+  writeFileSync,
   symlinkSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -392,4 +393,132 @@ test("write commits remain visible at info and ambiguous commits never claim rol
   assert.ok(records.some((r) => r.event === "db.transaction" && r.outcome === "commit_unknown"));
   assert.ok(!records.some((r) => r.event === "db.transaction" && r.outcome === "rolled_back"));
   assert.ok(!JSON.stringify(records).includes("PRIVATE"));
+});
+
+test("malformed environment identity never silences logging", () => {
+  const { records, logger } = fixture();
+  const saved = { id: process.env.VERCEL_DEPLOYMENT_ID, build: process.env.NAKAMA_BUILD_ID };
+  process.env.VERCEL_DEPLOYMENT_ID = "dpl_short";
+  process.env.NAKAMA_BUILD_ID = "not hex!";
+  try {
+    logger.run("server.request", () => logger.reportError(new TypeError("boom"), "server.error"));
+    logger.run("server.request", () => logger.reportError(new TypeError("boom"), "server.error"));
+  } finally {
+    if (saved.id === undefined) delete process.env.VERCEL_DEPLOYMENT_ID;
+    else process.env.VERCEL_DEPLOYMENT_ID = saved.id;
+    if (saved.build === undefined) delete process.env.NAKAMA_BUILD_ID;
+    else process.env.NAKAMA_BUILD_ID = saved.build;
+  }
+  assert.equal(records.filter((r) => r.event === "server.error").length, 2);
+  assert.ok(records.every((r) => !r.deploymentId && !r.buildId));
+  const warnings = records.filter(
+    (r) => r.event === "diagnostic" && r.diagnostic?.code === "CONFIGURATION_INVALID",
+  );
+  assert.equal(warnings.length, 1, "the configuration problem is reported once");
+});
+
+test("an invalid event is replaced by a field-name-only notice, rate limited", () => {
+  const { records, logger } = fixture();
+  const hostile = "PRIVATE_VALUE";
+  for (let i = 0; i < 3; i++)
+    logger.log("info", "operation.finish", {
+      durationMs: -1,
+      queryCount: hostile as unknown as number,
+    });
+  const notices = records.filter((r) => r.event === "logging.record_invalid");
+  assert.equal(notices.length, 1);
+  assert.deepEqual([...(notices[0]?.invalidFields ?? [])].sort(), ["durationMs", "queryCount"]);
+  assert.ok(!JSON.stringify(records).includes(hostile));
+  assert.equal(summarizeLogs(records).invalidRecordWarnings, 1);
+});
+
+test("approved codes in wrapped causes and framework digests are kept, text never is", () => {
+  const { logger } = fixture();
+  const wrapped = new Error("PRIVATE wrapper", {
+    cause: new Error("PRIVATE inner", {
+      cause: Object.assign(new Error("x"), { code: "ECONNRESET" }),
+    }),
+  });
+  assert.equal(logger.errorInfo(wrapped).code, "ECONNRESET");
+  const database = logger.errorInfo(
+    new Error("w", { cause: Object.assign(new Error("x"), { code: "23505" }) }),
+  );
+  assert.equal(database.type, "DatabaseError");
+  assert.equal(
+    logger.errorInfo(new Error("w", { cause: Object.assign(new Error("x"), { code: "SECRET" }) }))
+      .code,
+    undefined,
+  );
+  // A cycle or very deep chain must terminate.
+  const loop = new Error("loop");
+  loop.cause = loop;
+  assert.equal(logger.errorInfo(loop).code, undefined);
+
+  const rendered = Object.assign(new Error("PRIVATE render"), { digest: "1234567890" });
+  const info = logger.errorInfo(rendered);
+  assert.equal(info.digest, "1234567890");
+  assert.equal(
+    logger.errorInfo(Object.assign(new Error("x"), { digest: "has space;" })).digest,
+    undefined,
+  );
+  assert.equal(
+    logger.errorInfo(Object.assign(new Error("x"), { digest: "NEXT_REDIRECT;replace;/p;307;" }))
+      .digest,
+    undefined,
+  );
+  assert.ok(!JSON.stringify(info).includes("PRIVATE"));
+});
+
+test("unexpected handled failures carry their logged error ID as a reference; rejections do not", async () => {
+  const { logger } = fixture();
+  const unexpected = await logger.observe("project.edit", async () => {
+    logger.reportError(new Error("PRIVATE"));
+    return logger.withReference<{ error: string; reference?: string }>({ error: "Friendly error" });
+  });
+  assert.match(unexpected.reference ?? "", /^[0-9a-f-]{36}$/);
+  const rejected = await logger.observe("project.edit", async () => {
+    logger.reportError(new ProjectError("PRIVATE"));
+    return logger.withReference({ error: "Friendly error" });
+  });
+  assert.equal("reference" in rejected, false);
+  const success = await logger.observe("project.edit", async () =>
+    logger.withReference({ success: "Saved" }),
+  );
+  assert.equal("reference" in success, false);
+});
+
+test("logs CLI exits non-zero only when unexpected failures exist and can look up a render digest", () => {
+  const folder = mkdtempSync(join(tmpdir(), "nakama-cli-"));
+  const file = join(folder, "backend.jsonl");
+  try {
+    const records: LogRecord[] = [];
+    const logger = new Observability({ write: (r) => records.push(r), level: "debug" });
+    const run = (...args: string[]) => {
+      try {
+        const out = execFileSync("npx", ["tsx", "scripts/logs.ts", ...args, "--file", file], {
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+        return { code: 0, out };
+      } catch (error) {
+        const e = error as { status: number; stdout: string };
+        return { code: e.status, out: e.stdout };
+      }
+    };
+    const write = () =>
+      writeFileSync(file, records.map((r) => JSON.stringify(r)).join("\n") + "\n", { mode: 0o600 });
+    logger.run("project.edit", () => logger.reportError(new ProjectError("handled")));
+    write();
+    assert.equal(run("summary", "--fail-on", "unexpected").code, 0);
+    const failure = Object.assign(new Error("PRIVATE"), { digest: "9876543210" });
+    logger.run("server.request", () => logger.reportError(failure, "server.error"));
+    write();
+    assert.equal(run("summary", "--fail-on", "unexpected").code, 2);
+    const shown = run("show", "9876543210", "--json");
+    assert.equal(shown.code, 0);
+    assert.ok(shown.out.includes("APPLICATION_FAILED"));
+    assert.equal(run("summary", "--fail-on", "everything").code !== 0, true);
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
 });

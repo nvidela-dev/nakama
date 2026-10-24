@@ -392,6 +392,19 @@ Main commit `b1fd062ca30de1f2344568299be22cea3ffff890` was confirmed READY and P
 
 The local Vercel importer now defaults to the provider's documented 30-minute window. `npm run logs:pull` successfully imported 69 validated events; the subsequent local summary covered 82 events over 69 traces and contained five dependency diagnostics from rejected collection-window probes, zero unexpected application errors, and no sink warnings. This is a bounded log sample, not a production health assertion. A preview build for the importer-default adjustment is still pending its PR.
 
+## Exception and logging hardening — 2026-10-24
+
+Implemented locally, following an audit of the exception and logging path; not released.
+
+- **Logs no longer vanish on a bad field.** Environment-derived identity (`NAKAMA_BUILD_ID`, `VERCEL_DEPLOYMENT_ID`, release) is dropped when malformed instead of discarding every record, and a `CONFIGURATION_INVALID` diagnostic is emitted once. If an event itself fails validation, a `logging.record_invalid` notice lists only the field names (`invalidFields`), at most once a minute; `npm run logs -- summary` reports the count. A missing event is still not evidence of success.
+- **Rendering errors are traceable.** Next's opaque `digest` is stored on `error.digest` (only when it matches a strict shape; redirect digests are excluded). `src/app/error.tsx` and the new `src/app/global-error.tsx` show it as a reference and use `retry()` (refetch) instead of `reset()` (re-render only). `npm run logs -- show REFERENCE` accepts a digest.
+- **Handled unexpected failures carry a reference.** `ActionState.reference` holds the logged error ID, set centrally by `observeAction` only when the failure was unexpected; the shared `Feedback` component displays it. Rejections and conflicts get none.
+- **Wrapped causes.** Classification looks up to three `cause` levels for an _approved_ code (SQLSTATE or transport code) and never reads cause messages or properties.
+- **Middleware and request share a trace**; `/wiki` and `/glossary` routes are named.
+- **Agent verdict:** `npm run logs -- summary --fail-on unexpected` (also `doctor`, `errors`) exits 2 when the window contains unexpected failures; rejections, conflicts and navigation do not. An empty window exits 0 and proves nothing.
+
+Not changed: domain `catch { throw new ProjectError(...) }` blocks (image decoding, Lock-In import) still report any failure as a user rejection, because their validators throw plain errors that cannot be told apart from bugs without changing those validators. Browser-only failures remain unlogged; a client report endpoint is a proposal pending a privacy decision.
+
 ## Feature architecture and component-library verification — 2026-10-23
 
 Implemented locally on `codex/feature-architecture`; no hosted migration, push or frontend deployment was performed for this pass. [Architecture](architecture.md#feature-ownership-and-frontend-composition--2026-10-23), [engineering preferences](engineering-preferences.md), [the component library](component-library.md), and [frontend measurement](frontend-performance.md) define the ownership and contribution pattern. The separate agent-harness work remains independently owned; do not accidentally include its working copies in this refactor's commit.

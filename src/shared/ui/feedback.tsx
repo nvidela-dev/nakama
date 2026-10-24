@@ -6,7 +6,19 @@ export function Feedback({ state }: { state: ActionState }) {
   const t = useT();
   return (
     <>
-      {state.error && <StatusMessage tone="error">{t(state.error)}</StatusMessage>}
+      {state.error && (
+        <StatusMessage tone="error">
+          {t(state.error)}
+          {state.reference && (
+            <>
+              {" "}
+              <small>
+                {t("Reference")}: {state.reference}
+              </small>
+            </>
+          )}
+        </StatusMessage>
+      )}
       {state.success && <StatusMessage>{t(state.success)}</StatusMessage>}
     </>
   );

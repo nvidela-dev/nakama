@@ -4,7 +4,9 @@ import { callClerk } from "@/server/observability/provider-diagnostics";
 import { telemetry } from "@/server/observability/observability";
 import { routeName } from "@/server/observability/log-model";
 function tracedNext(request: NextRequest) {
-  const traceId = crypto.randomUUID();
+  // Inside the observed middleware call this is that operation's trace, so a middleware failure
+  // and the downstream request it forwards share one ID. Outside it (no Clerk), mint a new one.
+  const traceId = telemetry.context()?.traceId ?? crypto.randomUUID();
   const values = new Headers(request.headers);
   // Replace caller-supplied context; never forward private IDs or query strings.
   values.set("x-nakama-request-id", traceId);

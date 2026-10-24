@@ -23,7 +23,7 @@ export async function observeAction<T>(
   try {
     return await telemetry.observe(
       operation,
-      work,
+      async () => telemetry.withReference(await work()),
       telemetry.context() ? undefined : await requestContext(),
     );
   } catch (error) {
