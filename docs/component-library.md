@@ -71,3 +71,10 @@ Use `Icon` from `@/shared/ui/icon` for interface icons. The typed catalog uses [
 ```
 
 Icons inherit text color, default to 16px with a consistent stroke, and are decorative. Keep the accessible name on the containing control or visible text. The Nakama wave remains the custom brand mark; concentric progress indicators and the 3D map remain data visualizations. Architecture checks reject direct library imports outside the catalog and custom inline SVGs outside the wave.
+
+
+## Visual styles
+
+`src/shared/ui/style-theme.ts` owns the typed style catalog. Hacker is the default; Zen uses cream paper, indigo, weathered blue, and rust. The root layout reads the `nakama-theme` cookie and renders the palette before first paint. The footer selector saves a validated, year-long, HTTP-only preference without touching project data. Invalid or absent preferences fall back to Hacker. Storybook's Style toolbar uses the same catalog.
+
+Use core color variables for text, surfaces, borders, and accents. Supplemental semantic `--theme-*` variables have existing Hacker colors as fallbacks; Zen overrides those roles. This preserves the default palette while allowing a complete light style. Add a style through the catalog and test text/button contrast, reload persistence, narrow-screen overflow, and component states. Canvas renderers subscribe to the root style so their colors follow changes too.

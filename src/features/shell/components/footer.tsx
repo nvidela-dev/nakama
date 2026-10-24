@@ -1,3 +1,5 @@
+import { ThemeSwitcher } from "@/features/preferences/components/theme-switcher";
+import type { StyleTheme } from "@/shared/ui/style-theme";
 import {
   callClerk,
   clerkResponse,
@@ -13,7 +15,13 @@ import { getT } from "@/shared/i18n/server";
 import { DensitySwitcher } from "@/features/preferences/components/density";
 import { LanguageSwitcher } from "@/features/preferences/components/language-switcher";
 
-export async function Footer({ density }: { density: "compact" | "comfortable" }) {
+export async function Footer({
+  density,
+  theme,
+}: {
+  density: "compact" | "comfortable";
+  theme: StyleTheme;
+}) {
   const t = await getT();
   const user = authConfigured()
     ? clerkResponse(
@@ -44,6 +52,7 @@ export async function Footer({ density }: { density: "compact" | "comfortable" }
             </Link>
           </Show>
         )}
+        <ThemeSwitcher theme={theme} />
         <LanguageSwitcher />
         <DensitySwitcher density={density} />
       </div>

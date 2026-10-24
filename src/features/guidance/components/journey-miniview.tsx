@@ -1,4 +1,5 @@
 "use client";
+import { useStyleTheme } from "@/shared/ui/use-style-theme";
 import { Icon, type IconName } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
 
@@ -95,6 +96,8 @@ export default function JourneyMiniview({
     });
     return { points, edges };
   }, [guidance]);
+
+  const styleTheme = useStyleTheme();
 
   useEffect(() => {
     if (!canvas.current || failed) return;
@@ -231,7 +234,7 @@ export default function JourneyMiniview({
       resources.forEach((resource) => resource.dispose());
       renderer.dispose();
     };
-  }, [graph, angle, stageId, nodeId, failed]);
+  }, [graph, angle, stageId, nodeId, failed, styleTheme]);
 
   return (
     <div className="journey-miniview">

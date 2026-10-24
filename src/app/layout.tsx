@@ -1,3 +1,4 @@
+import { palettes, parseStyleTheme, styleThemeProperties } from "@/shared/ui/style-theme";
 import { cookies } from "next/headers";
 import { messages } from "@/shared/i18n/index";
 import { getLocale, getT } from "@/shared/i18n/server";
@@ -10,10 +11,10 @@ import { Footer } from "@/features/shell/components/footer";
 import { LanguageProvider } from "@/shared/i18n/provider";
 import { enUS } from "@clerk/localizations/en-US";
 import { esUY } from "@clerk/localizations/es-UY";
-export const viewport: Viewport = {
-  themeColor: "#101c1b",
-  colorScheme: "dark",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = parseStyleTheme((await cookies()).get("nakama-theme")?.value);
+  return { themeColor: palettes[theme].bg, colorScheme: theme === "zen" ? "light" : "dark" };
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -33,6 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const t = await getT();
   const locale = await getLocale();
+  const theme = parseStyleTheme((await cookies()).get("nakama-theme")?.value);
   const density =
     (await cookies()).get("nakama-density")?.value === "comfortable" ? "comfortable" : "compact";
   const content = (
@@ -42,11 +44,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </a>
       <Header />
       {children}
-      <Footer density={density} />
+      <Footer density={density} theme={theme} />
     </>
   );
   return (
-    <html lang={locale} data-density={density} data-scroll-behavior="smooth">
+    <html
+      style={styleThemeProperties(theme)}
+      data-theme={theme}
+      lang={locale}
+      data-density={density}
+      data-scroll-behavior="smooth"
+    >
       <body>
         <LanguageProvider locale={locale} dictionary={locale === "es" ? messages : {}}>
           {authConfigured() ? (

@@ -4,7 +4,7 @@
 }
 .language-switch {
   display: flex;
-  border: 1px solid #5f7565;
+  border: 1px solid var(--theme-border, #5f7565);
   border-radius: 999px;
   padding: 3px;
   gap: 2px;
@@ -20,7 +20,7 @@
 }
 .language-switch button[aria-pressed="true"] {
   background: var(--lime);
-  color: #14241a;
+  color: var(--theme-on-accent, #14241a);
 }
 .language-switch button:focus-visible {
   outline: 2px solid var(--lime);
@@ -51,9 +51,9 @@
     color: var(--muted);
   }
   .density-control select {
-    background: #15241e;
+    background: var(--theme-surface-low, #15241e);
     color: var(--ink);
-    border: 1px solid #5f7565;
+    border: 1px solid var(--theme-border, #5f7565);
     border-radius: 7px;
     padding: 7px 9px;
     font: inherit;
@@ -91,4 +91,34 @@
   min-height: 30px;
   padding: 4px 8px;
   font-size: 11px;
+}
+
+.theme-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.theme-control select {
+  height: 30px;
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+}
+.theme-control select:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 3px;
+}
+.theme-control [role="alert"] {
+  max-width: 160px;
+}
+@media (pointer: coarse) {
+  .theme-control select {
+    min-height: 44px;
+  }
 }

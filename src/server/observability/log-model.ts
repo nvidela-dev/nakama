@@ -30,6 +30,7 @@ export const operationNames = [
   "access.request",
   "preference.language",
   "preference.density",
+  "preference.theme",
   "auth.actor",
   "auth.admin",
   "identity.whitelist.list",

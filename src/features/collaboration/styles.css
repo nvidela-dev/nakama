@@ -2,8 +2,8 @@
 .form-stack textarea,
 .invite-result input {
   width: 100%;
-  border: 1px solid #4b6056;
-  background: #101c1b;
+  border: 1px solid var(--theme-border, #4b6056);
+  background: var(--bg);
   color: var(--ink);
   border-radius: 8px;
   padding: 12px;
@@ -167,14 +167,14 @@
   min-width: 110px;
   padding: 5px 9px 4px;
   border-radius: 3px 10px 10px;
-  background: #24352f;
+  background: var(--theme-chat, #24352f);
   box-shadow: 0 1px 1px #0003;
   font-size: 12px;
   line-height: 1.4;
 }
 .comment-bubble-own {
   margin-left: auto;
-  background: #20513e;
+  background: var(--theme-chat-own, #20513e);
   border-radius: 10px 3px 10px 10px;
 }
 .comment-bubble-heading {
@@ -199,7 +199,7 @@
   line-height: 1.45;
 }
 .discussion .comment-meta {
-  color: #c4d2ca;
+  color: var(--theme-text, #c4d2ca);
   justify-content: flex-end;
   gap: 5px;
   font-size: 10px;
@@ -286,7 +286,7 @@
   padding: 5px;
 }
 .comment-reference-dialog {
-  background: #172b25;
+  background: var(--theme-surface-low, #172b25);
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -334,7 +334,7 @@
   border-radius: 6px;
 }
 .comment-reference-results li > button:hover {
-  background: #ffffff0c;
+  background: var(--theme-overlay, #ffffff0c);
 }
 .comment-reference-results strong {
   display: block;
