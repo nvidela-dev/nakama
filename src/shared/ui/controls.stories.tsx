@@ -5,13 +5,42 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Fields: Story = {
   render: () => (
-    <form className="form-stack" style={{ maxWidth: 400 }}>
-      <label htmlFor="story-name">Project name</label>
-      <Input id="story-name" defaultValue="Research notes" required />
-      <label htmlFor="story-description">Description</label>
-      <Textarea id="story-description" rows={3} />
-      <label htmlFor="story-status">Status</label>
-      <Select id="story-status">
+    <form
+      className={
+        "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_button]:mt-2 lg:compact:gap-1.75"
+      }
+      style={{ maxWidth: 400 }}
+    >
+      <label htmlFor="story-name" className={"text-[13px] text-ink"}>
+        Project name
+      </label>
+      <Input
+        id="story-name"
+        defaultValue="Research notes"
+        required
+        className={
+          "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+        }
+      />
+      <label htmlFor="story-description" className={"text-[13px] text-ink"}>
+        Description
+      </label>
+      <Textarea
+        id="story-description"
+        rows={3}
+        className={
+          "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+        }
+      />
+      <label htmlFor="story-status" className={"text-[13px] text-ink"}>
+        Status
+      </label>
+      <Select
+        id="story-status"
+        className={
+          "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
+        }
+      >
         <option>In progress</option>
         <option>Ready</option>
       </Select>
@@ -23,7 +52,9 @@ export const Invalid: Story = {
     <>
       <label htmlFor="invalid-name">Project name</label>
       <Input id="invalid-name" aria-invalid aria-describedby="invalid-error" />
-      <p id="invalid-error">Enter a project name.</p>
+      <p id="invalid-error" className={"mb-[1em] mt-0"}>
+        Enter a project name.
+      </p>
     </>
   ),
 };

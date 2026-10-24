@@ -29,14 +29,20 @@ The browser checks use installed Chrome by default. For a managed Playwright Chr
 | `@/shared/ui/icon` | Typed Lucide interface icon catalog, consistent sizing and decorative SVG semantics |
 | `@/shared/ui/wave-mark` | Shared brand mark |
 
-`tokens.css` owns colors and typography variables. `styles.css` owns base elements and shared visual patterns. Each feature owns its prefixed product styles. Import `src/app/globals.css` once at the application root; Storybook uses the same entrypoint. Do not copy component markup or CSS into stories.
+`src/app/globals.css` is the only stylesheet. Tailwind CSS v4 supplies utilities; `@theme` owns the `--color-*`, font, and animation tokens. The root PostCSS configuration is shared by Next.js and Storybook. Import globals once in each entrypoint.
+
+Put complete utility strings on the element they style. Use component props and conditional utility strings for variants, `lg:compact:` for desktop density, responsive variants for layout, and `motion-reduce:` for animation. Keep arbitrary descendant variants for rendered Markdown or component composition where the child is not owned locally. Prefer direct utilities for children owned by the component. Marker classes used by tests remain stable, but have no custom stylesheet rules.
+
+Shared primitives use `:where` for low-specificity defaults so caller utilities override them without a runtime class-merging dependency. The small `cn` helper joins complete strings; it does not resolve conflicting utilities. Choose one value per property and variant. Inline styles are reserved for runtime values such as progress percentages, task depth, and 3D label positions.
+
+The architecture check parses CSS and rejects additional stylesheets, custom selectors, nested component rules, and CSS imports outside the Tailwind entrypoint. Globals permits only theme tokens/keyframes, the compact variant, and the documented browser motion resets. Do not copy component markup or styling into stories. The project setup dialog is a feature component loaded on its first opening; it stays mounted afterward to preserve drafts across dismissal. Its creation action is injected so stories can exercise validation without backend writes.
 
 ## How to add UI
 
 1. Keep feature-specific components in that feature. Promote a component to the library when its meaning and behavior apply across features; do not move domain orchestration into UI for reuse.
 2. Give public props useful native types and explicit states. Pass labels/content into primitives. A component must remain usable without Clerk, a database, a router, or a Server Action.
 3. Add a colocated `*.stories.tsx` using `satisfies Meta<typeof Component>` and `StoryObj<typeof meta>`. Show relevant empty, error, loading, disabled, pending, and interactive states.
-4. Use the Storybook language and density toolbar. UI text is passed by callers; feature stories use the shared translator. Never translate user-authored content.
+4. Use the Storybook language, density, and style toolbar. UI text is passed by callers; feature stories use the shared translator. Never translate user-authored content.
 5. For interactive behavior, add a browser check in [the component suite](../tests/browser/components.spec.ts). Test keyboard use, focus restoration, and retained state. Axe checks reject serious/critical violations in the selected examples; they are not a claim of complete accessibility coverage.
 6. Run lint, architecture/type checks, Storybook build, and component checks. Check actual application use too: isolated stories do not prove route integration.
 
@@ -77,4 +83,4 @@ Icons inherit text color, default to 16px with a consistent stroke, and are deco
 
 `src/shared/ui/style-theme.ts` owns the typed style catalog. Hacker is the default; Zen uses cream paper, indigo, weathered blue, and rust. The root layout reads the `nakama-theme` cookie and renders the palette before first paint. The footer selector saves a validated, year-long, HTTP-only preference without touching project data. Invalid or absent preferences fall back to Hacker. Storybook's Style toolbar uses the same catalog.
 
-Use core color variables for text, surfaces, borders, and accents. Supplemental semantic `--theme-*` variables have existing Hacker colors as fallbacks; Zen overrides those roles. This preserves the default palette while allowing a complete light style. Add a style through the catalog and test text/button contrast, reload persistence, narrow-screen overflow, and component states. Canvas renderers subscribe to the root style so their colors follow changes too.
+Use the `--color-*` Tailwind tokens for text, surfaces, borders, and accents, including gradient stops. The style catalog also sets the legacy core aliases for compatibility. Supplemental semantic `--theme-*` variables have existing Hacker colors as fallbacks; Zen overrides those roles. This preserves the default palette while allowing a complete light style. Add a style through the catalog and test text/button contrast, reload persistence, narrow-screen overflow, and component states. Canvas renderers subscribe to the root style so their colors follow changes too.

@@ -133,7 +133,7 @@ src/
     observability/         safe diagnostics, collectors, correlation, local files and offline readers
 ```
 
-A feature owns its model, input validation, Server Actions, service implementation, components, and prefixed stylesheet. Models may be a `model.ts` or an organized `model/` directory for the larger guidance definitions. Use explicit import paths; do not introduce mixed environment barrels. Routes assemble features and call authorized services; features never import `app`. Shared code and infrastructure never import features. The shared Actor contract prevents database instrumentation from depending on the project implementation.
+A feature owns its model, input validation, Server Actions, service implementation, components, and colocated Tailwind utilities. Models may be a `model.ts` or an organized `model/` directory for the larger guidance definitions. Use explicit import paths; do not introduce mixed environment barrels. Routes assemble features and call authorized services; features never import `app`. Shared code and infrastructure never import features. The shared Actor contract prevents database instrumentation from depending on the project implementation.
 
 The runtime feature dependency policy is explicit in [the architecture checker](../scripts/check-architecture.ts). Projects, guidance and collaboration coordinate through named service functions; a feature-level dependency in both directions is allowed only where the module graph remains acyclic. Shell composes preferences, project navigation, notifications and access. Tasks and artifacts depend on project authorization. Add a new feature/dependency to that policy deliberately rather than bypassing the rule through a general utilities directory.
 
@@ -143,6 +143,6 @@ Reusable UI has no project, identity, database, router or Server Action dependen
 
 Prefer server composition and small interactive components. The language provider receives only the selected locale dictionary, so English pages do not import the complete Spanish dictionary through a shared hook. The type picker uses a generated summary catalog; full templates remain server-owned. Markdown and question/review editors load conditionally, and the 3D module remains conditional on opening its dialog. No shared caching of private project reads is introduced.
 
-The app's global stylesheet is now an ordered import entrypoint: library tokens/foundations, then feature-owned styles. Keep feature selectors domain-prefixed; use the shared controls and tokens instead of duplicating their appearance. Shared global patterns intentionally apply in Storybook too.
+The app has one stylesheet, `src/app/globals.css`, for Tailwind v4 configuration, theme tokens/keyframes, the compact-density variant, and minimal browser motion resets. Component styling lives in TSX utilities; shared primitives own reusable defaults. Next.js and Storybook use the same PostCSS configuration. The architecture checker parses CSS to enforce the no-custom-selector policy; see the component library guide for override and variant conventions.
 
 See [engineering preferences](engineering-preferences.md), [contribution steps](../CONTRIBUTING.md), and [frontend measurements](frontend-performance.md). Architecture and documentation changes do not establish deployed or production performance by themselves.

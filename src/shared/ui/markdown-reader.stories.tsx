@@ -13,6 +13,6 @@ export const Document: StoryObj<typeof meta> = {};
 export const UntrustedContent: StoryObj<typeof meta> = {
   args: {
     content:
-      "<script>alert(1)</script>\n\n[Unsafe](javascript:alert(1))\n\n![External evidence](https://example.invalid/image.png)",
+      "<script>alert(1)</script> [Unsafe](javascript:alert(1)) ![External evidence](https://example.invalid/image.png)",
   },
 };

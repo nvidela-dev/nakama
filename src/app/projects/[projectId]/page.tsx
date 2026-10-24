@@ -125,19 +125,44 @@ export default async function ProjectPage({
         links={links}
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
       />
-      <details className="panel project-people-panel" open>
-        <summary>
-          <h2>
-            {t("Members")} <span className="count">{people.members.length}</span>
+      <details
+        open
+        className={
+          "panel project-people-panel bg-panel border border-line min-w-0 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[10px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] [&_.project-activity]:mt-3 [&_.project-activity]:pt-2.5 [&_.project-activity_>_summary]:text-[11px] [&_.project-activity_>_summary]:leading-[1.5] [&_.project-activity_>_summary]:cursor-pointer [&_.project-activity_>_p]:my-2 [&_.project-activity_>_p]:mx-0 [&_.project-activity_>_p]:text-[10px] [&_.project-activity_>_p]:leading-[1.45] [&_.activity-list]:my-2 [&_.activity-list]:mx-0 [&_.activity-list_li]:py-1.75 [&_.activity-list_p]:text-[11px] [&_.activity-list_p]:leading-[1.4] [&_.activity-list_time]:text-[10px] [&_.activity-list_time]:leading-[1.4] [&_.activity-list_small]:text-[10px] [&_.activity-list_small]:leading-[1.4] [&_.project-activity_a]:text-[11px] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:[align-content:center]"
+        }
+      >
+        <summary className="cursor-pointer select-none [[open]>&]:mb-3">
+          <h2
+            className={
+              "font-mono tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
+            }
+          >
+            {t("Members")}{" "}
+            <span
+              className={
+                "count align-middle text-muted border border-line rounded-[100px] text-[10px] py-0.5 px-1.5 ml-1.25"
+              }
+            >
+              {people.members.length}
+            </span>
           </h2>
         </summary>
         <div className="project-members">
-          <ul className="people-list">
+          <ul className={"people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2"}>
             {people.members.map((m) => (
-              <li key={m.user_id}>
+              <li
+                key={m.user_id}
+                className={
+                  "border-b border-b-line flex items-center justify-between wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
+                }
+              >
                 <div>
-                  <strong>{m.user_id === person.userId ? t("You") : m.display_name}</strong>
-                  <small>{t(m.role)}</small>
+                  <strong className={"text-[13px] text-[11px] leading-[1.4]"}>
+                    {m.user_id === person.userId ? t("You") : m.display_name}
+                  </strong>
+                  <small className={"block text-muted text-[10px] leading-[1.4]"}>
+                    {t(m.role)}
+                  </small>
                 </div>
                 {project.role === "owner" && m.role === "member" && (
                   <AccessButton projectId={projectId} id={m.user_id} operation="remove" />
@@ -147,16 +172,37 @@ export default async function ProjectPage({
           </ul>
           {project.role === "owner" && (
             <>
-              <h3>{t("Invite member")}</h3>
+              <h3
+                className={
+                  "font-mono tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-2.5 mx-0 mb-1.5 text-[11px] leading-[1.4]"
+                }
+              >
+                {t("Invite member")}
+              </h3>
               <InviteForm projectId={projectId} candidates={candidates} />
-              <h3>{t("Invitations")}</h3>
+              <h3
+                className={
+                  "font-mono tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-2.5 mx-0 mb-1.5 text-[11px] leading-[1.4]"
+                }
+              >
+                {t("Invitations")}
+              </h3>
               {people.invitations.length ? (
-                <ul className="people-list">
+                <ul
+                  className={"people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2"}
+                >
                   {people.invitations.map((inv) => (
-                    <li key={inv.id}>
+                    <li
+                      key={inv.id}
+                      className={
+                        "border-b border-b-line flex items-center justify-between wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
+                      }
+                    >
                       <div>
-                        <strong>{inv.email}</strong>
-                        <small>
+                        <strong className={"text-[13px] text-[11px] leading-[1.4]"}>
+                          {inv.email}
+                        </strong>
+                        <small className={"block text-muted text-[10px] leading-[1.4]"}>
                           {inv.revoked_at
                             ? t("Revoked")
                             : inv.accepted_at
@@ -175,7 +221,9 @@ export default async function ProjectPage({
                   ))}
                 </ul>
               ) : (
-                <p className="muted">{t("No invitations yet.")}</p>
+                <p className={"muted text-muted m-0 text-[11px] leading-[1.4]"}>
+                  {t("No invitations yet.")}
+                </p>
               )}
             </>
           )}
@@ -213,15 +261,36 @@ export default async function ProjectPage({
     />
   );
   return (
-    <main id="main" className="workspace">
-      <div className="page-heading project-heading">
-        <div className="project-heading-line">
-          <Link className="back-link" href="/projects">
+    <main
+      id="main"
+      className={
+        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6"
+      }
+    >
+      <div
+        className={
+          "page-heading project-heading mx-0 mb-10.5 max-[700px]:mt-6 lg:compact:mb-5 mt-0"
+        }
+      >
+        <div className={"project-heading-line flex items-center gap-5 flex-wrap"}>
+          <Link className={"back-link text-[13px] text-muted m-0 shrink-0"} href="/projects">
             {t("← Your projects")}
           </Link>
-          <h1>{project.name}</h1>
+          <h1
+            className={
+              "font-mono tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px] m-0 min-w-0"
+            }
+          >
+            {project.name}
+          </h1>
         </div>
-        <p className="preserve-lines">{project.description}</p>
+        <p
+          className={
+            "preserve-lines mb-[1em] mt-0 whitespace-pre-wrap wrap-anywhere text-muted max-w-175 lg:compact:max-w-none lg:compact:mt-2 lg:compact:mx-0 lg:compact:mb-0 lg:compact:text-[13px] lg:compact:leading-[1.5]"
+          }
+        >
+          {project.description}
+        </p>
       </div>
       {guidance ? (
         <Journey
@@ -237,8 +306,16 @@ export default async function ProjectPage({
           artifacts={artifactLibrary}
         />
       ) : (
-        <div className="workspace-columns project-capture-workspace has-discussion">
-          <div className="project-working-column">
+        <div
+          className={
+            "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid grid-cols-[1.3fr_1fr] gap-8 items-start max-[1000px]:grid-cols-[1fr_1fr] max-[700px]:grid-cols-[1fr] lg:compact:grid-cols-[minmax(0,_1fr)_300px] lg:compact:gap-5 lg:compact:[&_>_*]:min-w-0 min-[2000px]:compact:grid-cols-[minmax(0,_1fr)_340px] min-[2000px]:compact:gap-7 min-[1280px]:grid-cols-[clamp(240px,_20vw,_380px)_minmax(0,_1fr)_clamp(220px,_18vw,_340px)] min-[1280px]:gap-5"
+          }
+        >
+          <div
+            className={
+              "project-working-column min-w-0 bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 [&_.answer-panel]:bg-[var(--theme-surface-low,#14221f)] col-start-1 row-start-1 min-[1280px]:col-start-2"
+            }
+          >
             <ProjectWork
               tasks={<TaskList projectId={projectId} initial={tasks} />}
               artifacts={artifactLibrary}
@@ -246,8 +323,20 @@ export default async function ProjectPage({
               <FlowChooser projectId={projectId} />
             </ProjectWork>
           </div>
-          <div className="project-discussion-column">{discussion}</div>
-          <div className="project-sidebar">{sidebar}</div>
+          <div
+            className={
+              "project-discussion-column min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto col-start-1 row-start-2 min-w-0 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)]"
+            }
+          >
+            {discussion}
+          </div>
+          <div
+            className={
+              "project-sidebar grid gap-4 min-w-0 content-start [&_.project-settings]:mb-0 col-start-2 [grid-row:1_/_span_2] max-[700px]:col-start-1 max-[700px]:row-start-3 min-[1280px]:col-start-3 min-[1280px]:row-start-1"
+            }
+          >
+            {sidebar}
+          </div>
         </div>
       )}
     </main>

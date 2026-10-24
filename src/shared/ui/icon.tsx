@@ -1,3 +1,4 @@
+import { cn } from "./cn";
 import {
   ArrowDown,
   Circle,
@@ -77,7 +78,10 @@ export function Icon({ name, size = 16, strokeWidth = 1.75, className, ...props 
   return (
     <Glyph
       {...props}
-      className={`ui-icon${className ? ` ${className}` : ""}`}
+      className={cn(
+        "ui-icon [:where(&)]:inline-block [:where(&)]:align-middle [:where(&)]:shrink-0",
+        className,
+      )}
       size={size}
       strokeWidth={strokeWidth}
       aria-hidden="true"

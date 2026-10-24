@@ -406,6 +406,10 @@ test("platform captures system metadata, saves blueprint choices, and isolates m
   const initial = await guidance.get(alice, id);
   assert.equal(initial!.flow.id, "platform");
   assert.equal(initial!.flow.stages.length, 5);
+  // The dashboard decodes every visible flow; a newly added type must not break the list.
+  const { projectProgress } = await import("../src/features/projects/server/project-progress");
+  assert.equal((await projectProgress(db, alice)).get(id)?.length, 5);
+  assert.equal((await projectProgress(db, outsider)).has(id), false);
   await guidance.save(alice, id, "platform-name", answer("Worker queue daemon", 1));
   assert.equal((await projects.get(alice, id)).name, "Worker queue daemon");
   await guidance.save(alice, id, "platform-target", {

@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { styleViolations } from "./style-policy";
 import { isBuiltin } from "node:module";
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, normalize, resolve } from "node:path";
@@ -38,6 +39,7 @@ export function architectureViolations(sources: ReadonlyMap<string, string>): st
     );
   }
   for (const [file, source] of sources) {
+    for (const error of styleViolations(file, source)) errors.add(error);
     if (!file.endsWith(".ts") && !file.endsWith(".tsx")) continue;
     const tree = ts.createSourceFile(
       file,
@@ -210,7 +212,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const sources = new Map(
     await Promise.all(
       files
-        .filter((file) => /\.(ts|tsx|json)$/.test(file))
+        .filter((file) => /\.(ts|tsx|json|css|scss|sass|less)$/.test(file))
         .map(async (file) => [file, await readFile(file, "utf8")] as const),
     ),
   );

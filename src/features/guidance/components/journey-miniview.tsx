@@ -112,10 +112,10 @@ export default function JourneyMiniview({
     }
     const theme = getComputedStyle(document.documentElement);
     const token = (name: string) => theme.getPropertyValue(name).trim();
-    const lime = new THREE.Color(token("--lime"));
-    const peach = new THREE.Color(token("--pink"));
-    const muted = new THREE.Color(token("--muted"));
-    const line = new THREE.Color(token("--line"));
+    const lime = new THREE.Color(token("--color-lime"));
+    const peach = new THREE.Color(token("--color-pink"));
+    const muted = new THREE.Color(token("--color-muted"));
+    const line = new THREE.Color(token("--color-line"));
     const colors: Record<string, THREE.Color> = {
       unanswered: muted,
       draft: peach,
@@ -144,9 +144,9 @@ export default function JourneyMiniview({
     glowCanvas.width = glowCanvas.height = 64;
     const context = glowCanvas.getContext("2d")!;
     const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, `${token("--lime")}8c`);
-    gradient.addColorStop(0.3, `${token("--lime")}26`);
-    gradient.addColorStop(1, `${token("--lime")}00`);
+    gradient.addColorStop(0, `${token("--color-lime")}8c`);
+    gradient.addColorStop(0.3, `${token("--color-lime")}26`);
+    gradient.addColorStop(1, `${token("--color-lime")}00`);
     context.fillStyle = gradient;
     context.fillRect(0, 0, 64, 64);
     const glowTexture = new THREE.CanvasTexture(glowCanvas);
@@ -154,7 +154,7 @@ export default function JourneyMiniview({
     for (const [index, point] of graph.points.entries()) {
       const selected = nodeId ? point.id === nodeId : point.id === stageId;
       const material = new THREE.MeshBasicMaterial({
-        color: selected ? token("--ink") : (colors[point.status] ?? token("--muted")),
+        color: selected ? token("--color-ink") : (colors[point.status] ?? token("--color-muted")),
         wireframe: true,
         transparent: true,
         opacity: point.nodeId ? 0.85 : 0.7,
@@ -237,19 +237,47 @@ export default function JourneyMiniview({
   }, [graph, angle, stageId, nodeId, failed, styleTheme]);
 
   return (
-    <div className="journey-miniview">
-      <div className="miniview-heading">
-        <strong>{t("3D stage map")}</strong>
-        <div className="miniview-controls" role="group" aria-label={t("Map perspective")}>
+    <div
+      className={
+        "journey-miniview mb-[1.25rem] p-[1rem] border border-line rounded-[4px] [background:radial-gradient(ellipse_at_50%_50%,_var(--color-panel)_0%,_var(--color-bg)_65%)] text-ink [box-shadow:inset_0_0_60px_var(--color-dark)] font-mono"
+      }
+    >
+      <div
+        className={
+          "miniview-heading flex items-center justify-between gap-[0.75rem] flex-wrap pb-[0.6rem] border-b border-b-line"
+        }
+      >
+        <strong
+          className={
+            "text-lime uppercase tracking-[0.18em] text-[0.85rem] [text-shadow:0_0_12px_var(--color-line)]"
+          }
+        >
+          {t("3D stage map")}
+        </strong>
+        <div
+          className={"miniview-controls flex gap-[0.4rem]"}
+          role="group"
+          aria-label={t("Map perspective")}
+        >
           <Button
             type="button"
             onClick={() => setAngle(Math.max(-2, angle - 1))}
             disabled={failed || angle === -2}
             aria-label={t("Rotate left")}
+            className={
+              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
+            }
           >
             <Icon name="rotateLeft" />
           </Button>
-          <Button type="button" onClick={() => setAngle(0)} disabled={failed || angle === 0}>
+          <Button
+            type="button"
+            onClick={() => setAngle(0)}
+            disabled={failed || angle === 0}
+            className={
+              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
+            }
+          >
             {t("Reset view")}
           </Button>
           <Button
@@ -257,28 +285,42 @@ export default function JourneyMiniview({
             onClick={() => setAngle(Math.min(2, angle + 1))}
             disabled={failed || angle === 2}
             aria-label={t("Rotate right")}
+            className={
+              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
+            }
           >
             <Icon name="rotateRight" />
           </Button>
         </div>
       </div>
-      <p className="muted">
+      <p className={"muted mb-[1em] mt-0 text-muted text-[0.7rem]"}>
         {t(
           "Saved progress across stages. Branches show dependencies; upcoming stages remain visible.",
         )}
       </p>
       {failed ? (
-        <p role="status">{t("3D is unavailable. Use the stage tree below.")}</p>
+        <p role="status" className={"mb-[1em] mt-0"}>
+          {t("3D is unavailable. Use the stage tree below.")}
+        </p>
       ) : (
         <div
-          className="miniview-scroll"
+          className={"miniview-scroll overflow-x-auto"}
           tabIndex={0}
           role="region"
           aria-label={t("Stage map. Scroll horizontally on small screens.")}
         >
-          <div className="miniview-scene">
-            <canvas ref={canvas} aria-hidden="true" />
-            <nav aria-label={t("Stages and question branches")}>
+          <div
+            className={
+              'miniview-scene relative min-w-185 h-107.5 max-w-275 [margin-inline:auto] after:[content:""] after:absolute after:inset-0 after:[pointer-events:none] after:[background:repeating-linear-gradient(transparent_0_3px,_#17231c30_3px_4px)]'
+            }
+          >
+            <canvas ref={canvas} aria-hidden="true" className={"block w-full h-full"} />
+            <nav
+              aria-label={t("Stages and question branches")}
+              className={
+                "flex items-center gap-7 text-[13px] max-[700px]:gap-3.5 max-[700px]:text-[12px]"
+              }
+            >
               {graph.points.map((point) => (
                 <Link
                   key={point.id}
@@ -287,18 +329,27 @@ export default function JourneyMiniview({
                     else labels.current.delete(point.id);
                   }}
                   href={`${base}?stage=${point.stageId}${point.nodeId ? `&node=${point.nodeId}` : ""}`}
-                  className={`miniview-point ${point.nodeId ? "miniview-node" : "miniview-stage"}`}
+                  className={[
+                    `miniview-point ${point.nodeId ? "miniview-node" : "miniview-stage"}`,
+                    "absolute [transform:translate(-50%,_-50%)] w-7.5 h-7.5 rounded-full z-[1] [&[aria-current]]:[outline:2px_solid_white] [&[aria-current]]:[outline-offset:3px] [&[aria-current]]:[outline-color:var(--color-lime)] focus-visible:[outline:2px_solid_white] focus-visible:[outline-offset:3px] focus-visible:[outline-color:var(--color-lime)] hover:z-[3] focus-visible:z-[3] [&:hover_.miniview-label]:block [&:focus-visible_.miniview-label]:block",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   aria-current={
                     (nodeId ? point.id === nodeId : point.id === stageId) ? "location" : undefined
                   }
                   aria-label={`${t(point.label)} · ${t(point.status)}${point.revisit ? t(" · revisit") : ""}`}
                 >
-                  <span className="miniview-label">
+                  <span
+                    className={
+                      "miniview-label absolute left-1/2 [transform:translateX(-50%)] w-[max-content] max-w-36.25 py-[0.25rem] px-[0.4rem] bg-bg border rounded-[2px] text-ink text-[0.7rem] text-center leading-[1.35] border-line tracking-[0.03em] top-[auto] bottom-10 hidden [pointer-events:none]"
+                    }
+                  >
                     {!point.nodeId && (
                       <Icon name={symbols[point.status] ?? "unanswered"} size={12} />
                     )}
                     {t(point.label)}
-                    <small>
+                    <small className={"block text-muted text-[0.65rem]"}>
                       {t(point.status)}
                       {point.revisit ? t(" · revisit") : ""}
                     </small>
@@ -309,7 +360,11 @@ export default function JourneyMiniview({
           </div>
         </div>
       )}
-      <p className="miniview-legend">
+      <p
+        className={
+          "miniview-legend mt-0 text-muted text-[0.7rem] mb-0 pt-[0.7rem] border-t border-t-line"
+        }
+      >
         {t(
           "Lime: answered or reviewed · Peach: in progress, draft, or blocked · Muted: not started or skipped",
         )}

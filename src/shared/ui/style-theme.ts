@@ -53,7 +53,12 @@ export type ThemeStyle = CSSProperties & Partial<Record<`--${string}`, string>>;
 export function styleThemeProperties(theme: StyleTheme): ThemeStyle {
   const palette = palettes[theme];
   return {
-    ...Object.fromEntries(Object.entries(palette).map(([name, value]) => [`--${name}`, value])),
+    ...Object.fromEntries(
+      Object.entries(palette).flatMap(([name, value]) => [
+        [`--${name}`, value],
+        [`--color-${name}`, value],
+      ]),
+    ),
     ...(theme === "zen" ? zenSurfaces : {}),
     colorScheme: theme === "zen" ? "light" : "dark",
   };

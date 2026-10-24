@@ -1,10 +1,50 @@
-@import "../shared/ui/tokens.css";
-@import "../shared/ui/styles.css";
-@import "../features/shell/styles.css";
-@import "../features/projects/styles.css";
-@import "../features/collaboration/styles.css";
-@import "../features/guidance/styles.css";
-@import "../features/preferences/styles.css";
-@import "../features/tasks/styles.css";
-@import "../features/notifications/styles.css";
-@import "../features/artifacts/styles.css";
+@import "tailwindcss";
+
+@custom-variant compact (&:where(html[data-density="compact"] *));
+
+@theme {
+  --font-mono:
+    ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --color-ink: #edf2e8;
+  --color-muted: #a6b3ab;
+  --color-bg: #101c1b;
+  --color-panel: #182725;
+  --color-line: #32433d;
+  --color-lime: #dcf6a3;
+  --color-dark: #17231c;
+  --color-pink: #e9b7ae;
+  --animate-loading-pulse: loading-pulse 1.5s ease-in-out infinite alternate;
+  --animate-loading-shimmer: loading-shimmer 1.8s ease-in-out infinite;
+
+  @keyframes loading-pulse {
+    to {
+      opacity: 0.65;
+    }
+  }
+  @keyframes loading-shimmer {
+    0% {
+      background-position: 100% 0;
+    }
+    100% {
+      background-position: -100% 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

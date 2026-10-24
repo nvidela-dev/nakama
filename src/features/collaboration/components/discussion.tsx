@@ -82,7 +82,14 @@ function CommentItem({
     {},
   );
   return (
-    <li ref={item} id={`comment-${comment.id}`} tabIndex={-1} className="comment-item">
+    <li
+      ref={item}
+      id={`comment-${comment.id}`}
+      tabIndex={-1}
+      className={
+        "comment-item flex min-w-0 p-0 border-0 wrap-anywhere target:[outline:2px_solid_var(--color-lime)] target:[outline-offset:4px]"
+      }
+    >
       <CommentBubble
         own={comment.author_id === userId}
         author={`${comment.author_name}${comment.former_member ? ` · ${t("Former member")}` : ""}`}
@@ -128,14 +135,28 @@ function CommentItem({
         }
       >
         {comment.deleted_at ? (
-          <p className="muted">{t("Comment removed.")}</p>
+          <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>{t("Comment removed.")}</p>
         ) : (
           <>
             {!editing && <CommentText content={comment.content} />}
             {editing && (
-              <form action={action} className="form-stack comment-edit">
-                <Input type="hidden" name="operation" value="edit" />
-                <label htmlFor={`edit-comment-${comment.id}`}>{t("Edit comment")}</label>
+              <form
+                action={action}
+                className={
+                  "form-stack comment-edit flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+                }
+              >
+                <Input
+                  type="hidden"
+                  name="operation"
+                  value="edit"
+                  className={
+                    "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  }
+                />
+                <label htmlFor={`edit-comment-${comment.id}`} className={"text-[13px] text-ink"}>
+                  {t("Edit comment")}
+                </label>
                 <Textarea
                   autoFocus
                   id={`edit-comment-${comment.id}`}
@@ -145,20 +166,34 @@ function CommentItem({
                   required
                   maxLength={4000}
                   rows={3}
+                  className={
+                    "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  }
                 />
-                <div className="comment-controls">
-                  <Button type="submit" disabled={pending}>
+                <div
+                  className={
+                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[10px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
+                  }
+                >
+                  <Button
+                    type="submit"
+                    disabled={pending}
+                    className={"mt-2 lg:compact:mt-1 min-h-9 py-1.5 px-2.5 text-[12px]"}
+                  >
                     {pending ? t("Saving…") : t("Save changes")}
                   </Button>
                   <Button
                     type="button"
-                    className="button secondary"
+                    className={
+                      "button secondary mt-2 lg:compact:mt-1 min-h-9 py-1.5 px-2.5 text-[12px]"
+                    }
                     onClick={() => {
                       setEditing(false);
                       requestAnimationFrame(() =>
                         document.getElementById(`comment-actions-${comment.id}`)?.focus(),
                       );
                     }}
+                    variant="secondary"
                   >
                     {t("Cancel")}
                   </Button>
@@ -167,30 +202,36 @@ function CommentItem({
             )}
             {confirming && (
               <form action={action} className="comment-confirm">
-                <p>
+                <p className={"mb-[1em] mt-0"}>
                   {t(
                     "Remove this comment? Its text will be permanently removed; a deletion marker will remain.",
                   )}
                 </p>
-                <div className="comment-controls">
+                <div
+                  className={
+                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[10px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
+                  }
+                >
                   <Button
                     type="submit"
                     autoFocus
                     name="operation"
                     value="delete"
                     disabled={pending}
+                    className={"min-h-9 py-1.5 px-2.5 text-[12px]"}
                   >
                     {t("Confirm removal")}
                   </Button>
                   <Button
                     type="button"
-                    className="button secondary"
+                    className={"button secondary min-h-9 py-1.5 px-2.5 text-[12px]"}
                     onClick={() => {
                       setConfirming(false);
                       requestAnimationFrame(() =>
                         document.getElementById(`comment-actions-${comment.id}`)?.focus(),
                       );
                     }}
+                    variant="secondary"
                   >
                     {t("Cancel")}
                   </Button>
@@ -240,13 +281,20 @@ export function Discussion({
     {},
   );
   return (
-    <Panel className="discussion" aria-label={`${t("Discussion")} · ${label}`}>
-      <h2>
+    <Panel
+      className={"discussion mt-5 p-3 rounded-[10px]"}
+      aria-label={`${t("Discussion")} · ${label}`}
+    >
+      <h2
+        className={
+          "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mb-3 text-[14px] leading-[1.35] mt-0 mx-0 mb-1"
+        }
+      >
         {t("Discussion")} · {label}
       </h2>
       {latestHref && <Link href={latestHref}>{t("Latest comments")}</Link>}
       {comments.items.length ? (
-        <ol className="comment-list">
+        <ol className={"comment-list list-none p-0 grid gap-1.5 my-3 mx-0"}>
           {[...comments.items].reverse().map((comment) => (
             <CommentItem
               key={comment.id}
@@ -258,10 +306,15 @@ export function Discussion({
           ))}
         </ol>
       ) : (
-        <p>{t("No comments yet.")}</p>
+        <p className={"mb-[1em] mt-0"}>{t("No comments yet.")}</p>
       )}
       {olderHref && (
-        <Link className="button secondary" href={olderHref}>
+        <Link
+          className={
+            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)]"
+          }
+          href={olderHref}
+        >
           {t("Older comments")}
         </Link>
       )}

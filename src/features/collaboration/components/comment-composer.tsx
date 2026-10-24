@@ -28,8 +28,13 @@ export function CommentComposer({
   const [failedDraft, setFailedDraft] = useState<string>();
   const referenceError = failedDraft === content;
   return (
-    <form action={action} className="form-stack comment-compose">
-      <label htmlFor="new-comment">{t("Add a comment")}</label>
+    <form
+      action={action}
+      className="form-stack comment-compose grid grid-cols-[auto_minmax(0,1fr)_auto] items-end gap-[5px_8px] mt-3 pt-2.25 border-t border-line [&_>_.message]:col-span-full"
+    >
+      <label htmlFor="new-comment" className={"text-ink [grid-column:1_/_-1] text-[10px]"}>
+        {t("Add a comment")}
+      </label>
       <Textarea
         disabled={pending}
         ref={composer}
@@ -43,6 +48,7 @@ export function CommentComposer({
         maxLength={4000}
         required
         rows={2}
+        className="col-start-2 row-start-2 min-h-9.5 max-h-40 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[14px] py-1.75 px-2.25 text-[12px] leading-[1.4] resize-y"
       />
       <ReferencePicker
         disabled={pending}
@@ -68,7 +74,12 @@ export function CommentComposer({
         }}
       />
       {referenceError && (
-        <p className="message error" role="alert">
+        <p
+          className={
+            "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[var(--theme-danger,#4e3030)] [color:var(--theme-danger-ink,#ffe4dd)]!"
+          }
+          role="alert"
+        >
           {t("This link would exceed the comment limit. Shorten your draft first.")}
         </p>
       )}
@@ -78,6 +89,7 @@ export function CommentComposer({
         disabled={pending}
         aria-label={pending ? t("Posting…") : t("Post comment")}
         title={t("Post comment")}
+        className="col-start-3 row-start-2 w-9 min-h-9 p-2 rounded-full pointer-coarse:w-11 pointer-coarse:min-h-11"
       >
         <Icon name="arrowRight" />
       </Button>

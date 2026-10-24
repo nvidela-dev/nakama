@@ -13,7 +13,7 @@ export function RequestActions({ id }: { id: string }) {
   return (
     <form action={action}>
       <Input type="hidden" name="id" value={id} />
-      <div className="request-actions">
+      <div className={"request-actions flex gap-1.5 flex-wrap"}>
         <Button type="submit" name="operation" value="allow" disabled={pending}>
           {t("Allow email")}
         </Button>
@@ -21,8 +21,9 @@ export function RequestActions({ id }: { id: string }) {
           type="submit"
           name="operation"
           value="dismiss"
-          className="button secondary"
+          className={"button secondary"}
           disabled={pending}
+          variant="secondary"
         >
           {t("Dismiss")}
         </Button>

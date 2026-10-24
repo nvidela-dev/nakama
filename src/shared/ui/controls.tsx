@@ -1,21 +1,46 @@
 "use client";
+import { cn } from "./cn";
 import type { ComponentProps } from "react";
 import { useHydrated } from "@/shared/lib/use-hydrated";
 
 // A controlled field must not accept input before React can retain its draft.
 // Uncontrolled/hidden server-form inputs remain progressively usable.
-export function Input({ disabled, ...props }: ComponentProps<"input">) {
+export function Input({ disabled, className, ...props }: ComponentProps<"input">) {
   const hydrated = useHydrated();
   const controlled = !!props.onChange && (props.value !== undefined || props.checked !== undefined);
-  return <input {...props} disabled={disabled || (controlled && !hydrated)} />;
+  return (
+    <input
+      {...props}
+      disabled={disabled || (controlled && !hydrated)}
+      className={cn(
+        "[font:inherit] focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
+        className,
+      )}
+    />
+  );
 }
-export function Textarea({ disabled, ...props }: ComponentProps<"textarea">) {
+export function Textarea({ disabled, className, ...props }: ComponentProps<"textarea">) {
   const hydrated = useHydrated();
   const controlled = !!props.onChange && props.value !== undefined;
-  return <textarea {...props} disabled={disabled || (controlled && !hydrated)} />;
+  return (
+    <textarea
+      {...props}
+      disabled={disabled || (controlled && !hydrated)}
+      className={cn(
+        "[font:inherit] focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
+        className,
+      )}
+    />
+  );
 }
-export function Select({ disabled, ...props }: ComponentProps<"select">) {
+export function Select({ disabled, className, ...props }: ComponentProps<"select">) {
   const hydrated = useHydrated();
   const controlled = !!props.onChange && props.value !== undefined;
-  return <select {...props} disabled={disabled || (controlled && !hydrated)} />;
+  return (
+    <select
+      className={cn("", className)}
+      {...props}
+      disabled={disabled || (controlled && !hydrated)}
+    />
+  );
 }

@@ -100,11 +100,13 @@ function NotificationMenu() {
     }
   }
   return (
-    <div className="notification-bell" ref={root}>
+    <div className={"notification-bell relative"} ref={root}>
       <Button
         type="submit"
         ref={button}
-        className="notification-trigger"
+        className={
+          "notification-trigger relative min-w-7 min-h-7 p-1 border-0 rounded-full bg-transparent text-ink hover:[background:transparent] hover:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
+        }
         aria-label={`${t("Unread comments")}${inbox ? `: ${inbox.count}` : ""}`}
         aria-expanded={open}
         aria-controls="comment-notifications"
@@ -115,22 +117,34 @@ function NotificationMenu() {
       >
         <Icon name="bell" />
         {!!inbox?.count && (
-          <span className="notification-badge">{inbox.count > 99 ? "99+" : inbox.count}</span>
+          <span
+            className={
+              "notification-badge absolute top-0 right-[-4px] py-0.5 px-1.25 rounded-[12px] bg-lime text-bg text-[10px] font-bold"
+            }
+          >
+            {inbox.count > 99 ? "99+" : inbox.count}
+          </span>
         )}
         {error && <span aria-hidden="true">!</span>}
       </Button>
       {open && (
         <Panel
           id="comment-notifications"
-          className="notification-panel"
+          className={
+            "notification-panel absolute z-[50] right-0 top-[calc(100%_+_8px)] w-[min(390px,_calc(100vw_-_32px))] max-h-[min(650px,_75dvh)] overflow-y-auto [box-shadow:0_12px_36px_#0008] max-[700px]:fixed max-[700px]:top-25 max-[700px]:right-4"
+          }
           aria-label={t("Unread comments")}
         >
-          <h2>
+          <h2
+            className={
+              "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 text-[16px]"
+            }
+          >
             {t("Unread comments")}
             {inbox ? ` (${inbox.count})` : ""}
           </h2>
           {error && (
-            <p role="alert">
+            <p role="alert" className={"mb-[1em] mt-0"}>
               {t("Could not load notifications.")}{" "}
               <Button type="submit" onClick={() => void refresh()}>
                 {t("Retry")}
@@ -138,8 +152,8 @@ function NotificationMenu() {
             </p>
           )}
           {!inbox && !error && <LoadingState label={t("Loading…")} variant="compact" lines={3} />}
-          {inbox?.count === 0 && <p>{t("No unread comments.")}</p>}
-          <ol className="notification-list">
+          {inbox?.count === 0 && <p className={"mb-[1em] mt-0"}>{t("No unread comments.")}</p>}
+          <ol className={"notification-list list-none p-0 m-0"}>
             {inbox?.items.map((c) => {
               const query = new URLSearchParams();
               if (c.stage_id === "tasks" || c.stage_id === "artifacts") {
@@ -150,16 +164,21 @@ function NotificationMenu() {
               }
               query.set("comment", c.id);
               return (
-                <li key={c.id}>
+                <li key={c.id} className={"py-3.5 border-t border-t-line"}>
                   <Link
                     href={`/projects/${c.project_id}?${query}#comment-${c.id}`}
                     onClick={() => setOpen(false)}
                   >
-                    <strong>{c.project_name}</strong>
-                    <span>{c.author_name}</span>
-                    <p>{c.content}</p>
+                    <strong className={"block"}>{c.project_name}</strong>
+                    <span className={"block text-muted text-[12px] mt-1"}>{c.author_name}</span>
+                    <p className={"mb-[1em] mt-0 text-[13px] my-2"}>{c.content}</p>
                   </Link>
-                  <Button type="submit" disabled={busy} onClick={() => void mark(c.id)}>
+                  <Button
+                    type="submit"
+                    disabled={busy}
+                    onClick={() => void mark(c.id)}
+                    className={"text-[12px]"}
+                  >
                     {t("Mark as read")}
                   </Button>
                 </li>

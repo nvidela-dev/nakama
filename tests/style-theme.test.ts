@@ -18,6 +18,9 @@ test("Hacker remains the default and malformed preferences cannot inject styles"
     assert.equal(parseStyleTheme(value), "hacker");
   assert.equal(parseStyleTheme("zen"), "zen");
   assert.equal(styleThemeProperties("hacker")["--bg"], "#101c1b");
+  for (const theme of ["hacker", "zen"] as const)
+    for (const [name, value] of Object.entries(palettes[theme]))
+      assert.equal(styleThemeProperties(theme)[`--color-${name}`], value);
   assert.equal(styleThemeProperties("hacker")["--theme-surface"], undefined);
 });
 test("both palettes retain readable text and primary buttons", () => {
