@@ -56,6 +56,10 @@ test("templates preserve five stages, valid within-stage edges, guidance, and cr
     flows.creative.stages.map((s) => s.name),
     ["Concept", "Imagine", "Experiment", "Shape", "Create"],
   );
+  assert.deepEqual(
+    flows.platform.stages.map((s) => s.name),
+    ["System", "Blueprint", "Prototype", "Integration", "Production"],
+  );
   for (const flow of Object.values(flows)) {
     const ids = new Set<string>();
     for (const stage of flow.stages) {
@@ -393,6 +397,32 @@ test("investigation captures metadata, saves evidence and outcome choices, and i
     guidance.save(alice, id, "inquiry-output", {
       ...answer("Invalid", 1),
       choice: "Invented output",
+    }),
+  );
+});
+
+test("platform captures system metadata, saves blueprint choices, and isolates members", async () => {
+  const id = await project("platform");
+  const initial = await guidance.get(alice, id);
+  assert.equal(initial!.flow.id, "platform");
+  assert.equal(initial!.flow.stages.length, 5);
+  await guidance.save(alice, id, "platform-name", answer("Worker queue daemon", 1));
+  assert.equal((await projects.get(alice, id)).name, "Worker queue daemon");
+  await guidance.save(alice, id, "platform-target", {
+    ...answer("Hermes service"),
+    choice: "Hermes service",
+  });
+  const saved = await guidance.get(alice, id);
+  assert.equal(
+    saved!.answers.find((item) => item.node_id === "platform-target")?.choice,
+    "Hermes service",
+  );
+  assert.equal(saved!.projectState, "active");
+  await assert.rejects(guidance.get(outsider, id));
+  await assert.rejects(
+    guidance.save(alice, id, "platform-target", {
+      ...answer("Invalid", 2),
+      choice: "Invalid target",
     }),
   );
 });

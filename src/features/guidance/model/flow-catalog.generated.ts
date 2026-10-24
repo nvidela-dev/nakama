@@ -7,6 +7,11 @@ export const flowCatalog = [
     "description": "Investigate a topic, weigh evidence, and develop a conclusion, actionables, or an artifact."
   },
   {
+    "id": "platform",
+    "name": "Platform",
+    "description": "Build infrastructure, automation, cloud services, and internal tooling to increase production."
+  },
+  {
     "id": "eshop",
     "name": "E-shop",
     "description": "Build a general online shop, from product selection to fulfilled orders."

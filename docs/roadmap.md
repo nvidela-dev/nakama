@@ -353,3 +353,7 @@ Accepted: move owner Edit/Delete project-card icons into the shared chevron `Act
 ## Collapsible sidebar panels and activity-scoped discussion — 2026-10-23
 
 Accepted: make each right-column sidebar panel (Progress, Linked projects, Members) an individually collapsible `<details className="panel ...">` disclosure open by default with clean summaries and count badges, retaining the inner Activity disclosure. Switching project workspace tabs to 'To-do' (`tasks`) or 'Artifacts' (`artifacts`) opens a dedicated chat scoped to that activity rather than retaining the previous stage/step discussion, clearing step parameters and establishing isolated activity discussion scopes in `project_comments`.
+
+## Platform engineering and automation flow — 2026-10-24
+
+Accepted: add a dedicated 'Platform' project flow (`id: "platform"`) aimed at internal tooling, automation processes, cloud infrastructure, and Hermes/Nakama service improvements focused on increasing production capacity and operational reliability rather than commercial revenue. It follows the standard Nakama workflow format with 5 versioned stages (`System` → `Blueprint` → `Prototype` → `Integration` → `Production`), topological within-stage dependencies, full Spanish localization, a `Server` icon in the workflow picker, and outputs spanning automation scripts, APIs, IaC, CI workflows, and operational runbooks. Database migration 015 expands PostgreSQL enum `flow_id`.

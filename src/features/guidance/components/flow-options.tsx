@@ -31,19 +31,21 @@ export function FlowOptions({
           <span aria-hidden="true">
             <Icon
               name={
-                flow.id === "investigation"
-                  ? "search"
-                  : flow.id === "creative"
-                    ? "creative"
-                    : flow.id.includes("eshop")
-                      ? "shop"
-                      : flow.id === "saas"
-                        ? "software"
-                        : flow.id === "importation"
-                          ? "import"
-                          : flow.id === "consultancy"
-                            ? "consultancy"
-                            : "idea"
+                flow.id === "platform"
+                  ? "server"
+                  : flow.id === "investigation"
+                    ? "search"
+                    : flow.id === "creative"
+                      ? "creative"
+                      : flow.id.includes("eshop")
+                        ? "shop"
+                        : flow.id === "saas"
+                          ? "software"
+                          : flow.id === "importation"
+                            ? "import"
+                            : flow.id === "consultancy"
+                              ? "consultancy"
+                              : "idea"
               }
             />
           </span>
