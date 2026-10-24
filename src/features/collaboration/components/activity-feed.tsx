@@ -46,15 +46,15 @@ export function ActivityFeed({
   const t = useT(),
     locale = useLocale();
   return (
-    <details className={"project-activity border-t border-t-line pt-[18px] mt-[24px]"} open={open}>
+    <details className={"project-activity border-t border-t-line pt-4.5 mt-6"} open={open}>
       <summary
         className={
-          "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px]"
+          "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
         }
       >
         {t("Activity")}
       </summary>
-      <p className={"muted mb-[1em] mt-[0] text-muted text-[12px]"}>
+      <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
         {t(
           "Earlier history includes recorded answers and stage reviews. Other activity starts with this release.",
         )}
@@ -74,10 +74,7 @@ export function ActivityFeed({
               query.set("view", "artifacts");
             const href = `/projects/${projectId}${query.size ? `?${query}` : ""}`;
             return (
-              <li
-                key={event.sort_key}
-                className={"[padding-block:14px] border-b border-b-line wrap-anywhere"}
-              >
+              <li key={event.sort_key} className={"py-3.5 border-b border-b-line wrap-anywhere"}>
                 <p className={"m-0 text-[13px]"}>
                   <strong>{event.actor_name || t("Former member")}</strong>
                   {event.former_member && event.actor_name ? ` · ${t("Former member")}` : ""}{" "}
@@ -117,12 +114,12 @@ export function ActivityFeed({
           })}
         </ol>
       ) : (
-        <p className={"mb-[1em] mt-[0]"}>{t("No recorded activity yet.")}</p>
+        <p className={"mb-[1em] mt-0"}>{t("No recorded activity yet.")}</p>
       )}
       {olderHref && (
         <Link
           className={
-            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248]"
+            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)]"
           }
           href={olderHref}
         >

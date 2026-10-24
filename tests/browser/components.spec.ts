@@ -321,3 +321,21 @@ test("project card actions stay hidden behind a chevron until opened", async ({ 
   expect(title.top).toBeGreaterThanOrEqual(4);
   expect(title.size).toBeLessThanOrEqual(14);
 });
+
+for (const id of [
+  "ui-button--primary",
+  "ui-form-controls--fields",
+  "ui-feedback-and-surfaces--error",
+  "ui-markdown--document",
+  "features-guided-flows-type-picker--selectable",
+  "features-projects-project-timeline--compact-cards",
+]) {
+  test(`Zen palette has no serious accessibility violations: ${id}`, async ({ page }) => {
+    await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=theme:zen`);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "zen");
+    const results = await new AxeBuilder({ page }).include("#storybook-root").analyze();
+    expect(
+      results.violations.filter((entry) => ["serious", "critical"].includes(entry.impact ?? "")),
+    ).toEqual([]);
+  });
+}

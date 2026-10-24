@@ -15,7 +15,7 @@ export function ProgressMarker({
   return (
     <span
       className={cn(
-        'progress-marker [:where(&)]:relative [:where(&)]:inline-grid [:where(&)]:place-items-center [:where(&)]:w-6 [:where(&)]:h-6 [:where(&)]:[border:2px_solid_var(--color-line)] [:where(&)]:rounded-full [:where(&)]:bg-panel [:where(&)]:isolate before:[content:""] before:absolute before:[:where(&)]:top-[50%] before:[:where(&)]:left-[50%] before:[:where(&)]:[transform:translate(-50%,_-50%)] before:[:where(&)]:w-[var(--stage-progress,_0%)] before:[:where(&)]:h-[var(--stage-progress,_0%)] before:[:where(&)]:rounded-full before:[:where(&)]:bg-lime',
+        'progress-marker [:where(&)]:relative [:where(&)]:inline-grid [:where(&)]:place-items-center [:where(&)]:w-6 [:where(&)]:h-6 [:where(&)]:[border:2px_solid_var(--color-line)] [:where(&)]:rounded-full [:where(&)]:bg-panel [:where(&)]:isolate before:[content:""] before:absolute before:[:where(&)]:top-1/2 before:[:where(&)]:left-1/2 before:[:where(&)]:[transform:translate(-50%,_-50%)] before:[:where(&)]:w-[var(--stage-progress,_0%)] before:[:where(&)]:h-[var(--stage-progress,_0%)] before:[:where(&)]:rounded-full before:[:where(&)]:bg-lime',
         className,
       )}
       role={decorative ? undefined : "img"}

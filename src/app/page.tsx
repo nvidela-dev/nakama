@@ -55,7 +55,7 @@ export default async function Home() {
           {authConfigured() ? (
             <Link
               className={
-                "button border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:#e9ffc1] hover:[transform:translateY(-1px)]"
+                "button border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:var(--theme-accent-hover,#e9ffc1)] hover:[transform:translateY(-1px)]"
               }
               href="/projects"
             >
@@ -64,7 +64,7 @@ export default async function Home() {
           ) : (
             <Link
               className={
-                "button border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:#e9ffc1] hover:[transform:translateY(-1px)]"
+                "button border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:var(--theme-accent-hover,#e9ffc1)] hover:[transform:translateY(-1px)]"
               }
               href="/preview"
             >
@@ -88,64 +88,62 @@ export default async function Home() {
       </section>
       <section
         className={
-          "map-scene relative min-h-150 isolate [background:radial-gradient(ellipse_at_55%_50%,_#54704a26,_transparent_65%)] min-[1450px]:[transform:scale(1.06)] min-[1450px]:[transform-origin:center] max-[1000px]:[transform:scale(0.8)] max-[1000px]:[transform-origin:center_left] max-[1000px]:w-112.5 max-[1000px]:ml-[-20px] max-[700px]:h-113.75 max-[700px]:min-h-113.75 max-[700px]:w-110 max-[700px]:[transform:scale(0.78)] max-[700px]:[transform-origin:top_left] max-[700px]:mt-0 max-[700px]:mx-0 max-[700px]:mb-[-70px] max-[700px]:left-[calc((100%_-_343px)_/_2)]"
+          "map-scene relative min-h-150 isolate [background:radial-gradient(ellipse_at_55%_50%,_var(--theme-overlay,#54704a26),_transparent_65%)] min-[1450px]:[transform:scale(1.06)] min-[1450px]:[transform-origin:center] max-[1000px]:[transform:scale(0.8)] max-[1000px]:[transform-origin:center_left] max-[1000px]:w-112.5 max-[1000px]:ml-[-20px] max-[700px]:h-113.75 max-[700px]:min-h-113.75 max-[700px]:w-110 max-[700px]:[transform:scale(0.78)] max-[700px]:[transform-origin:top_left] max-[700px]:mt-0 max-[700px]:mx-0 max-[700px]:mb-[-70px] max-[700px]:left-[calc((100%_-_343px)_/_2)]"
         }
         aria-label={t("Illustration of an idea growing through small steps")}
       >
         <div
           className={
-            "orbit orbit-one absolute [border:1px_dashed_#73947c35] rounded-full w-120 h-65 [transform:rotate(-25deg)] left-0 top-57.5 z-[-1] max-[700px]:top-42.5"
+            "orbit orbit-one absolute [border:1px_dashed_var(--theme-overlay,#73947c35)] rounded-full w-120 h-65 [transform:rotate(-25deg)] left-0 top-57.5 z-[-1] max-[700px]:top-42.5"
           }
         />
         <div
           className={
-            "orbit orbit-two absolute [border:1px_dashed_#73947c35] rounded-full z-[-1] max-[700px]:top-42.5 w-90 h-105 [transform:rotate(35deg)] top-35 left-15"
+            "orbit orbit-two absolute [border:1px_dashed_var(--theme-overlay,#73947c35)] rounded-full z-[-1] max-[700px]:top-42.5 w-90 h-105 [transform:rotate(35deg)] top-35 left-15"
           }
         />
         <span
           className={
-            "map-coordinate absolute right-0 top-16 [color:#7a9188] [font:9px_monospace] tracking-[2px] max-[700px]:top-7"
+            "map-coordinate absolute right-0 top-16 [color:var(--theme-text,#7a9188)] [font:9px_monospace] tracking-[2px] max-[700px]:top-7"
           }
         >
           {t("PROJECT OVERVIEW")}
         </span>
         <div
           className={
-            "floating-note note-one absolute bg-[#223530] border border-[#4e6754] rounded-[12px] [box-shadow:0_20px_50px_#0004] p-5.5 z-[4] top-28.75 left-7 [transform:rotate(-6deg)] w-66.25 max-[700px]:top-16.25"
+            "floating-note note-one absolute bg-[var(--theme-border,#223530)] border border-[var(--theme-border,#4e6754)] rounded-[12px] [box-shadow:0_20px_50px_#0004] p-5.5 z-[4] top-28.75 left-7 [transform:rotate(-6deg)] w-66.25 max-[700px]:top-16.25"
           }
         >
           <span className={"[font:9px_monospace] tracking-[2px] text-lime"}>
             {t("01 / CONCEPT")}
           </span>
-          <strong className={"block font-mono text-[21px] mt-[10px]"}>
-            {t("Audio production")}
-          </strong>
-          <p className={"text-[11px] text-muted mt-[5px] mx-[0] mb-[20px]"}>
+          <strong className={"block font-mono text-[21px] mt-2.5"}>{t("Audio production")}</strong>
+          <p className={"text-[11px] text-muted mt-1.25 mx-0 mb-5"}>
             {t("“Produce a short audio episode.”")}
           </p>
           <div className={"avatars flex items-center"}>
             <i
               className={
-                "w-6.5 h-6.5 grid place-items-center text-[10px] [font-style:normal] bg-[#c7a797] [color:#25312d] rounded-full [border:2px_solid_#223530] mr-[-5px] [&:nth-child(2)]:bg-[#a6baba] [&:nth-child(3)]:bg-[#a8c179]"
+                "w-6.5 h-6.5 grid place-items-center text-[10px] [font-style:normal] bg-[var(--theme-surface,#c7a797)] [color:var(--theme-text,#25312d)] rounded-full [border:2px_solid_var(--theme-border,#223530)] mr-[-5px] [&:nth-child(2)]:bg-[var(--theme-surface,#a6baba)] [&:nth-child(3)]:bg-[var(--theme-surface,#a8c179)]"
               }
             >
               M
             </i>
             <i
               className={
-                "w-6.5 h-6.5 grid place-items-center text-[10px] [font-style:normal] bg-[#c7a797] [color:#25312d] rounded-full [border:2px_solid_#223530] mr-[-5px] [&:nth-child(2)]:bg-[#a6baba] [&:nth-child(3)]:bg-[#a8c179]"
+                "w-6.5 h-6.5 grid place-items-center text-[10px] [font-style:normal] bg-[var(--theme-surface,#c7a797)] [color:var(--theme-text,#25312d)] rounded-full [border:2px_solid_var(--theme-border,#223530)] mr-[-5px] [&:nth-child(2)]:bg-[var(--theme-surface,#a6baba)] [&:nth-child(3)]:bg-[var(--theme-surface,#a8c179)]"
               }
             >
               J
             </i>
             <i
               className={
-                "w-6.5 h-6.5 grid place-items-center text-[10px] [font-style:normal] bg-[#c7a797] [color:#25312d] rounded-full [border:2px_solid_#223530] mr-[-5px] [&:nth-child(2)]:bg-[#a6baba] [&:nth-child(3)]:bg-[#a8c179]"
+                "w-6.5 h-6.5 grid place-items-center text-[10px] [font-style:normal] bg-[var(--theme-surface,#c7a797)] [color:var(--theme-text,#25312d)] rounded-full [border:2px_solid_var(--theme-border,#223530)] mr-[-5px] [&:nth-child(2)]:bg-[var(--theme-surface,#a6baba)] [&:nth-child(3)]:bg-[var(--theme-surface,#a8c179)]"
               }
             >
               +1
             </i>
-            <small className={"text-[9px] text-muted ml-[14px]"}>{t("Project members")}</small>
+            <small className={"text-[9px] text-muted ml-3.5"}>{t("Project members")}</small>
           </div>
         </div>
         <div className="map-path" />
@@ -156,17 +154,17 @@ export default async function Home() {
         >
           <div
             className={
-              "island-top absolute w-72.5 h-35 rounded-[46%_48%_42%_45%] [background:radial-gradient(ellipse_at_50%_30%,_#a2b46a,_#6e8751_70%)] [box-shadow:inset_-9px_-14px_0_#5b7445] z-[2] [transform:rotate(-6deg)]"
+              "island-top absolute w-72.5 h-35 rounded-[46%_48%_42%_45%] [background:radial-gradient(ellipse_at_50%_30%,_var(--theme-surface,#a2b46a),_#6e8751_70%)] [box-shadow:inset_-9px_-14px_0_var(--theme-illustration-shadow,#5b7445)] z-[2] [transform:rotate(-6deg)]"
             }
           >
             <div
               className={
-                "flag absolute left-31.25 top-[-105px] h-38.75 w-1.25 bg-[#b5b69c] [transform:rotate(8deg)] [box-shadow:3px_2px_0_#0002]"
+                "flag absolute left-31.25 top-[-105px] h-38.75 w-1.25 bg-[var(--theme-surface,#b5b69c)] [transform:rotate(8deg)] [box-shadow:3px_2px_0_#0002]"
               }
             >
               <span
                 className={
-                  "grid place-items-center absolute left-1 top-0 bg-lime [color:#334c30] w-20 h-13 [clip-path:polygon(0_0,_100%_12%,_85%_56%,_100%_100%,_0_88%)] text-[34px]"
+                  "grid place-items-center absolute left-1 top-0 bg-lime [color:var(--theme-on-accent,#334c30)] w-20 h-13 [clip-path:polygon(0_0,_100%_12%,_85%_56%,_100%_100%,_0_88%)] text-[34px]"
                 }
               >
                 <WaveMark />
@@ -174,44 +172,42 @@ export default async function Home() {
             </div>
             <span
               className={
-                "tree tree-one absolute text-[55px] [color:#314f3d] [text-shadow:3px_3px_#81965c] left-8.75 top-0"
+                "tree tree-one absolute text-[55px] [color:var(--theme-text,#314f3d)] [text-shadow:3px_3px_var(--theme-illustration-shadow,#81965c)] left-8.75 top-0"
               }
             >
               ✦
             </span>
             <span
               className={
-                "tree tree-two absolute [color:#314f3d] [text-shadow:3px_3px_#81965c] right-8.75 top-6.75 text-[40px]"
+                "tree tree-two absolute [color:var(--theme-text,#314f3d)] [text-shadow:3px_3px_var(--theme-illustration-shadow,#81965c)] right-8.75 top-6.75 text-[40px]"
               }
             >
               ✦
             </span>
             <span
               className={
-                "stone absolute w-[40px] h-[20px] bg-[#c1c297] bottom-[24px] left-[102px] rounded-[45%]"
+                "stone absolute w-10 h-5 bg-[var(--theme-surface,#c1c297)] bottom-6 left-25.5 rounded-[45%]"
               }
             />
           </div>
           <div
             className={
-              "island-base absolute w-67.5 h-37.5 top-13.75 left-2.5 [background:linear-gradient(125deg,_#4e5944,_#293d32_65%)] [clip-path:polygon(0_0,_100%_0,_86%_55%,_63%_96%,_30%_74%,_12%_44%)]"
+              "island-base absolute w-67.5 h-37.5 top-13.75 left-2.5 [background:linear-gradient(125deg,_var(--theme-surface,#4e5944),_#293d32_65%)] [clip-path:polygon(0_0,_100%_0,_86%_55%,_63%_96%,_30%_74%,_12%_44%)]"
             }
           />
         </div>
         <div
           className={
-            "floating-note note-two absolute bg-[#223530] border border-[#4e6754] rounded-[12px] [box-shadow:0_20px_50px_#0004] p-5.5 z-[4] top-112.5 left-1.25 [transform:rotate(4deg)] text-[13px] py-3.5 px-4.5 max-[700px]:top-95"
+            "floating-note note-two absolute bg-[var(--theme-border,#223530)] border border-[var(--theme-border,#4e6754)] rounded-[12px] [box-shadow:0_20px_50px_#0004] p-5.5 z-[4] top-112.5 left-1.25 [transform:rotate(4deg)] text-[13px] py-3.5 px-4.5 max-[700px]:top-95"
           }
         >
-          <span
-            className={"status-dot inline-block bg-lime w-[7px] h-[7px] rounded-[50%] mr-[6px]"}
-          />{" "}
+          <span className={"status-dot inline-block bg-lime w-1.75 h-1.75 rounded-[50%] mr-1.5"} />{" "}
           {t("Prototype")} <br />
           <small className={"text-muted text-[10px]"}>{t("Record a one-minute sample.")}</small>
         </div>
         <span
           className={
-            "compass absolute right-2.5 bottom-18.75 [color:#a9b48d] [font:10px_monospace] text-center max-[700px]:bottom-0"
+            "compass absolute right-2.5 bottom-18.75 [color:var(--theme-text,#a9b48d)] [font:10px_monospace] text-center max-[700px]:bottom-0"
           }
           aria-hidden="true"
         >
@@ -219,7 +215,7 @@ export default async function Home() {
         </span>
         <span
           className={
-            "scene-caption absolute bottom-3.75 left-25 [font:10px_monospace] [color:#7e9488] max-[700px]:hidden"
+            "scene-caption absolute bottom-3.75 left-25 [font:10px_monospace] [color:var(--theme-text,#7e9488)] max-[700px]:hidden"
           }
         >
           {t("Stages, decisions, and revisions.")}{" "}
@@ -257,7 +253,7 @@ export default async function Home() {
           >
             <span
               className={
-                "[font:11px_monospace] [color:#91a181] block mb-4.5 max-[700px]:[grid-row:1/3] max-[700px]:mt-1.5"
+                "[font:11px_monospace] [color:var(--theme-text,#91a181)] block mb-4.5 max-[700px]:[grid-row:1/3] max-[700px]:mt-1.5"
               }
             >
               01
@@ -271,7 +267,7 @@ export default async function Home() {
             </h3>
             <p
               className={
-                "mb-[1em] mt-0 text-[13px] text-muted max-w-67.5 max-[700px]:[grid-column:2] max-[700px]:max-w-[none] max-[700px]:mb-0"
+                "mb-[1em] mt-0 text-[13px] text-muted max-w-67.5 max-[700px]:col-start-2 max-[700px]:max-w-none max-[700px]:mb-0"
               }
             >
               {t("Record the project's name, purpose, and scope.")}
@@ -282,7 +278,7 @@ export default async function Home() {
           >
             <span
               className={
-                "[font:11px_monospace] [color:#91a181] block mb-4.5 max-[700px]:[grid-row:1/3] max-[700px]:mt-1.5"
+                "[font:11px_monospace] [color:var(--theme-text,#91a181)] block mb-4.5 max-[700px]:[grid-row:1/3] max-[700px]:mt-1.5"
               }
             >
               02
@@ -296,7 +292,7 @@ export default async function Home() {
             </h3>
             <p
               className={
-                "mb-[1em] mt-0 text-[13px] text-muted max-w-67.5 max-[700px]:[grid-column:2] max-[700px]:max-w-[none] max-[700px]:mb-0"
+                "mb-[1em] mt-0 text-[13px] text-muted max-w-67.5 max-[700px]:col-start-2 max-[700px]:max-w-none max-[700px]:mb-0"
               }
             >
               {t("Manage membership independently for each project.")}{" "}
@@ -307,7 +303,7 @@ export default async function Home() {
           >
             <span
               className={
-                "[font:11px_monospace] [color:#91a181] block mb-4.5 max-[700px]:[grid-row:1/3] max-[700px]:mt-1.5"
+                "[font:11px_monospace] [color:var(--theme-text,#91a181)] block mb-4.5 max-[700px]:[grid-row:1/3] max-[700px]:mt-1.5"
               }
             >
               03
@@ -321,7 +317,7 @@ export default async function Home() {
             </h3>
             <p
               className={
-                "mb-[1em] mt-0 text-[13px] text-muted max-w-67.5 max-[700px]:[grid-column:2] max-[700px]:max-w-[none] max-[700px]:mb-0"
+                "mb-[1em] mt-0 text-[13px] text-muted max-w-67.5 max-[700px]:col-start-2 max-[700px]:max-w-none max-[700px]:mb-0"
               }
             >
               {t("Record answers, test assumptions, and track decisions.")}{" "}
@@ -347,7 +343,7 @@ export default async function Home() {
         {!authConfigured() && (
           <small
             className={
-              "max-w-65 ml-[auto] text-muted text-[11px] max-[700px]:ml-0 max-[700px]:max-w-[none] max-[700px]:w-full"
+              "max-w-65 ml-auto text-muted text-[11px] max-[700px]:ml-0 max-[700px]:max-w-none max-[700px]:w-full"
             }
           >
             {t("Sign-in must be configured to use private projects.")}{" "}

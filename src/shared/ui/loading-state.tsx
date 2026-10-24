@@ -43,14 +43,12 @@ export function LoadingState({
                 }
               />
               <span
-                className={
-                  "loading-bone-timeline flex items-center justify-between gap-[6px] mt-[2px]"
-                }
+                className={"loading-bone-timeline flex items-center justify-between gap-1.5 mt-0.5"}
               >
                 {Array.from({ length: 5 }, (__, dotIndex) => (
                   <span
                     key={dotIndex}
-                    className={"loading-bone-stage [flex:1] grid gap-1 [justify-items:center]"}
+                    className={"loading-bone-stage flex-1 grid gap-1 [justify-items:center]"}
                   >
                     <span
                       className={
@@ -67,13 +65,13 @@ export function LoadingState({
               </span>
             </>
           ) : variant === "compact" ? (
-            <span className={"loading-bone-row flex items-center gap-[8px]"}>
+            <span className={"loading-bone-row flex items-center gap-2"}>
               <span
                 className={
                   "loading-bone loading-bone-dot block [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-2.75 h-2.75 rounded-full shrink-0 my-0 mx-auto"
                 }
               />
-              <span className={"loading-bone-col [flex:1] grid gap-1 min-w-0"}>
+              <span className={"loading-bone-col flex-1 grid gap-1 min-w-0"}>
                 <span
                   className={
                     "loading-bone loading-bone-line block h-2.25 rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[86%]"
@@ -94,14 +92,12 @@ export function LoadingState({
                 }
               />
               <span
-                className={
-                  "loading-bone-timeline flex items-center justify-between gap-[6px] mt-[2px]"
-                }
+                className={"loading-bone-timeline flex items-center justify-between gap-1.5 mt-0.5"}
               >
                 {Array.from({ length: 5 }, (__, dotIndex) => (
                   <span
                     key={dotIndex}
-                    className={"loading-bone-stage [flex:1] grid gap-1 [justify-items:center]"}
+                    className={"loading-bone-stage flex-1 grid gap-1 [justify-items:center]"}
                   >
                     <span
                       className={

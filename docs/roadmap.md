@@ -361,3 +361,8 @@ Accepted: make each right-column sidebar panel (Progress, Linked projects, Membe
 ## Platform engineering and automation flow — 2026-10-24
 
 Accepted: add a dedicated 'Platform' project flow (`id: "platform"`) aimed at internal tooling, automation processes, cloud infrastructure, and Hermes/Nakama service improvements focused on increasing production capacity and operational reliability rather than commercial revenue. It follows the standard Nakama workflow format with 5 versioned stages (`System` → `Blueprint` → `Prototype` → `Integration` → `Production`), topological within-stage dependencies, full Spanish localization, a `Server` icon in the workflow picker, and outputs spanning automation scripts, APIs, IaC, CI workflows, and operational runbooks. Database migration 015 expands PostgreSQL enum `flow_id`.
+
+
+## Named visual styles: Hacker and Zen — 2026-10-24
+
+Accepted: name the existing default style Hacker and introduce Zen using the supplied woodblock image's cream, sea blue, and rust palette. Select styles in the footer alongside language and density, persist the selection per browser, render it on the server to avoid a wrong-theme flash, and expose both in Storybook. Keep project data, the custom Nakama wave, density, and workflow behavior unchanged. Theme support is delivered independently from the Tailwind migration; no database migration or new service is required.

@@ -32,7 +32,7 @@ export function MarkdownReader({
               checked={checked ?? false}
               aria-label={checked ? completedLabel : incompleteLabel}
               className={
-                "[font:inherit] focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px]"
+                "[font:inherit] focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
               }
             />
           ),
@@ -43,7 +43,7 @@ export function MarkdownReader({
                 target="_blank"
                 rel="noopener noreferrer"
                 className={
-                  "[color:inherit] focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] text-lime underline"
+                  "text-inherit focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-lime underline"
                 }
               >
                 {children}
@@ -57,7 +57,7 @@ export function MarkdownReader({
               target="_blank"
               rel="noopener noreferrer"
               className={
-                "[color:inherit] focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] text-lime underline"
+                "text-inherit focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-lime underline"
               }
             >
               {alt || externalImageLabel}

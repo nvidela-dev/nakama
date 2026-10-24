@@ -22,11 +22,11 @@ export function Button({
       disabled={disabled || pending}
       aria-busy={pending || undefined}
       className={cn(
-        "[:where(&)]:inline-flex [:where(&)]:min-h-12 [:where(&)]:items-center [:where(&)]:justify-center [:where(&)]:gap-3 [:where(&)]:rounded-[9px] [:where(&)]:border-0 [:where(&)]:bg-lime [:where(&)]:px-5.5 [:where(&)]:py-3.25 [:where(&)]:font-mono [:where(&)]:font-bold [:where(&)]:text-dark [:where(&)]:transition-[background,transform] [:where(&)]:duration-150 hover:[:where(&)]:-translate-y-px hover:[:where(&)]:bg-[#e9ffc1] focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-[5px] disabled:[:where(&)]:cursor-wait disabled:[:where(&)]:translate-y-0 disabled:[:where(&)]:opacity-60 [:where(&)]:cursor-pointer",
+        "[:where(&)]:inline-flex [:where(&)]:min-h-12 [:where(&)]:items-center [:where(&)]:justify-center [:where(&)]:gap-3 [:where(&)]:rounded-[9px] [:where(&)]:border-0 [:where(&)]:bg-lime [:where(&)]:px-5.5 [:where(&)]:py-3.25 [:where(&)]:font-mono [:where(&)]:font-bold [:where(&)]:text-dark [:where(&)]:transition-[background,transform] [:where(&)]:duration-150 hover:[:where(&)]:-translate-y-px hover:[:where(&)]:bg-[var(--theme-accent-hover,#e9ffc1)] focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-[5px] disabled:[:where(&)]:cursor-wait disabled:[:where(&)]:translate-y-0 disabled:[:where(&)]:opacity-60 [:where(&)]:cursor-pointer lg:compact:[:where(&)]:min-h-8.5 lg:compact:[:where(&)]:py-2 lg:compact:[:where(&)]:px-3 lg:compact:[:where(&)]:text-[12px] lg:compact:[:where(&)]:rounded-[7px]",
         variant === "secondary" &&
-          "secondary border border-[#658451] bg-[#344c39] text-lime hover:bg-[#456248]",
+          "secondary border border-[var(--theme-border,#658451)] bg-[var(--theme-selected,#344c39)] text-lime hover:bg-[var(--theme-selected,#456248)]",
         variant === "ghost" &&
-          "min-h-11 bg-transparent p-2 text-[11px] text-lime hover:bg-[#ffffff0a]",
+          "min-h-11 bg-transparent p-2 text-[11px] text-lime hover:bg-[var(--theme-overlay,#ffffff0a)]",
         variant === "danger" && "danger",
         className,
       )}

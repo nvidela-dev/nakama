@@ -82,7 +82,7 @@ export function ArtifactLibrary({
     });
   }
   return (
-    <section className={"artifact-library min-w-[0]"} aria-label={t("Artifacts")}>
+    <section className={"artifact-library min-w-0"} aria-label={t("Artifacts")}>
       <div
         className={
           "artifact-library-heading flex items-center justify-between flex-wrap gap-3.5 mb-4.5 max-[700px]:items-start"
@@ -99,7 +99,7 @@ export function ArtifactLibrary({
           >
             {t("Artifacts")}
           </h2>
-          <p className={"muted text-muted mt-[6px] mx-[0] mb-[0] text-[12px] max-w-[60ch]"}>
+          <p className={"muted text-muted mt-1.5 mx-0 mb-0 text-[12px] max-w-[60ch]"}>
             {t("Plans, designs, documents, and software produced by your projects.")}
           </p>
         </div>
@@ -108,12 +108,12 @@ export function ArtifactLibrary({
           ref={opener}
           disabled={!projects.length}
           onClick={() => setEditing(true)}
-          className={"max-[700px]:w-[100%]"}
+          className={"max-[700px]:w-full"}
         >
           {t("New artifact")}
         </Button>
       </div>
-      <div className={"artifact-filters flex flex-wrap gap-[10px] mb-[20px]"}>
+      <div className={"artifact-filters flex flex-wrap gap-2.5 mb-5"}>
         <Input
           aria-label={t("Find an artifact")}
           placeholder={t("Find an artifact")}
@@ -181,14 +181,14 @@ export function ArtifactLibrary({
           >
             {t(items.length ? "No matching artifacts." : "No artifacts yet.")}
           </h3>
-          <p className={"mb-[1em] mt-[0] text-[14px]"}>
+          <p className={"mb-[1em] mt-0 text-[14px]"}>
             {t("Start with a work in progress, attach its output when ready.")}
           </p>
         </div>
       ) : (
         <div
           className={
-            "artifact-grid grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_260px),_1fr))] gap-[16px]"
+            "artifact-grid grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_260px),_1fr))] gap-4"
           }
         >
           {visible.map((a) => (
@@ -202,9 +202,11 @@ export function ArtifactLibrary({
               <div
                 className={[
                   `artifact-cover artifact-cover-${a.kind}`,
-                  a.kind === "markdown" && "[background:linear-gradient(135deg,#313b2c,#17231c)]!",
-                  a.kind === "software" && "[background:linear-gradient(135deg,#243736,#142327)]!",
-                  "h-45 [background:linear-gradient(135deg,_#243b32,_#101c1b)] grid place-items-center border-b border-b-line relative overflow-hidden [flex:0_0_180px] [&_>_span]:text-[48px] [&_>_span]:text-lime [&_>_span]:opacity-[0.8]",
+                  a.kind === "markdown" &&
+                    "[background:linear-gradient(135deg,var(--theme-surface,#313b2c),#17231c)]!",
+                  a.kind === "software" &&
+                    "[background:linear-gradient(135deg,var(--theme-surface,#243736),var(--theme-surface-low,#142327))]!",
+                  "h-45 [background:linear-gradient(135deg,_var(--theme-surface,#243b32),_#101c1b)] grid place-items-center border-b border-b-line relative overflow-hidden [flex:0_0_180px] [&_>_span]:text-[48px] [&_>_span]:text-lime [&_>_span]:opacity-80",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -215,7 +217,7 @@ export function ArtifactLibrary({
                     loading="lazy"
                     src={artifactFileUrl(a.project_id, a.id, a.cover_id)}
                     alt={a.name}
-                    className={"w-full h-full [object-fit:cover] absolute [inset:0] block min-h-0"}
+                    className={"w-full h-full [object-fit:cover] absolute inset-0 block min-h-0"}
                   />
                 ) : (
                   <span aria-hidden="true">
@@ -235,14 +237,14 @@ export function ArtifactLibrary({
               <div className={"artifact-card-body p-4"}>
                 <div
                   className={
-                    "artifact-card-meta flex justify-between items-center gap-[8px] text-[10px] text-muted"
+                    "artifact-card-meta flex justify-between items-center gap-2 text-[10px] text-muted"
                   }
                 >
                   <span>{t(artifactKinds[a.kind])}</span>
                   <span
                     className={[
                       `artifact-status ${a.status}`,
-                      "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[#304630] [&.ready]:text-lime [&.ready]:[border-color:#5c7544]",
+                      "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[var(--theme-surface,#304630)] [&.ready]:text-lime [&.ready]:[border-color:var(--theme-border,#5c7544)]",
                     ]
                       .filter(Boolean)
                       .join(" ")}
@@ -272,7 +274,7 @@ export function ArtifactLibrary({
                     {a.description}
                   </p>
                 )}
-                <small className={"block mt-[15px] text-muted text-[11px]"}>
+                <small className={"block mt-3.75 text-muted text-[11px]"}>
                   {a.done_task_count}/{a.task_count} {t("tasks done")}
                   {a.file_count ? ` · ${a.file_count} ${t("files")}` : ""}
                 </small>
@@ -286,7 +288,7 @@ export function ArtifactLibrary({
         onClose={close}
         dismissible={!pending}
         className={
-          "artifact-dialog w-[min(560px,_calc(100vw_-_32px))] max-h-[90dvh] overflow-y-auto bg-panel text-ink border border-line rounded-[12px] p-6 backdrop:[background:#06100de8]"
+          "artifact-dialog w-[min(560px,_calc(100vw_-_32px))] max-h-[90dvh] overflow-y-auto bg-panel text-ink border border-line rounded-[12px] p-6 backdrop:[background:var(--theme-overlay,#06100de8)]"
         }
         labelledBy="new-artifact-heading"
       >
@@ -313,7 +315,7 @@ export function ArtifactLibrary({
               <Button
                 type="button"
                 className={
-                  "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:#ffffff0a] mt-2 lg:compact:mt-1 max-[700px]:w-full"
+                  "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1 max-[700px]:w-full"
                 }
                 onClick={close}
                 aria-label={t("Close")}
@@ -327,7 +329,7 @@ export function ArtifactLibrary({
                 name="projectId"
                 value={projectId}
                 className={
-                  "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                 }
               />
             ) : (
@@ -338,7 +340,7 @@ export function ArtifactLibrary({
                   name="projectId"
                   required
                   className={
-                    "bg-[#101c1b] text-ink border border-[#4b6056] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 [&:focus-visible]:[outline:3px_solid_var(--color-lime)] [&:focus-visible]:[outline-offset:4px]"
+                    "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
                   }
                 >
                   {projects.map((p) => (
@@ -357,7 +359,7 @@ export function ArtifactLibrary({
                 maxLength={160}
                 autoFocus
                 className={
-                  "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                 }
               />
             </label>
@@ -368,7 +370,7 @@ export function ArtifactLibrary({
                 name="kind"
                 defaultValue="image"
                 className={
-                  "bg-[#101c1b] text-ink border border-[#4b6056] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 [&:focus-visible]:[outline:3px_solid_var(--color-lime)] [&:focus-visible]:[outline-offset:4px]"
+                  "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
                 }
               >
                 {Object.entries(artifactKinds).map(([key, label]) => (
@@ -385,7 +387,7 @@ export function ArtifactLibrary({
                 maxLength={4000}
                 rows={3}
                 className={
-                  "min-h-30 w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                 }
               />
             </label>
@@ -397,7 +399,7 @@ export function ArtifactLibrary({
                   name="stageId"
                   defaultValue={stageId ?? ""}
                   className={
-                    "bg-[#101c1b] text-ink border border-[#4b6056] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 [&:focus-visible]:[outline:3px_solid_var(--color-lime)] [&:focus-visible]:[outline-offset:4px]"
+                    "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
                   }
                 >
                   <option value="">{t("Whole project")}</option>
@@ -409,7 +411,7 @@ export function ArtifactLibrary({
                 </Select>
               </label>
             )}
-            <p className={"muted mb-[1em] mt-[0] text-muted text-[12px]"}>
+            <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
               {t(
                 "Created in progress. Add images, a Markdown file, or a GitHub link on the next screen.",
               )}
@@ -418,7 +420,7 @@ export function ArtifactLibrary({
               <p
                 role="alert"
                 className={
-                  "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[#4e3030] [color:#ffe4dd]!"
+                  "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[var(--theme-danger,#4e3030)] [color:var(--theme-danger-ink,#ffe4dd)]!"
                 }
               >
                 {t(error)}

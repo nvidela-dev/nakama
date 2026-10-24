@@ -20,7 +20,7 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
     ) : (
       <Link
         className={
-          "button border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:#e9ffc1] hover:[transform:translateY(-1px)]"
+          "button border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:var(--theme-accent-hover,#e9ffc1)] hover:[transform:translateY(-1px)]"
         }
         href="/projects"
       >
@@ -36,14 +36,14 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
       >
         {t(signup ? "Sign up" : "Request access")}
       </h2>
-      <p className={"mb-[1em] mt-[0]"}>
+      <p className={"mb-[1em] mt-0"}>
         {t(
           "Enter your email. If it is not allowed yet, a request will be saved for the administrator to review.",
         )}
       </p>
       <form
         className={
-          "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[#4b6056] [&_textarea]:bg-[#101c1b] [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-[#101c1b] [&_select]:text-ink [&_select]:border [&_select]:border-[#4b6056] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:[outline:3px_solid_var(--color-lime)] [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+          "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
         }
         action={action}
       >
@@ -60,7 +60,7 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
           maxLength={254}
           autoComplete="email"
           className={
-            "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+            "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
           }
         />
         <Button type="submit" disabled={pending} className={"mt-2 lg:compact:mt-1"}>
@@ -69,7 +69,7 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
         {state.error && (
           <p
             className={
-              "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[#4e3030] [color:#ffe4dd]!"
+              "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[var(--theme-danger,#4e3030)] [color:var(--theme-danger-ink,#ffe4dd)]!"
             }
             role="alert"
           >
@@ -79,7 +79,7 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
         {state.requested && (
           <p
             className={
-              "message text-[13px]! bg-[#30422d] rounded-[8px] p-3 text-ink! m-0 [&.error]:bg-[#4e3030] [&.error]:[color:#ffe4dd]!"
+              "message text-[13px]! bg-[var(--theme-surface,#30422d)] rounded-[8px] p-3 text-ink! m-0 [&.error]:bg-[var(--theme-danger,#4e3030)] [&.error]:[color:var(--theme-danger-ink,#ffe4dd)]!"
             }
             role="status"
           >

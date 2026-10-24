@@ -18,7 +18,7 @@ export function ReferencePicker({ load, onSelect, disabled }: Props) {
   return (
     <>
       <Button
-        className="comment-reference-trigger"
+        className="comment-reference-trigger col-start-1 row-start-2 w-7.5 min-h-9 p-1.25 pointer-coarse:min-h-11"
         variant="ghost"
         disabled={disabled}
         aria-label={t("Link a project or artifact")}
@@ -32,7 +32,7 @@ export function ReferencePicker({ load, onSelect, disabled }: Props) {
         onClose={() => setOpen(false)}
         label={t("Link a project or artifact")}
         className={
-          "comment-reference-dialog bg-[#172b25] text-ink border border-line rounded-[12px] w-[min(480px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_40px)] p-4 [&_>_input]:w-full [&_>_input]:my-2 [&_>_input]:mx-0 [&_>_label]:block [&_>_label]:text-[11px] [&_>_label]:text-muted [&_>_small]:block [&_>_small]:text-[11px] [&_>_small]:text-muted backdrop:[background:#0009]"
+          "comment-reference-dialog bg-[var(--theme-surface-low,#172b25)] text-ink border border-line rounded-[12px] w-[min(480px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_40px)] p-4 [&_>_input]:w-full [&_>_input]:my-2 [&_>_input]:mx-0 [&_>_label]:block [&_>_label]:text-[11px] [&_>_label]:text-muted [&_>_small]:block [&_>_small]:text-[11px] [&_>_small]:text-muted backdrop:[background:#0009]"
         }
       >
         {open && (
@@ -78,7 +78,7 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
   }, [search, load, attempt]);
   return (
     <>
-      <div className={"comment-reference-heading flex items-center justify-between gap-[12px]"}>
+      <div className={"comment-reference-heading flex items-center justify-between gap-3"}>
         <h2
           className={
             "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 text-[15px] m-0"
@@ -109,13 +109,13 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
       />
       <small>{t("Links do not grant access. Names you share become part of your message.")}</small>
       <div
-        className={"comment-reference-results h-[min(300px,_45dvh)] overflow-y-auto mt-[12px]"}
+        className={"comment-reference-results h-[min(300px,_45dvh)] overflow-y-auto mt-3"}
         aria-live="polite"
         aria-busy={!results && !error}
       >
         {error ? (
           <>
-            <p role="alert" className={"mb-[1em] mt-[0]"}>
+            <p role="alert" className={"mb-[1em] mt-0"}>
               {t("Could not load references.")}
             </p>
             <Button
@@ -138,7 +138,7 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
                   variant="ghost"
                   onClick={() => onSelect(item)}
                   className={
-                    "flex items-center gap-2 w-full p-2.25 text-left rounded-[6px] [&:hover]:bg-[#ffffff0c]"
+                    "flex gap-2 w-full p-2.25 text-left rounded-[6px] hover:bg-[var(--theme-overlay,#ffffff0c)]"
                   }
                 >
                   <Icon name={item.kind === "project" ? "overview" : "markdown"} />
@@ -154,7 +154,7 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
             ))}
           </ul>
         ) : (
-          <p className={"mb-[1em] mt-[0]"}>{t("No matching projects or artifacts.")}</p>
+          <p className={"mb-[1em] mt-0"}>{t("No matching projects or artifacts.")}</p>
         )}
       </div>
       {results?.hasMore && <small>{t("More results available. Narrow your search.")}</small>}

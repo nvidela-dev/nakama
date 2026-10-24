@@ -1056,5 +1056,7 @@
   "Runbook covers stalled queue recovery, log diagnosis commands, and scaling triggers.": "La guía cubre recuperación de colas detenidas, comandos de diagnóstico de registros y disparadores de escalado.",
   "Next production steps": "Próximos pasos de producción",
   "What follow-up automations or capacity increases should this unlock next?": "¿Qué automatizaciones de seguimiento o aumentos de capacidad debería habilitar a continuación?",
-  "Autoscaling worker pool based on queue backlog and adding distributed job priority.": "Autoescalado del grupo de trabajadores según acumulación de tareas y prioridad distribuida de tareas."
+  "Autoscaling worker pool based on queue backlog and adding distributed job priority.": "Autoescalado del grupo de trabajadores según acumulación de tareas y prioridad distribuida de tareas.",
+  "Visual style": "Estilo visual",
+  "Could not change style. Please try again.": "No se pudo cambiar el estilo. Intentá de nuevo."
 }

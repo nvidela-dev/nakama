@@ -30,9 +30,7 @@ export function CommentComposer({
   return (
     <form
       action={action}
-      className={
-        "form-stack comment-compose flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-[#101c1b] [&_select]:text-ink [&_select]:border [&_select]:border-[#4b6056] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:[outline:3px_solid_var(--color-lime)] [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 [&_input]:w-full [&_input]:border [&_input]:border-[#4b6056] [&_input]:bg-[#101c1b] [&_input]:text-ink [&_input]:rounded-[8px] [&_input]:p-3 [&_input]:text-[14px] [&_input]:[resize:vertical] lg:compact:[&_input]:py-2 lg:compact:[&_input]:px-2.5 lg:compact:[&_input]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5 mt-5 [&_>_.message]:[grid-column:1_/_-1]"
-      }
+      className="form-stack comment-compose grid grid-cols-[auto_minmax(0,1fr)_auto] items-end gap-[5px_8px] mt-3 pt-2.25 border-t border-line [&_>_.message]:col-span-full"
     >
       <label htmlFor="new-comment" className={"text-ink [grid-column:1_/_-1] text-[10px]"}>
         {t("Add a comment")}
@@ -50,9 +48,7 @@ export function CommentComposer({
         maxLength={4000}
         required
         rows={2}
-        className={
-          "min-h-30 w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-        }
+        className="col-start-2 row-start-2 min-h-9.5 max-h-40 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[14px] py-1.75 px-2.25 text-[12px] leading-[1.4] resize-y"
       />
       <ReferencePicker
         disabled={pending}
@@ -80,7 +76,7 @@ export function CommentComposer({
       {referenceError && (
         <p
           className={
-            "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[#4e3030] [color:#ffe4dd]!"
+            "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[var(--theme-danger,#4e3030)] [color:var(--theme-danger-ink,#ffe4dd)]!"
           }
           role="alert"
         >
@@ -93,7 +89,7 @@ export function CommentComposer({
         disabled={pending}
         aria-label={pending ? t("Posting…") : t("Post comment")}
         title={t("Post comment")}
-        className={"mt-2 lg:compact:mt-1"}
+        className="col-start-3 row-start-2 w-9 min-h-9 p-2 rounded-full pointer-coarse:w-11 pointer-coarse:min-h-11"
       >
         <Icon name="arrowRight" />
       </Button>

@@ -105,7 +105,7 @@ function NotificationMenu() {
         type="submit"
         ref={button}
         className={
-          "notification-trigger relative inline-flex items-center justify-center min-w-7 min-h-7 p-1 border-0 rounded-full bg-transparent text-ink hover:[background:transparent] hover:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
+          "notification-trigger relative min-w-7 min-h-7 p-1 border-0 rounded-full bg-transparent text-ink hover:[background:transparent] hover:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
         }
         aria-label={`${t("Unread comments")}${inbox ? `: ${inbox.count}` : ""}`}
         aria-expanded={open}
@@ -119,7 +119,7 @@ function NotificationMenu() {
         {!!inbox?.count && (
           <span
             className={
-              "notification-badge absolute top-[0] right-[-4px] py-0.5 px-1.25 rounded-[12px] bg-lime text-bg text-[10px] font-bold"
+              "notification-badge absolute top-0 right-[-4px] py-0.5 px-1.25 rounded-[12px] bg-lime text-bg text-[10px] font-bold"
             }
           >
             {inbox.count > 99 ? "99+" : inbox.count}
@@ -144,7 +144,7 @@ function NotificationMenu() {
             {inbox ? ` (${inbox.count})` : ""}
           </h2>
           {error && (
-            <p role="alert" className={"mb-[1em] mt-[0]"}>
+            <p role="alert" className={"mb-[1em] mt-0"}>
               {t("Could not load notifications.")}{" "}
               <Button type="submit" onClick={() => void refresh()}>
                 {t("Retry")}
@@ -152,7 +152,7 @@ function NotificationMenu() {
             </p>
           )}
           {!inbox && !error && <LoadingState label={t("Loading…")} variant="compact" lines={3} />}
-          {inbox?.count === 0 && <p className={"mb-[1em] mt-[0]"}>{t("No unread comments.")}</p>}
+          {inbox?.count === 0 && <p className={"mb-[1em] mt-0"}>{t("No unread comments.")}</p>}
           <ol className={"notification-list list-none p-0 m-0"}>
             {inbox?.items.map((c) => {
               const query = new URLSearchParams();
@@ -164,14 +164,14 @@ function NotificationMenu() {
               }
               query.set("comment", c.id);
               return (
-                <li key={c.id} className={"[padding-block:14px] border-t border-t-line"}>
+                <li key={c.id} className={"py-3.5 border-t border-t-line"}>
                   <Link
                     href={`/projects/${c.project_id}?${query}#comment-${c.id}`}
                     onClick={() => setOpen(false)}
                   >
                     <strong className={"block"}>{c.project_name}</strong>
-                    <span className={"block text-muted text-[12px] mt-[4px]"}>{c.author_name}</span>
-                    <p className={"mb-[1em] mt-0 text-[13px] [margin-block:8px]"}>{c.content}</p>
+                    <span className={"block text-muted text-[12px] mt-1"}>{c.author_name}</span>
+                    <p className={"mb-[1em] mt-0 text-[13px] my-2"}>{c.content}</p>
                   </Link>
                   <Button
                     type="submit"

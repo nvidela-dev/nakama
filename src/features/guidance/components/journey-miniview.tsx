@@ -1,4 +1,5 @@
 "use client";
+import { useStyleTheme } from "@/shared/ui/use-style-theme";
 import { Icon, type IconName } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
 
@@ -95,6 +96,8 @@ export default function JourneyMiniview({
     });
     return { points, edges };
   }, [guidance]);
+
+  const styleTheme = useStyleTheme();
 
   useEffect(() => {
     if (!canvas.current || failed) return;
@@ -231,7 +234,7 @@ export default function JourneyMiniview({
       resources.forEach((resource) => resource.dispose());
       renderer.dispose();
     };
-  }, [graph, angle, stageId, nodeId, failed]);
+  }, [graph, angle, stageId, nodeId, failed, styleTheme]);
 
   return (
     <div
@@ -262,7 +265,7 @@ export default function JourneyMiniview({
             disabled={failed || angle === -2}
             aria-label={t("Rotate left")}
             className={
-              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] [&:disabled]:opacity-[0.5]"
+              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
             }
           >
             <Icon name="rotateLeft" />
@@ -272,7 +275,7 @@ export default function JourneyMiniview({
             onClick={() => setAngle(0)}
             disabled={failed || angle === 0}
             className={
-              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] [&:disabled]:opacity-[0.5]"
+              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
             }
           >
             {t("Reset view")}
@@ -283,20 +286,20 @@ export default function JourneyMiniview({
             disabled={failed || angle === 2}
             aria-label={t("Rotate right")}
             className={
-              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] [&:disabled]:opacity-[0.5]"
+              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
             }
           >
             <Icon name="rotateRight" />
           </Button>
         </div>
       </div>
-      <p className={"muted mb-[1em] mt-[0] text-muted text-[0.7rem]"}>
+      <p className={"muted mb-[1em] mt-0 text-muted text-[0.7rem]"}>
         {t(
           "Saved progress across stages. Branches show dependencies; upcoming stages remain visible.",
         )}
       </p>
       {failed ? (
-        <p role="status" className={"mb-[1em] mt-[0]"}>
+        <p role="status" className={"mb-[1em] mt-0"}>
           {t("3D is unavailable. Use the stage tree below.")}
         </p>
       ) : (
@@ -308,10 +311,10 @@ export default function JourneyMiniview({
         >
           <div
             className={
-              'miniview-scene relative min-w-185 h-107.5 max-w-275 [margin-inline:auto] after:[content:""] after:absolute after:[inset:0] after:[pointer-events:none] after:[background:repeating-linear-gradient(transparent_0_3px,_#17231c30_3px_4px)]'
+              'miniview-scene relative min-w-185 h-107.5 max-w-275 [margin-inline:auto] after:[content:""] after:absolute after:inset-0 after:[pointer-events:none] after:[background:repeating-linear-gradient(transparent_0_3px,_#17231c30_3px_4px)]'
             }
           >
-            <canvas ref={canvas} aria-hidden="true" className={"block w-[100%] h-[100%]"} />
+            <canvas ref={canvas} aria-hidden="true" className={"block w-full h-full"} />
             <nav
               aria-label={t("Stages and question branches")}
               className={
@@ -339,7 +342,7 @@ export default function JourneyMiniview({
                 >
                   <span
                     className={
-                      "miniview-label absolute left-[50%] [transform:translateX(-50%)] w-[max-content] max-w-36.25 py-[0.25rem] px-[0.4rem] bg-bg border rounded-[2px] text-ink text-[0.7rem] text-center leading-[1.35] border-line tracking-[0.03em] top-[auto] bottom-10 hidden [pointer-events:none]"
+                      "miniview-label absolute left-1/2 [transform:translateX(-50%)] w-[max-content] max-w-36.25 py-[0.25rem] px-[0.4rem] bg-bg border rounded-[2px] text-ink text-[0.7rem] text-center leading-[1.35] border-line tracking-[0.03em] top-[auto] bottom-10 hidden [pointer-events:none]"
                     }
                   >
                     {!point.nodeId && (
@@ -359,7 +362,7 @@ export default function JourneyMiniview({
       )}
       <p
         className={
-          "miniview-legend mt-[0] text-muted text-[0.7rem] mb-[0] pt-[0.7rem] border-t border-t-line"
+          "miniview-legend mt-0 text-muted text-[0.7rem] mb-0 pt-[0.7rem] border-t border-t-line"
         }
       >
         {t(

@@ -36,7 +36,7 @@ export function DensitySwitcher({ density }: { density: "compact" | "comfortable
           });
         }}
         className={
-          "lg:bg-[#15241e] lg:text-ink lg:border lg:border-[#5f7565] lg:rounded-[7px] lg:py-1.75 lg:px-2.25 lg:[font:inherit] lg:min-h-8.5 lg:[&:focus-visible]:[outline:2px_solid_var(--color-lime)] lg:[&:focus-visible]:[outline-offset:3px]"
+          "lg:bg-[var(--theme-surface-low,#15241e)] lg:text-ink lg:border lg:border-[var(--theme-border,#5f7565)] lg:rounded-[7px] lg:py-1.75 lg:px-2.25 lg:[font:inherit] lg:min-h-8.5 lg:focus-visible:[outline:2px_solid_var(--color-lime)] lg:focus-visible:[outline-offset:3px]"
         }
       >
         <option value="compact">{t("Compact")}</option>

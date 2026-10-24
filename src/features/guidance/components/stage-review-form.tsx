@@ -25,12 +25,12 @@ export function StageReviewForm({
     <details className={"stage-review py-6 px-0 text-[13px] lg:compact:py-3.5"}>
       <summary
         className={
-          "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] cursor-pointer text-lime"
+          "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 cursor-pointer text-lime"
         }
       >
         {t("Ready to review this stage?")}
       </summary>
-      <p className={"mb-[1em] text-muted mt-[14px]"}>
+      <p className={"mb-[1em] text-muted mt-3.5"}>
         {t(
           "Not every question needs an answer. Record what you've decided and what remains unknown.",
         )}{" "}
@@ -38,7 +38,7 @@ export function StageReviewForm({
       <form
         action={action}
         className={
-          "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-[#101c1b] [&_select]:text-ink [&_select]:border [&_select]:border-[#4b6056] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:[outline:3px_solid_var(--color-lime)] [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+          "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
         }
       >
         <Input
@@ -46,7 +46,7 @@ export function StageReviewForm({
           name="revision"
           value={contentRevision}
           className={
-            "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+            "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
           }
         />
         <label htmlFor="rationale" className={"text-[13px] text-ink"}>
@@ -60,16 +60,15 @@ export function StageReviewForm({
           value={text}
           onChange={(e) => setText(e.target.value)}
           className={
-            "min-h-30 w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+            "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
           }
         />
         <Feedback state={state} />
         <Button
           type="submit"
           disabled={pending}
-          className={
-            "secondary bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] mt-2 lg:compact:mt-1"
-          }
+          className={"secondary mt-2 lg:compact:mt-1"}
+          variant="secondary"
         >
           {pending ? t("Saving review…") : t("Mark stage reviewed")}
         </Button>

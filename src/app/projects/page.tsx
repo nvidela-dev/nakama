@@ -29,24 +29,24 @@ export default async function ProjectsPage() {
     <main
       id="main"
       className={
-        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-[none] lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_button]:min-h-8.5 lg:compact:[&_button]:py-2 lg:compact:[&_button]:px-3 lg:compact:[&_button]:text-[12px] lg:compact:[&_button]:rounded-[7px] lg:compact:[&_.button]:min-h-8.5 lg:compact:[&_.button]:py-2 lg:compact:[&_.button]:px-3 lg:compact:[&_.button]:text-[12px] lg:compact:[&_.button]:rounded-[7px] min-[2000px]:compact:[padding-inline:40px] lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-[none] min-[1280px]:[&:has(>_.has-discussion)]:[padding-inline:24px] [&_.project-heading]:mt-0 compact:[&_.journey-content_>_.button.secondary]:text-[11px] compact:[&_.journey-content_>_.button.secondary]:min-h-7.5 compact:[&_.journey-content_>_.button.secondary]:py-1.5 compact:[&_.journey-content_>_.button.secondary]:px-2.5 pointer-coarse:compact:[&_.journey-content_>_.button.secondary]:min-h-11 lg:compact:[&_.answer-panel_h2]:my-1.5 lg:compact:[&_.answer-panel_h2]:mx-0 lg:compact:[&_.answer-panel_h2]:text-[14px] lg:compact:[&_.answer-panel_h2]:leading-[1.3] compact:[&_.stage-heading-row_.miniview-icon]:w-8 compact:[&_.stage-heading-row_.miniview-icon]:h-8 compact:[&_.stage-heading-row_.miniview-icon]:min-h-8 compact:[&_.stage-heading-row_.miniview-icon]:min-w-8 compact:[&_.stage-heading-row_.miniview-icon]:p-0 compact:[&_.stage-heading-row_.miniview-icon]:rounded-[6px] pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:w-11 pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:h-11 pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:min-w-11 pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:min-h-11 compact:[&_.journey-stage-heading_.stage-heading-row_h2]:m-0 compact:[&_.journey-stage-heading_.stage-heading-row_h2]:text-[13px] compact:[&_.journey-stage-heading_.stage-heading-row_h2]:leading-[1.3]"
+        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0"
       }
     >
       <div
         className={
-          "page-heading mt-7.5 mx-0 mb-10.5 [&_p]:text-muted [&_p]:max-w-175 max-[700px]:mt-6 lg:compact:mt-3.5 lg:compact:mb-5 lg:compact:[&_p]:max-w-[none] lg:compact:[&_p]:mt-2 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-0 lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:leading-[1.5]"
+          "page-heading mt-7.5 mx-0 mb-10.5 [&_p]:text-muted [&_p]:max-w-175 max-[700px]:mt-6 lg:compact:mt-3.5 lg:compact:mb-5 lg:compact:[&_p]:max-w-none lg:compact:[&_p]:mt-2 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-0 lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:leading-[1.5]"
         }
       >
         <h1
           aria-label={t("Projects")}
           className={
-            "mb-[0.67em] mt-0 font-mono tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-[none] lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px]"
+            "mb-[0.67em] mt-0 font-mono tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px]"
           }
         >
           {t("Projects")}{" "}
           <span
             className={
-              "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-[8px]"
+              "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
             }
           >
             {projects.length}
@@ -55,7 +55,7 @@ export default async function ProjectsPage() {
       </div>
       <div
         className={
-          "workspace-columns grid grid-cols-[1.3fr_1fr] gap-8 items-start max-[1000px]:grid-cols-[1fr_1fr] max-[700px]:grid-cols-[1fr] lg:compact:grid-cols-[minmax(0,_1fr)_300px] lg:compact:gap-5 lg:compact:[&_>_*]:min-w-0 min-[2000px]:compact:grid-cols-[minmax(0,_1fr)_340px] min-[2000px]:compact:gap-7 min-[1280px]:[&.has-discussion]:grid-cols-[clamp(240px,_20vw,_380px)_minmax(0,_1fr)_clamp(220px,_18vw,_340px)] min-[1280px]:[&.has-discussion]:gap-5 min-[1280px]:compact:[&.has-discussion]:grid-cols-[clamp(240px,_20vw,_380px)_minmax(0,_1fr)_clamp(220px,_18vw,_340px)] min-[1280px]:compact:[&.has-discussion]:gap-5"
+          "workspace-columns grid grid-cols-[1.3fr_1fr] gap-8 items-start max-[1000px]:grid-cols-[1fr_1fr] max-[700px]:grid-cols-[1fr] lg:compact:grid-cols-[minmax(0,_1fr)_300px] lg:compact:gap-5 lg:compact:[&_>_*]:min-w-0 min-[2000px]:compact:grid-cols-[minmax(0,_1fr)_340px] min-[2000px]:compact:gap-7"
         }
       >
         <section
@@ -92,16 +92,12 @@ export default async function ProjectsPage() {
               >
                 {t("No projects yet")}
               </h3>
-              <p className={"mb-[1em] mt-[0] text-[14px]"}>
-                {t("Create a project to get started.")}
-              </p>
+              <p className={"mb-[1em] mt-0 text-[14px]"}>{t("Create a project to get started.")}</p>
             </div>
           )}
         </section>
         <aside
-          className={
-            "main-screen-sidebar grid gap-4 min-w-0 [align-content:start] max-[700px]:[order:-1]"
-          }
+          className={"main-screen-sidebar grid gap-4 min-w-0 content-start max-[700px]:[order:-1]"}
         >
           <NewProjectButton />
           {allowed && (
@@ -116,22 +112,22 @@ export default async function ProjectsPage() {
                 {t("Allow a person")}
               </h2>
               <AddAllowedEmail />
-              <details className={"mt-[18px]"}>
+              <details className={"mt-4.5"}>
                 <summary
                   className={
-                    "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px]"
+                    "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
                   }
                 >
                   {t("Allowed emails")}{" "}
                   <span
                     className={
-                      "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-[8px]"
+                      "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
                     }
                   >
                     {allowed.length}
                   </span>
                 </summary>
-                <p className={"muted mb-[1em] mt-[0] text-muted text-[12px]"}>
+                <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
                   {t(
                     "Removing access blocks future private requests. It does not delete the account or project history.",
                   )}
@@ -139,16 +135,16 @@ export default async function ProjectsPage() {
                 <WhitelistList entries={allowed} />
               </details>
               {requests && (
-                <details className={"mt-[18px]"}>
+                <details className={"mt-4.5"}>
                   <summary
                     className={
-                      "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px]"
+                      "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
                     }
                   >
                     {t("Access requests")}{" "}
                     <span
                       className={
-                        "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-[8px]"
+                        "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
                       }
                     >
                       {requests.length}

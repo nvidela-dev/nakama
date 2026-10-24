@@ -14,7 +14,7 @@ export function ProjectTimeline({
       <div role="img" aria-label={t("Choose a flow first.")} title={t("Choose a flow first.")}>
         <ol
           className={
-            "project-timeline timeline-placeholder my-[1em] opacity-[0.55] flex list-none mt-2.25 mx-0 mb-0 p-0 [&_.started_.timeline-name]:text-ink [&.timeline-placeholder_.timeline-marker]:bg-line"
+            "project-timeline timeline-placeholder my-[1em] opacity-55 flex list-none mt-2.25 mx-0 mb-0 p-0"
           }
           aria-hidden="true"
         >
@@ -22,41 +22,28 @@ export function ProjectTimeline({
             <li
               key={index}
               className={
-                'relative [flex:1] min-w-0 text-center text-[9px] leading-[1.1] text-muted [&:not(:last-child)::before]:[content:""] [&:not(:last-child)::before]:absolute [&:not(:last-child)::before]:top-1.25 [&:not(:last-child)::before]:left-[50%] [&:not(:last-child)::before]:w-full [&:not(:last-child)::before]:h-0.25 [&:not(:last-child)::before]:bg-line'
+                'relative flex-1 min-w-0 text-center text-[9px] leading-[1.1] text-muted [&:not(:last-child)::before]:[content:""] [&:not(:last-child)::before]:absolute [&:not(:last-child)::before]:top-1.25 [&:not(:last-child)::before]:left-1/2 [&:not(:last-child)::before]:w-full [&:not(:last-child)::before]:h-0.25 [&:not(:last-child)::before]:bg-line'
               }
             >
               <ProgressMarker
                 decorative
                 value={0}
                 max={1}
-                className={[
-                  "timeline-marker",
-                  "grid w-2.75 h-2.75 [border-width:1.5px] mt-0 mx-[auto] mb-0.5",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={
+                  "timeline-marker grid w-2.75 h-2.75 [border-width:1.5px] mt-0 mx-auto mb-0.5 bg-line"
+                }
               />
-              <span
-                className={[
-                  "timeline-name",
-                  "block [padding-inline:2px] truncate tracking-[-0.02em]",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
+              <span className={"timeline-name block px-0.5 truncate tracking-[-0.02em]"}>
                 <span
                   className={
-                    "timeline-placeholder-bar inline-block w-[65%] h-1 rounded-[2px] bg-line [&.short]:w-[24%]"
+                    "timeline-placeholder-bar inline-block w-[65%] h-1 rounded-[2px] bg-line"
                   }
                 />
               </span>
               <span
-                className={[
-                  "timeline-count",
-                  "block mt-0.25 [font-variant-numeric:tabular-nums] text-[8px] leading-[1.05] text-muted",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={
+                  "timeline-count block mt-0.25 tabular-nums text-[8px] leading-[1.05] text-muted"
+                }
               >
                 <span
                   className={
@@ -71,9 +58,7 @@ export function ProjectTimeline({
     );
   return (
     <ol
-      className={
-        "project-timeline my-[1em] flex list-none mt-2.25 mx-0 mb-0 p-0 [&.timeline-placeholder_.timeline-marker]:bg-line"
-      }
+      className={"project-timeline my-[1em] flex list-none mt-2.25 mx-0 mb-0 p-0"}
       aria-label={t("Stage progress")}
     >
       {stages.map((stage) => {
@@ -90,7 +75,7 @@ export function ProjectTimeline({
             aria-label={label}
             className={[
               `${stage.started ? "started" : ""} ${stage.reviewed ? "reviewed" : ""} ${stage.revisit ? "revisit" : ""}`,
-              'relative [flex:1] min-w-0 text-center text-[9px] leading-[1.1] text-muted [&:not(:last-child)::before]:[content:""] [&:not(:last-child)::before]:absolute [&:not(:last-child)::before]:top-1.25 [&:not(:last-child)::before]:left-[50%] [&:not(:last-child)::before]:w-full [&:not(:last-child)::before]:h-0.25 [&:not(:last-child)::before]:bg-line',
+              'relative flex-1 min-w-0 text-center text-[9px] leading-[1.1] text-muted [&:not(:last-child)::before]:[content:""] [&:not(:last-child)::before]:absolute [&:not(:last-child)::before]:top-1.25 [&:not(:last-child)::before]:left-1/2 [&:not(:last-child)::before]:w-full [&:not(:last-child)::before]:h-0.25 [&:not(:last-child)::before]:bg-line',
             ]
               .filter(Boolean)
               .join(" ")}
@@ -99,31 +84,20 @@ export function ProjectTimeline({
               decorative
               value={stage.answered}
               max={stage.total}
-              className={[
-                "timeline-marker",
-                "grid w-2.75 h-2.75 [border-width:1.5px] mt-0 mx-[auto] mb-0.5",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className={
+                "timeline-marker grid w-2.75 h-2.75 [border-width:1.5px] mt-0 mx-auto mb-0.5"
+              }
             />
             <span
-              className={[
-                "timeline-name",
-                "block [padding-inline:2px] truncate tracking-[-0.02em] text-ink",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className={`timeline-name block px-0.5 truncate tracking-[-0.02em] ${stage.started ? "text-ink" : "text-muted"}`}
               aria-hidden="true"
             >
               {t(stage.name)}
             </span>
             <span
-              className={[
-                "timeline-count",
-                "block mt-0.25 [font-variant-numeric:tabular-nums] text-[8px] leading-[1.05] text-muted",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className={
+                "timeline-count block mt-0.25 tabular-nums text-[8px] leading-[1.05] text-muted"
+              }
               aria-hidden="true"
             >
               {stage.answered}/{stage.total}

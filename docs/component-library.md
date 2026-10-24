@@ -42,7 +42,7 @@ The architecture check parses CSS and rejects additional stylesheets, custom sel
 1. Keep feature-specific components in that feature. Promote a component to the library when its meaning and behavior apply across features; do not move domain orchestration into UI for reuse.
 2. Give public props useful native types and explicit states. Pass labels/content into primitives. A component must remain usable without Clerk, a database, a router, or a Server Action.
 3. Add a colocated `*.stories.tsx` using `satisfies Meta<typeof Component>` and `StoryObj<typeof meta>`. Show relevant empty, error, loading, disabled, pending, and interactive states.
-4. Use the Storybook language and density toolbar. UI text is passed by callers; feature stories use the shared translator. Never translate user-authored content.
+4. Use the Storybook language, density, and style toolbar. UI text is passed by callers; feature stories use the shared translator. Never translate user-authored content.
 5. For interactive behavior, add a browser check in [the component suite](../tests/browser/components.spec.ts). Test keyboard use, focus restoration, and retained state. Axe checks reject serious/critical violations in the selected examples; they are not a claim of complete accessibility coverage.
 6. Run lint, architecture/type checks, Storybook build, and component checks. Check actual application use too: isolated stories do not prove route integration.
 
@@ -77,3 +77,10 @@ Use `Icon` from `@/shared/ui/icon` for interface icons. The typed catalog uses [
 ```
 
 Icons inherit text color, default to 16px with a consistent stroke, and are decorative. Keep the accessible name on the containing control or visible text. The Nakama wave remains the custom brand mark; concentric progress indicators and the 3D map remain data visualizations. Architecture checks reject direct library imports outside the catalog and custom inline SVGs outside the wave.
+
+
+## Visual styles
+
+`src/shared/ui/style-theme.ts` owns the typed style catalog. Hacker is the default; Zen uses cream paper, indigo, weathered blue, and rust. The root layout reads the `nakama-theme` cookie and renders the palette before first paint. The footer selector saves a validated, year-long, HTTP-only preference without touching project data. Invalid or absent preferences fall back to Hacker. Storybook's Style toolbar uses the same catalog.
+
+Use the `--color-*` Tailwind tokens for text, surfaces, borders, and accents, including gradient stops. The style catalog also sets the legacy core aliases for compatibility. Supplemental semantic `--theme-*` variables have existing Hacker colors as fallbacks; Zen overrides those roles. This preserves the default palette while allowing a complete light style. Add a style through the catalog and test text/button contrast, reload persistence, narrow-screen overflow, and component states. Canvas renderers subscribe to the root style so their colors follow changes too.

@@ -171,7 +171,7 @@ export function ArtifactEditor({
         "artifact-detail grid grid-cols-[minmax(0,_1fr)_340px] gap-6 items-start max-[1000px]:grid-cols-[minmax(0,_1fr)]"
       }
     >
-      <Panel className={"artifact-output min-w-[0]"} aria-label={t("Artifact output")}>
+      <Panel className={"artifact-output min-w-0"} aria-label={t("Artifact output")}>
         <div
           className={
             "artifact-library-heading flex items-center justify-between flex-wrap gap-3.5 mb-4.5 [&_p]:mt-1.5 [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-[12px] [&_p]:max-w-[60ch] max-[700px]:items-start max-[700px]:[&_>_button]:w-full"
@@ -196,7 +196,7 @@ export function ArtifactEditor({
           <span
             className={[
               `artifact-status ${artifact.status}`,
-              "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[#304630] [&.ready]:text-lime [&.ready]:[border-color:#5c7544]",
+              "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[var(--theme-surface,#304630)] [&.ready]:text-lime [&.ready]:[border-color:var(--theme-border,#5c7544)]",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -207,7 +207,7 @@ export function ArtifactEditor({
         {artifact.kind === "software" ? (
           <div
             className={
-              "software-output text-center py-11.25 px-5 bg-[#101c1b80] [border:1px_dashed_var(--color-line)] rounded-[8px]"
+              "software-output text-center py-11.25 px-5 bg-[var(--theme-overlay,#101c1b80)] [border:1px_dashed_var(--color-line)] rounded-[8px]"
             }
           >
             <span className={"software-symbol block text-lime text-[48px]"} aria-hidden="true">
@@ -224,7 +224,7 @@ export function ArtifactEditor({
                 </h3>
                 <a
                   className={
-                    "button [color:inherit] no-underline focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:#e9ffc1] hover:[transform:translateY(-1px)]"
+                    "button text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:var(--theme-accent-hover,#e9ffc1)] hover:[transform:translateY(-1px)]"
                   }
                   href={artifact.github_url}
                   target="_blank"
@@ -234,14 +234,14 @@ export function ArtifactEditor({
                 </a>
                 <p
                   className={
-                    "preserve-lines mb-[1em] mt-[0] whitespace-pre-wrap text-[13px] text-muted wrap-anywhere"
+                    "preserve-lines mb-[1em] mt-0 whitespace-pre-wrap text-[13px] text-muted wrap-anywhere"
                   }
                 >
                   {artifact.github_url}
                 </p>
               </>
             ) : (
-              <p className={"mb-[1em] mt-[0] text-[13px] text-muted wrap-anywhere"}>
+              <p className={"mb-[1em] mt-0 text-[13px] text-muted wrap-anywhere"}>
                 {t("Add a GitHub link in Details to connect this software artifact.")}
               </p>
             )}
@@ -255,7 +255,7 @@ export function ArtifactEditor({
                 }
               >
                 {images.map((file, index) => (
-                  <figure key={file.id} className={"min-w-[0] m-0"}>
+                  <figure key={file.id} className={"min-w-0 m-0"}>
                     <Button
                       type="submit"
                       className={
@@ -277,11 +277,7 @@ export function ArtifactEditor({
                         {t("Expand image")} <Icon name="arrowUpRight" />
                       </span>
                     </Button>
-                    <figcaption
-                      className={
-                        "flex flex-wrap items-center gap-3 [padding-block:8px] text-[11px]"
-                      }
-                    >
+                    <figcaption className={"flex flex-wrap items-center gap-3 py-2 text-[11px]"}>
                       <span className={"[flex:1_1_100%] wrap-anywhere text-muted"}>
                         {file.name}
                       </span>
@@ -291,7 +287,7 @@ export function ArtifactEditor({
                         }
                         download
                         className={
-                          "[color:inherit] no-underline focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] text-lime"
+                          "text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-lime"
                         }
                       >
                         {t("Download")}
@@ -299,7 +295,7 @@ export function ArtifactEditor({
                       <Button
                         type="submit"
                         className={
-                          "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:#ffffff0a]"
+                          "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"
                         }
                         disabled={pending}
                         onClick={() => setRemoveFile(file.id)}
@@ -315,13 +311,13 @@ export function ArtifactEditor({
               <>
                 <div
                   className={
-                    "artifact-file-heading flex items-center justify-between gap-[12px] flex-wrap mb-[22px] text-[12px] wrap-anywhere"
+                    "artifact-file-heading flex items-center justify-between gap-3 flex-wrap mb-5.5 text-[12px] wrap-anywhere"
                   }
                 >
                   <span>{artifact.files[0]?.name}</span>
                   <a
                     className={
-                      "button secondary [color:inherit] no-underline focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248]"
+                      "button secondary text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)]"
                     }
                     href={
                       artifactFileUrl(artifact.project_id, artifact.id, artifact.files[0].id) +
@@ -344,22 +340,18 @@ export function ArtifactEditor({
             {!artifact.files.length && (
               <div
                 className={
-                  "artifact-empty-output text-center py-11.25 px-5 bg-[#101c1b80] [border:1px_dashed_var(--color-line)] rounded-[8px]"
+                  "artifact-empty-output text-center py-11.25 px-5 bg-[var(--theme-overlay,#101c1b80)] [border:1px_dashed_var(--color-line)] rounded-[8px]"
                 }
               >
                 <span aria-hidden="true" className={"block text-lime text-[48px]"}>
                   <Icon name={artifact.kind === "image" ? "image" : "markdown"} />
                 </span>
-                <p className={"mb-[1em] mt-[0] text-[13px] text-muted wrap-anywhere"}>
+                <p className={"mb-[1em] mt-0 text-[13px] text-muted wrap-anywhere"}>
                   {t("No output attached yet. Keep working and upload a draft when you have one.")}
                 </p>
               </div>
             )}
-            <div
-              className={
-                "artifact-upload mt-[24px] grid gap-[8px] p-4 border border-line rounded-[8px]"
-              }
-            >
+            <div className={"artifact-upload mt-6 grid gap-2 p-4 border border-line rounded-[8px]"}>
               <label htmlFor="artifact-upload">
                 {t(artifact.kind === "image" ? "Upload images" : "Upload / replace Markdown")}
               </label>
@@ -375,7 +367,7 @@ export function ArtifactEditor({
                     : ".md,.markdown,text/markdown"
                 }
                 onChange={uploadFiles}
-                className={"max-w-[100%] text-[12px]"}
+                className={"max-w-full text-[12px]"}
               />
               <small className={"text-[11px] text-muted"}>
                 {t(
@@ -386,10 +378,8 @@ export function ArtifactEditor({
               </small>
             </div>
             {removeFile && (
-              <div
-                className={"artifact-remove-confirm border border-pink p-3 mt-[12px] text-[12px]"}
-              >
-                <p className={"mb-[1em] mt-[0]"}>
+              <div className={"artifact-remove-confirm border border-pink p-3 mt-3 text-[12px]"}>
+                <p className={"mb-[1em] mt-0"}>
                   {t(
                     "Remove this file? Set the artifact to In progress before removing its final output.",
                   )}
@@ -404,11 +394,10 @@ export function ArtifactEditor({
                 </Button>
                 <Button
                   type="submit"
-                  className={
-                    "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] m-1"
-                  }
+                  className={"button secondary m-1"}
                   disabled={pending}
                   onClick={() => setRemoveFile(undefined)}
+                  variant="secondary"
                 >
                   {t("Cancel")}
                 </Button>
@@ -447,7 +436,7 @@ export function ArtifactEditor({
                 maxLength={160}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                 className={
-                  "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                 }
               />
             </label>
@@ -459,7 +448,7 @@ export function ArtifactEditor({
                 rows={3}
                 onChange={(e) => setDraft({ ...draft, description: e.target.value })}
                 className={
-                  "min-h-30 w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                 }
               />
             </label>
@@ -471,7 +460,7 @@ export function ArtifactEditor({
                   value={draft.stageId}
                   onChange={(e) => setDraft({ ...draft, stageId: e.target.value })}
                   className={
-                    "bg-[#101c1b] text-ink border border-[#4b6056] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 [&:focus-visible]:[outline:3px_solid_var(--color-lime)] [&:focus-visible]:[outline-offset:4px]"
+                    "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
                   }
                 >
                   <option value="">{t("Whole project")}</option>
@@ -493,7 +482,7 @@ export function ArtifactEditor({
                   required={draft.status === "ready"}
                   onChange={(e) => setDraft({ ...draft, githubUrl: e.target.value })}
                   className={
-                    "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                    "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                   }
                 />
               </label>
@@ -507,14 +496,14 @@ export function ArtifactEditor({
                   setDraft({ ...draft, status: e.target.value as "ready" | "in_progress" })
                 }
                 className={
-                  "bg-[#101c1b] text-ink border border-[#4b6056] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 [&:focus-visible]:[outline:3px_solid_var(--color-lime)] [&:focus-visible]:[outline-offset:4px]"
+                  "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
                 }
               >
                 <option value="in_progress">{t("In progress")}</option>
                 <option value="ready">{t("Ready to use")}</option>
               </Select>
             </label>
-            <p className={"muted mb-[1em] mt-[0] text-muted text-[11px]"}>
+            <p className={"muted mb-[1em] mt-0 text-muted text-[11px]"}>
               {t("Ready requires the correct file or GitHub link. To-dos stay independent.")}
             </p>
             <Button type="submit" disabled={pending} className={"mt-2 lg:compact:mt-1"}>
@@ -542,7 +531,7 @@ export function ArtifactEditor({
           </div>
           <form
             className={
-              "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[#4b6056] [&_textarea]:bg-[#101c1b] [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
+              "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
             }
             onSubmit={(e) => {
               e.preventDefault();
@@ -552,7 +541,7 @@ export function ArtifactEditor({
             {tasks.map((task, index) => (
               <div
                 key={task.id}
-                className={"artifact-task grid gap-[7px] pb-[12px] border-b border-b-line"}
+                className={"artifact-task grid gap-1.75 pb-3 border-b border-b-line"}
               >
                 <Input
                   required
@@ -561,10 +550,10 @@ export function ArtifactEditor({
                   value={task.title}
                   onChange={(e) => patchTask(task.id, { title: e.target.value })}
                   className={
-                    "min-w-0 w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                    "min-w-0 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                   }
                 />
-                <div className={"flex items-center gap-[10px]"}>
+                <div className={"flex items-center gap-2.5"}>
                   <Select
                     aria-label={`${t("Task status")} ${index + 1}`}
                     value={task.status}
@@ -572,7 +561,7 @@ export function ArtifactEditor({
                       patchTask(task.id, { status: e.target.value as ArtifactTask["status"] })
                     }
                     className={
-                      "bg-[#101c1b] text-ink border border-[#4b6056] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 min-w-0 [flex:1] [&:focus-visible]:[outline:3px_solid_var(--color-lime)] [&:focus-visible]:[outline-offset:4px]"
+                      "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 min-w-0 flex-1 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
                     }
                   >
                     <option value="ready">{t("Ready")}</option>
@@ -582,7 +571,7 @@ export function ArtifactEditor({
                   <Button
                     type="button"
                     className={
-                      "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:#ffffff0a] mt-2 lg:compact:mt-1"
+                      "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1"
                     }
                     aria-label={`${t("Remove task")} ${index + 1}`}
                     onClick={() => setTasks((items) => items.filter((item) => item.id !== task.id))}
@@ -593,13 +582,11 @@ export function ArtifactEditor({
               </div>
             ))}
             {!tasks.length && (
-              <p className={"muted mb-[1em] mt-[0] text-muted text-[11px]"}>{t("No tasks yet.")}</p>
+              <p className={"muted mb-[1em] mt-0 text-muted text-[11px]"}>{t("No tasks yet.")}</p>
             )}
             <Button
               type="button"
-              className={
-                "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] mt-2 lg:compact:mt-1"
-              }
+              className={"button secondary mt-2 lg:compact:mt-1"}
               disabled={tasks.length >= 100 || pending}
               onClick={() =>
                 setTasks((items) => [
@@ -607,6 +594,7 @@ export function ArtifactEditor({
                   { id: crypto.randomUUID(), title: "", status: "ready" },
                 ])
               }
+              variant="secondary"
             >
               {t("Add task")}
             </Button>
@@ -620,12 +608,12 @@ export function ArtifactEditor({
           aria-live="polite"
         >
           {dirty && (
-            <p className={"muted mb-[1em] mt-[0] text-muted text-[11px]"}>{t("Unsaved changes")}</p>
+            <p className={"muted mb-[1em] mt-0 text-muted text-[11px]"}>{t("Unsaved changes")}</p>
           )}
           {notice && (
             <p
               className={
-                "message success text-[13px]! bg-[#30422d] rounded-[8px] p-3 text-ink! m-0 [&.error]:bg-[#4e3030] [&.error]:[color:#ffe4dd]!"
+                "message success text-[13px]! bg-[var(--theme-surface,#30422d)] rounded-[8px] p-3 text-ink! m-0 [&.error]:bg-[var(--theme-danger,#4e3030)] [&.error]:[color:var(--theme-danger-ink,#ffe4dd)]!"
               }
             >
               {t(notice)}
@@ -634,7 +622,7 @@ export function ArtifactEditor({
           {error && (
             <p
               className={
-                "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[#4e3030] [color:#ffe4dd]!"
+                "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[var(--theme-danger,#4e3030)] [color:var(--theme-danger-ink,#ffe4dd)]!"
               }
               role="alert"
             >
@@ -647,7 +635,7 @@ export function ArtifactEditor({
                 "panel p-7.5 bg-panel border border-line rounded-[16px] min-w-0 [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5"
               }
             >
-              <p className={"mb-[1em] mt-[0] text-muted"}>
+              <p className={"mb-[1em] mt-0 text-muted"}>
                 {t("Latest version:")} {current.name}
               </p>
               <Button
@@ -671,21 +659,21 @@ export function ArtifactEditor({
         >
           <summary
             className={
-              "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] cursor-pointer text-pink"
+              "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 cursor-pointer text-pink"
             }
           >
             {t("Delete artifact")}
           </summary>
           <form
             className={
-              "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[#4b6056] [&_textarea]:bg-[#101c1b] [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-[#101c1b] [&_select]:text-ink [&_select]:border [&_select]:border-[#4b6056] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:[outline:3px_solid_var(--color-lime)] [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5 pt-3"
+              "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5 pt-3"
             }
             onSubmit={(e) => {
               e.preventDefault();
               run("delete", confirmation);
             }}
           >
-            <p className={"mb-[1em] mt-[0]"}>
+            <p className={"mb-[1em] mt-0"}>
               {t(
                 "Permanently delete this artifact, its files, and its to-do list. Enter its exact name to confirm.",
               )}
@@ -697,7 +685,7 @@ export function ArtifactEditor({
                 onChange={(e) => setConfirmation(e.target.value)}
                 required
                 className={
-                  "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                 }
               />
             </label>
@@ -715,7 +703,7 @@ export function ArtifactEditor({
         open={image !== null}
         onClose={closeImage}
         className={
-          "artifact-lightbox backdrop:[background:#06100de8] fixed [inset:0] m-0 p-5 w-[100vw] h-[100dvh] max-w-[none] max-h-[none] border-0 bg-[#07110ff7] text-ink [&[open]]:flex [&[open]]:flex-col [&[open]]:gap-4 [&_>_img]:block [&_>_img]:min-h-0 [&_>_img]:min-w-0 [&_>_img]:[object-fit:contain] [&_>_img]:[flex:1] [&_>_img]:w-full max-[700px]:p-3"
+          "artifact-lightbox backdrop:[background:var(--theme-overlay,#06100de8)] fixed inset-0 m-0 p-5 w-[100vw] h-[100dvh] max-w-none max-h-[none] border-0 bg-[var(--theme-overlay,#07110ff7)] text-ink [&[open]]:flex [&[open]]:flex-col [&[open]]:gap-4 [&_>_img]:block [&_>_img]:min-h-0 [&_>_img]:min-w-0 [&_>_img]:[object-fit:contain] [&_>_img]:flex-1 [&_>_img]:w-full max-[700px]:p-3"
         }
         label={t("Expanded image")}
         onKeyDown={(e) => {
@@ -736,14 +724,14 @@ export function ArtifactEditor({
                 "lightbox-toolbar flex items-center justify-end gap-4 text-[12px] max-[700px]:gap-2 max-[700px]:flex-wrap"
               }
             >
-              <span className={"mr-[auto] wrap-anywhere max-[700px]:[flex-basis:100%]"}>
+              <span className={"mr-auto wrap-anywhere max-[700px]:[flex-basis:100%]"}>
                 {viewing.name} · {image! + 1}/{images.length}
               </span>
               <a
                 href={artifactFileUrl(artifact.project_id, artifact.id, viewing.id) + "?download=1"}
                 download
                 className={
-                  "[color:inherit] no-underline focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] text-lime"
+                  "text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-lime"
                 }
               >
                 {t("Download")}
@@ -751,10 +739,9 @@ export function ArtifactEditor({
               <Button
                 type="submit"
                 autoFocus
-                className={
-                  "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248]"
-                }
+                className={"button secondary"}
                 onClick={closeImage}
+                variant="secondary"
               >
                 {t("Close")}
               </Button>
@@ -765,22 +752,20 @@ export function ArtifactEditor({
               alt={viewing.name}
             />
             {images.length > 1 && (
-              <div className={"lightbox-navigation flex justify-center gap-[12px]"}>
+              <div className={"lightbox-navigation flex justify-center gap-3"}>
                 <Button
                   type="submit"
-                  className={
-                    "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248]"
-                  }
+                  className={"button secondary"}
                   onClick={() => setImage((index) => (index! + images.length - 1) % images.length)}
+                  variant="secondary"
                 >
                   {t("Previous image")}
                 </Button>
                 <Button
                   type="submit"
-                  className={
-                    "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248]"
-                  }
+                  className={"button secondary"}
                   onClick={() => setImage((index) => (index! + 1) % images.length)}
+                  variant="secondary"
                 >
                   {t("Next image")}
                 </Button>

@@ -6,7 +6,7 @@ export async function AccessRequestList({ requests }: { requests: AccessRequest[
   const t = await getT();
   const locale = await getLocale();
   return (
-    <section className={"access-requests mt-[24px] pt-[18px] border-t border-t-line"}>
+    <section className={"access-requests mt-6 pt-4.5 border-t border-t-line"}>
       <h2
         className={
           "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
@@ -15,13 +15,13 @@ export async function AccessRequestList({ requests }: { requests: AccessRequest[
         {t("Access requests")}{" "}
         <span
           className={
-            "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-[8px]"
+            "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
           }
         >
           {requests.length}
         </span>
       </h2>
-      <p className={"muted mb-[1em] mt-[0] text-muted text-[12px]"}>
+      <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
         {t(
           "Submitted emails are not verified identities. This list starts with requests made in Nakama; it does not include historical Clerk rejections.",
         )}
@@ -36,7 +36,7 @@ export async function AccessRequestList({ requests }: { requests: AccessRequest[
               }
             >
               <div>
-                <strong className={"allowed-email wrap-anywhere min-w-[0] text-[13px]"}>
+                <strong className={"allowed-email wrap-anywhere min-w-0 text-[13px]"}>
                   {request.email}
                 </strong>
                 <small className={"block text-[11px] text-muted"}>
@@ -48,7 +48,7 @@ export async function AccessRequestList({ requests }: { requests: AccessRequest[
           ))}
         </ul>
       ) : (
-        <p className={"mb-[1em] mt-[0]"}>{t("No pending access requests.")}</p>
+        <p className={"mb-[1em] mt-0"}>{t("No pending access requests.")}</p>
       )}
     </section>
   );

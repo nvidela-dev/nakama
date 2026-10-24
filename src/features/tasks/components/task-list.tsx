@@ -151,14 +151,14 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
     <div className="task-feedback">
       <p
         className={
-          "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[#4e3030] [color:#ffe4dd]!"
+          "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[var(--theme-danger,#4e3030)] [color:var(--theme-danger-ink,#ffe4dd)]!"
         }
         role="alert"
       >
         {t(error)}
       </p>
       {conflict && editor?.task && (
-        <p className={"mb-[1em] mt-[0]"}>
+        <p className={"mb-[1em] mt-0"}>
           {t("Latest task title:")}{" "}
           {list.tasks.find((task) => task.id === editor.task?.id)?.title ??
             t("Task no longer exists.")}
@@ -167,9 +167,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
       {conflict && (editor || imports.length > 0) && (
         <Button
           type="button"
-          className={
-            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248]"
-          }
+          className={"button secondary"}
           disabled={pending}
           onClick={() => {
             if (editor) {
@@ -200,6 +198,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             setError("");
             setConflict(false);
           }}
+          variant="secondary"
         >
           {t("Use latest list and keep my draft")}
         </Button>
@@ -242,7 +241,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           "task-toolbar grid grid-cols-[minmax(0,_1fr)_160px] gap-3 mb-3 max-[700px]:grid-cols-[minmax(0,_1fr)]"
         }
       >
-        <label className={"grid gap-[6px] text-[11px] text-muted"}>
+        <label className={"grid gap-1.5 text-[11px] text-muted"}>
           {t("Find a task")}
           <Input
             type="search"
@@ -254,7 +253,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             }
           />
         </label>
-        <label className={"grid gap-[6px] text-[11px] text-muted"}>
+        <label className={"grid gap-1.5 text-[11px] text-muted"}>
           {t("Task status")}
           <Select
             value={filter}
@@ -280,47 +279,51 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
         <Button
           type="button"
           className={
-            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
+            "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
           }
           disabled={pending || !list.tasks.length}
           onClick={() =>
             run({ kind: "collapse", ids: list.tasks.map((t) => t.id), collapsed: false })
           }
+          variant="secondary"
         >
           {t("Expand all")}
         </Button>
         <Button
           type="button"
           className={
-            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
+            "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
           }
           disabled={pending || !list.tasks.length}
           onClick={() =>
             run({ kind: "collapse", ids: list.tasks.map((t) => t.id), collapsed: true })
           }
+          variant="secondary"
         >
           {t("Collapse all")}
         </Button>
         <Button
           type="button"
           className={
-            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
+            "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
           }
           disabled={pending}
           onClick={(event) => {
             opener.current = event.currentTarget;
             file.current?.click();
           }}
+          variant="secondary"
         >
           {t("Import Lock-In")}
         </Button>
         <Button
           type="button"
           className={
-            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
+            "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
           }
           disabled={pending}
           onClick={download}
+          variant="secondary"
         >
           {t("Export Lock-In")}
         </Button>
@@ -339,7 +342,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
       {notice && (
         <p
           className={
-            "message text-[13px]! bg-[#30422d] rounded-[8px] p-3 text-ink! m-0 [&.error]:bg-[#4e3030] [&.error]:[color:#ffe4dd]!"
+            "message text-[13px]! bg-[var(--theme-surface,#30422d)] rounded-[8px] p-3 text-ink! m-0 [&.error]:bg-[var(--theme-danger,#4e3030)] [&.error]:[color:var(--theme-danger-ink,#ffe4dd)]!"
           }
           role="status"
         >
@@ -347,11 +350,11 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
         </p>
       )}
       {!list.tasks.length ? (
-        <p className={"muted mb-[1em] mt-[0] text-muted text-[12px]"}>
+        <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
           {t("No tasks yet. Add a task or import a Lock-In project.")}
         </p>
       ) : !visible.length ? (
-        <p className={"muted mb-[1em] mt-[0] text-muted text-[12px]"}>{t("No matching tasks.")}</p>
+        <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>{t("No matching tasks.")}</p>
       ) : (
         <ol className={"task-tree list-none p-0 m-0"}>
           {visible.map((node) => (
@@ -361,7 +364,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                 `task-row task-${node.status}`,
                 node.status === "done" && "[&_.task-title]:text-muted [&_.task-title]:line-through",
                 node.status === "in_progress" && "[&_.task-title]:text-lime",
-                "flex flex-wrap items-center justify-between gap-[6px_12px] py-2.25 px-0 border-b border-b-line min-w-[0]",
+                "flex flex-wrap items-center justify-between gap-[6px_12px] py-2.25 px-0 border-b border-b-line min-w-0",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -375,12 +378,9 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                 {node.children.length > 0 ? (
                   <Button
                     type="button"
-                    className={[
-                      "task-expand",
-                      "text-ink bg-transparent p-0 rounded-[4px] min-h-8 text-[13px] text-left [flex:0_0_26px] pointer-coarse:min-h-11 pointer-coarse:min-w-11",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
+                    className={
+                      "task-expand text-ink bg-transparent p-0 rounded-[4px] min-h-8 text-[13px] text-left [flex:0_0_26px] pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+                    }
                     disabled={pending}
                     aria-label={t(node.collapsed ? "Expand subtasks" : "Collapse subtasks")}
                     aria-expanded={node.children.length ? filtering || !node.collapsed : undefined}
@@ -407,12 +407,9 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                 </span>
                 <Button
                   type="button"
-                  className={[
-                    "task-title",
-                    "text-ink bg-transparent p-1 rounded-[4px] min-h-8 text-[13px] text-left block wrap-anywhere min-w-0 [&:hover]:bg-line [&:hover]:[transform:none]",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                  className={
+                    "task-title text-ink bg-transparent p-1 rounded-[4px] min-h-8 text-[13px] text-left block wrap-anywhere min-w-0 hover:bg-line hover:[transform:none]"
+                  }
                   disabled={pending}
                   onClick={() =>
                     open({ kind: "edit", task: node, title: node.title, revision: list.revision })
@@ -423,7 +420,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
               </div>
               <div
                 className={
-                  "task-row-controls flex items-center gap-1.5 shrink-0 ml-[auto] max-[700px]:ml-0 max-[700px]:flex-wrap"
+                  "task-row-controls flex items-center gap-1.5 shrink-0 ml-auto max-[700px]:ml-0 max-[700px]:flex-wrap"
                 }
               >
                 <Select
@@ -444,7 +441,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                 <Button
                   type="button"
                   className={
-                    "button secondary task-icon rounded-[9px] inline-flex items-center justify-center gap-3 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+                    "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   }
                   title={t("Add subtask")}
                   aria-label={`${t("Add subtask")} ${node.number}`}
@@ -452,13 +449,14 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                   onClick={() =>
                     open({ kind: "add", parentId: node.id, title: "", revision: list.revision })
                   }
+                  variant="secondary"
                 >
                   <Icon name="plus" />
                 </Button>
                 <Button
                   type="button"
                   className={
-                    "button secondary task-icon rounded-[9px] inline-flex items-center justify-center gap-3 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+                    "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   }
                   title={t("Delete task")}
                   aria-label={`${t("Delete task")} ${node.number}`}
@@ -466,6 +464,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                   onClick={() =>
                     open({ kind: "delete", task: node, title: node.title, revision: list.revision })
                   }
+                  variant="secondary"
                 >
                   <Icon name="delete" />
                 </Button>
@@ -486,7 +485,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
         >
           <form
             className={
-              "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[#4b6056] [&_textarea]:bg-[#101c1b] [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_select]:bg-[#101c1b] [&_select]:text-ink [&_select]:border [&_select]:border-[#4b6056] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:[outline:3px_solid_var(--color-lime)] [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+              "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
             }
             onSubmit={(event) => {
               event.preventDefault();
@@ -525,7 +524,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
               )}
             </h2>
             {editor.kind === "add" || editor.kind === "edit" ? (
-              <label className={"grid gap-[6px] text-[13px] text-ink"}>
+              <label className={"grid gap-1.5 text-[13px] text-ink"}>
                 {t("Task title")}
                 <Input
                   autoFocus
@@ -535,16 +534,16 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                   value={editor.title}
                   onChange={(event) => setEditor({ ...editor, title: event.target.value })}
                   className={
-                    "min-w-0 font-mono min-h-9 w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                    "min-w-0 font-mono min-h-9 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                   }
                 />
               </label>
             ) : (
               <>
-                <p className={"preserve-lines mb-[1em] mt-[0] whitespace-pre-wrap wrap-anywhere"}>
+                <p className={"preserve-lines mb-[1em] mt-0 whitespace-pre-wrap wrap-anywhere"}>
                   {editor.task.number} · {editor.title}
                 </p>
-                <p className={"mb-[1em] mt-[0]"}>
+                <p className={"mb-[1em] mt-0"}>
                   {t(
                     editor.kind === "delete"
                       ? "Delete this task and all its subtasks? This cannot be undone."
@@ -557,7 +556,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
               </>
             )}
             {errorBox}
-            <div className={"task-dialog-actions flex flex-wrap gap-[8px] mt-[16px]"}>
+            <div className={"task-dialog-actions flex flex-wrap gap-2 mt-4"}>
               {editor.kind === "done" ? (
                 <>
                   <Button
@@ -618,11 +617,10 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
               )}
               <Button
                 type="button"
-                className={
-                  "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] mt-2 lg:compact:mt-1"
-                }
+                className={"button secondary mt-2 lg:compact:mt-1"}
                 disabled={pending}
                 onClick={close}
+                variant="secondary"
               >
                 {t("Cancel")}
               </Button>
@@ -648,14 +646,14 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           >
             {t("Import Lock-In")}
           </h2>
-          <label className={"grid gap-[6px] text-[11px] text-muted"}>
+          <label className={"grid gap-1.5 text-[11px] text-muted"}>
             {t("Source project")}
             <Select
               value={selected}
               disabled={pending}
               onChange={(e) => setSelected(Number(e.target.value))}
               className={
-                "w-[100%] min-w-[0] bg-bg text-ink border border-line rounded-[6px] font-mono py-2 px-2.5 min-h-[36px]"
+                "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-mono py-2 px-2.5 min-h-9"
               }
             >
               {imports.map((p, i) => (
@@ -665,17 +663,17 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
               ))}
             </Select>
           </label>
-          <p className={"mb-[1em] mt-[0]"}>
+          <p className={"mb-[1em] mt-0"}>
             {importCount(selectedImport.tasks)} {t("tasks to add")}
           </p>
-          <p className={"muted mb-[1em] mt-[0] text-muted text-[12px]"}>
+          <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
             {t(
               "This adds tasks to the current project. Existing tasks and project details stay as they are. Source IDs are remapped; this is not a sync.",
             )}
           </p>
           <ol
             className={
-              "task-import-preview my-[1em] max-h-[260px] overflow-auto list-none p-3 bg-panel rounded-[8px] text-[11px]"
+              "task-import-preview my-[1em] max-h-65 overflow-auto list-none p-3 bg-panel rounded-[8px] text-[11px]"
             }
           >
             {(function preview(
@@ -705,7 +703,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             })(selectedImport.tasks)}
           </ol>
           {errorBox}
-          <div className={"task-dialog-actions flex flex-wrap gap-[8px] mt-[16px]"}>
+          <div className={"task-dialog-actions flex flex-wrap gap-2 mt-4"}>
             <Button
               type="button"
               disabled={pending || conflict || !importCount(selectedImport.tasks)}
@@ -723,11 +721,10 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             </Button>
             <Button
               type="button"
-              className={
-                "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248]"
-              }
+              className={"button secondary"}
               disabled={pending}
               onClick={close}
+              variant="secondary"
             >
               {t("Cancel")}
             </Button>

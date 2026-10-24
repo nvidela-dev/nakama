@@ -1,3 +1,4 @@
+import { palettes, parseStyleTheme, styleThemeProperties } from "@/shared/ui/style-theme";
 import { cookies } from "next/headers";
 import { messages } from "@/shared/i18n/index";
 import { getLocale, getT } from "@/shared/i18n/server";
@@ -10,10 +11,10 @@ import { Footer } from "@/features/shell/components/footer";
 import { LanguageProvider } from "@/shared/i18n/provider";
 import { enUS } from "@clerk/localizations/en-US";
 import { esUY } from "@clerk/localizations/es-UY";
-export const viewport: Viewport = {
-  themeColor: "#101c1b",
-  colorScheme: "dark",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = parseStyleTheme((await cookies()).get("nakama-theme")?.value);
+  return { themeColor: palettes[theme].bg, colorScheme: theme === "zen" ? "light" : "dark" };
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -33,13 +34,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const t = await getT();
   const locale = await getLocale();
+  const theme = parseStyleTheme((await cookies()).get("nakama-theme")?.value);
   const density =
     (await cookies()).get("nakama-density")?.value === "comfortable" ? "comfortable" : "compact";
   const content = (
     <>
       <a
         className={
-          "skip-link [color:inherit] no-underline focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] absolute top-[-100px] left-5 z-[100] bg-lime text-dark p-3 focus:top-3"
+          "skip-link text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 absolute top-[-100px] left-5 z-[100] bg-lime text-dark p-3 focus:top-3"
         }
         href="#main"
       >
@@ -47,16 +49,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </a>
       <Header />
       {children}
-      <Footer density={density} />
+      <Footer density={density} theme={theme} />
     </>
   );
   return (
     <html
+      style={styleThemeProperties(theme)}
+      data-theme={theme}
       lang={locale}
       data-density={density}
       data-scroll-behavior="smooth"
       className={
-        'lg:[html&[data-density="compact"]_footer]:max-w-[none] lg:[html&[data-density="compact"]_footer]:py-4 lg:[html&[data-density="compact"]_footer]:px-7'
+        'lg:[html&[data-density="compact"]_footer]:max-w-none lg:[html&[data-density="compact"]_footer]:py-4 lg:[html&[data-density="compact"]_footer]:px-7'
       }
     >
       <body className={"m-0 bg-bg text-ink font-mono text-[16px] leading-[1.6]"}>

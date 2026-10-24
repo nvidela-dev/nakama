@@ -99,19 +99,19 @@ export function AnswerEditor({
         ref={heading}
         tabIndex={-1}
         className={
-          "mb-[0.83em] mt-0 font-mono font-medium text-[16px] leading-[1.3] tracking-[-0.25px] lg:compact:my-1.5 lg:compact:mx-0 lg:compact:text-[14px] [&:focus]:[outline:none]"
+          "mb-[0.83em] mt-0 font-mono font-medium text-[16px] leading-[1.3] tracking-[-0.25px] lg:compact:my-1.5 lg:compact:mx-0 lg:compact:text-[14px] focus:[outline:none]"
         }
       >
         {t(node.question)}
       </h2>
       <details
         className={
-          "example bg-[#263a2c] [border-left:2px_solid_#adc57f] py-3.5 px-4.5 my-6 mx-0 lg:compact:py-2 lg:compact:px-3 lg:compact:my-3"
+          "example bg-[var(--theme-surface,#263a2c)] [border-left:2px_solid_var(--theme-border,#adc57f)] py-3.5 px-4.5 my-6 mx-0 lg:compact:py-2 lg:compact:px-3 lg:compact:my-3"
         }
       >
         <summary
           className={
-            "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] text-[13px] cursor-pointer"
+            "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-[13px] cursor-pointer"
           }
         >
           {t("Example")}
@@ -126,7 +126,7 @@ export function AnswerEditor({
       {answer?.needs_review && (
         <p
           className={
-            "review-warning mb-[1em] mt-0 text-[13px] bg-[#3c3e28] p-3.75 rounded-[8px] lg:compact:p-2.5 lg:compact:my-2.5 lg:compact:mx-0"
+            "review-warning mb-[1em] mt-0 text-[13px] bg-[var(--theme-warning,#3c3e28)] p-3.75 rounded-[8px] lg:compact:p-2.5 lg:compact:my-2.5 lg:compact:mx-0"
           }
         >
           {t("Something earlier changed. Revisit this answer with what you know now.")}{" "}
@@ -135,7 +135,7 @@ export function AnswerEditor({
       <form
         action={action}
         className={
-          "form-stack answer-form flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[#4b6056] [&_textarea]:bg-[#101c1b] [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_select]:bg-[#101c1b] [&_select]:text-ink [&_select]:border [&_select]:border-[#4b6056] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:[outline:3px_solid_var(--color-lime)] [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5 lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
+          "form-stack answer-form flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5 lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
         }
       >
         <Input
@@ -143,7 +143,7 @@ export function AnswerEditor({
           name="revision"
           value={revision}
           className={
-            "w-full border border-[#4b6056] bg-[#101c1b] text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+            "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
           }
         />
         <AnswerFields
@@ -178,7 +178,7 @@ export function AnswerEditor({
           </small>
         )}
         {state.conflict && (
-          <div className={"conflict border border-[#b59769] p-4 rounded-[8px]"}>
+          <div className={"conflict border border-[var(--theme-border,#b59769)] p-4 rounded-[8px]"}>
             <h3
               className={
                 "mb-[1em] font-mono tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 mt-0"
@@ -188,7 +188,7 @@ export function AnswerEditor({
             </h3>
             <p
               className={
-                "preserve-lines mb-[1em] mt-[0] whitespace-pre-wrap wrap-anywhere text-[13px]"
+                "preserve-lines mb-[1em] mt-0 whitespace-pre-wrap wrap-anywhere text-[13px]"
               }
             >
               {state.conflict.content || t("(No text)")}
@@ -197,12 +197,10 @@ export function AnswerEditor({
               {t(state.conflict.status)} · {t(state.conflict.choice ?? "No direction selected")}{" "}
               {t("· Revision")} {state.conflict.revision}
             </small>
-            <div className={"conflict-actions flex flex-wrap gap-[8px]"}>
+            <div className={"conflict-actions flex flex-wrap gap-2"}>
               <Button
                 type="button"
-                className={
-                  "secondary bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] mt-2 lg:compact:mt-1 text-[12px]"
-                }
+                className={"secondary mt-2 lg:compact:mt-1 text-[12px]"}
                 onClick={() => {
                   setContent(state.conflict!.content);
                   setStatus(state.conflict!.status);
@@ -211,25 +209,25 @@ export function AnswerEditor({
                   setReconciled(true);
                   setDirty(true);
                 }}
+                variant="secondary"
               >
                 {t("Start from their version")}{" "}
               </Button>
               <Button
                 type="button"
-                className={
-                  "secondary bg-[#344c39] text-lime border border-[#658451] hover:[background:#456248] mt-2 lg:compact:mt-1 text-[12px]"
-                }
+                className={"secondary mt-2 lg:compact:mt-1 text-[12px]"}
                 onClick={() => {
                   setRevision(state.conflict!.revision);
                   setReconciled(true);
                 }}
+                variant="secondary"
               >
                 {t("Keep my version")}{" "}
               </Button>
             </div>
           </div>
         )}
-        <div className={"save-row flex items-center gap-[16px] flex-wrap"}>
+        <div className={"save-row flex items-center gap-4 flex-wrap"}>
           <Button
             type="submit"
             disabled={pending || Boolean(state.conflict && !reconciled)}
@@ -250,7 +248,7 @@ export function AnswerEditor({
         >
           <summary
             className={
-              "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] cursor-pointer text-lime"
+              "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 cursor-pointer text-lime"
             }
           >
             {t("Earlier work ·")} {history.length}{" "}
@@ -264,7 +262,7 @@ export function AnswerEditor({
               <strong>
                 {t("Revision")} {r.revision} · {t(r.status)}
               </strong>
-              <small className={"block text-muted mt-[5px] mx-[0] mb-[14px]"}>
+              <small className={"block text-muted mt-1.25 mx-0 mb-3.5"}>
                 {r.origin === "capture"
                   ? t("From the original project capture")
                   : t("Saved by {name}", {

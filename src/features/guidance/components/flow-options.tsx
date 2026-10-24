@@ -25,7 +25,7 @@ export function FlowOptions({
       {flowCatalog.map((flow) => (
         <Button
           className={
-            'flow-option grid grid-cols-[18px_minmax(0,_1fr)] text-left bg-[#22382d] border border-[#58714b] text-ink p-2.5 gap-[5px_8px] min-h-22 [align-content:start] rounded-[7px] hover:[background:#2b4436] lg:compact:p-3.5 [&[aria-pressed="true"]]:border-lime [&[aria-pressed="true"]]:bg-[#304630] [&[aria-pressed="true"]]:[box-shadow:inset_0_0_0_1px_var(--color-lime)] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] max-[700px]:grid-cols-[16px_minmax(0,_1fr)] max-[700px]:gap-[4px_6px] max-[700px]:p-2 max-[700px]:compact:grid-cols-[16px_minmax(0,_1fr)] max-[700px]:compact:gap-[4px_6px] max-[700px]:compact:p-2'
+            'flow-option grid grid-cols-[18px_minmax(0,_1fr)] text-left bg-[var(--theme-surface,#22382d)] border border-[var(--theme-border,#58714b)] text-ink p-2.5 gap-[5px_8px] min-h-22 content-start rounded-[7px] hover:[background:var(--theme-selected,#2b4436)] lg:compact:p-3.5 [&[aria-pressed="true"]]:border-lime [&[aria-pressed="true"]]:bg-[var(--theme-surface,#304630)] [&[aria-pressed="true"]]:[box-shadow:inset_0_0_0_1px_var(--color-lime)] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] max-[700px]:grid-cols-[16px_minmax(0,_1fr)] max-[700px]:gap-[4px_6px] max-[700px]:p-2'
           }
           key={flow.id}
           name="flow"
@@ -39,7 +39,7 @@ export function FlowOptions({
           <span
             aria-hidden="true"
             className={
-              "[&:first-child]:[grid-row:1] [&:first-child]:text-[17px] [&:first-child]:text-lime [&:first-child]:[grid-column:1] [&:first-child]:leading-[1.2] [&:last-child]:text-[11px] [&:last-child]:text-muted [&:last-child]:font-normal [&:last-child]:leading-[1.4] [&:last-child]:[grid-column:1/-1] [&:last-child]:[display:-webkit-box] [&:last-child]:[-webkit-line-clamp:2] [&:last-child]:[-webkit-box-orient:vertical] [&:last-child]:overflow-hidden max-[700px]:[&:first-child]:text-[14px]"
+              "first:row-start-1 first:text-[17px] first:text-lime first:col-start-1 first:leading-[1.2] last:text-[11px] last:text-muted last:font-normal last:leading-[1.4] last:[grid-column:1/-1] last:[display:-webkit-box] last:[-webkit-line-clamp:2] last:[-webkit-box-orient:vertical] last:overflow-hidden max-[700px]:first:text-[14px]"
             }
           >
             <Icon
@@ -64,14 +64,14 @@ export function FlowOptions({
           </span>
           <strong
             className={
-              "text-[14px] [grid-column:2] leading-[1.3] wrap-anywhere max-[700px]:text-[12px]"
+              "text-[14px] col-start-2 leading-[1.3] wrap-anywhere max-[700px]:text-[12px]"
             }
           >
             {t(flow.name)}
           </strong>
           <span
             className={
-              "[&:first-child]:[grid-row:1] [&:first-child]:text-[17px] [&:first-child]:text-lime [&:first-child]:[grid-column:1] [&:first-child]:leading-[1.2] [&:last-child]:text-[11px] [&:last-child]:text-muted [&:last-child]:font-normal [&:last-child]:leading-[1.4] [&:last-child]:[grid-column:1/-1] [&:last-child]:[display:-webkit-box] [&:last-child]:[-webkit-line-clamp:2] [&:last-child]:[-webkit-box-orient:vertical] [&:last-child]:overflow-hidden max-[700px]:[&:first-child]:text-[14px]"
+              "first:row-start-1 first:text-[17px] first:text-lime first:col-start-1 first:leading-[1.2] last:text-[11px] last:text-muted last:font-normal last:leading-[1.4] last:[grid-column:1/-1] last:[display:-webkit-box] last:[-webkit-line-clamp:2] last:[-webkit-box-orient:vertical] last:overflow-hidden max-[700px]:first:text-[14px]"
             }
           >
             {t(flow.description)}

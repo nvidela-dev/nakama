@@ -52,13 +52,13 @@ function ProjectNavigationMenu() {
     };
   }, [open, attempt]);
   return (
-    <div className={"project-navigation relative flex items-center gap-[3px]"} ref={root}>
+    <div className={"project-navigation relative flex items-center gap-0.75"} ref={root}>
       <Link href="/projects">{t("Your projects")}</Link>
       <Button
         type="submit"
         ref={trigger}
         className={
-          'project-navigation-trigger inline-flex min-w-6 min-h-7 p-1 border-0 rounded-[4px] bg-transparent text-ink hover:[background:transparent] hover:text-lime [&[aria-expanded="true"]_svg]:[transform:rotate(180deg)] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:2px] pointer-coarse:min-w-11 pointer-coarse:min-h-11'
+          'project-navigation-trigger min-w-6 min-h-7 p-1 border-0 rounded-[4px] bg-transparent text-ink hover:[background:transparent] hover:text-lime [&[aria-expanded="true"]_svg]:[transform:rotate(180deg)] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:2px] pointer-coarse:min-w-11 pointer-coarse:min-h-11'
         }
         aria-label={t("Open project list")}
         aria-expanded={open}
@@ -106,7 +106,7 @@ function ProjectNavigationMenu() {
                     aria-current={path === `/projects/${project.id}` ? "page" : undefined}
                     onClick={() => setOpen(false)}
                     className={
-                      '[&:hover]:bg-[#2b4030] [&:hover]:text-lime [&[aria-current="page"]]:bg-[#2b4030] [&[aria-current="page"]]:text-lime [&:focus-visible]:[outline:2px_solid_var(--color-lime)] [&:focus-visible]:[outline-offset:-2px]'
+                      'hover:bg-[var(--theme-selected,#2b4030)] hover:text-lime [&[aria-current="page"]]:bg-[var(--theme-selected,#2b4030)] [&[aria-current="page"]]:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:-2px]'
                     }
                   >
                     {project.name}

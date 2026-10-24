@@ -16,14 +16,14 @@ export const Surface: Story = {
       >
         Project output
       </h2>
-      <p className={"mb-[1em] mt-[0]"}>Save a draft before marking this output ready.</p>
+      <p className={"mb-[1em] mt-0"}>Save a draft before marking this output ready.</p>
     </Panel>
   ),
 };
 export const Empty: Story = {
   render: () => (
     <EmptyState title="No artifacts yet.">
-      <p className={"mb-[1em] mt-[0]"}>Start with a work in progress.</p>
+      <p className={"mb-[1em] mt-0"}>Start with a work in progress.</p>
     </EmptyState>
   ),
 };

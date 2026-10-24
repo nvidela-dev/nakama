@@ -23,7 +23,10 @@ export function StatusMessage({
     <p
       className={[
         `message${tone === "error" ? " error" : ""}`,
-        "text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[#4e3030] [color:#ffe4dd]!",
+        "text-[13px]! rounded-[8px] p-3 m-0",
+        tone === "error"
+          ? "bg-[var(--theme-danger,#4e3030)] text-[var(--theme-danger-ink,#ffe4dd)]!"
+          : "bg-[var(--theme-surface,#30422d)] text-ink!",
       ]
         .filter(Boolean)
         .join(" ")}

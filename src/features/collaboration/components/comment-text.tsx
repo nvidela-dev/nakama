@@ -2,7 +2,11 @@ import Link from "next/link";
 import { commentParts } from "../references";
 export function CommentText({ content }: { content: string }) {
   return (
-    <p className={"preserve-lines comment-body whitespace-pre-wrap my-2 mx-0 wrap-anywhere"}>
+    <p
+      className={
+        "preserve-lines comment-body whitespace-pre-wrap my-0.5 mx-0 wrap-anywhere text-ink text-[12px] leading-[1.45]"
+      }
+    >
       {commentParts(content).map((part, index) =>
         part.href ? (
           part.href.startsWith("/") ? (
@@ -16,7 +20,7 @@ export function CommentText({ content }: { content: string }) {
               target="_blank"
               rel="noopener noreferrer"
               className={
-                "[color:inherit] focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] text-lime underline"
+                "text-inherit focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-lime underline"
               }
             >
               {part.text}
