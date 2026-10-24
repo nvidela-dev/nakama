@@ -366,3 +366,97 @@ Accepted: add a dedicated 'Platform' project flow (`id: "platform"`) aimed at in
 ## Named visual styles: Hacker and Zen — 2026-10-24
 
 Accepted: name the existing default style Hacker and introduce Zen using the supplied woodblock image's cream, sea blue, and rust palette. Select styles in the footer alongside language and density, persist the selection per browser, render it on the server to avoid a wrong-theme flash, and expose both in Storybook. Keep project data, the custom Nakama wave, density, and workflow behavior unchanged. Theme support is delivered independently from the Tailwind migration; no database migration or new service is required.
+
+
+## Production milestones and Kanban task boards — planned, 2026-10-24
+
+Accepted direction (unimplemented; planned for phased delivery): replace the static final execution question tree in each project flow (`Building`, `Create`, `Deliver`, `Production`, `Launch`/`Improve`) with a dynamic **Production Milestones** phase while preserving any existing answers on earlier projects.
+
+- **Milestone** (`project_milestones`): a project-scoped production stage (board) representing an epic, release, collection, or shipment. A project can create multiple ordered Milestones over time.
+- **Milestone template** (`milestone_template_id`): an allowed board archetype determined by the project's `FlowId` (`build_sprint`, `release_rollout`, `creative_session`, `garment_run`, `catalog_drop`, `shipment_pilot`, `client_delivery`). Each template defines 4 ordered columns (`column_id`) that map deterministically to core `TaskStatus` (`ready`, `in_progress`, `done`).
+- **Unified tasks** (`project_tasks`): existing project tasks gain optional `(milestone_id, column_id, board_position)` fields so a Milestone board is a filtered Kanban view of `project_tasks` and the hierarchical To-do list and Lock-In interchange stay in sync.
+- **Task-artifact attachments** (`task_artifacts`): a composite-keyed `(project_id, task_id, artifact_id)` link table allowing artifacts to be attached to, created from, and previewed inline on Milestone task cards (image thumbnails, Markdown reader, or GitHub software links) without cross-project leakage.
+
+### Implementation plan
+
+| Term | Domain meaning |
+| --- | --- |
+| **Milestone** (`project_milestones`) | A project-scoped production stage (board) representing an epic, release, collection, or shipment. A project can create multiple ordered Milestones over time. |
+| **Milestone template** (`milestone_type`) | An allowed board archetype determined by the project's `FlowId`. Defines the board's ordered columns and how each column maps to core `TaskStatus` (`ready`, `in_progress`, `done`). |
+| **Milestone column** (`column_id`) | A stage within a Milestone board (for example `artwork`, `sampling`, `printing`, `qc_packed` for a garment run, or `backlog`, `in_progress`, `review`, `done` for a build sprint). |
+| **Milestone task** (`project_tasks`) | An existing Project Task assigned to a `milestone_id` and `column_id` with a `board_position`. Keeps the Milestone board and the project's hierarchical To-do tab unified. |
+| **Task artifact link** (`task_artifacts`) | Many-to-many link between a `project_task` and a `project_artifact` in the same project, enabling direct attachment, badges on cards, and inline previewing from the board. |
+
+```mermaid
+erDiagram
+  PROJECT ||--o{ PROJECT_MILESTONE : "orders"
+  PROJECT_MILESTONE ||--o{ PROJECT_TASK : "boards"
+  PROJECT_TASK ||--o{ PROJECT_TASK : "subtasks"
+  PROJECT_TASK ||--o{ TASK_ARTIFACT : "attaches"
+  PROJECT_ARTIFACT ||--o{ TASK_ARTIFACT : "referenced by"
+  PROJECT_MILESTONE ||--o{ PROJECT_ARTIFACT : "optional stage/milestone scope"
+```
+
+#### Flow-specific milestone templates and columns
+
+| Flow (`FlowId`) | Discovery / planning stages (guided question trees) | Replaced production stage → allowed milestone templates |
+| --- | --- | --- |
+| `venture` | 1. Idea, 2. Exploration, 3. Validation, 4. Planning | **5. Building** → `build_sprint`, `release_rollout` |
+| `creative` | 1. Concept, 2. Imagine, 3. Experiment, 4. Shape | **5. Create** → `creative_session` |
+| `investigation` | 1. Frame, 2. Explore, 3. Gather, 4. Synthesize | **5. Deliver** → `client_delivery` |
+| `eshop` | 1. Offer, 2. Validate, 3. Operations, 4. Launch | **5. Improve** → `catalog_drop`, `release_rollout` |
+| `shirt-eshop` | 1. Concept, 2. Design | **3. Production / 4. Launch** → `garment_run`, `catalog_drop` |
+| `saas` | 1. Problem, 2. Validate | **3. Build / 4. Launch** → `build_sprint`, `release_rollout` |
+| `importation` | 1. Scope, 2. Source, 3. Feasibility | **4. Pilot** → `shipment_pilot` |
+| `consultancy` | 1. Engagement, 2. Diagnose, 3. Propose | **4. Deliver** → `client_delivery` |
+| `platform` | 1. System, 2. Blueprint, 3. Prototype, 4. Integration | **5. Production** → `build_sprint`, `release_rollout` |
+
+| Milestone template (`milestone_template_id`) | Allowed flows | Columns (`id` → `TaskStatus`) |
+| --- | --- | --- |
+| `build_sprint` (*Build / Feature Sprint*) | `venture`, `saas`, `platform` | `backlog` (`ready`) → `in_progress` (`in_progress`) → `review` (`in_progress`) → `done` (`done`) |
+| `release_rollout` (*Launch & Rollout*) | `venture`, `saas`, `eshop`, `platform` | `prep` (`ready`) → `staging` (`in_progress`) → `live_check` (`in_progress`) → `shipped` (`done`) |
+| `creative_session` (*Creative Production*) | `creative` | `ideas` (`ready`) → `making` (`in_progress`) → `polishing` (`in_progress`) → `published` (`done`) |
+| `garment_run` (*Garment & Print Run*) | `shirt-eshop` | `artwork` (`ready`) → `sampling` (`in_progress`) → `printing` (`in_progress`) → `qc_packed` (`done`) |
+| `catalog_drop` (*Catalog / Collection Drop*) | `eshop`, `shirt-eshop` | `sourcing` (`ready`) → `listing_photo` (`in_progress`) → `launch_ready` (`in_progress`) → `live` (`done`) |
+| `shipment_pilot` (*Import & Shipment Run*) | `importation` | `supplier_po` (`ready`) → `in_transit` (`in_progress`) → `customs_qc` (`in_progress`) → `landed` (`done`) |
+| `client_delivery` (*Client Workstream*) | `consultancy`, `investigation` | `scoped` (`ready`) → `drafting` (`in_progress`) → `client_review` (`in_progress`) → `delivered` (`done`) |
+
+#### Database schema & invariants (planned migration `016_production_milestones.sql`)
+
+1. **`project_milestones`**:
+   - `(project_id, id)` primary key, `flow_id`, `template_id`, `title` (1..160 chars), `description` (<= 2000 chars), `status` (`active`, `completed`, `archived`), `position` (`UNIQUE (project_id, position) DEFERRABLE INITIALLY DEFERRED`), audit columns.
+   - `FOREIGN KEY (project_id, flow_id) REFERENCES project_flows(project_id, flow_id) ON DELETE CASCADE`.
+2. **`project_tasks` extensions**:
+   - `milestone_id uuid NULL`, `column_id text NULL`, `board_position integer NOT NULL DEFAULT 0`.
+   - `FOREIGN KEY (project_id, milestone_id) REFERENCES project_milestones(project_id, id) ON DELETE SET NULL`.
+   - Trigger guard `guard_task_milestone_column`: enforces that `column_id` is `NULL` iff `milestone_id` is `NULL`, validates `column_id` against the milestone's `template_id`, and keeps `project_tasks.status` equal to the column's mapped `task_status`.
+3. **`task_artifacts`**:
+   - `(project_id, task_id, artifact_id)` primary key, `created_by`, `created_at`.
+   - Composite foreign keys to `project_tasks(project_id, id) ON DELETE CASCADE` and `project_artifacts(project_id, id) ON DELETE CASCADE` so cross-project links are impossible at the database boundary.
+4. **Concurrency**:
+   - Board moves, task edits, and artifact attachments lock `project_task_lists.revision` (`TaskConflictError`).
+
+```mermaid
+flowchart LR
+  subgraph Rail["Left Stage Rail"]
+    S1["1. Idea"] --> S2["2. Exploration"] --> S3["3. Validation"] --> S4["4. Planning"]
+    S4 --> MHeader["Production Milestones (+ Add)"]
+    MHeader --> M1["M1: MVP Build (3/5)"]
+    MHeader --> M2["M2: Beta Launch (0/4)"]
+  end
+  subgraph Board["Main Panel — Milestone Kanban Board"]
+    C1["Backlog (Ready)"]
+    C2["In Progress"]
+    C3["Review"]
+    C4["Done"]
+    C1 -. "Drag / Keyboard Move" .-> C2 -.-> C3 -.-> C4
+  end
+  M1 --> Board
+```
+
+#### Phased delivery slices
+
+1. **Slice 1 — Domain contract, milestone catalog & schema migration (`016_production_milestones.sql`)**: enum types, tables, triggers, `npm run db:types`, template catalog, and DB/unit tests (`tests/milestones.test.ts`).
+2. **Slice 2 — Milestone service & unified task/artifact operations**: server actions and service methods for milestone CRUD/reorder, Kanban card move/reorder, `task_artifacts` link/unlink, and Lock-In compatibility.
+3. **Slice 3 — Stage rail integration, Milestone Kanban board & inline artifact preview UI**: `Journey` rail milestone section (with collapsible drawer for any legacy stage answers), draggable + keyboard-accessible `MilestoneBoard` and `MilestoneCard`, attachment picker, inline `ArtifactPreviewDialog`, and Storybook/component tests.
+4. **Slice 4 — Documentation, bilingual copy & end-to-end verification**: update `docs/domain.md`, `docs/flows.md`, `docs/interaction.md`, `/wiki`, `/glossary`, `es.json`, and run `make verify` + Playwright journeys.
