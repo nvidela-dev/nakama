@@ -4,9 +4,12 @@ import { Panel } from "@/shared/ui/panel";
 import { Button } from "@/shared/ui/button";
 
 import { useT } from "@/shared/i18n/provider";
+import { errorReference } from "@/shared/lib/error-reference";
 
-export default function ErrorPage({ reset }: { reset: () => void }) {
+// `retry` refetches the failed route; `reset` would only re-render the boundary without new data.
+export default function ErrorPage({ error, retry }: { error: unknown; retry: () => void }) {
   const t = useT();
+  const reference = errorReference(error);
   return (
     <main
       id="main"
@@ -25,7 +28,12 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
         <p className={"mb-[1em] mt-0"}>
           {t("We couldn't load this part of your workspace. Please try again in a moment.")}{" "}
         </p>
-        <Button type="submit" onClick={reset} className={""}>
+        {reference && (
+          <p className={"mb-[1em] mt-0"}>
+            {t("Reference")}: {reference}
+          </p>
+        )}
+        <Button type="button" onClick={() => retry()} className={""}>
           {t("Try again")}
         </Button>
       </Panel>

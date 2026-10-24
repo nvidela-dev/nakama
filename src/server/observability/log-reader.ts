@@ -207,6 +207,7 @@ export function summarizeLogs(records: LogRecord[]) {
     traces: new Set(records.map((r) => r.traceId)).size,
     unexpectedErrors: seenErrors.size,
     sinkWarnings: records.filter((r) => r.event === "logging.sink_error").length,
+    invalidRecordWarnings: records.filter((r) => r.event === "logging.record_invalid").length,
     errors: [...errors.values()].sort((a, b) => b.count - a.count),
     operations: [...operations.values()].map(({ durations, ...operation }) => ({
       ...operation,

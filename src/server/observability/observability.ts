@@ -85,8 +85,26 @@ function navigation(error: unknown): boolean {
 }
 const knownTypes = new Set<string>(errorInfoSchema.shape.type.options);
 const codeSchema = errorInfoSchema.shape.code;
+const digestSchema = errorInfoSchema.shape.digest;
+// Drivers and fetch wrap the useful failure (for example ECONNRESET) in a generic error. Look a few
+// levels down for an approved code only; the wrapped message and properties are never read.
+function causeCode(error: unknown): string | undefined {
+  let current: unknown = error;
+  for (let depth = 0; depth < 3; depth++) {
+    current =
+      current && typeof current === "object" && "cause" in current ? current.cause : undefined;
+    if (!current || typeof current !== "object") return undefined;
+    const code = "code" in current ? current.code : undefined;
+    if (typeof code === "string" && codeSchema.safeParse(code).success) return code;
+  }
+  return undefined;
+}
 function classify(error: unknown, boundary?: "database"): ErrorInfo {
-  const rawCode = error && typeof error === "object" && "code" in error ? error.code : undefined;
+  const ownCode = error && typeof error === "object" && "code" in error ? error.code : undefined;
+  const rawCode = ownCode !== undefined ? ownCode : causeCode(error);
+  const digest = digestSchema.safeParse(
+    error && typeof error === "object" && "digest" in error ? error.digest : undefined,
+  );
   const code = codeSchema.safeParse(rawCode);
   const name = error instanceof Error ? error.name : "UnknownError";
   const type: ErrorInfo["type"] =
@@ -137,6 +155,7 @@ function classify(error: unknown, boundary?: "database"): ErrorInfo {
     category,
     type,
     ...(code.success && code.data ? { code: code.data } : {}),
+    ...(digest.success && digest.data ? { digest: digest.data } : {}),
     frames,
     fingerprint: hash(JSON.stringify([diagnostic, type, code.success ? code.data : null, frames])),
   };
@@ -184,6 +203,8 @@ export class Observability {
     };
     return this.storage.run(context, work);
   }
+  private invalidReportedAt = 0;
+  private configurationReported = false;
   log(level: LogLevel, event: LogEvent, details: Details = {}) {
     if (ranks[level] < ranks[this.options.level ?? "info"]) return;
     try {
@@ -200,27 +221,70 @@ export class Observability {
                 : "development";
       const candidateRelease = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.NAKAMA_RELEASE;
       const release = /^[a-f0-9]{7,40}$/.test(candidateRelease ?? "") ? candidateRelease : "local";
-      const record = logRecordSchema.safeParse({
-        ...(process.env.NAKAMA_BUILD_ID ? { buildId: process.env.NAKAMA_BUILD_ID } : {}),
-        ...(process.env.VERCEL_DEPLOYMENT_ID
-          ? { deploymentId: process.env.VERCEL_DEPLOYMENT_ID }
-          : {}),
-        version: 1,
-        service: "nakama",
-        timestamp: new Date().toISOString(),
-        level,
-        event,
-        environment,
-        release,
-        instanceId: this.instanceId,
-        traceId: context?.traceId ?? randomUUID(),
-        spanId: context?.spanId ?? randomUUID(),
-        ...(context?.parentSpanId ? { parentSpanId: context.parentSpanId } : {}),
-        operation: context?.operation ?? "server.request",
-        route: context?.route ?? "unknown",
-        ...details,
-      });
-      if (record.success) this.options.write(record.data);
+      const traceId = context?.traceId ?? randomUUID();
+      const spanId = context?.spanId ?? randomUUID();
+      // Environment-derived identity is the only input a request cannot influence. When it is
+      // malformed, drop it instead of losing every record.
+      const compose = (
+        trusted: boolean,
+        recordLevel: LogLevel,
+        recordEvent: LogEvent,
+        extra: object,
+      ) =>
+        logRecordSchema.safeParse({
+          ...(trusted && process.env.NAKAMA_BUILD_ID
+            ? { buildId: process.env.NAKAMA_BUILD_ID }
+            : {}),
+          ...(trusted && process.env.VERCEL_DEPLOYMENT_ID
+            ? { deploymentId: process.env.VERCEL_DEPLOYMENT_ID }
+            : {}),
+          version: 1,
+          service: "nakama",
+          timestamp: new Date().toISOString(),
+          level: recordLevel,
+          event: recordEvent,
+          environment,
+          release: trusted ? release : "local",
+          instanceId: this.instanceId,
+          traceId,
+          spanId,
+          ...(context?.parentSpanId ? { parentSpanId: context.parentSpanId } : {}),
+          operation: context?.operation ?? "server.request",
+          route: context?.route ?? "unknown",
+          ...extra,
+        });
+      const record = compose(true, level, event, details);
+      if (record.success) {
+        this.options.write(record.data);
+        return;
+      }
+      const repaired = compose(false, level, event, details);
+      if (repaired.success) {
+        this.options.write(repaired.data);
+        if (!this.configurationReported) {
+          this.configurationReported = true;
+          this.diagnostic({
+            family: "backend",
+            code: "CONFIGURATION_INVALID",
+            component: "build_metadata",
+          });
+        }
+        return;
+      }
+      // The event itself is invalid. Say so, naming fields only, at most once a minute.
+      if (Date.now() - this.invalidReportedAt < 60_000) return;
+      this.invalidReportedAt = Date.now();
+      const invalidFields = [
+        ...new Set(
+          record.error.issues
+            .map((issue) => issue.path[0])
+            .filter((field): field is string => typeof field === "string"),
+        ),
+      ]
+        .filter((field) => /^[A-Za-z][A-Za-z0-9.]{0,39}$/.test(field))
+        .slice(0, 8);
+      const notice = compose(false, "warn", "logging.record_invalid", { invalidFields });
+      if (notice.success) this.options.write(notice.data);
     } catch {
       /* Diagnostics must not change a request's outcome. */
     }
@@ -249,6 +313,20 @@ export class Observability {
   }
   diagnostic(diagnostic: Diagnostic, details: Pick<Details, "source"> = {}) {
     this.log(diagnosticCatalog[diagnostic.code].severity, "diagnostic", { diagnostic, ...details });
+  }
+  // Handled failures return `{ error }` instead of throwing. When the failure was unexpected, attach
+  // its logged error ID so a person can report it. Rejections and conflicts get no reference.
+  withReference<T>(result: T): T {
+    const failure = this.context()?.stats.failure;
+    if (
+      failure?.category === "unexpected" &&
+      result &&
+      typeof result === "object" &&
+      "error" in result &&
+      typeof result.error === "string"
+    )
+      return { ...result, reference: failure.id };
+    return result;
   }
   sanitizeError(error: unknown): unknown {
     const info = this.errorInfo(error);

@@ -33,8 +33,8 @@ if (!Number.isInteger(limit) || limit < 1 || limit > 10000)
   throw new Error("Limit must be between 1 and 10000.");
 if (command === "trace" && !/^[a-f0-9-]{36}$/i.test(args[1] ?? ""))
   throw new Error("Supply the trace UUID.");
-if (command === "show" && !/^[a-f0-9-]{36}$/i.test(args[1] ?? ""))
-  throw new Error("Supply the error or trace UUID.");
+if (command === "show" && !/^(?:[a-f0-9-]{36}|[A-Za-z0-9_-]{4,40})$/i.test(args[1] ?? ""))
+  throw new Error("Supply the error ID, trace UUID, or the reference shown on an error page.");
 if (command === "query" && !/^[a-f0-9]{16}$/.test(args[1] ?? ""))
   throw new Error("Supply the query fingerprint.");
 const explicitFile = option("--file");
@@ -60,6 +60,9 @@ if (command === "query")
   );
 if (command === "errors") records = records.filter((r) => r.level === "error");
 const json = args.includes("--json");
+const failOn = option("--fail-on");
+if (failOn !== undefined && failOn !== "unexpected")
+  throw new Error("--fail-on only supports: unexpected.");
 if (["diagnostics", "doctor", "show"].includes(command)) {
   const family = option("--family"),
     code = option("--code");
@@ -70,7 +73,9 @@ if (["diagnostics", "doctor", "show"].includes(command)) {
     throw new Error("Unknown diagnostic family.");
   if (code && !Object.hasOwn(diagnosticCatalog, code)) throw new Error("Unknown diagnostic code.");
   if (command === "show") {
-    const roots = records.filter((r) => r.error?.id === args[1] || r.traceId === args[1]);
+    const roots = records.filter(
+      (r) => r.error?.id === args[1] || r.error?.digest === args[1] || r.traceId === args[1],
+    );
     const matching = new Set(roots.map((r) => r.traceId));
     const requests = new Set(
       roots
@@ -166,6 +171,10 @@ if (["diagnostics", "doctor", "show"].includes(command)) {
       console.log(
         `${summary.sinkWarnings} file-sink warnings: inspect recent events for sinkFailure; stdout events may have no local copy.`,
       );
+    if (summary.invalidRecordWarnings)
+      console.log(
+        `${summary.invalidRecordWarnings} records were replaced because they failed validation (see invalidFields): some events in this window are missing.`,
+      );
     if (!summary.events)
       console.log(
         "No events in this window. Run the app or import production events with npm run logs:pull.",
@@ -204,3 +213,6 @@ if (["diagnostics", "doctor", "show"].includes(command)) {
         `${r.timestamp} ${r.level.padEnd(5)} ${r.event} ${r.operation} ${r.durationMs ?? "-"}ms ${r.outcome ?? ""} trace=${r.traceId} span=${r.spanId}${r.queryId ? ` query=${r.queryId}` : ""}${r.error ? ` error=${r.error.id} ${r.error.type} ${r.error.code ?? ""}` : ""}${r.source ? ` ${r.source.file}:${r.source.line}` : ""}`,
       );
 }
+// Give scripts and agents a verdict: exit 2 when the window holds unexpected failures. Expected
+// rejections, conflicts and navigation never trip this. An empty window still exits 0 and proves nothing.
+if (failOn === "unexpected" && summarizeLogs(records).unexpectedErrors > 0) process.exitCode = 2;
