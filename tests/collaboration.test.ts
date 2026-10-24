@@ -48,9 +48,37 @@ test("comments isolate project/stage/node scopes and reject foreign resources an
     { stageId: "imagine", nodeId: "inspiration" },
     "Node discussion",
   );
+  const tasksComment = await collaboration.post(
+    owner,
+    id,
+    { stageId: "tasks" },
+    "Tasks discussion",
+  );
+  const artifactsComment = await collaboration.post(
+    member,
+    id,
+    { stageId: "artifacts" },
+    "Artifacts discussion",
+  );
   assert.deepEqual(
     (await collaboration.comments(member, id, {})).items.map((c) => c.id),
     [root],
+  );
+  assert.deepEqual(
+    (await collaboration.comments(member, id, { stageId: "tasks" })).items.map((c) => c.id),
+    [tasksComment],
+  );
+  assert.deepEqual(
+    (await collaboration.comments(owner, id, { stageId: "artifacts" })).items.map((c) => c.id),
+    [artifactsComment],
+  );
+  assert.equal(
+    required((await collaboration.comments(member, id, { stageId: "tasks" })).items[0]).content,
+    "Tasks discussion",
+  );
+  assert.equal(
+    required((await collaboration.comments(owner, id, { stageId: "artifacts" })).items[0]).content,
+    "Artifacts discussion",
   );
   assert.equal(
     required((await collaboration.comments(owner, id, { stageId: "imagine" })).items[0]).content,
@@ -64,6 +92,14 @@ test("comments isolate project/stage/node scopes and reject foreign resources an
     "Node discussion",
   );
   assert.equal((await collaboration.comments(owner, other, {})).items.length, 0);
+  await assert.rejects(
+    collaboration.post(
+      owner,
+      id,
+      { stageId: "tasks", nodeId: "inspiration" },
+      "Invalid node on tasks",
+    ),
+  );
   await assert.rejects(collaboration.post(owner, id, { stageId: "validation" }, "Wrong flow"));
   await assert.rejects(
     collaboration.post(owner, id, { stageId: "imagine", nodeId: "rough-version" }, "Wrong stage"),

@@ -14,7 +14,7 @@ export function ProjectTimeline({
       <div role="img" aria-label={t("Choose a flow first.")} title={t("Choose a flow first.")}>
         <ol
           className={
-            "project-timeline timeline-placeholder my-[1em] opacity-[0.55] flex list-none mt-1.25 mx-0 mb-0 p-0 [&_.started_.timeline-name]:text-ink [&.timeline-placeholder_.timeline-marker]:bg-line"
+            "project-timeline timeline-placeholder my-[1em] opacity-[0.55] flex list-none mt-2.25 mx-0 mb-0 p-0 [&_.started_.timeline-name]:text-ink [&.timeline-placeholder_.timeline-marker]:bg-line"
           }
           aria-hidden="true"
         >
@@ -39,7 +39,7 @@ export function ProjectTimeline({
               <span
                 className={[
                   "timeline-name",
-                  "block [padding-inline:2px] wrap-anywhere tracking-[-0.02em]",
+                  "block [padding-inline:2px] truncate tracking-[-0.02em]",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -72,7 +72,7 @@ export function ProjectTimeline({
   return (
     <ol
       className={
-        "project-timeline my-[1em] flex list-none mt-1.25 mx-0 mb-0 p-0 [&.timeline-placeholder_.timeline-marker]:bg-line"
+        "project-timeline my-[1em] flex list-none mt-2.25 mx-0 mb-0 p-0 [&.timeline-placeholder_.timeline-marker]:bg-line"
       }
       aria-label={t("Stage progress")}
     >
@@ -109,7 +109,7 @@ export function ProjectTimeline({
             <span
               className={[
                 "timeline-name",
-                "block [padding-inline:2px] wrap-anywhere tracking-[-0.02em] text-ink",
+                "block [padding-inline:2px] truncate tracking-[-0.02em] text-ink",
               ]
                 .filter(Boolean)
                 .join(" ")}

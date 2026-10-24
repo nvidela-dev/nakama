@@ -1,6 +1,7 @@
 import { required } from "@/shared/lib/required";
 import { businessFlows } from "@/features/guidance/model/business-flows";
 import { investigationFlow } from "@/features/guidance/model/investigation-flow";
+import { platformFlow } from "@/features/guidance/model/platform-flow";
 export type { FlowId, NodeStatus } from "@/shared/contracts/database.generated";
 import type { FlowId } from "@/shared/contracts/database.generated";
 export type FlowNode = {
@@ -37,6 +38,7 @@ const node = (
 export type FlowRegistry = { readonly [Id in FlowId]: Flow & { readonly id: Id } };
 export const flows: FlowRegistry = {
   investigation: investigationFlow,
+  platform: platformFlow,
   ...businessFlows,
   venture: {
     id: "venture",

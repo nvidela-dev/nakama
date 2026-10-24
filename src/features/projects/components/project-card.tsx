@@ -1,6 +1,7 @@
 "use client";
 import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
+import { ActionMenu } from "@/shared/ui/action-menu";
 
 import { useState, type ReactNode } from "react";
 import { Dialog } from "@/shared/ui/dialog";
@@ -34,7 +35,7 @@ export function ProjectCard({
     <article
       className={[
         `project-card ${project.role === "owner" ? "has-management" : ""}`,
-        "block py-2.5 px-3.5 border border-line rounded-[9px] mb-2 [background:linear-gradient(120deg,_#21342c,_#182725)] relative hover:[border-color:#9cba7b] [&_.eyebrow]:flex [&_.eyebrow]:justify-between [&_p]:text-[14px] [&_p]:text-muted [&_p]:whitespace-pre-wrap [&_p]:wrap-anywhere [&_small]:text-muted [&_small]:text-[12px] lg:compact:py-2 lg:compact:px-3 lg:compact:rounded-[8px] lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:mt-1.25 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-1.75 lg:compact:[&_p]:leading-[1.45] lg:compact:[&_small]:text-[11px] [&.has-management_h3]:pr-15 pointer-coarse:[&.has-management_h3]:pr-23",
+        "block py-2.5 px-3.5 border border-line rounded-[9px] mb-2 [background:linear-gradient(120deg,_#21342c,_#182725)] relative hover:[border-color:#9cba7b] [&_.eyebrow]:flex [&_.eyebrow]:justify-between [&_p]:text-[14px] [&_p]:text-muted [&_p]:whitespace-pre-wrap [&_p]:wrap-anywhere [&_small]:text-muted [&_small]:text-[12px] lg:compact:py-2 lg:compact:px-3 lg:compact:rounded-[8px] lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:mt-1.25 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-1.75 lg:compact:[&_p]:leading-[1.45] lg:compact:[&_small]:text-[11px] [&.has-management_h3]:pr-8 pointer-coarse:[&.has-management_h3]:pr-11",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -42,7 +43,7 @@ export function ProjectCard({
       <Link className={"project-card-link block"} href={`/projects/${project.id}`}>
         <h3
           className={
-            "font-mono tracking-[-0.045em] font-semibold m-0 text-[15px] leading-[1.2] wrap-anywhere lg:compact:text-[13.5px]"
+            "font-mono tracking-[-0.045em] font-semibold m-0 pt-1 px-0.5 pb-0.5 text-[14px] leading-[1.25] wrap-anywhere lg:compact:text-[12.5px]"
           }
         >
           {project.name}
@@ -51,29 +52,15 @@ export function ProjectCard({
       </Link>
       {project.role === "owner" && (
         <>
-          <div className={"project-card-actions absolute top-[5px] right-[6px] flex gap-[2px]"}>
-            <Button
-              type="button"
-              title={t("Edit project")}
-              aria-label={t("Edit project")}
-              onClick={() => open("edit")}
-              className={
-                "p-0 w-6.5 min-h-6.5 bg-transparent text-muted text-[14px] pointer-coarse:w-11 pointer-coarse:min-h-11 [&:hover]:bg-line [&:hover]:text-lime"
-              }
-            >
-              <Icon name="edit" />
-            </Button>
-            <Button
-              type="button"
-              title={t("Delete project")}
-              aria-label={t("Delete project")}
-              onClick={() => open("delete")}
-              className={
-                "p-0 w-6.5 min-h-6.5 bg-transparent text-muted text-[14px] pointer-coarse:w-11 pointer-coarse:min-h-11 [&:hover]:bg-line [&:hover]:text-lime"
-              }
-            >
-              <Icon name="delete" />
-            </Button>
+          <div className="project-card-actions absolute top-1.5 right-1.5 [&_.ui-action-menu-items]:z-20">
+            <ActionMenu id={`project-actions-${project.id}`} label={t("Project actions")}>
+              <Button type="button" variant="ghost" onClick={() => open("edit")}>
+                <Icon name="edit" /> {t("Edit project")}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => open("delete")}>
+                <Icon name="delete" /> {t("Delete project")}
+              </Button>
+            </ActionMenu>
           </div>
           <Dialog
             open={isOpen}

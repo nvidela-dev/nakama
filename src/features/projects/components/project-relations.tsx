@@ -55,18 +55,24 @@ export function ProjectRelations({
   const t = useT(),
     [state, action, pending] = useActionState(changeProjectLink.bind(null, projectId), {});
   return (
-    <aside
+    <details
+      open
       className={
         "panel project-relations bg-panel border border-line max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] grid gap-2.5 min-w-0 p-3 rounded-[8px] [&_>_div_>_h3]:mt-0 [&_>_div_>_h3]:mx-0 [&_>_div_>_h3]:mb-0.75 [&_>_div_>_h3]:text-[11px] [&_>_div_>_h3]:leading-[1.4] [&_>_div_>_p]:m-0 [&_>_div_>_p]:text-[11px] [&_>_div_>_p]:leading-[1.4] [&_>_.new-project-trigger]:m-0 [&_>_.new-project-trigger]:min-h-7 [&_>_.new-project-trigger]:py-1.25 [&_>_.new-project-trigger]:px-2 [&_>_.new-project-trigger]:text-[11px] [&_>_.new-project-trigger]:leading-[1.4] [&_>_.new-project-trigger_>_span]:text-[16px] [&_.project-link-list_.text-button]:m-0 [&_.project-link-list_.text-button]:min-h-7 [&_.project-link-list_.text-button]:p-1 [&_.project-link-list_.text-button]:text-[10px] pointer-coarse:[&_>_.new-project-trigger]:min-h-11 pointer-coarse:compact:[&_>_.new-project-trigger]:min-h-11 pointer-coarse:[&_.project-link-list_.text-button]:min-h-11 pointer-coarse:compact:[&_.project-link-list_.text-button]:min-h-11"
       }
     >
-      <h2
-        className={
-          "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0 text-[14px] leading-[1.3]"
-        }
-      >
-        {t("Linked projects")}
-      </h2>
+      <summary className="cursor-pointer select-none [[open]>&]:mb-3">
+        <h2
+          className={
+            "font-mono tracking-[-0.045em] font-medium inline-flex items-center m-0 text-[14px] leading-[1.3]"
+          }
+        >
+          {t("Linked projects")}{" "}
+          <span className="count text-[10px] border border-line rounded-full px-1.5 py-0.5 ml-1.25">
+            {links.sources.length + links.children.length}
+          </span>
+        </h2>
+      </summary>
       {(
         [
           ["source", "Spawned from", links.sources],
@@ -177,6 +183,6 @@ export function ProjectRelations({
       <small className={"muted text-muted text-[10px] leading-[1.45]"}>
         {t("Links do not share access. Only projects you belong to appear here.")}
       </small>
-    </aside>
+    </details>
   );
 }

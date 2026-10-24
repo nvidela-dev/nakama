@@ -29,6 +29,7 @@ export default async function ProjectPage({
   searchParams: Promise<{
     stage?: string;
     node?: string;
+    view?: string;
     commentsBefore?: string;
     comment?: string;
     activityBefore?: string;
@@ -39,6 +40,11 @@ export default async function ProjectPage({
   const { projectId } = await params;
   const service = projectService(database());
   const query = await searchParams;
+  const isTasksView = query.view === "tasks";
+  const isArtifactsView = query.view === "artifacts";
+  const targetStageId = isTasksView ? "tasks" : isArtifactsView ? "artifacts" : query.stage;
+  const targetNodeId = isTasksView || isArtifactsView ? undefined : query.node;
+  const target = commentTarget(targetStageId, targetNodeId);
   let project, people, guidance, comments, activity, tasks, artifacts, links, accessibleProjects;
   let history: Awaited<ReturnType<ReturnType<typeof guidanceService>["history"]>> = [];
   try {
@@ -63,7 +69,7 @@ export default async function ProjectPage({
       collaborationService(database()).comments(
         person,
         projectId,
-        commentTarget(query.stage, query.node),
+        target,
         query.commentsBefore,
         query.comment,
       ),
@@ -89,15 +95,22 @@ export default async function ProjectPage({
   const candidates = project.role === "owner" ? await invitationCandidates(person, projectId) : [];
   const selectedStage = guidance?.flow.stages.find((stage) => stage.id === query.stage);
   const selectedNode = selectedStage?.nodes.find((node) => node.id === query.node);
-  const discussionLabel = selectedNode
-    ? t(selectedNode.label)
-    : selectedStage
-      ? t(selectedStage.name)
-      : t("Project discussion");
+  const discussionLabel = isTasksView
+    ? t("To-do discussion")
+    : isArtifactsView
+      ? t("Artifacts discussion")
+      : selectedNode
+        ? t(selectedNode.label)
+        : selectedStage
+          ? t(selectedStage.name)
+          : t("Project discussion");
   function pageHref(kind: "commentsBefore" | "activityBefore", value?: string) {
     const params = new URLSearchParams();
-    if (query.stage) params.set("stage", query.stage);
-    if (query.node) params.set("node", query.node);
+    if (query.view) params.set("view", query.view);
+    if (!isTasksView && !isArtifactsView) {
+      if (query.stage) params.set("stage", query.stage);
+      if (query.node) params.set("node", query.node);
+    }
     if (query.commentsBefore && kind !== "commentsBefore")
       params.set("commentsBefore", query.commentsBefore);
     if (query.activityBefore && kind !== "activityBefore")
@@ -112,17 +125,14 @@ export default async function ProjectPage({
         links={links}
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
       />
-      <aside
+      <details
+        open
         className={
           "panel project-people-panel bg-panel border border-line min-w-0 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[10px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] [&_.project-activity]:mt-3 [&_.project-activity]:pt-2.5 [&_.project-activity_>_summary]:text-[11px] [&_.project-activity_>_summary]:leading-[1.5] [&_.project-activity_>_summary]:cursor-pointer [&_.project-activity_>_p]:my-2 [&_.project-activity_>_p]:mx-0 [&_.project-activity_>_p]:text-[10px] [&_.project-activity_>_p]:leading-[1.45] [&_.activity-list]:my-2 [&_.activity-list]:mx-0 [&_.activity-list_li]:[padding-block:7px] [&_.activity-list_p]:text-[11px] [&_.activity-list_p]:leading-[1.4] [&_.activity-list_time]:text-[10px] [&_.activity-list_time]:leading-[1.4] [&_.activity-list_small]:text-[10px] [&_.activity-list_small]:leading-[1.4] [&_.project-activity_a]:text-[11px] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:[align-content:center]"
         }
       >
-        <div className="project-members">
-          <h2
-            className={
-              "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mb-3 mt-0 mx-0 mb-2 text-[14px] leading-[1.3]"
-            }
-          >
+        <summary className="cursor-pointer select-none [&_h2]:inline-flex [&_h2]:items-center [[open]>&]:mb-3">
+          <h2 className={"font-mono tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3]"}>
             {t("Members")}{" "}
             <span
               className={
@@ -132,6 +142,8 @@ export default async function ProjectPage({
               {people.members.length}
             </span>
           </h2>
+        </summary>
+        <div className="project-members">
           <ul className={"people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2"}>
             {people.members.map((m) => (
               <li
@@ -228,7 +240,7 @@ export default async function ProjectPage({
           olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined}
           latestHref={query.activityBefore ? pageHref("activityBefore") : undefined}
         />
-      </aside>
+      </details>
       {project.role === "owner" && (
         <ProjectSettings
           projectId={projectId}
@@ -241,9 +253,9 @@ export default async function ProjectPage({
   );
   const discussion = (
     <Discussion
-      key={`${projectId}:${query.stage ?? "project"}:${query.node ?? "stage"}`}
+      key={`${projectId}:${targetStageId ?? "project"}:${targetNodeId ?? "stage"}`}
       projectId={projectId}
-      target={commentTarget(query.stage, query.node)}
+      target={target}
       label={discussionLabel}
       comments={comments}
       userId={person.userId}

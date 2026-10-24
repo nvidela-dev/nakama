@@ -662,10 +662,19 @@ export function Journey({
           "project-sidebar grid gap-4 min-w-0 [align-content:start] [&_.project-settings]:mb-0 [grid-column:2] [grid-row:1_/_span_2] max-[700px]:[grid-column:1] max-[700px]:[grid-row:3] min-[1280px]:[grid-column:3] min-[1280px]:[grid-row:1]"
         }
       >
-        <Panel
-          className={"journey-progress-panel [&_.journey-progress-controls]:ml-[auto]"}
+        <details
+          open
+          className="panel journey-progress-panel p-4 bg-panel border border-line rounded-[10px] min-w-0 [&_.journey-progress-controls]:ml-auto"
           aria-label={t("Questions answered, not proof of success")}
         >
+          <summary className="cursor-pointer select-none [[open]>&]:mb-3">
+            <h2 className="inline-flex items-center m-0 text-[14px] leading-[1.3]">
+              {t("Progress")}{" "}
+              <span className="count text-[10px] px-1.5 py-0.5 ml-1.25">
+                {answered}/{questions.length}
+              </span>
+            </h2>
+          </summary>
           <div
             className={
               "journey-summary flex items-center justify-between gap-3 [&_.eyebrow]:mb-2.5 lg:compact:mb-2.5 lg:compact:[&_.eyebrow]:m-0 flex-wrap mb-3.5"
@@ -702,7 +711,7 @@ export function Journey({
               className={"h-[100%] block bg-lime"}
             />
           </div>
-        </Panel>
+        </details>
         {sidebar}
       </div>
     </div>

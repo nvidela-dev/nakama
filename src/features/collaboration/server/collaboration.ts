@@ -76,6 +76,10 @@ async function targetFlow(tx: Queryable, projectId: string, target: CommentTarge
       [projectId],
     )
   )[0];
+  if (target.stageId === "tasks" || target.stageId === "artifacts") {
+    if (target.nodeId) throw new ProjectError("Comment target not found.");
+    return row?.flow_id ?? null;
+  }
   const flow = row && flows[row.flow_id];
   const stage = flow?.stages.find((stage) => stage.id === target.stageId);
   if (
