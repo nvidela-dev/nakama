@@ -30,7 +30,7 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
     <form
       action={action}
       className={
-        "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
+        "form-stack flex flex-col gap-3 min-w-0 max-w-full [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
       }
     >
       <label htmlFor="email" className={"text-[13px] text-ink"}>
@@ -44,7 +44,7 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
         required
         disabled={pending || !candidates.length}
         className={
-          "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
+          "w-full min-w-0 max-w-full overflow-hidden text-ellipsis bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
         }
       >
         <option value="">{t("Choose an approved person")}</option>

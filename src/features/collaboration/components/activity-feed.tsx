@@ -46,7 +46,10 @@ export function ActivityFeed({
   const t = useT(),
     locale = useLocale();
   return (
-    <details className={"project-activity border-t border-t-line pt-4.5 mt-6"} open={open}>
+    <details
+      className={"project-activity border-t border-t-line pt-4.5 mt-6 min-w-0 max-w-full"}
+      open={open}
+    >
       <summary
         className={
           "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
@@ -54,14 +57,18 @@ export function ActivityFeed({
       >
         {t("Activity")}
       </summary>
-      <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
+      <p className={"muted mb-[1em] mt-0 text-muted text-[12px] break-words wrap-anywhere"}>
         {t(
           "Earlier history includes recorded answers and stage reviews. Other activity starts with this release.",
         )}
       </p>
       {latestHref && <Link href={latestHref}>{t("Latest activity")}</Link>}
       {activity.items.length ? (
-        <ol className={"activity-list list-none my-4 mx-0 p-0"}>
+        <ol
+          className={
+            "activity-list list-none my-4 mx-0 p-0 max-h-80 overflow-y-auto pr-1 min-w-0 max-w-full"
+          }
+        >
           {activity.items.map((event) => {
             const stage = flow?.stages.find((stage) => stage.id === event.stage_id);
             const node = stage?.nodes.find((node) => node.id === event.node_id);
@@ -74,8 +81,13 @@ export function ActivityFeed({
               query.set("view", "artifacts");
             const href = `/projects/${projectId}${query.size ? `?${query}` : ""}`;
             return (
-              <li key={event.sort_key} className={"py-3.5 border-b border-b-line wrap-anywhere"}>
-                <p className={"m-0 text-[13px]"}>
+              <li
+                key={event.sort_key}
+                className={
+                  "py-3.5 border-b border-b-line min-w-0 max-w-full break-words wrap-anywhere"
+                }
+              >
+                <p className={"m-0 text-[13px] min-w-0 break-words wrap-anywhere"}>
                   <strong>{event.actor_name || t("Former member")}</strong>
                   {event.former_member && event.actor_name ? ` · ${t("Former member")}` : ""}{" "}
                   {t(labels[event.kind] ?? "Recorded activity")}{" "}
@@ -88,7 +100,10 @@ export function ActivityFeed({
                   event.kind.startsWith("artifact") ||
                   event.stage_id === "tasks" ||
                   event.stage_id === "artifacts") && (
-                  <Link href={href} className="text-lime underline text-[12px]">
+                  <Link
+                    href={href}
+                    className="text-lime underline text-[12px] break-words wrap-anywhere"
+                  >
                     {event.stage_id === "artifacts" || event.kind.startsWith("artifact")
                       ? t("Artifacts")
                       : event.stage_id === "tasks" || event.kind.startsWith("task")
@@ -101,11 +116,13 @@ export function ActivityFeed({
                   </Link>
                 )}
                 {event.detail && (
-                  <small className={"block text-[11px] text-muted"}>{t(event.detail)}</small>
+                  <small className={"block text-[11px] text-muted break-words wrap-anywhere"}>
+                    {t(event.detail)}
+                  </small>
                 )}
                 <time
                   dateTime={new Date(event.created_at).toISOString()}
-                  className={"block text-[11px] text-muted"}
+                  className={"block text-[11px] text-muted break-words"}
                 >
                   {formatDate(event.created_at, locale)}
                 </time>
@@ -119,7 +136,7 @@ export function ActivityFeed({
       {olderHref && (
         <Link
           className={
-            "button secondary rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)]"
+            "button secondary rounded-[9px] inline-flex items-center justify-center gap-2 min-h-8 py-1.5 px-3 text-[11px] font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)] pointer-coarse:min-h-11"
           }
           href={olderHref}
         >

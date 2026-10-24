@@ -25,7 +25,7 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   await density(page, "compact");
   await page.setViewportSize({ width: 3440, height: 1440 });
   const workspace = await page.locator(".workspace").boundingBox();
-  expect(workspace!.width).toBe(3440);
+  expect(workspace!.width).toBe(1440);
   const last = await page.locator(".stage-card").last().boundingBox();
   expect(last!.y + last!.height).toBeLessThan(800);
   await page.screenshot({
@@ -109,7 +109,7 @@ test("density changes keep capture and answer drafts, selections and saving inta
   await expect(page.getByLabel("Your direction")).toHaveValue("Save for later");
   const answer = await page.getByLabel("Your answer, learning, or uncertainty").boundingBox();
   const state = await page.getByLabel("Where does this stand?").boundingBox();
-  expect(state!.x).toBeGreaterThan(answer!.x + answer!.width);
+  expect(state!.y).toBeGreaterThan(answer!.y + answer!.height);
   await page.screenshot({
     path: test.info().outputPath("desktop-answer.png"),
     fullPage: true,

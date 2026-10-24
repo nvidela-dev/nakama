@@ -128,7 +128,7 @@ export default async function ProjectPage({
       <details
         open
         className={
-          "panel project-people-panel bg-panel border border-line min-w-0 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[10px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] [&_.project-activity]:mt-3 [&_.project-activity]:pt-2.5 [&_.project-activity_>_summary]:text-[11px] [&_.project-activity_>_summary]:leading-[1.5] [&_.project-activity_>_summary]:cursor-pointer [&_.project-activity_>_p]:my-2 [&_.project-activity_>_p]:mx-0 [&_.project-activity_>_p]:text-[10px] [&_.project-activity_>_p]:leading-[1.45] [&_.activity-list]:my-2 [&_.activity-list]:mx-0 [&_.activity-list_li]:py-1.75 [&_.activity-list_p]:text-[11px] [&_.activity-list_p]:leading-[1.4] [&_.activity-list_time]:text-[10px] [&_.activity-list_time]:leading-[1.4] [&_.activity-list_small]:text-[10px] [&_.activity-list_small]:leading-[1.4] [&_.project-activity_a]:text-[11px] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:[align-content:center]"
+          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full overflow-hidden max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[10px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] [&_.project-activity]:mt-3 [&_.project-activity]:pt-2.5 [&_.project-activity_>_summary]:text-[11px] [&_.project-activity_>_summary]:leading-[1.5] [&_.project-activity_>_summary]:cursor-pointer [&_.project-activity_>_p]:my-2 [&_.project-activity_>_p]:mx-0 [&_.project-activity_>_p]:text-[10px] [&_.project-activity_>_p]:leading-[1.45] [&_.activity-list]:my-2 [&_.activity-list]:mx-0 [&_.activity-list_li]:py-1.75 [&_.activity-list_p]:text-[11px] [&_.activity-list_p]:leading-[1.4] [&_.activity-list_time]:text-[10px] [&_.activity-list_time]:leading-[1.4] [&_.activity-list_small]:text-[10px] [&_.activity-list_small]:leading-[1.4] [&_.project-activity_a]:text-[11px] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:min-h-11 pointer-coarse:[&_.project-activity_>_summary]:[align-content:center]"
         }
       >
         <summary className="cursor-pointer select-none [[open]>&]:mb-3">
@@ -147,17 +147,21 @@ export default async function ProjectPage({
             </span>
           </h2>
         </summary>
-        <div className="project-members">
-          <ul className={"people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2"}>
+        <div className="project-members min-w-0 max-w-full">
+          <ul
+            className={
+              "people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2 min-w-0"
+            }
+          >
             {people.members.map((m) => (
               <li
                 key={m.user_id}
                 className={
-                  "border-b border-b-line flex items-center justify-between wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
+                  "border-b border-b-line flex items-center justify-between min-w-0 break-words wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
                 }
               >
-                <div>
-                  <strong className={"text-[13px] text-[11px] leading-[1.4]"}>
+                <div className="min-w-0 flex-1 break-words wrap-anywhere">
+                  <strong className={"text-[11px] leading-[1.4] break-words"}>
                     {m.user_id === person.userId ? t("You") : m.display_name}
                   </strong>
                   <small className={"block text-muted text-[10px] leading-[1.4]"}>
@@ -189,17 +193,19 @@ export default async function ProjectPage({
               </h3>
               {people.invitations.length ? (
                 <ul
-                  className={"people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2"}
+                  className={
+                    "people-list my-[1em] list-none p-0 lg:compact:mb-3.5 mt-0 mx-0 mb-2 min-w-0"
+                  }
                 >
                   {people.invitations.map((inv) => (
                     <li
                       key={inv.id}
                       className={
-                        "border-b border-b-line flex items-center justify-between wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
+                        "border-b border-b-line flex items-center justify-between min-w-0 break-words wrap-anywhere max-[700px]:flex-wrap lg:compact:py-2 lg:compact:gap-2 lg:compact:flex-wrap py-1.5 px-0 gap-1.5"
                       }
                     >
-                      <div>
-                        <strong className={"text-[13px] text-[11px] leading-[1.4]"}>
+                      <div className="min-w-0 flex-1 break-words wrap-anywhere">
+                        <strong className={"text-[11px] leading-[1.4] break-words"}>
                           {inv.email}
                         </strong>
                         <small className={"block text-muted text-[10px] leading-[1.4]"}>
@@ -264,7 +270,7 @@ export default async function ProjectPage({
     <main
       id="main"
       className={
-        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6"
+        "workspace w-full max-w-300 lg:max-w-360 lg:compact:max-w-360 min-[1280px]:[&:has(>_.has-discussion)]:max-w-360 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:px-6"
       }
     >
       <div
@@ -308,12 +314,12 @@ export default async function ProjectPage({
       ) : (
         <div
           className={
-            "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid grid-cols-[1.3fr_1fr] gap-8 items-start max-[1000px]:grid-cols-[1fr_1fr] max-[700px]:grid-cols-[1fr] lg:compact:grid-cols-[minmax(0,_1fr)_300px] lg:compact:gap-5 lg:compact:[&_>_*]:min-w-0 min-[2000px]:compact:grid-cols-[minmax(0,_1fr)_340px] min-[2000px]:compact:gap-7 min-[1280px]:grid-cols-[clamp(240px,_20vw,_380px)_minmax(0,_1fr)_clamp(220px,_18vw,_340px)] min-[1280px]:gap-5"
+            "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start"
           }
         >
           <div
             className={
-              "project-working-column min-w-0 bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 [&_.answer-panel]:bg-[var(--theme-surface-low,#14221f)] col-start-1 row-start-1 min-[1280px]:col-start-2"
+              "project-working-column min-w-0 max-w-full overflow-hidden bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 [&_.answer-panel]:bg-[var(--theme-surface-low,#14221f)] col-span-1 col-start-1 row-start-1 min-[701px]:col-span-7 min-[1001px]:col-span-8 min-[1280px]:col-span-6 min-[1280px]:col-start-4 min-[1280px]:row-start-1"
             }
           >
             <ProjectWork
@@ -325,14 +331,14 @@ export default async function ProjectPage({
           </div>
           <div
             className={
-              "project-discussion-column min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto col-start-1 row-start-2 min-w-0 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)]"
+              "project-discussion-column min-w-0 max-w-full overflow-hidden col-span-1 col-start-1 row-start-2 min-[701px]:col-span-7 min-[1001px]:col-span-8 min-[1280px]:col-span-3 min-[1280px]:col-start-1 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto"
             }
           >
             {discussion}
           </div>
           <div
             className={
-              "project-sidebar grid gap-4 min-w-0 content-start [&_.project-settings]:mb-0 col-start-2 [grid-row:1_/_span_2] max-[700px]:col-start-1 max-[700px]:row-start-3 min-[1280px]:col-start-3 min-[1280px]:row-start-1"
+              "project-sidebar grid gap-4 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-5 min-[701px]:col-start-8 min-[701px]:row-span-2 min-[701px]:row-start-1 min-[1001px]:col-span-4 min-[1001px]:col-start-9 min-[1280px]:col-span-3 min-[1280px]:col-start-10 min-[1280px]:row-span-1 min-[1280px]:row-start-1"
             }
           >
             {sidebar}
