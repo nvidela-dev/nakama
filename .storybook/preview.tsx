@@ -14,6 +14,7 @@ function StorySurface({
 }) {
   useEffect(() => {
     document.documentElement.lang = locale;
+    document.body.className = "m-0 bg-bg text-ink font-mono text-base leading-[1.6]";
     document.documentElement.dataset.density = density;
   }, [locale, density]);
   return (

@@ -3,10 +3,28 @@ import Link from "next/link";
 export default async function NotFound() {
   const t = await getT();
   return (
-    <main id="main" className="workspace narrow">
-      <h1>{t("This project isn't available.")}</h1>
-      <p>{t("It may not exist, or you may no longer have access.")}</p>
-      <Link href="/projects" className="button">
+    <main
+      id="main"
+      className={
+        "workspace narrow pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:max-w-190 lg:compact:[&_button]:min-h-8.5 lg:compact:[&_button]:py-2 lg:compact:[&_button]:px-3 lg:compact:[&_button]:text-[12px] lg:compact:[&_button]:rounded-[7px] min-[2000px]:compact:[padding-inline:40px] lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-[none] min-[1280px]:[&:has(>_.has-discussion)]:[padding-inline:24px] [&_.project-heading]:mt-0 compact:[&_.journey-content_>_.button.secondary]:text-[11px] compact:[&_.journey-content_>_.button.secondary]:min-h-7.5 compact:[&_.journey-content_>_.button.secondary]:py-1.5 compact:[&_.journey-content_>_.button.secondary]:px-2.5 pointer-coarse:compact:[&_.journey-content_>_.button.secondary]:min-h-11 lg:compact:[&_.answer-panel_h2]:my-1.5 lg:compact:[&_.answer-panel_h2]:mx-0 lg:compact:[&_.answer-panel_h2]:text-[14px] lg:compact:[&_.answer-panel_h2]:leading-[1.3] compact:[&_.stage-heading-row_.miniview-icon]:w-8 compact:[&_.stage-heading-row_.miniview-icon]:h-8 compact:[&_.stage-heading-row_.miniview-icon]:min-h-8 compact:[&_.stage-heading-row_.miniview-icon]:min-w-8 compact:[&_.stage-heading-row_.miniview-icon]:p-0 compact:[&_.stage-heading-row_.miniview-icon]:rounded-[6px] pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:w-11 pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:h-11 pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:min-w-11 pointer-coarse:compact:[&_.stage-heading-row_.miniview-icon]:min-h-11 compact:[&_.journey-stage-heading_.stage-heading-row_h2]:m-0 compact:[&_.journey-stage-heading_.stage-heading-row_h2]:text-[13px] compact:[&_.journey-stage-heading_.stage-heading-row_h2]:leading-[1.3] max-w-162.5"
+      }
+    >
+      <h1
+        className={
+          "mb-[0.67em] mt-[0] font-mono tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium"
+        }
+      >
+        {t("This project isn't available.")}
+      </h1>
+      <p className={"mb-[1em] mt-[0]"}>
+        {t("It may not exist, or you may no longer have access.")}
+      </p>
+      <Link
+        href="/projects"
+        className={
+          "button border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:#e9ffc1] hover:[transform:translateY(-1px)] lg:compact:min-h-8.5 lg:compact:py-2 lg:compact:px-3 lg:compact:text-[12px] lg:compact:rounded-[7px]"
+        }
+      >
         {t("Back to your projects")}{" "}
       </Link>
     </main>

@@ -34,12 +34,25 @@ export async function Footer({ density }: { density: "compact" | "comfortable" }
       adminEmail(),
     );
   return (
-    <footer>
+    <footer
+      className={
+        "max-w-360 m-auto py-7 px-[6%] border-t border-t-[#ffffff0c] flex justify-between text-[10px] [color:#8a9c92] items-center gap-4 max-[700px]:gap-5 max-[700px]:text-[9px]"
+      }
+    >
       <span>{t("Nakama")}</span>
-      <div className="footer-preferences">
+      <div
+        className={
+          "footer-preferences flex items-center justify-end flex-wrap gap-2.5 ml-[auto] [&_.language-switch]:h-7.5 [&_.language-switch]:p-0.5 [&_.language-switch]:gap-0.5 [&_.language-switch_button]:h-6 [&_.language-switch_button]:min-h-6 [&_.language-switch_button]:py-0.5 [&_.language-switch_button]:px-2 [&_.language-switch_button]:text-[11px] [&_.language-switch_button]:leading-[1] [&_.density-control_select]:h-7.5 [&_.density-control_select]:min-h-7.5 [&_.density-control_select]:py-1 [&_.density-control_select]:px-2 [&_.density-control_select]:text-[11px]"
+        }
+      >
         {admin && (
           <Show when="signed-in">
-            <Link className="footer-admin-link" href="/admin">
+            <Link
+              className={
+                "footer-admin-link inline-flex items-center min-h-7.5 text-[11px] text-muted hover:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px]"
+              }
+              href="/admin"
+            >
               {t("Administration")}
             </Link>
           </Show>

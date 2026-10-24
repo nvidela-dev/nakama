@@ -27,7 +27,7 @@ These are concrete engineering choices implementing the preferences above; they 
 4. Prefer Server Components for data access and composition. Use Client Components for state, events, and browser APIs. Pass prepared data or server-rendered slots to those interactive parts.
 5. Import explicit module paths. Keep models browser safe and actions explicitly marked `use server`. Avoid mixed client/server barrels and compatibility forwarding folders.
 6. Enforce architecture, generated catalogs/types, ESLint, Prettier, and production build checks. Add useful behavior/accessibility tests for shared interactions; avoid tests that merely repeat trivial wrappers.
-7. Use shared design tokens and controls. Feature styles use domain-prefixed selectors in their owning feature stylesheet. The app stylesheet imports foundations before feature styles. Check responsive layouts after changing the cascade.
+7. Use shared design tokens and controls with Tailwind CSS v4 utilities colocated on components. `src/app/globals.css` is the only stylesheet and contains Tailwind configuration, theme tokens/keyframes, and minimal motion resets. Do not add custom CSS selectors, feature stylesheets, or a central selector registry. Use explicit component variants, desktop `lg:compact:` density variants, and responsive utilities. Keep test hooks stable and verify computed layout, accessibility, reduced motion, and bundle budgets.
 8. Keep expensive optional UI conditional and lazy. Do not ship every workflow template for a summary picker, an inactive Markdown renderer, or the 3D map before it opens.
 
 New accepted decisions go in [the decision register](roadmap.md). Change the canonical rule and its automated guard together when deliberately adopting a new pattern.

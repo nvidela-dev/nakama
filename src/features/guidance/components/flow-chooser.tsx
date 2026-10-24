@@ -11,12 +11,18 @@ export function FlowChooser({ projectId }: { projectId: string }) {
   const [state, action, pending] = useActionState(chooseFlow.bind(null, projectId), initial);
   return (
     <Panel className="">
-      <h2>{t("Project type")}</h2>
-      <p>{t("Choose a workflow for this project.")}</p>
+      <h2
+        className={
+          "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
+        }
+      >
+        {t("Project type")}
+      </h2>
+      <p className={"mb-[1em] mt-[0]"}>{t("Choose a workflow for this project.")}</p>
       <form action={action}>
         <FlowOptions pending={pending} />
         <Feedback state={state} />
-        <small className="muted">
+        <small className={"muted text-muted text-[12px]"}>
           {t("You can revisit any stage. Switching paths after choosing isn't available yet.")}{" "}
         </small>
       </form>

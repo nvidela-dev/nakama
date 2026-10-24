@@ -9,15 +9,21 @@ export const Surface: Story = {
   render: () => (
     <Panel style={{ maxWidth: 420 }}>
       <WaveMark />
-      <h2>Project output</h2>
-      <p>Save a draft before marking this output ready.</p>
+      <h2
+        className={
+          "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
+        }
+      >
+        Project output
+      </h2>
+      <p className={"mb-[1em] mt-[0]"}>Save a draft before marking this output ready.</p>
     </Panel>
   ),
 };
 export const Empty: Story = {
   render: () => (
     <EmptyState title="No artifacts yet.">
-      <p>Start with a work in progress.</p>
+      <p className={"mb-[1em] mt-[0]"}>Start with a work in progress.</p>
     </EmptyState>
   ),
 };

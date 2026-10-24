@@ -24,7 +24,9 @@ export function ActionMenu({
   return (
     <details
       ref={ref}
-      className="ui-action-menu"
+      className={
+        "ui-action-menu relative [flex:none] [&[open]_>_summary]:bg-[#ffffff12] [&[open]_>_summary]:text-ink"
+      }
       onKeyDown={(event) => {
         if (event.key === "Escape" && ref.current?.open) {
           event.preventDefault();
@@ -34,11 +36,21 @@ export function ActionMenu({
         }
       }}
     >
-      <summary role="button" id={id} aria-label={label} title={label}>
+      <summary
+        role="button"
+        id={id}
+        aria-label={label}
+        title={label}
+        className={
+          "focus-visible:[outline:3px_solid_var(--color-lime)] focus-visible:[outline-offset:5px] grid place-items-center w-6.5 h-6.5 p-0 rounded-[5px] list-none cursor-pointer text-muted pointer-coarse:w-9 pointer-coarse:h-9 [&::-webkit-details-marker]:hidden [&:hover]:bg-[#ffffff12] [&:hover]:text-ink"
+        }
+      >
         <Icon name="chevronDown" />
       </summary>
       <div
-        className="ui-action-menu-items"
+        className={
+          "ui-action-menu-items absolute top-[calc(100%_+_3px)] right-0 z-[15] min-w-42.5 p-1 border border-line rounded-[8px] bg-[#172b25] [box-shadow:0_6px_20px_#0006] [&_button]:w-full [&_button]:[justify-content:flex-start] [&_button]:min-h-8 [&_button]:py-1.5 [&_button]:px-2 [&_button]:text-[12px] [&_button]:text-left [&_button]:border-0 pointer-coarse:[&_button]:min-h-11"
+        }
         onClick={(event) => {
           if (
             event.target instanceof Element &&
