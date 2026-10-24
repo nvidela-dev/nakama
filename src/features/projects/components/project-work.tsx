@@ -38,7 +38,7 @@ export function ProjectWork({
   }
   if (!tasks) return <>{children}</>;
   const items: { value: View; label: string; content: ReactNode }[] = [
-    { value: "steps", label: t("Project steps"), content: children },
+    { value: "steps", label: t("Project flow"), content: children },
     { value: "tasks", label: t("To-do"), content: tasks },
   ];
   if (artifacts) items.push({ value: "artifacts", label: t("Artifacts"), content: artifacts });

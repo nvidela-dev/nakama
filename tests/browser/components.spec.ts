@@ -20,7 +20,7 @@ test("dialog traps focus, closes with Escape and restores its trigger", async ({
 test("tab keyboard navigation preserves drafts in inactive panels", async ({ page }) => {
   await story(page, "ui-tabs--persistent-panels");
   await page.getByLabel("Draft").fill("Keep this draft");
-  await page.getByRole("tab", { name: "Project steps" }).focus();
+  await page.getByRole("tab", { name: "Project flow" }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("tab", { name: "To-do" })).toBeFocused();
   await expect(page.getByRole("tabpanel")).toContainText("Plan the next small step.");
@@ -65,22 +65,11 @@ test("the workflow picker stays compact on a phone and supports Spanish", async 
 test("progress fill remains concentric", async ({ page }) => {
   await story(page, "ui-progress-marker--partial");
   const offsets = await page.locator(".progress-marker").evaluate((element) => {
-    const parent = getComputedStyle(element),
-      fill = getComputedStyle(element, "::before"),
-      matrix = new DOMMatrix(fill.transform);
+    const outer = element.getBoundingClientRect();
+    const fill = element.querySelector(".progress-marker-fill")!.getBoundingClientRect();
     return {
-      x:
-        parseFloat(parent.borderLeftWidth) +
-        parseFloat(fill.left) +
-        parseFloat(fill.width) / 2 +
-        matrix.m41 -
-        element.getBoundingClientRect().width / 2,
-      y:
-        parseFloat(parent.borderTopWidth) +
-        parseFloat(fill.top) +
-        parseFloat(fill.height) / 2 +
-        matrix.m42 -
-        element.getBoundingClientRect().height / 2,
+      x: fill.left + fill.width / 2 - outer.left - outer.width / 2,
+      y: fill.top + fill.height / 2 - outer.top - outer.height / 2,
     };
   });
   expect(Math.abs(offsets.x)).toBeLessThan(0.1);
@@ -250,7 +239,9 @@ test("loading skeletons render animated bones and respect reduced motion", async
   expect(reducedAnimationName).toBe("none");
 });
 
-test("project cards and timeline dots stay compact with centered connectors", async ({ page }) => {
+test("project cards show readable concentric progress with centered connectors", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await story(page, "features-projects-project-timeline--compact-cards");
   const metrics = await page.evaluate(() => {
@@ -260,7 +251,7 @@ test("project cards and timeline dots stay compact with centered connectors", as
     const title = card.querySelector("h3")!;
     const firstItem = card.querySelector(".project-timeline li")!;
     const marker = firstItem.querySelector(".timeline-marker")!;
-    const connector = getComputedStyle(firstItem, "::before");
+    const connector = getComputedStyle(firstItem.querySelector(".timeline-connector")!);
     const markerBox = marker.getBoundingClientRect();
     const itemBox = firstItem.getBoundingClientRect();
     const connectorCenterY =
@@ -278,13 +269,34 @@ test("project cards and timeline dots stay compact with centered connectors", as
       overflow: document.documentElement.scrollWidth > innerWidth,
     };
   });
-  expect(metrics.markerWidth).toBe(11);
-  expect(metrics.markerHeight).toBe(11);
+  expect(metrics.markerWidth).toBe(26);
+  expect(metrics.markerHeight).toBe(26);
   expect(metrics.centerDeltaY).toBeLessThanOrEqual(0.5);
-  expect(metrics.titleFontSize).toBeLessThanOrEqual(15);
-  expect(metrics.cardHeight).toBeLessThan(92);
-  expect(metrics.placeholderHeight).toBeLessThan(68);
+  expect(metrics.titleFontSize).toBeGreaterThanOrEqual(15);
+  expect(metrics.cardHeight).toBeGreaterThanOrEqual(100);
+  expect(metrics.cardHeight).toBeLessThan(160);
+  expect(metrics.placeholderHeight).toBeLessThan(130);
   expect(metrics.overflow).toBe(false);
+
+  const fills = await page
+    .locator(".project-card")
+    .first()
+    .locator(".timeline-marker")
+    .evaluateAll((markers) =>
+      markers.map((marker) => {
+        const style = getComputedStyle(marker);
+        const fill = getComputedStyle(marker.querySelector(".progress-marker-fill")!);
+        return {
+          width: parseFloat(fill.width),
+          available: marker.clientWidth,
+          border: parseFloat(style.borderLeftWidth),
+        };
+      }),
+    );
+  expect(fills[0]!.width).toBeCloseTo(fills[0]!.available * 0.4, 0);
+  expect(fills[0]!.width).toBeGreaterThanOrEqual(8);
+  expect(fills[1]!.width).toBeCloseTo(fills[1]!.available, 0);
+  expect(fills[2]!.width).toBe(0);
 
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
@@ -319,7 +331,8 @@ test("project card actions stay hidden behind a chevron until opened", async ({ 
     return { top: parseFloat(style.paddingTop), size: parseFloat(style.fontSize) };
   });
   expect(title.top).toBeGreaterThanOrEqual(4);
-  expect(title.size).toBeLessThanOrEqual(14);
+  expect(title.size).toBeGreaterThanOrEqual(15);
+  expect(title.size).toBeLessThanOrEqual(16);
 });
 
 for (const id of [

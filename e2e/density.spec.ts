@@ -115,7 +115,7 @@ test("density changes keep capture and answer drafts, selections and saving inta
     fullPage: true,
   });
   await page.getByLabel("Where does this stand?").selectOption("answered");
-  await page.getByRole("button", { name: "Save this step" }).click();
+  await page.getByRole("button", { name: "Save answer" }).click();
   await expect(page).toHaveURL(`${project}?stage=experiment`);
   await page.reload();
   await expect(page.locator(".node-tree")).toBeVisible();

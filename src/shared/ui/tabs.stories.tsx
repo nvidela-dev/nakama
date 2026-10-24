@@ -18,7 +18,7 @@ function Example() {
       items={[
         {
           value: "steps",
-          label: "Project steps",
+          label: "Project flow",
           content: (
             <>
               <label htmlFor="draft">Draft</label>

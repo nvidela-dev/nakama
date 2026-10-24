@@ -68,11 +68,15 @@ test("unapproved signup becomes an admin request; allowance and dismissal are ex
     { timeout: 15000 },
   );
   await dashboard.goto("/projects");
-  const details = dashboard
-    .locator(".main-whitelist details")
-    .filter({ has: dashboard.locator("summary").filter({ hasText: "Access requests" }) });
-  await details.locator("summary").click();
-  request = details.locator("li").filter({ has: dashboard.getByText(dismissed, { exact: true }) });
+  await expect(dashboard.getByRole("heading", { name: "Allow a person", exact: true })).toHaveCount(
+    0,
+  );
+  await expect(dashboard.locator(".access-requests")).toHaveCount(0);
+  await expect(dashboard.locator(".main-whitelist")).toHaveCount(0);
+  await dashboard.goto("/admin");
+  request = dashboard
+    .locator(".access-requests li")
+    .filter({ has: dashboard.getByText(dismissed, { exact: true }) });
   await expect(request).toBeVisible();
   await dashboard.setViewportSize({ width: 390, height: 844 });
   expect(await dashboard.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(

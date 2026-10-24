@@ -18,7 +18,7 @@ export function FlowChooser({ projectId }: { projectId: string }) {
       >
         {t("Project type")}
       </h2>
-      <p className={"mb-[1em] mt-0"}>{t("Choose a workflow for this project.")}</p>
+      <p className={"mb-[1em] mt-0"}>{t("Choose a flow for this project.")}</p>
       <form action={action}>
         <FlowOptions pending={pending} />
         <Feedback state={state} />

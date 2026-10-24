@@ -35,7 +35,7 @@ export function ProjectCard({
     <article
       className={[
         `project-card ${project.role === "owner" ? "has-management" : ""}`,
-        "block py-2.5 px-3.5 border border-line rounded-[9px] mb-2 [background:linear-gradient(120deg,_var(--theme-surface,#21342c),_var(--color-panel))] relative hover:[border-color:var(--theme-border,#9cba7b)] [&_.eyebrow]:flex [&_.eyebrow]:justify-between [&_p]:text-[14px] [&_p]:text-muted [&_p]:whitespace-pre-wrap [&_p]:wrap-anywhere [&_small]:text-muted [&_small]:text-[12px] lg:compact:py-2 lg:compact:px-3 lg:compact:rounded-[8px] lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:mt-1.25 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-1.75 lg:compact:[&_p]:leading-[1.45] lg:compact:[&_small]:text-[11px]",
+        "block py-3.5 px-4 border border-line rounded-[9px] mb-2 [background:linear-gradient(120deg,_var(--theme-surface,#21342c),_var(--color-panel))] relative hover:[border-color:var(--theme-border,#9cba7b)] [&_.eyebrow]:flex [&_.eyebrow]:justify-between [&_p]:text-[14px] [&_p]:text-muted [&_p]:whitespace-pre-wrap [&_p]:wrap-anywhere [&_small]:text-muted [&_small]:text-[12px] lg:compact:py-3 lg:compact:px-4 lg:compact:rounded-[8px] lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:mt-1.25 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-1.75 lg:compact:[&_p]:leading-[1.45] lg:compact:[&_small]:text-[11px]",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -43,7 +43,7 @@ export function ProjectCard({
       <Link className={"project-card-link block"} href={`/projects/${project.id}`}>
         <h3
           className={[
-            "font-mono tracking-[-0.045em] font-semibold m-0 pt-1 px-0.5 pb-0.5 text-[14px] leading-[1.25] wrap-anywhere lg:compact:text-[12.5px]",
+            "font-mono tracking-[-0.045em] font-semibold m-0 pt-1 px-0.5 pb-0.5 text-[16px] leading-[1.35] wrap-anywhere lg:compact:text-[15px]",
             project.role === "owner" && "pr-8 pointer-coarse:pr-11",
           ]
             .filter(Boolean)

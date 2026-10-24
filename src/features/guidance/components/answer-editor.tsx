@@ -233,7 +233,7 @@ export function AnswerEditor({
             disabled={pending || Boolean(state.conflict && !reconciled)}
             className={"mt-2 lg:compact:mt-1"}
           >
-            {pending ? t("Saving…") : t("Save this step")}
+            {pending ? t("Saving…") : t("Save answer")}
           </Button>
           <span role="status" className={"text-[11px] text-muted"}>
             {pending ? t("Saving") : dirty ? t("Unsaved changes") : t("Up to date")}

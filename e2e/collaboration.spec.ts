@@ -202,7 +202,7 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await expect(page.locator(".discussion h2")).toHaveText("To-do discussion");
   await page.getByRole("tab", { name: "Artifacts", exact: true }).click();
   await expect(page.locator(".discussion h2")).toHaveText("Artifacts discussion");
-  await page.getByRole("tab", { name: "Project steps", exact: true }).click();
+  await page.getByRole("tab", { name: "Project flow", exact: true }).click();
   await expect(page.locator(".discussion h2")).not.toHaveText("To-do discussion");
   await expect(page.locator(".discussion h2")).not.toHaveText("Artifacts discussion");
   await page.goto(path);
