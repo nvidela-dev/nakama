@@ -56,11 +56,11 @@ Compact desktop project cards stretch to the tallest card in each grid row. Mixe
 
 The Projects screen exposes edit and delete controls on owner project cards. These open a native modal dialog over the existing list, with a close control, Escape dismissal, keyboard focus containment/restoration, and the same revision-aware edit and exact-name delete forms used on project pages. Card titles/timelines remain navigation links; action buttons are separate siblings, never controls nested inside links. Settings forms mount only while the dialog is open, keeping the ordinary list light and avoiding duplicate active fields.
 
-For the application administrator, the sidebar also provides an allowed-email form and an expandable whitelist with removal controls. Non-admins receive no whitelist data or controls. Full project and Administration pages remain available. A New project button in the main sidebar opens guided setup. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.
+Allowed-email management and access-request review are available only on the Administration page. The Projects screen does not fetch or render these administrative lists. A New project button in the main sidebar opens guided setup. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.
 
 ## Access-request review — 2026-10-22
 
-Administration shows the allowed-email list and a separate Access requests section with email, first-request time, Allow email, and Dismiss. The main sidebar exposes the same request controls in an expandable section. Empty queues say there are no pending requests. These are submitted, unverified identifiers, not confirmed people or imported rejected-signup history.
+Administration shows the allowed-email list and a separate Access requests section with email, first-request time, Allow email, and Dismiss. The main sidebar contains no access-request controls. Empty queues say there are no pending requests. These are submitted, unverified identifiers, not confirmed people or imported rejected-signup history.
 
 Signup begins with an email-only step. Allowed emails continue to Clerk signup; others receive a saved-request confirmation and remain unable to sign up until explicitly approved. The access-required page offers the same request form for people reaching a private route without admission. Requests do not notify the submitted email address.
 
@@ -145,3 +145,17 @@ The Linked projects panel uses compact spacing and smaller typography in both de
 The Members/invitations/Activity sidebar panel shares Linked projects’ compact typography and padding in both densities, with 14px title, 11px content/controls, and 10px supporting text. Activity entries and people rows use tighter spacing; touch controls retain 44px targets.
 
 The 3D stage map opens in a modal popup rather than expanding the working column. Its background is 10% transparent (90% opacity); map geometry, labels, and controls keep their own opacity. Escape, Close, outside click, or choosing a map destination closes it; focus returns to the opener. Background scrolling is paused while open, and narrow screens retain horizontal map scrolling.
+
+## Wiki learning path — 2026-10-24
+
+The public `/wiki` starts with a small illustrative project, then explains workspace navigation, the flow/stage/node/answer hierarchy, placing answers/tasks/artifacts/comments, invitations, and a practical working rhythm. Static diagrams and native expandable scenarios teach the relationships without changing private data. Rules and troubleshooting follow the walkthrough; the dense glossary at `/wiki/glossary` provides exact terminology and state contracts. `/glossary` remains an alias with the same term anchors. Footer navigation opens the wiki. English and Spanish use the existing locale setting.
+
+This is one progressive learning path, with no audience or ability labels. Public teaching content never loads private project records. Canonical domain, collaboration, and flow documents continue to own semantics; keep teaching examples aligned with implemented capabilities and explicitly identify future work.
+
+### Wiki trees and illustrations — 2026-10-24
+
+The walkthrough includes five native nested-list trees: project structure, branching questions, admission/membership checks, independent task statuses, and project lineage. Branches use keyboard-operable disclosures, open initially, with real text and CSS connectors; they are illustrative examples rather than template or project snapshots. Two optimized, local illustrations support the workspace and lineage sections, with localized alt text and captions. Images do not carry required labels or replace the trees. [Illustration prompts and provenance](assets/wiki-illustrations.md) record asset creation.
+
+## Readable project-card progress — 2026-10-24
+
+Project cards restore 26px concentric stage markers (from 11px), with 15px compact / 16px regular titles, 11px stage labels, 10px counts, and increased card padding. Connector centers derive from the shared marker-size variable and render behind markers. The inner disc continues to grow by answered-question ratio; it does not imply stage review or project viability. Compact desktop grid cards have a 360px minimum width. Long labels retain ellipsis with full accessible labels and tooltips.

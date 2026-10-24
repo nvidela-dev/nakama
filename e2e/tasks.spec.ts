@@ -189,14 +189,14 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await dialog.getByRole("button", { name: "Confirm deletion", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(2);
   await expect(list.locator(".task-number").first()).toHaveText("1");
-  await page.getByRole("tab", { name: "Project steps", exact: true }).click();
+  await page.getByRole("tab", { name: "Project flow", exact: true }).click();
   await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
   await page.goto(`${path}?stage=imagine&node=inspiration`);
   await page.getByLabel("Your answer, learning, or uncertainty").fill("Unsaved guided draft");
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   await expect(list.getByRole("button", { name: "Imported root", exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "Project steps", exact: true }).click();
+  await page.getByRole("tab", { name: "Project flow", exact: true }).click();
   await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
     "Unsaved guided draft",
   );

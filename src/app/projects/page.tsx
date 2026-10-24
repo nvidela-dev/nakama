@@ -1,13 +1,6 @@
-import { Panel } from "@/shared/ui/panel";
 import { WaveMark } from "@/shared/ui/wave-mark";
-import { requestPolicy } from "@/features/access/server/request-store";
-import { AccessRequestList } from "@/features/access/components/access-request-list";
 import { getT } from "@/shared/i18n/server";
 import { ProjectCard } from "@/features/projects/components/project-card";
-import { WhitelistList } from "@/features/access/components/whitelist-list";
-import { AddAllowedEmail } from "@/features/access/components/whitelist";
-import { isAppAdmin } from "@/features/access/server/app-access";
-import { accessPolicy, adminEmail } from "@/features/access/server/whitelist";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { projectService } from "@/features/projects/server/projects";
@@ -18,12 +11,9 @@ export const dynamic = "force-dynamic";
 export default async function ProjectsPage() {
   const t = await getT();
   const person = await actor(true);
-  const admin = isAppAdmin(person, adminEmail());
-  const [projects, progress, allowed, requests] = await Promise.all([
+  const [projects, progress] = await Promise.all([
     projectService(database()).list(person),
     projectProgress(database(), person),
-    admin ? accessPolicy().list(person) : Promise.resolve(null),
-    admin ? requestPolicy().list(person) : Promise.resolve(null),
   ]);
   return (
     <main
@@ -60,7 +50,7 @@ export default async function ProjectsPage() {
       >
         <section
           className={
-            "project-list lg:compact:grid lg:compact:grid-cols-[repeat(auto-fill,_minmax(320px,_1fr))] lg:compact:gap-2.5 lg:compact:items-stretch lg:compact:[&_>_.empty-state]:[grid-column:1_/_-1] lg:compact:[&_>_.empty-state]:mb-0 lg:compact:[&_.project-card]:mb-0"
+            "project-list lg:compact:grid lg:compact:grid-cols-[repeat(auto-fill,_minmax(360px,_1fr))] lg:compact:gap-2.5 lg:compact:items-stretch lg:compact:[&_>_.empty-state]:[grid-column:1_/_-1] lg:compact:[&_>_.empty-state]:mb-0 lg:compact:[&_.project-card]:mb-0"
           }
         >
           <h2
@@ -100,61 +90,6 @@ export default async function ProjectsPage() {
           className={"main-screen-sidebar grid gap-4 min-w-0 content-start max-[700px]:[order:-1]"}
         >
           <NewProjectButton />
-          {allowed && (
-            <Panel
-              className={"main-whitelist [&_.people-list_li]:flex-wrap [&_.people-list_li]:gap-2"}
-            >
-              <h2
-                className={
-                  "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
-                }
-              >
-                {t("Allow a person")}
-              </h2>
-              <AddAllowedEmail />
-              <details className={"mt-4.5"}>
-                <summary
-                  className={
-                    "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
-                  }
-                >
-                  {t("Allowed emails")}{" "}
-                  <span
-                    className={
-                      "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
-                    }
-                  >
-                    {allowed.length}
-                  </span>
-                </summary>
-                <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
-                  {t(
-                    "Removing access blocks future private requests. It does not delete the account or project history.",
-                  )}
-                </p>
-                <WhitelistList entries={allowed} />
-              </details>
-              {requests && (
-                <details className={"mt-4.5"}>
-                  <summary
-                    className={
-                      "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
-                    }
-                  >
-                    {t("Access requests")}{" "}
-                    <span
-                      className={
-                        "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
-                      }
-                    >
-                      {requests.length}
-                    </span>
-                  </summary>
-                  <AccessRequestList requests={requests} />
-                </details>
-              )}
-            </Panel>
-          )}
         </aside>
       </div>
     </main>

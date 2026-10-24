@@ -8,13 +8,13 @@ This logical model guides the implementation. M1/M2 tables live in reviewed SQL 
 | Project | An idea, purpose, flow, answers, discussions, decisions, and members. The access boundary. |
 | Membership | A person's role and active/removed access to one project. |
 | Invitation | A time-limited offer, separate from membership until accepted. |
-| Flow template | Versioned Venture or Creative/fun guidance; projects retain their chosen version. |
+| Flow template | Versioned project guidance; projects retain their chosen version. |
 | Stage | Named flow section containing a question subdiagram and discussion. |
 | Node | Stable, addressable question, activity, or outcome; not every diagram box needs a text field. |
 | Answer revision | Content with author, timestamp, revision ID, and optional evidence. |
 | Learning | Observation, including an unfavorable result or uncertainty. |
 | Decision | Explicit choice with rationale and author/time, not inferred from completion count. |
-| Comment | Discussion targeting exactly one project, stage, or node; not automatically an answer. |
+| Comment | Discussion targeting exactly one project, stage, node, or project activity scope; not automatically an answer. |
 | Activity | Attributable edit, decision, membership change, or future proposal review. |
 | Task | Small planned action; detailed scheduling is deferred. |
 | Artifact | A named project output in progress or ready, optionally associated with a stage; image set, Markdown document, or linked software. |
@@ -53,7 +53,7 @@ Template updates never silently rewrite existing projects. Flow/version migratio
 
 ## Comment and activity records — 2026-10-22
 
-Comments belong to one project and one scope: project, stage, or node. Stage/node targets require the selected project flow; the server validates stable template keys. Authors retain their membership-time display attribution when they leave. Revisions prevent silent overwrites. Deleted bodies are blanked permanently while the comment ID, original author/time, and deletion marker remain. Discussion does not count toward answered progress or invalidate answer reviews.
+Comments belong to one project and one scope: project, stage, node, project tasks, or project artifacts. Stage/node targets require the selected project flow; the server validates stable template keys. Authors retain their membership-time display attribution when they leave. Revisions prevent silent overwrites. Deleted bodies are blanked permanently while the comment ID, original author/time, and deletion marker remain. Discussion does not count toward answered progress or invalidate answer reviews.
 
 Activity describes attributable recorded actions. Current comment bodies are not duplicated into activity. Existing answer revisions and stage reviews provide historical source events; new project, flow, invitation, membership, and comment events are stored in a project-owned activity table. Former-member labels do not re-grant access. Whole-project deletion cascades through both stores.
 
@@ -86,3 +86,13 @@ Spawning atomically creates the new project, creator's owner membership, optiona
 Artifact to-dos are now individual rows keyed by project, artifact, and task ID, with explicit position and the shared Task status vocabulary. Their update/reorder still compares and increments the artifact revision in one transaction. File size is computed from the stored payload. Node status, Task status, Artifact kind/readiness/media type, Membership role, Project state, Flow ID, activity kind, and answer origin have database enum types shared with generated TypeScript and input validators.
 
 Current answers and historical revisions enforce the same content/state rules. Activity's optional comment reference resolves to the same project. Project/task ancestry and artifact output invariants are also guarded by the database. Storage types describe actual nullability and driver values; UI projections and untrusted operation inputs are separate contracts.
+
+## Product glossary and naming contract — 2026-10-24
+
+The application’s public `/wiki/glossary` page (also available at `/glossary`) exposes system definitions only, never project records. Its bilingual presentation catalog lives in `src/features/shell/glossary.ts`; this document remains canonical for domain semantics. Update both when changing a definition. The glossary groups terms by projects/access, guidance/progress, learning/decisions, work/outputs, discussion/change history, and project relationships; these are reading groups, not new domain entities. Database-backed state lists on the page reuse generated enum constants rather than duplicating their values.
+
+Use **Flow** for selected guidance, **Stage** for its sections, **Node** for addressable questions/activities/outcomes, and **Answer** for saved node content. Use **Project flow** for the guidance workspace and **Save answer** for answer submission. “Workflow,” “journey,” and “step” are synonyms or legacy presentation identifiers, not additional entities. New domain code should use `flow`, `stage`, `node`, and `answer`; existing component names, URL parameters, database enums, and interchange fields remain compatible.
+
+Use **Task** for work, qualified as **Project task** (hierarchical) or **Artifact task** (flat) when ambiguous. “To-do” names the task workspace, not another entity. **Artifact readiness** and **Task status** are independent: a ready task is available to start; a ready artifact has usable output. **Discussion** names the conversation; **Comment** names one message. **Activity** names an attributable event, qualified as an activity node or operational log when referring to those different concepts.
+
+**Learning**, **Decision**, and **Outcome** describe domain concepts; they do not imply universal dedicated storage or editors. Outcomes currently use answers and artifacts. Guided-context export remains future work. **Project lineage** records source/spawned relationships and never implies inherited membership or copied content.

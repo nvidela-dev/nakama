@@ -1,5 +1,4 @@
 import { cn } from "./cn";
-import type { CSSProperties } from "react";
 type AccessibleName = { decorative: true; label?: never } | { decorative?: false; label: string };
 export function ProgressMarker({
   value,
@@ -15,13 +14,17 @@ export function ProgressMarker({
   return (
     <span
       className={cn(
-        'progress-marker [:where(&)]:relative [:where(&)]:inline-grid [:where(&)]:place-items-center [:where(&)]:w-6 [:where(&)]:h-6 [:where(&)]:[border:2px_solid_var(--color-line)] [:where(&)]:rounded-full [:where(&)]:bg-panel [:where(&)]:isolate before:[content:""] before:absolute before:[:where(&)]:top-1/2 before:[:where(&)]:left-1/2 before:[:where(&)]:[transform:translate(-50%,_-50%)] before:[:where(&)]:w-[var(--stage-progress,_0%)] before:[:where(&)]:h-[var(--stage-progress,_0%)] before:[:where(&)]:rounded-full before:[:where(&)]:bg-lime',
+        "progress-marker relative inline-grid place-items-center w-6.5 h-6.5 border border-line rounded-full bg-panel isolate",
         className,
       )}
       role={decorative ? undefined : "img"}
       aria-hidden={decorative || undefined}
       aria-label={decorative ? undefined : label}
-      style={{ "--stage-progress": `${percentage}%` } as CSSProperties}
-    />
+    >
+      <span
+        className="progress-marker-fill absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime"
+        style={{ width: `${percentage}%`, height: `${percentage}%` }}
+      />
+    </span>
   );
 }

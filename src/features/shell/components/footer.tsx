@@ -65,6 +65,12 @@ export async function Footer({
             </Link>
           </Show>
         )}
+        <Link
+          href="/wiki"
+          className="inline-flex items-center min-h-7.5 text-[11px] text-muted hover:text-lime"
+        >
+          {t("Wiki")}
+        </Link>
         <ThemeSwitcher theme={theme} />
         <LanguageSwitcher />
         <DensitySwitcher density={density} />

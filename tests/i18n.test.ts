@@ -5,6 +5,9 @@ import path from "node:path";
 import ts from "typescript";
 import { flows } from "../src/features/guidance/model/flows";
 import { messages, translator, resolveLocale, formatDate } from "../src/shared/i18n/index";
+import wikiMessages from "../src/features/shell/wiki-es.json";
+
+const wikiEntries: Record<string, string> = wikiMessages;
 
 test("every stage, question, example and persisted choice has Spanish display copy", () => {
   for (const flow of Object.values(flows)) {
@@ -28,19 +31,20 @@ test("every stage, question, example and persisted choice has Spanish display co
 
 test("UI lookup keys and service feedback have Spanish coverage", () => {
   function visitFile(file: string) {
-    const source = ts.createSourceFile(
-      file,
-      fs.readFileSync(file, "utf8"),
-      ts.ScriptTarget.Latest,
-      true,
-    );
+    const raw = fs.readFileSync(file, "utf8");
+    const source = ts.createSourceFile(file, raw, ts.ScriptTarget.Latest, true);
+    const usesWikiDictionary = raw.includes("@/features/shell/wiki-i18n");
     function visit(node: ts.Node) {
       if (
         (ts.isCallExpression(node) && node.expression.getText(source) === "t") ||
         (ts.isNewExpression(node) && node.expression.getText(source) === "ProjectError")
       ) {
         const arg = node.arguments?.[0];
-        if (arg && ts.isStringLiteral(arg)) assert.ok(messages[arg.text], `${file}: ${arg.text}`);
+        if (arg && ts.isStringLiteral(arg))
+          assert.ok(
+            messages[arg.text] || (usesWikiDictionary && wikiEntries[arg.text]),
+            `${file}: ${arg.text}`,
+          );
       }
       if (
         ts.isPropertyAssignment(node) &&

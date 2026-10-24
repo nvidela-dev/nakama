@@ -83,7 +83,7 @@ export default async function Home() {
           <span aria-hidden="true" className={"text-pink text-[22px]"}>
             ✦
           </span>{" "}
-          {t("Structured workflows for business and creative projects.")}{" "}
+          {t("Structured flows for business and creative projects.")}{" "}
         </div>
       </section>
       <section
@@ -240,7 +240,7 @@ export default async function Home() {
               "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 text-[30px] max-[700px]:text-[26px]"
             }
           >
-            {t("A structured project workflow.")}
+            {t("A structured project flow.")}
           </h2>
         </div>
         <div
@@ -337,7 +337,7 @@ export default async function Home() {
           {t("Business development.")} <br />
           {t("Creative production.")} <br />
           <strong className={"text-ink font-normal"}>
-            {t("Choose the workflow that fits your project.")}
+            {t("Choose the flow that fits your project.")}
           </strong>
         </p>
         {!authConfigured() && (

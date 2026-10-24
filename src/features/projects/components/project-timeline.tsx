@@ -14,24 +14,26 @@ export function ProjectTimeline({
       <div role="img" aria-label={t("Choose a flow first.")} title={t("Choose a flow first.")}>
         <ol
           className={
-            "project-timeline timeline-placeholder my-[1em] opacity-55 flex list-none mt-2.25 mx-0 mb-0 p-0"
+            "project-timeline timeline-placeholder my-[1em] opacity-55 flex list-none mt-3.5 mx-0 mb-0 p-0"
           }
           aria-hidden="true"
         >
           {Array.from({ length: 5 }, (_, index) => (
             <li
               key={index}
-              className={
-                'relative flex-1 min-w-0 text-center text-[9px] leading-[1.1] text-muted [&:not(:last-child)::before]:[content:""] [&:not(:last-child)::before]:absolute [&:not(:last-child)::before]:top-1.25 [&:not(:last-child)::before]:left-1/2 [&:not(:last-child)::before]:w-full [&:not(:last-child)::before]:h-0.25 [&:not(:last-child)::before]:bg-line'
-              }
+              className={"relative flex-1 min-w-0 text-center text-[11px] leading-[1.3] text-muted"}
             >
+              {index < 4 && (
+                <span
+                  aria-hidden="true"
+                  className="timeline-connector absolute top-3 left-1/2 w-full h-0.25 bg-line"
+                />
+              )}
               <ProgressMarker
                 decorative
                 value={0}
                 max={1}
-                className={
-                  "timeline-marker grid w-2.75 h-2.75 [border-width:1.5px] mt-0 mx-auto mb-0.5 bg-line"
-                }
+                className={"timeline-marker grid mt-0 mx-auto mb-1.5 z-[1] bg-line"}
               />
               <span className={"timeline-name block px-0.5 truncate tracking-[-0.02em]"}>
                 <span
@@ -42,7 +44,7 @@ export function ProjectTimeline({
               </span>
               <span
                 className={
-                  "timeline-count block mt-0.25 tabular-nums text-[8px] leading-[1.05] text-muted"
+                  "timeline-count block mt-0.25 tabular-nums text-[10px] leading-[1.3] text-muted"
                 }
               >
                 <span
@@ -58,10 +60,10 @@ export function ProjectTimeline({
     );
   return (
     <ol
-      className={"project-timeline my-[1em] flex list-none mt-2.25 mx-0 mb-0 p-0"}
+      className={"project-timeline my-[1em] flex list-none mt-3.5 mx-0 mb-0 p-0"}
       aria-label={t("Stage progress")}
     >
-      {stages.map((stage) => {
+      {stages.map((stage, index) => {
         const state = stage.reviewed
           ? t("✓ Reviewed")
           : stage.started
@@ -75,18 +77,22 @@ export function ProjectTimeline({
             aria-label={label}
             className={[
               `${stage.started ? "started" : ""} ${stage.reviewed ? "reviewed" : ""} ${stage.revisit ? "revisit" : ""}`,
-              'relative flex-1 min-w-0 text-center text-[9px] leading-[1.1] text-muted [&:not(:last-child)::before]:[content:""] [&:not(:last-child)::before]:absolute [&:not(:last-child)::before]:top-1.25 [&:not(:last-child)::before]:left-1/2 [&:not(:last-child)::before]:w-full [&:not(:last-child)::before]:h-0.25 [&:not(:last-child)::before]:bg-line',
+              "relative flex-1 min-w-0 text-center text-[11px] leading-[1.3] text-muted",
             ]
               .filter(Boolean)
               .join(" ")}
           >
+            {index < stages.length - 1 && (
+              <span
+                aria-hidden="true"
+                className="timeline-connector absolute top-3 left-1/2 w-full h-0.25 bg-line"
+              />
+            )}
             <ProgressMarker
               decorative
               value={stage.answered}
               max={stage.total}
-              className={
-                "timeline-marker grid w-2.75 h-2.75 [border-width:1.5px] mt-0 mx-auto mb-0.5"
-              }
+              className={"timeline-marker grid mt-0 mx-auto mb-1.5 z-[1]"}
             />
             <span
               className={`timeline-name block px-0.5 truncate tracking-[-0.02em] ${stage.started ? "text-ink" : "text-muted"}`}
@@ -96,7 +102,7 @@ export function ProjectTimeline({
             </span>
             <span
               className={
-                "timeline-count block mt-0.25 tabular-nums text-[8px] leading-[1.05] text-muted"
+                "timeline-count block mt-0.25 tabular-nums text-[10px] leading-[1.3] text-muted"
               }
               aria-hidden="true"
             >

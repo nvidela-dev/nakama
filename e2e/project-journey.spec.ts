@@ -57,20 +57,20 @@ test("private capture, invitation, guided editing, conflict, and removal on real
     .getByLabel("Your answer, learning, or uncertainty")
     .fill("Warm voices and homemade sound effects.");
   await page.getByLabel("Where does this stand?").selectOption("answered");
-  await page.getByRole("button", { name: "Save this step" }).click();
+  await page.getByRole("button", { name: "Save answer" }).click();
   await expect(page).toHaveURL(`${projectPath}?stage=imagine`);
   await expect(page.locator(".node-tree")).toBeVisible();
   await friend
     .getByLabel("Your answer, learning, or uncertainty")
     .fill("A friend’s different draft.");
   await friend.getByLabel("Where does this stand?").selectOption("answered");
-  await friend.getByRole("button", { name: "Save this step" }).click();
+  await friend.getByRole("button", { name: "Save answer" }).click();
   await expect(friend.getByRole("heading", { name: "Newer answer available" })).toBeVisible();
   await expect(friend.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
     "A friend’s different draft.",
   );
   await friend.getByRole("button", { name: "Keep my version" }).click();
-  await friend.getByRole("button", { name: "Save this step" }).click();
+  await friend.getByRole("button", { name: "Save answer" }).click();
   await expect(friend).toHaveURL(`${projectPath}?stage=imagine`);
   await expect(friend.locator(".node-tree")).toBeVisible();
   await friend.goto(nodePath);

@@ -362,6 +362,26 @@ Accepted: make each right-column sidebar panel (Progress, Linked projects, Membe
 
 Accepted: add a dedicated 'Platform' project flow (`id: "platform"`) aimed at internal tooling, automation processes, cloud infrastructure, and Hermes/Nakama service improvements focused on increasing production capacity and operational reliability rather than commercial revenue. It follows the standard Nakama workflow format with 5 versioned stages (`System` → `Blueprint` → `Prototype` → `Integration` → `Production`), topological within-stage dependencies, full Spanish localization, a `Server` icon in the workflow picker, and outputs spanning automation scripts, APIs, IaC, CI workflows, and operational runbooks. Database migration 015 expands PostgreSQL enum `flow_id`.
 
+## System glossary and consistent language — 2026-10-24
+
+Accepted: provide a dense, bilingual `/glossary` reference within Nakama, linked from the footer, with domain definitions, technical identifiers, state contracts, and distinctions between implemented records and conceptual language. Use Flow / Stage / Node / Answer consistently in new code and guidance labels, and qualify project tasks versus artifact tasks. Keep the domain document canonical and use generated storage enum values in the reference. Preserve existing identifiers and interchange compatibility; no schema migration or service provisioning is required.
+
+## Progressive visual system wiki — 2026-10-24
+
+Accepted: expand the glossary into a bilingual system wiki, beginning with concrete examples and visual explanations, then progressively introducing rules, troubleshooting, and the technical glossary. Do not label sections by reader ability. Preserve existing glossary links and anchors; public wiki examples read no private project data. This is educational presentation, with no new service, storage, or AI execution.
+
+## Visual wiki trees and supporting images — 2026-10-24
+
+Accepted: enrich the wiki with expandable, translated tree diagrams and supporting illustrations. Keep relationships and permission rules as semantic text, and label illustrative examples without implying live data or extra capabilities. Images are local optimized assets; no diagram library, service, or private-data read is needed.
+
+## Admission controls only in Administration — 2026-10-24
+
+Accepted: remove the Allow a person panel, allowed-email list, and access-request review from Projects. Keep all three in the existing administrator-protected `/admin` page. Projects no longer fetches these administrative lists; project creation and ordinary membership invitation flows remain separate.
+
+## Restore visible project progress and readable card sizing — 2026-10-24
+
+Accepted: increase project-card stage markers to 26px and enlarge card titles, stage labels, counts, and padding. This supersedes the earlier 11px marker reduction: a partially filled 11px circle could yield an inner fill under 2px. Preserve centered fill, independent review semantics, card actions, and responsive layout.
+
 
 ## Named visual styles: Hacker and Zen — 2026-10-24
 
