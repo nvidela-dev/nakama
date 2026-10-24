@@ -1,6 +1,7 @@
 "use client";
 import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
+import { ActionMenu } from "@/shared/ui/action-menu";
 
 import { useState, type ReactNode } from "react";
 import { Dialog } from "@/shared/ui/dialog";
@@ -39,22 +40,14 @@ export function ProjectCard({
       {project.role === "owner" && (
         <>
           <div className="project-card-actions">
-            <Button
-              type="button"
-              title={t("Edit project")}
-              aria-label={t("Edit project")}
-              onClick={() => open("edit")}
-            >
-              <Icon name="edit" />
-            </Button>
-            <Button
-              type="button"
-              title={t("Delete project")}
-              aria-label={t("Delete project")}
-              onClick={() => open("delete")}
-            >
-              <Icon name="delete" />
-            </Button>
+            <ActionMenu id={`project-actions-${project.id}`} label={t("Project actions")}>
+              <Button type="button" variant="ghost" onClick={() => open("edit")}>
+                <Icon name="edit" /> {t("Edit project")}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => open("delete")}>
+                <Icon name="delete" /> {t("Delete project")}
+              </Button>
+            </ActionMenu>
           </div>
           <Dialog
             open={isOpen}

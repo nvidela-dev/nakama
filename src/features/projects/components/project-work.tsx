@@ -25,8 +25,15 @@ export function ProjectWork({
         : "steps";
   function select(view: View) {
     const params = new URLSearchParams(query);
-    if (view !== "steps") params.set("view", view);
-    else params.delete("view");
+    if (view !== "steps") {
+      params.set("view", view);
+      params.delete("stage");
+      params.delete("node");
+    } else {
+      params.delete("view");
+    }
+    params.delete("commentsBefore");
+    params.delete("comment");
     router.replace(`${path}${params.size ? `?${params}` : ""}`, { scroll: false });
   }
   if (!tasks) return <>{children}</>;

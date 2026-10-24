@@ -29,6 +29,7 @@ test("project edits, deletion, and whitelist management work from the main scree
   let card = page
     .locator(".project-card")
     .filter({ has: page.getByRole("heading", { name, exact: true }) });
+  await card.getByRole("button", { name: "Project actions", exact: true }).click();
   await card.getByRole("button", { name: "Edit project", exact: true }).click();
   let dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
@@ -44,6 +45,7 @@ test("project edits, deletion, and whitelist management work from the main scree
     .locator(".project-card")
     .filter({ has: page.getByRole("heading", { name: `${name} edited`, exact: true }) });
   await expect(card).toBeVisible();
+  await card.getByRole("button", { name: "Project actions", exact: true }).click();
   await card.getByRole("button", { name: "Edit project", exact: true }).click();
   dialog = page.getByRole("dialog");
   await expect(dialog.getByLabel("Description", { exact: true })).toHaveValue(
@@ -88,6 +90,7 @@ test("project edits, deletion, and whitelist management work from the main scree
     await context.close();
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await card.getByRole("button", { name: "Project actions", exact: true }).click();
   await card.getByRole("button", { name: "Delete project", exact: true }).click();
   dialog = page.getByRole("dialog");
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);

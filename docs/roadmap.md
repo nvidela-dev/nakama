@@ -345,3 +345,11 @@ Accepted: expand local frontend performance tracking so bundle composition, clie
 ## Animated loading skeletons and compact project timelines — 2026-10-23
 
 Accepted: add structured animated loading skeletons (`stack`, `cards`, `workspace`, `compact`, `map`) across route `loading.tsx` boundaries, `next/dynamic` client chunks (`JourneyMiniview`, `AnswerEditor`, `StageReviewForm`, `MarkdownReader`), and client async popovers (`NotificationBell`, `ProjectNavigation`, `ReferencePicker`), with subtle shimmer and pulse animations disabled under `prefers-reduced-motion: reduce`. Make project-list cards, stage timelines, and project stage-list cards significantly more compact: shrink project card padding and `h3` titles (`15px` comfortable, `13.5px` compact desktop), reduce `.project-timeline .timeline-marker` dots from `24px` to `11px` with vertically centered connectors, and reduce `.stage-card` typography (`h2` `15px` comfortable / `12.5px` compact desktop, `.stage-label` `10px` / `9px`, `small` `9.5px`, `.stage-number` `10px`, `.journey-hint` `10.5px`) while preserving accessible status labels and coarse-pointer touch targets. Frame `.project-working-column` as an enclosed window panel with `.project-work-tabs` as its integrated top header bar so the center workspace matches the left Discussion window and right sidebar panels.
+
+## Project-card action menu — 2026-10-23
+
+Accepted: move owner Edit/Delete project-card icons into the shared chevron `ActionMenu` used by chat messages, give card titles top padding at a slightly smaller size, and truncate long stage names with an ellipsis (full names remain in tooltips and accessible labels). Permissions, dialogs and deletion confirmation are unchanged.
+
+## Collapsible sidebar panels and activity-scoped discussion — 2026-10-23
+
+Accepted: make each right-column sidebar panel (Progress, Linked projects, Members) an individually collapsible `<details className="panel ...">` disclosure open by default with clean summaries and count badges, retaining the inner Activity disclosure. Switching project workspace tabs to 'To-do' (`tasks`) or 'Artifacts' (`artifacts`) opens a dedicated chat scoped to that activity rather than retaining the previous stage/step discussion, clearing step parameters and establishing isolated activity discussion scopes in `project_comments`.

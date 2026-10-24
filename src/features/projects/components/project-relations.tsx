@@ -53,8 +53,13 @@ export function ProjectRelations({
   const t = useT(),
     [state, action, pending] = useActionState(changeProjectLink.bind(null, projectId), {});
   return (
-    <aside className="panel project-relations">
-      <h2>{t("Linked projects")}</h2>
+    <details className="panel project-relations" open>
+      <summary>
+        <h2>
+          {t("Linked projects")}{" "}
+          <span className="count">{links.sources.length + links.children.length}</span>
+        </h2>
+      </summary>
       {(
         [
           ["source", "Spawned from", links.sources],
@@ -114,6 +119,6 @@ export function ProjectRelations({
       <small className="muted">
         {t("Links do not share access. Only projects you belong to appear here.")}
       </small>
-    </aside>
+    </details>
   );
 }
