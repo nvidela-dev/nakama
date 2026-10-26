@@ -20,7 +20,7 @@ export default function ErrorPage({ error, retry }: { error: unknown; retry: () 
       <Panel className="">
         <h1
           className={
-            "mb-[0.67em] mt-0 font-mono tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium"
+            "mb-[0.67em] mt-0 font-sans tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium"
           }
         >
           {t("Unable to load")}

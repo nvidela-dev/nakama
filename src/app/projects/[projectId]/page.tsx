@@ -127,19 +127,19 @@ export default async function ProjectPage({
       />
       <details
         className={
-          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[10px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
+          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
         }
       >
         <summary className="cursor-pointer select-none [[open]>&]:mb-3">
           <h2
             className={
-              "font-mono tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
+              "font-sans tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
             }
           >
             {t("Members")}{" "}
             <span
               className={
-                "count align-middle text-muted border border-line rounded-[100px] text-[10px] py-0.5 px-1.5 ml-1.25"
+                "count align-middle text-muted border border-line rounded-[100px] text-[11px] py-0.5 px-1.5 ml-1.25"
               }
             >
               {people.members.length}
@@ -159,7 +159,7 @@ export default async function ProjectPage({
                   <strong className={"text-[11px] leading-[1.4] break-words"}>
                     {m.user_id === person.userId ? t("You") : m.display_name}
                   </strong>
-                  <small className={"text-muted text-[10px] leading-[1.4]"}>{t(m.role)}</small>
+                  <small className={"text-muted text-[11px] leading-[1.4]"}>{t(m.role)}</small>
                 </div>
                 {project.role === "owner" && m.role === "member" && (
                   <AccessButton projectId={projectId} id={m.user_id} operation="remove" />
@@ -174,7 +174,7 @@ export default async function ProjectPage({
                 <div className="min-w-0 max-w-full pt-1 border-t border-t-line">
                   <h3
                     className={
-                      "font-mono tracking-[-0.045em] font-medium text-muted m-0 mb-1 text-[10px] uppercase leading-[1.4]"
+                      "font-sans tracking-[-0.045em] font-medium text-muted m-0 mb-1 text-[11px] uppercase leading-[1.4]"
                     }
                   >
                     {t("Invitations")}
@@ -191,7 +191,7 @@ export default async function ProjectPage({
                           <strong className={"text-[11px] leading-[1.4] break-words"}>
                             {inv.email}
                           </strong>
-                          <small className={"text-muted text-[10px] leading-[1.4]"}>
+                          <small className={"text-muted text-[11px] leading-[1.4]"}>
                             {inv.revoked_at
                               ? t("Revoked")
                               : inv.accepted_at
@@ -264,7 +264,7 @@ export default async function ProjectPage({
           </Link>
           <h1
             className={
-              "font-mono tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px] m-0 min-w-0"
+              "font-sans tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px] m-0 min-w-0"
             }
           >
             {project.name}

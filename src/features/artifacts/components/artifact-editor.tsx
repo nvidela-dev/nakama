@@ -180,14 +180,14 @@ export function ArtifactEditor({
           <div>
             <span
               className={
-                "eyebrow text-[10px] tracking-[2px] text-lime font-bold block [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mb-2"
+                "eyebrow text-[11px] tracking-[2px] text-lime font-bold block [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mb-2"
               }
             >
               {t(artifactKinds[artifact.kind])}
             </span>
             <h2
               className={
-                "font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 wrap-anywhere m-0"
+                "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 wrap-anywhere m-0"
               }
             >
               {artifact.name}
@@ -217,7 +217,7 @@ export function ArtifactEditor({
               <>
                 <h3
                   className={
-                    "mb-[1em] mt-0 font-mono tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2"
+                    "mb-[1em] mt-0 font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2"
                   }
                 >
                   {t("GitHub repository / release")}
@@ -414,7 +414,7 @@ export function ArtifactEditor({
         <Panel className="">
           <h2
             className={
-              "mb-[0.83em] font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 mt-0 text-[17px]"
+              "mb-[0.83em] font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 mt-0 text-[17px]"
             }
           >
             {t("Details")}
@@ -519,7 +519,7 @@ export function ArtifactEditor({
           >
             <h2
               className={
-                "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 text-[17px] m-0"
+                "font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 text-[17px] m-0"
               }
             >
               {t("To-do")}

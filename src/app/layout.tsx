@@ -6,6 +6,8 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { authConfigured } from "@/features/access/server/auth";
 import { Header } from "@/features/shell/components/header";
+import "@fontsource-variable/manrope";
+import "@fontsource/ibm-plex-mono/latin-400.css";
 import "./globals.css";
 import { Footer } from "@/features/shell/components/footer";
 import { LanguageProvider } from "@/shared/i18n/provider";
@@ -13,7 +15,7 @@ import { enUS } from "@clerk/localizations/en-US";
 import { esUY } from "@clerk/localizations/es-UY";
 export async function generateViewport(): Promise<Viewport> {
   const theme = parseStyleTheme((await cookies()).get("nakama-theme")?.value);
-  return { themeColor: palettes[theme].bg, colorScheme: theme === "zen" ? "light" : "dark" };
+  return { themeColor: palettes[theme].bg, colorScheme: theme === "day" ? "light" : "dark" };
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -63,7 +65,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         'lg:[html&[data-density="compact"]_footer]:max-w-360 lg:[html&[data-density="compact"]_footer]:py-4 lg:[html&[data-density="compact"]_footer]:px-7'
       }
     >
-      <body className={"m-0 bg-bg text-ink font-mono text-[16px] leading-[1.6]"}>
+      <body className={"m-0 bg-bg text-ink font-sans text-[14px] leading-[1.5]"}>
         <LanguageProvider locale={locale} dictionary={locale === "es" ? messages : {}}>
           {authConfigured() ? (
             <ClerkProvider localization={locale === "es" ? esUY : enUS}>{content}</ClerkProvider>

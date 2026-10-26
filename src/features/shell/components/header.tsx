@@ -11,13 +11,13 @@ export async function Header() {
   return (
     <header
       className={
-        'site-header w-full max-w-360 lg:compact:max-w-360 py-7.5 px-[6%] m-auto flex items-center justify-between border-b border-b-[var(--theme-overlay,#ffffff0c)] relative isolate max-[700px]:py-5 max-[1000px]:flex-wrap max-[1000px]:gap-4.5 lg:compact:py-3 lg:compact:px-7 lg:compact:gap-5 before:[content:""] before:absolute before:inset-0 before:z-[-1] before:[pointer-events:none] before:[background-image:radial-gradient(circle_at_1px_1px,_#dcf6a35c_0.6px,_#dcf6a326_1px,_transparent_1.5px),_radial-gradient(ellipse_at_65%_0%,_var(--theme-glow,#dcf6a314),_transparent_70%)] before:[background-size:7px_7px,_100%_100%] before:[mask:url("/header-wave-mask.svg")_center_/_100%_100%_no-repeat] before:[-webkit-mask:url("/header-wave-mask.svg")_center_/_100%_100%_no-repeat] [&:has(.project-navigation-panel)]:z-[60] [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:py-2.5 [&_.project-navigation-panel_a]:px-3 [&_.project-navigation-panel_a]:wrap-anywhere [&_.project-navigation-panel_a]:[white-space:normal] [&_.project-navigation-panel_a]:rounded-[4px] max-[700px]:[&_.language-control]:absolute max-[700px]:[&_.language-control]:right-[6%] max-[700px]:[&_.language-control]:top-4 [&:has(.notification-panel)]:z-[60] [&_.notification-list_a]:block [&_.notification-list_a]:[white-space:normal] [&_.notification-list_a]:wrap-anywhere'
+        "site-header w-full max-w-360 m-auto flex items-center justify-between border-b border-line bg-panel relative px-4 py-3 gap-4 flex-wrap lg:px-6 [&:has(.project-navigation-panel)]:z-[60] [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:p-3 [&_.project-navigation-panel_a]:wrap-anywhere [&:has(.notification-panel)]:z-[60] [&_.notification-list_a]:block [&_.notification-list_a]:wrap-anywhere"
       }
     >
       <Link
         href="/"
         className={
-          "brand font-mono text-[29px] [font-weight:800] tracking-[-1px] flex items-center gap-2 max-[700px]:text-[24px] lg:compact:text-[23px]"
+          "brand font-sans text-[29px] [font-weight:800] tracking-[-1px] flex items-center gap-2 max-[700px]:text-[24px] lg:compact:text-[23px]"
         }
         aria-label={t("Nakama home")}
       >
@@ -29,7 +29,7 @@ export async function Header() {
         >
           <WaveMark />
         </span>{" "}
-        nakama<span className={"brand-dot text-lime ml-[-8px]"}>.</span>
+        nakama
       </Link>
       <nav
         aria-label={t("Main navigation")}
@@ -43,6 +43,7 @@ export async function Header() {
         <Link href="/preview" className={"max-[700px]:first:hidden"}>
           {t("Example project")}
         </Link>
+        <Link href="/wiki/experiments">{t("Lab guide")}</Link>
         {authConfigured() && (
           <>
             <Show when="signed-in">

@@ -11,13 +11,13 @@ function Conversation() {
   return (
     <section
       className={
-        "panel discussion bg-panel border border-line rounded-[16px] min-w-0 [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 mt-5 p-3 [&_>_.muted]:text-[10px] [&_>_.muted]:leading-[1.45] [&_>_.muted]:mt-0 [&_>_.muted]:mx-0 [&_>_.muted]:mb-3"
+        "panel discussion bg-panel border border-line rounded-[16px] min-w-0 [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 mt-5 p-3 [&_>_.muted]:text-[11px] [&_>_.muted]:leading-[1.45] [&_>_.muted]:mt-0 [&_>_.muted]:mx-0 [&_>_.muted]:mb-3"
       }
       style={{ width: 320, maxWidth: "100%" }}
     >
       <h2
         className={
-          "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mb-3 text-[14px] leading-[1.35] mt-0 mx-0 mb-1"
+          "font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mb-3 text-[14px] leading-[1.35] mt-0 mx-0 mb-1"
         }
       >
         {t("Discussion")}

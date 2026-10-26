@@ -3,16 +3,18 @@
 @custom-variant compact (&:where(html[data-density="compact"] *));
 
 @theme {
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono:
-    ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  --color-ink: #edf2e8;
-  --color-muted: #a6b3ab;
-  --color-bg: #101c1b;
-  --color-panel: #182725;
-  --color-line: #32433d;
-  --color-lime: #dcf6a3;
-  --color-dark: #17231c;
-  --color-pink: #e9b7ae;
+    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  --color-ink: #203a32;
+  --color-muted: #53645a;
+  --color-bg: #f3f4ea;
+  --color-panel: #fcfcf6;
+  --color-line: #d6dece;
+  --color-lime: #294c3b;
+  --color-dark: #fcfcf6;
+  --color-pink: #a14435;
   --animate-loading-pulse: loading-pulse 1.5s ease-in-out infinite alternate;
   --animate-loading-shimmer: loading-shimmer 1.8s ease-in-out infinite;
 

@@ -39,13 +39,13 @@ for (const width of [1440, 390]) {
     expect(stageTypography.workingRadiusPx).toBe(10);
     if (width === 1440) {
       expect(stageTypography.headingPx).toBeLessThanOrEqual(12.5);
-      expect(stageTypography.labelPx).toBeLessThanOrEqual(9);
-      expect(stageTypography.smallPx).toBeLessThanOrEqual(9.5);
-      expect(stageTypography.hintPx).toBeLessThanOrEqual(10.5);
+      expect(stageTypography.labelPx).toBeLessThanOrEqual(11);
+      expect(stageTypography.smallPx).toBeLessThanOrEqual(11);
+      expect(stageTypography.hintPx).toBeLessThanOrEqual(11);
       expect(stageTypography.cardHeight).toBeLessThan(60);
     } else {
       expect(stageTypography.headingPx).toBeLessThanOrEqual(14);
-      expect(stageTypography.smallPx).toBeLessThanOrEqual(9.5);
+      expect(stageTypography.smallPx).toBeLessThanOrEqual(11);
     }
   });
 

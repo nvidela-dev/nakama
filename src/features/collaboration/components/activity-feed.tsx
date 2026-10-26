@@ -62,13 +62,13 @@ export function ActivityFeed({
       >
         <h2
           className={
-            "font-mono tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
+            "font-sans tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
           }
         >
           {t("Activity")}{" "}
           <span
             className={
-              "count align-middle text-muted border border-line rounded-[100px] text-[10px] py-0.5 px-1.5 ml-1.25"
+              "count align-middle text-muted border border-line rounded-[100px] text-[11px] py-0.5 px-1.5 ml-1.25"
             }
           >
             {activity.items.length}
@@ -143,7 +143,7 @@ export function ActivityFeed({
                 {event.detail && (
                   <small
                     className={
-                      "block text-[10px] leading-[1.4] text-muted break-words wrap-anywhere"
+                      "block text-[11px] leading-[1.4] text-muted break-words wrap-anywhere"
                     }
                   >
                     {t(event.detail)}
@@ -151,7 +151,7 @@ export function ActivityFeed({
                 )}
                 <time
                   dateTime={new Date(event.created_at).toISOString()}
-                  className={"block text-[10px] leading-[1.4] text-muted break-words"}
+                  className={"block text-[11px] leading-[1.4] text-muted break-words"}
                 >
                   {formatDate(event.created_at, locale)}
                 </time>

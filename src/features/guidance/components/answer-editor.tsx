@@ -86,7 +86,7 @@ export function AnswerEditor({
       </Link>
       <span
         className={
-          "eyebrow node-kind text-[10px] tracking-[2px] text-lime font-bold block mb-5.5 [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mt-7 lg:compact:mt-3"
+          "eyebrow node-kind text-[11px] tracking-[2px] text-lime font-bold block mb-5.5 [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mt-7 lg:compact:mt-3"
         }
       >
         {node.kind === "question"
@@ -99,7 +99,7 @@ export function AnswerEditor({
         ref={heading}
         tabIndex={-1}
         className={
-          "mb-[0.83em] mt-0 font-mono font-medium text-[16px] leading-[1.3] tracking-[-0.25px] lg:compact:my-1.5 lg:compact:mx-0 lg:compact:text-[14px] focus:[outline:none]"
+          "mb-[0.83em] mt-0 font-sans font-medium text-[16px] leading-[1.3] tracking-[-0.25px] lg:compact:my-1.5 lg:compact:mx-0 lg:compact:text-[14px] focus:[outline:none]"
         }
       >
         {t(node.question)}
@@ -119,7 +119,7 @@ export function AnswerEditor({
         <p className={"text-[13px] mt-3.5 mx-0 mb-2 lg:compact:mt-2 lg:compact:mb-1.25"}>
           {t(node.example)}
         </p>
-        <small className={"text-[10px] text-muted"}>
+        <small className={"text-[11px] text-muted"}>
           {t("This is an example, not an answer saved for your project.")}
         </small>
       </details>
@@ -181,7 +181,7 @@ export function AnswerEditor({
           <div className={"conflict border border-[var(--theme-border,#b59769)] p-4 rounded-[8px]"}>
             <h3
               className={
-                "mb-[1em] font-mono tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 mt-0"
+                "mb-[1em] font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 mt-0"
               }
             >
               {t("Newer answer available")}

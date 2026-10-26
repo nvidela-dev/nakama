@@ -119,7 +119,7 @@ function NotificationMenu() {
         {!!inbox?.count && (
           <span
             className={
-              "notification-badge absolute top-0 right-[-4px] py-0.5 px-1.25 rounded-[12px] bg-lime text-bg text-[10px] font-bold"
+              "notification-badge absolute top-0 right-[-4px] py-0.5 px-1.25 rounded-[12px] bg-lime text-bg text-[11px] font-bold"
             }
           >
             {inbox.count > 99 ? "99+" : inbox.count}
@@ -137,7 +137,7 @@ function NotificationMenu() {
         >
           <h2
             className={
-              "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 text-[16px]"
+              "mb-[0.83em] mt-0 font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 text-[16px]"
             }
           >
             {t("Unread comments")}

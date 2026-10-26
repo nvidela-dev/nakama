@@ -44,7 +44,7 @@ export function ProjectTimeline({
               </span>
               <span
                 className={
-                  "timeline-count block mt-0.25 tabular-nums text-[10px] leading-[1.3] text-muted"
+                  "timeline-count block mt-0.25 tabular-nums text-[11px] leading-[1.3] text-muted"
                 }
               >
                 <span
@@ -102,7 +102,7 @@ export function ProjectTimeline({
             </span>
             <span
               className={
-                "timeline-count block mt-0.25 tabular-nums text-[10px] leading-[1.3] text-muted"
+                "timeline-count block mt-0.25 tabular-nums text-[11px] leading-[1.3] text-muted"
               }
               aria-hidden="true"
             >

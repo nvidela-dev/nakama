@@ -13,15 +13,16 @@ function contrast(a: string, b: string) {
     y = luminance(b);
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
-test("Hacker remains the default and malformed preferences cannot inject styles", () => {
+test("Daylight is the default and malformed preferences cannot inject styles", () => {
   for (const value of [undefined, null, "", "dark", "ZEN", {}, "zen; color:red"])
-    assert.equal(parseStyleTheme(value), "hacker");
-  assert.equal(parseStyleTheme("zen"), "zen");
-  assert.equal(styleThemeProperties("hacker")["--bg"], "#101c1b");
-  for (const theme of ["hacker", "zen"] as const)
+    assert.equal(parseStyleTheme(value), "day");
+  assert.equal(parseStyleTheme("zen"), "day");
+  assert.equal(parseStyleTheme("hacker"), "night");
+  assert.equal(styleThemeProperties("night")["--bg"], "#14241f");
+  for (const theme of ["day", "night"] as const)
     for (const [name, value] of Object.entries(palettes[theme]))
       assert.equal(styleThemeProperties(theme)[`--color-${name}`], value);
-  assert.equal(styleThemeProperties("hacker")["--theme-surface"], undefined);
+  assert.equal(styleThemeProperties("night")["--theme-surface"], "#263b31");
 });
 test("both palettes retain readable text and primary buttons", () => {
   for (const [name, palette] of Object.entries(palettes)) {

@@ -81,7 +81,7 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
       <div className={"comment-reference-heading flex items-center justify-between gap-3"}>
         <h2
           className={
-            "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 text-[15px] m-0"
+            "font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 text-[15px] m-0"
           }
         >
           {t("Link a project or artifact")}
@@ -144,7 +144,7 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
                   <Icon name={item.kind === "project" ? "overview" : "markdown"} />
                   <span>
                     <strong className={"block text-[12px] wrap-anywhere"}>{item.name}</strong>
-                    <small className={"block text-[10px] text-muted"}>
+                    <small className={"block text-[11px] text-muted"}>
                       {t(item.kind === "project" ? "Project" : "Artifact")}
                       {item.kind === "artifact" ? ` · ${item.projectName}` : ""}
                     </small>

@@ -272,7 +272,7 @@ export function ExperimentLab({
           ],
           ["Recorded reviews", items.reduce((n, x) => n + x.reviews.length, 0)],
         ].map(([label, count]) => (
-          <div key={label} className="border border-line rounded-md p-3 bg-panel">
+          <div key={label} className="border border-line rounded-[12px] p-3 bg-panel">
             <span className="block text-muted">{t(String(label))}</span>
             <strong className="text-[20px] tabular-nums">{count}</strong>
           </div>
@@ -284,7 +284,7 @@ export function ExperimentLab({
         )}
       </p>
       {creating && (
-        <section className="rounded-lg border border-line p-4 bg-panel">
+        <section className="rounded-[18px] border border-line p-4 bg-panel">
           <h3 className="text-[18px] mb-3">{t("Frame an experiment")}</h3>
           {planForm(
             {
@@ -295,8 +295,8 @@ export function ExperimentLab({
           )}
         </section>
       )}
-      <div className="grid lg:grid-cols-[260px_minmax(0,1fr)] gap-4 min-w-0">
-        <aside className="grid content-start gap-2" aria-label={t("Experiments")}>
+      <div className="grid lg:grid-cols-[repeat(12,minmax(0,1fr))] gap-4 min-w-0">
+        <aside className="grid content-start gap-2 lg:col-span-3" aria-label={t("Experiments")}>
           {!items.length && (
             <p className="text-muted">
               {t("Start with one uncertainty. No commercial validation is required.")}
@@ -320,7 +320,7 @@ export function ExperimentLab({
         {e && plan && (
           <section
             key={e.id}
-            className="min-w-0 rounded-lg border border-line bg-panel p-4 grid gap-5"
+            className="min-w-0 rounded-[18px] border border-line bg-panel p-4 grid gap-5 lg:col-span-9"
           >
             <header>
               <p className="text-[12px] text-muted">
