@@ -110,3 +110,11 @@ A **Review** belongs to a completed run and preserves its plan, execution and ev
 **Agent contributions** are manually submitted proposals attached to a run, retaining original content, claimed agent attribution, sources and submitting member. A human accepts, edits or rejects with a review note, including changed-context reconciliation. Accepted content becomes attributed AI analysis; it does not change questionnaire answers or record a claim assessment. This is manual provenance, not authenticated proof of agent identity.
 
 Project task hierarchy/status/Lock-In, artifacts/readiness, stage reviews, discussions and lineage remain independent. Whole-project deletion cascades through lab records. Individual experiment deletion is not exposed in this slice.
+
+### Universal experiment cycle — 2026-10-26
+
+Every project is a place to develop and test ideas, regardless of its selected flow. The common learning cycle is **Idea → Test plan → Run → Evidence → Review → Next decision**, repeated as needed. Flow-specific questions frame the uncertainty; they do not establish truth. Completion of an answer, task, artifact, stage, or run never implies that the idea is validated.
+
+A project description or selected question answer can be copied into an editable, unsaved experiment claim. The user must supply a method and criterion before saving; no method, threshold, baseline or result is invented. A question-derived experiment retains its question link, and runs snapshot that question as before. Unselected-flow projects can also start an experiment. This cycle is shared navigation, not an inferred progress meter or a new lifecycle enum.
+
+Inputs retain their meaning: ideas and answers are candidate claims/context; tasks describe work; artifacts and observations can supply evidence when explicitly attributed to a run. Discussion and agent interpretation do not become empirical evidence merely by being saved. Results remain bounded to the retained plan, run and evidence snapshot. Assessment and the next action remain separate. Creative projects test user-chosen experiences or intentions without requiring market validation.

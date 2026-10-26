@@ -6,6 +6,7 @@ import { Input, Select, Textarea } from "@/shared/ui/controls";
 import { useT } from "@/shared/i18n/provider";
 import type { saveExperiment, reloadExperiments, exportExperimentBrief } from "../actions";
 import type { Experiment, Plan, LabOperation } from "../model";
+import type { ExperimentPrompts } from "../flow-prompts";
 const fieldClass = "w-full rounded-md border border-line bg-panel p-2 text-[14px]";
 const empty: Plan = {
   claim: "",
@@ -24,6 +25,9 @@ type Props = {
   initial: Experiment[];
   questions: { id: string; label: string; stageId: string }[];
   initialNode?: string;
+  initialClaim?: string;
+  startNew?: boolean;
+  prompts?: ExperimentPrompts | undefined;
   names?: Record<string, string | null>;
   save: typeof saveExperiment;
   reload: typeof reloadExperiments;
@@ -35,16 +39,19 @@ function Field({
   value = "",
   required = false,
   numeric = false,
+  hint,
 }: {
   name: string;
   label: string;
   value?: string;
   required?: boolean;
   numeric?: boolean;
+  hint?: string | undefined;
 }) {
   return (
     <label className="grid gap-1 text-[14px]">
       <span>{label}</span>
+      {hint && <small className="text-muted text-[12px]">{hint}</small>}
       {numeric ? (
         <Input
           className={fieldClass}
@@ -72,6 +79,9 @@ export function ExperimentLab({
   initial,
   questions,
   initialNode,
+  initialClaim = "",
+  startNew = false,
+  prompts,
   names = {},
   save,
   reload,
@@ -80,7 +90,7 @@ export function ExperimentLab({
   const t = useT();
   const [items, setItems] = useState(initial),
     [selected, setSelected] = useState(initial[0]?.id ?? ""),
-    [creating, setCreating] = useState(!initial.length),
+    [creating, setCreating] = useState(startNew || !initial.length),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false),
     [brief, setBrief] = useState("");
@@ -154,18 +164,21 @@ export function ExperimentLab({
         <Field
           name="claim"
           label={t("Claim · what do you want to learn?")}
+          hint={prompts?.claim}
           value={current.claim}
           required
         />
         <Field
           name="method"
           label={t("Method · how will you test it?")}
+          hint={prompts?.method}
           value={current.method}
           required
         />
         <Field
           name="criteria"
           label={t("Success criteria · what would count?")}
+          hint={prompts?.criteria}
           value={current.criteria}
           required
         />
@@ -278,6 +291,7 @@ export function ExperimentLab({
           </div>
         ))}
       </div>
+      {prompts && <p className="text-[12px] text-muted">{prompts.evidence}</p>}
       <p className="text-[12px] text-muted">
         {t(
           "These are records of exploration, not a viability score. Reviews apply only to their claim, scope and evidence snapshot.",
@@ -286,9 +300,17 @@ export function ExperimentLab({
       {creating && (
         <section className="rounded-[18px] border border-line p-4 bg-panel">
           <h3 className="text-[18px] mb-3">{t("Frame an experiment")}</h3>
+          {initialClaim && (
+            <p className="text-[12px] text-muted mb-3">
+              {t(
+                "Copied from your idea or answer as an untested claim. Edit it, then define the method and criterion before saving.",
+              )}
+            </p>
+          )}
           {planForm(
             {
               ...empty,
+              claim: initialClaim,
               nodeId: questions.some((q) => q.id === initialNode) ? (initialNode ?? "") : "",
             },
             true,
