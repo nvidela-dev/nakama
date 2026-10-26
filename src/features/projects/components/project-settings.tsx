@@ -67,7 +67,7 @@ export function ProjectSettings({
       >
         <h2
           className={
-            "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
+            "mb-[0.83em] mt-0 font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
           }
         >
           {t("Edit project")}
@@ -119,7 +119,7 @@ export function ProjectSettings({
       >
         <h2
           className={
-            "mb-[0.83em] mt-0 font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
+            "mb-[0.83em] mt-0 font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3"
           }
         >
           {t("Delete project")}

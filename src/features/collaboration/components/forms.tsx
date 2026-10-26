@@ -47,13 +47,13 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
             role="note"
             aria-label={inviteHint}
             title={inviteHint}
-            className="inline-grid place-items-center w-4 h-4 rounded-full border border-line text-[9px] leading-none text-muted cursor-help select-none hover:border-lime hover:text-lime focus-visible:outline-2 focus-visible:outline-lime"
+            className="inline-grid place-items-center w-4 h-4 rounded-full border border-line text-[11px] leading-none text-muted cursor-help select-none hover:border-lime hover:text-lime focus-visible:outline-2 focus-visible:outline-lime"
           >
             ?
           </span>
           <span
             role="tooltip"
-            className="pointer-events-none invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute right-0 bottom-full mb-1.5 w-52 p-2 rounded-[6px] bg-bg border border-line text-[10px] leading-[1.4] text-ink shadow-lg z-20 break-words"
+            className="pointer-events-none invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute right-0 bottom-full mb-1.5 w-52 p-2 rounded-[6px] bg-bg border border-line text-[11px] leading-[1.4] text-ink shadow-lg z-20 break-words"
           >
             {inviteHint}
           </span>

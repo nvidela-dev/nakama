@@ -43,7 +43,7 @@ export function ProjectCard({
       <Link className={"project-card-link block"} href={`/projects/${project.id}`}>
         <h3
           className={[
-            "font-mono tracking-[-0.045em] font-semibold m-0 pt-1 px-0.5 pb-0.5 text-[16px] leading-[1.35] wrap-anywhere lg:compact:text-[15px]",
+            "font-sans tracking-[-0.045em] font-semibold m-0 pt-1 px-0.5 pb-0.5 text-[16px] leading-[1.35] wrap-anywhere lg:compact:text-[15px]",
             project.role === "owner" && "pr-8 pointer-coarse:pr-11",
           ]
             .filter(Boolean)

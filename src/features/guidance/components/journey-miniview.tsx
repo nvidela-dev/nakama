@@ -239,7 +239,7 @@ export default function JourneyMiniview({
   return (
     <div
       className={
-        "journey-miniview mb-[1.25rem] p-[1rem] border border-line rounded-[4px] [background:radial-gradient(ellipse_at_50%_50%,_var(--color-panel)_0%,_var(--color-bg)_65%)] text-ink [box-shadow:inset_0_0_60px_var(--color-dark)] font-mono"
+        "journey-miniview mb-[1.25rem] p-[1rem] border border-line rounded-[4px] [background:radial-gradient(ellipse_at_50%_50%,_var(--color-panel)_0%,_var(--color-bg)_65%)] text-ink [box-shadow:inset_0_0_60px_var(--color-dark)] font-sans"
       }
     >
       <div

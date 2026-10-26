@@ -219,7 +219,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
         <div>
           <h2
             className={
-              "font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
+              "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
             }
           >
             {t("To-do")}
@@ -249,7 +249,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("Title or task number")}
             className={
-              "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-mono py-2 px-2.5 min-h-9 pointer-coarse:min-h-11"
+              "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-sans py-2 px-2.5 min-h-9 pointer-coarse:min-h-11"
             }
           />
         </label>
@@ -259,7 +259,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className={
-              "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-mono py-2 px-2.5 min-h-9 pointer-coarse:min-h-11"
+              "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-sans py-2 px-2.5 min-h-9 pointer-coarse:min-h-11"
             }
           >
             <option value="all">{t("All statuses")}</option>
@@ -429,7 +429,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                   value={node.status}
                   onChange={(e) => mark(node, e.target.value as TaskStatus)}
                   className={
-                    "w-32.5 min-h-9 py-2 px-2.5 text-[11px] bg-bg text-ink border border-line rounded-[6px] font-mono pointer-coarse:min-h-11"
+                    "w-32.5 min-h-9 py-2 px-2.5 text-[11px] bg-bg text-ink border border-line rounded-[6px] font-sans pointer-coarse:min-h-11"
                   }
                 >
                   {Object.entries(taskStatusLabels).map(([value, label]) => (
@@ -479,7 +479,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           onClose={close}
           dismissible={!pending}
           className={
-            "task-dialog [&_select]:w-full [&_select]:min-w-0 [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-line [&_select]:rounded-[6px] [&_select]:font-mono [&_select]:py-2 [&_select]:px-2.5 [&_select]:min-h-9 w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
+            "task-dialog [&_select]:w-full [&_select]:min-w-0 [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-line [&_select]:rounded-[6px] [&_select]:font-sans [&_select]:py-2 [&_select]:px-2.5 [&_select]:min-h-9 w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
           }
           labelledBy="task-editor-heading"
         >
@@ -508,7 +508,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             <h2
               id="task-editor-heading"
               className={
-                "font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
+                "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
               }
             >
               {t(
@@ -534,7 +534,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                   value={editor.title}
                   onChange={(event) => setEditor({ ...editor, title: event.target.value })}
                   className={
-                    "min-w-0 font-mono min-h-9 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
+                    "min-w-0 font-sans min-h-9 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
                   }
                 />
               </label>
@@ -634,14 +634,14 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           onClose={close}
           dismissible={!pending}
           className={
-            "task-dialog [&_input]:w-full [&_input]:min-w-0 [&_input]:bg-bg [&_input]:text-ink [&_input]:border [&_input]:border-line [&_input]:rounded-[6px] [&_input]:font-mono [&_input]:py-2 [&_input]:px-2.5 [&_input]:min-h-9 w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
+            "task-dialog [&_input]:w-full [&_input]:min-w-0 [&_input]:bg-bg [&_input]:text-ink [&_input]:border [&_input]:border-line [&_input]:rounded-[6px] [&_input]:font-sans [&_input]:py-2 [&_input]:px-2.5 [&_input]:min-h-9 w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
           }
           labelledBy="task-import-heading"
         >
           <h2
             id="task-import-heading"
             className={
-              "font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
+              "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
             }
           >
             {t("Import Lock-In")}
@@ -653,7 +653,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
               disabled={pending}
               onChange={(e) => setSelected(Number(e.target.value))}
               className={
-                "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-mono py-2 px-2.5 min-h-9"
+                "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-sans py-2 px-2.5 min-h-9"
               }
             >
               {imports.map((p, i) => (

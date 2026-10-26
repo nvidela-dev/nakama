@@ -103,7 +103,7 @@ function ProjectCardsPreview() {
             >
               <h3
                 className={
-                  "font-mono tracking-[-0.045em] font-semibold m-0 pt-1 px-0.5 pb-0.5 text-[16px] leading-[1.35] wrap-anywhere lg:compact:text-[15px] pr-8 pointer-coarse:pr-11"
+                  "font-sans tracking-[-0.045em] font-semibold m-0 pt-1 px-0.5 pb-0.5 text-[16px] leading-[1.35] wrap-anywhere lg:compact:text-[15px] pr-8 pointer-coarse:pr-11"
                 }
               >
                 {card.name}

@@ -35,7 +35,7 @@ function Example() {
   return (
     <section
       className={
-        "discussion mt-5 [&.panel]:p-3 [&_>_h2]:text-[14px] [&_>_h2]:leading-[1.35] [&_>_h2]:mt-0 [&_>_h2]:mx-0 [&_>_h2]:mb-1 [&_>_.muted]:text-[10px] [&_>_.muted]:leading-[1.45] [&_>_.muted]:mt-0 [&_>_.muted]:mx-0 [&_>_.muted]:mb-3"
+        "discussion mt-5 [&.panel]:p-3 [&_>_h2]:text-[14px] [&_>_h2]:leading-[1.35] [&_>_h2]:mt-0 [&_>_h2]:mx-0 [&_>_h2]:mb-1 [&_>_.muted]:text-[11px] [&_>_.muted]:leading-[1.45] [&_>_.muted]:mt-0 [&_>_.muted]:mx-0 [&_>_.muted]:mb-3"
       }
       style={{ maxWidth: 320 }}
     >
@@ -59,7 +59,7 @@ function ComposerExample() {
   return (
     <section
       className={
-        "discussion panel bg-panel border border-line rounded-[16px] min-w-0 [&_p]:text-muted [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 mt-5 p-3 [&_>_h2]:text-[14px] [&_>_h2]:leading-[1.35] [&_>_h2]:mt-0 [&_>_h2]:mx-0 [&_>_h2]:mb-1 [&_>_.muted]:text-[10px] [&_>_.muted]:leading-[1.45] [&_>_.muted]:mt-0 [&_>_.muted]:mx-0 [&_>_.muted]:mb-3"
+        "discussion panel bg-panel border border-line rounded-[16px] min-w-0 [&_p]:text-muted [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 mt-5 p-3 [&_>_h2]:text-[14px] [&_>_h2]:leading-[1.35] [&_>_h2]:mt-0 [&_>_h2]:mx-0 [&_>_h2]:mb-1 [&_>_.muted]:text-[11px] [&_>_.muted]:leading-[1.45] [&_>_.muted]:mt-0 [&_>_.muted]:mx-0 [&_>_.muted]:mb-3"
       }
       style={{ maxWidth: 320 }}
     >

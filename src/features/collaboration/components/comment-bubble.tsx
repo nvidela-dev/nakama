@@ -35,7 +35,7 @@ export function CommentBubble({
       <div
         className={"comment-bubble-heading flex justify-between items-center gap-2 min-h-5 min-w-0"}
       >
-        <strong className={"text-lime text-[10px] leading-[1.3] break-words wrap-anywhere"}>
+        <strong className={"text-lime text-[11px] leading-[1.3] break-words wrap-anywhere"}>
           {author}
         </strong>
         {actions}
@@ -43,7 +43,7 @@ export function CommentBubble({
       <div className={"comment-bubble-content min-w-0 break-words wrap-anywhere"}>{children}</div>
       <div
         className={
-          "comment-meta flex items-baseline flex-wrap justify-end gap-1.25 mt-0.75 text-[10px] leading-[1.3] text-[var(--theme-text,#c4d2ca)]"
+          "comment-meta flex items-baseline flex-wrap justify-end gap-1.25 mt-0.75 text-[11px] leading-[1.3] text-[var(--theme-text,#c4d2ca)]"
         }
       >
         {edited && <span>{edited}</span>}

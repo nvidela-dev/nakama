@@ -13,7 +13,7 @@ export function Input({ disabled, className, ...props }: ComponentProps<"input">
       {...props}
       disabled={disabled || (controlled && !hydrated)}
       className={cn(
-        "[font:inherit] focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
+        "[font:inherit] border-[var(--theme-border)]! rounded-[9px] max-[700px]:text-[16px]! focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
         className,
       )}
     />
@@ -27,7 +27,7 @@ export function Textarea({ disabled, className, ...props }: ComponentProps<"text
       {...props}
       disabled={disabled || (controlled && !hydrated)}
       className={cn(
-        "[font:inherit] focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
+        "[font:inherit] border-[var(--theme-border)]! rounded-[9px] max-[700px]:text-[16px]! focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
         className,
       )}
     />
@@ -38,7 +38,10 @@ export function Select({ disabled, className, ...props }: ComponentProps<"select
   const controlled = !!props.onChange && props.value !== undefined;
   return (
     <select
-      className={cn("", className)}
+      className={cn(
+        "border-[var(--theme-border)]! rounded-[9px] max-[700px]:text-[16px]! focus-visible:outline-3 focus-visible:outline-lime focus-visible:outline-offset-3",
+        className,
+      )}
       {...props}
       disabled={disabled || (controlled && !hydrated)}
     />

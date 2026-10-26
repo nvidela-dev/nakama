@@ -92,7 +92,7 @@ export function ArtifactLibrary({
           <h2
             className={[
               projectId ? undefined : "sr-only",
-              "font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 absolute w-0.25 h-0.25 p-0 overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0 m-0",
+              "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 absolute w-0.25 h-0.25 p-0 overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0 m-0",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -176,7 +176,7 @@ export function ArtifactLibrary({
         >
           <h3
             className={
-              "mb-[1em] font-mono tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 text-ink mt-5"
+              "mb-[1em] font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 text-ink mt-5"
             }
           >
             {t(items.length ? "No matching artifacts." : "No artifacts yet.")}
@@ -237,7 +237,7 @@ export function ArtifactLibrary({
               <div className={"artifact-card-body p-4"}>
                 <div
                   className={
-                    "artifact-card-meta flex justify-between items-center gap-2 text-[10px] text-muted"
+                    "artifact-card-meta flex justify-between items-center gap-2 text-[11px] text-muted"
                   }
                 >
                   <span>{t(artifactKinds[a.kind])}</span>
@@ -254,7 +254,7 @@ export function ArtifactLibrary({
                 </div>
                 <h3
                   className={
-                    "font-mono tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-3 mx-0 mb-1 text-[18px] wrap-anywhere"
+                    "font-sans tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-3 mx-0 mb-1 text-[18px] wrap-anywhere"
                   }
                 >
                   {a.name}
@@ -307,7 +307,7 @@ export function ArtifactLibrary({
               <h2
                 id="new-artifact-heading"
                 className={
-                  "font-mono tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
+                  "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
                 }
               >
                 {t("New artifact")}

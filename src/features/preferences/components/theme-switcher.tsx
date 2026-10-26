@@ -32,8 +32,8 @@ export function ThemeSwitcher({ theme }: { theme: StyleTheme }) {
           });
         }}
       >
-        <option value="hacker">Hacker</option>
-        <option value="zen">Zen</option>
+        <option value="day">{t("Daylight")}</option>
+        <option value="night">{t("Evening")}</option>
       </Select>
       {failed && (
         <span role="alert" className="max-w-40">

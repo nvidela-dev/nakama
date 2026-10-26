@@ -249,7 +249,7 @@ export function Journey({
                 >
                   <h2
                     className={
-                      "font-mono font-medium lg:compact:text-[13px] tracking-[-0.2px] min-w-0 m-0 text-[14px] leading-[1.3] compact:text-[13px]"
+                      "font-sans font-medium lg:compact:text-[13px] tracking-[-0.2px] min-w-0 m-0 text-[14px] leading-[1.3] compact:text-[13px]"
                     }
                   >
                     {t(activeStage.question)}
@@ -304,7 +304,7 @@ export function Journey({
                           {t(stage.name)}
                         </strong>
                         <small
-                          className={`block mt-0.75 text-[9px] leading-[1.4] ${revisit ? "text-[var(--theme-text,#d5df8a)]" : reviewed ? "text-lime" : "text-muted"}`}
+                          className={`block mt-0.75 text-[11px] leading-[1.4] ${revisit ? "text-[var(--theme-text,#d5df8a)]" : reviewed ? "text-lime" : "text-muted"}`}
                         >
                           {answered}/{questions.length} · {t(status)}
                           {revisit ? t(" · revisit") : ""}
@@ -324,7 +324,7 @@ export function Journey({
                 <>
                   <p
                     className={
-                      "journey-hint text-[11px] text-muted my-3 mx-0 lg:compact:text-[10.5px] lg:compact:my-1.5"
+                      "journey-hint text-[11px] text-muted my-3 mx-0 lg:compact:text-[11px] lg:compact:my-1.5"
                     }
                   >
                     {t("Select a stage to view its questions.")}{" "}
@@ -350,7 +350,7 @@ export function Journey({
                           >
                             <span
                               className={
-                                "stage-number [font:10.5px_monospace] text-lime pt-0.5 shrink-0 lg:compact:pt-0 lg:compact:text-[10px]"
+                                "stage-number [font:10.5px_monospace] text-lime pt-0.5 shrink-0 lg:compact:pt-0 lg:compact:text-[11px]"
                               }
                             >
                               {String(i + 1).padStart(2, "0")}
@@ -362,21 +362,21 @@ export function Journey({
                             >
                               <span
                                 className={
-                                  "stage-label text-[10px] text-lime uppercase tracking-[1.2px] break-words lg:compact:col-start-1 lg:compact:row-start-1 lg:compact:text-[9px] lg:compact:tracking-[0.8px] lg:compact:leading-[1.2]"
+                                  "stage-label text-[11px] text-lime uppercase tracking-[1.2px] break-words lg:compact:col-start-1 lg:compact:row-start-1 lg:compact:text-[11px] lg:compact:tracking-[0.8px] lg:compact:leading-[1.2]"
                                 }
                               >
                                 {t(stage.name)}
                               </span>
                               <h2
                                 className={
-                                  "font-mono font-medium text-[15px] leading-[1.3] mt-1 mx-0 mb-1.5 tracking-[-0.3px] min-w-0 break-words max-[700px]:text-[14px] lg:compact:col-span-2 lg:compact:col-start-1 lg:compact:row-start-2 lg:compact:text-[12.5px] lg:compact:m-0 lg:compact:leading-[1.25] lg:compact:tracking-[-0.15px]"
+                                  "font-sans font-medium text-[15px] leading-[1.3] mt-1 mx-0 mb-1.5 tracking-[-0.3px] min-w-0 break-words max-[700px]:text-[14px] lg:compact:col-span-2 lg:compact:col-start-1 lg:compact:row-start-2 lg:compact:text-[12.5px] lg:compact:m-0 lg:compact:leading-[1.25] lg:compact:tracking-[-0.15px]"
                                 }
                               >
                                 {t(stage.question)}
                               </h2>
                               <small
                                 className={
-                                  "text-[9.5px] text-muted break-words lg:compact:col-start-2 lg:compact:row-start-1 lg:compact:text-right lg:compact:leading-[1.2]"
+                                  "text-[11px] text-muted break-words lg:compact:col-start-2 lg:compact:row-start-1 lg:compact:text-right lg:compact:leading-[1.2]"
                                 }
                               >
                                 {reviewed
@@ -423,21 +423,21 @@ export function Journey({
                       >
                         <span
                           className={
-                            "eyebrow text-[10px] tracking-[2px] text-lime font-bold block mb-5.5 [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px]"
+                            "eyebrow text-[11px] tracking-[2px] text-lime font-bold block mb-5.5 [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px]"
                           }
                         >
                           {t("READ-ONLY EXAMPLE")}
                         </span>
                         <h2
                           className={
-                            "mb-[0.83em] mt-0 font-mono font-medium text-[16px] leading-[1.3] tracking-[-0.25px] lg:compact:my-1.5 lg:compact:mx-0 lg:compact:text-[14px] focus:[outline:none]"
+                            "mb-[0.83em] mt-0 font-sans font-medium text-[16px] leading-[1.3] tracking-[-0.25px] lg:compact:my-1.5 lg:compact:mx-0 lg:compact:text-[14px] focus:[outline:none]"
                           }
                         >
                           {t(activeNode.question)}
                         </h2>
                         <details
                           className={
-                            "example bg-[var(--theme-surface,#263a2c)] [border-left:2px_solid_var(--theme-border,#adc57f)] py-3.5 px-4.5 my-6 mx-0 [&_small]:text-[10px] [&_small]:text-muted lg:compact:py-2 lg:compact:px-3 lg:compact:my-3"
+                            "example bg-[var(--theme-surface,#263a2c)] [border-left:2px_solid_var(--theme-border,#adc57f)] py-3.5 px-4.5 my-6 mx-0 [&_small]:text-[11px] [&_small]:text-muted lg:compact:py-2 lg:compact:px-3 lg:compact:my-3"
                           }
                           open
                         >
@@ -516,7 +516,7 @@ export function Journey({
                                 >
                                   <span
                                     className={
-                                      "node-state [text-transform:capitalize] text-lime col-start-2 row-start-1 text-[9px] text-right"
+                                      "node-state [text-transform:capitalize] text-lime col-start-2 row-start-1 text-[11px] text-right"
                                     }
                                   >
                                     <Icon
@@ -533,7 +533,7 @@ export function Journey({
                                   </strong>
                                   <small
                                     className={
-                                      "node-type text-muted col-start-2 row-start-2 text-[9px] text-right"
+                                      "node-type text-muted col-start-2 row-start-2 text-[11px] text-right"
                                     }
                                   >
                                     {t(node.kind)}
@@ -541,7 +541,7 @@ export function Journey({
                                   {node.after.length > 0 && (
                                     <small
                                       className={
-                                        "node-after max-[700px]:hidden text-muted text-[9px] border-t-line col-start-1 row-start-2 border-0 p-0 leading-[1.4]"
+                                        "node-after max-[700px]:hidden text-muted text-[11px] border-t-line col-start-1 row-start-2 border-0 p-0 leading-[1.4]"
                                       }
                                     >
                                       {t("After:")}{" "}
@@ -670,7 +670,7 @@ export function Journey({
           <summary className="cursor-pointer select-none [[open]>&]:mb-3">
             <h2 className="inline-flex items-center m-0 text-[14px] leading-[1.3]">
               {t("Progress")}{" "}
-              <span className="count text-[10px] px-1.5 py-0.5 ml-1.25">
+              <span className="count text-[11px] px-1.5 py-0.5 ml-1.25">
                 {answered}/{questions.length}
               </span>
             </h2>

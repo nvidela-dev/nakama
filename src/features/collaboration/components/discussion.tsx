@@ -172,7 +172,7 @@ function CommentItem({
                 />
                 <div
                   className={
-                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[10px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
+                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[11px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
                   }
                 >
                   <Button
@@ -209,7 +209,7 @@ function CommentItem({
                 </p>
                 <div
                   className={
-                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[10px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
+                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[11px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
                   }
                 >
                   <Button
@@ -287,7 +287,7 @@ export function Discussion({
     >
       <h2
         className={
-          "font-mono tracking-[-0.045em] font-medium lg:compact:text-[14px] lg:compact:mb-2.5 text-[14px] leading-[1.35] mt-0 mx-0 mb-1 break-words wrap-anywhere"
+          "font-sans tracking-[-0.045em] font-medium lg:compact:text-[14px] lg:compact:mb-2.5 text-[14px] leading-[1.35] mt-0 mx-0 mb-1 break-words wrap-anywhere"
         }
       >
         {t("Discussion")} · {label}

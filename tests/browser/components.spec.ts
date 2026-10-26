@@ -343,9 +343,9 @@ for (const id of [
   "features-guided-flows-type-picker--selectable",
   "features-projects-project-timeline--compact-cards",
 ]) {
-  test(`Zen palette has no serious accessibility violations: ${id}`, async ({ page }) => {
-    await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=theme:zen`);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "zen");
+  test(`Daylight palette has no serious accessibility violations: ${id}`, async ({ page }) => {
+    await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=theme:day`);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "day");
     const results = await new AxeBuilder({ page }).include("#storybook-root").analyze();
     expect(
       results.violations.filter((entry) => ["serious", "critical"].includes(entry.impact ?? "")),

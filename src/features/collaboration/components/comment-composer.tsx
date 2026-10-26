@@ -32,7 +32,7 @@ export function CommentComposer({
       action={action}
       className="form-stack comment-compose grid grid-cols-[auto_minmax(0,1fr)_auto] items-end gap-[5px_8px] mt-3 pt-2.25 border-t border-line [&_>_.message]:col-span-full"
     >
-      <label htmlFor="new-comment" className={"text-ink [grid-column:1_/_-1] text-[10px]"}>
+      <label htmlFor="new-comment" className={"text-ink [grid-column:1_/_-1] text-[11px]"}>
         {t("Add a comment")}
       </label>
       <Textarea

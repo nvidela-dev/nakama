@@ -1,4 +1,4 @@
-/** Shared brand silhouette, also used by the favicon and install icons. */
+/** Sun over the horizon: Daylight Research workspace identity. */
 export function WaveMark() {
   return (
     <svg
@@ -10,7 +10,7 @@ export function WaveMark() {
       focusable="false"
       style={{ display: "inline-block", verticalAlign: "middle" }}
     >
-      <path d="M8 46C17 46 18 34 24 23C30 12 43 11 51 18C41 16 35 23 36 30C37 38 47 42 56 38C52 49 43 54 32 54H8Z" />
+      <path d="M12 36a20 20 0 0 1 40 0H12Zm-4 6h48v4H8Zm8 10h32v4H16Z" />
     </svg>
   );
 }

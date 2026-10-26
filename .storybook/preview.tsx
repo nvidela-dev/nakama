@@ -3,6 +3,8 @@ import type { Preview } from "@storybook/nextjs-vite";
 import { useEffect, type ReactNode } from "react";
 import { messages } from "../src/shared/i18n/index";
 import { LanguageProvider } from "../src/shared/i18n/provider";
+import "@fontsource-variable/manrope";
+import "@fontsource/ibm-plex-mono/latin-400.css";
 import "../src/app/globals.css";
 function StorySurface({
   children,
@@ -17,7 +19,7 @@ function StorySurface({
 }) {
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.body.className = "m-0 bg-bg text-ink font-mono text-base leading-[1.6]";
+    document.body.className = "m-0 bg-bg text-ink font-sans text-[14px] leading-[1.5]";
     document.documentElement.dataset.density = density;
     applyStyleTheme(theme, document.documentElement);
   }, [locale, density, theme]);
@@ -29,14 +31,14 @@ function StorySurface({
 }
 const preview: Preview = {
   tags: ["autodocs"],
-  initialGlobals: { locale: "en", density: "compact", theme: "hacker" },
+  initialGlobals: { locale: "en", density: "compact", theme: "day" },
   globalTypes: {
     theme: {
       toolbar: {
         title: "Style",
         items: [
-          { value: "hacker", title: "Hacker" },
-          { value: "zen", title: "Zen" },
+          { value: "day", title: "Daylight" },
+          { value: "night", title: "Evening" },
         ],
         dynamicTitle: true,
       },
@@ -59,7 +61,7 @@ const preview: Preview = {
   decorators: [
     (Story, context) => (
       <StorySurface
-        theme={context.globals.theme === "zen" ? "zen" : "hacker"}
+        theme={context.globals.theme === "night" ? "night" : "day"}
         locale={context.globals.locale === "es" ? "es" : "en"}
         density={context.globals.density === "comfortable" ? "comfortable" : "compact"}
       >

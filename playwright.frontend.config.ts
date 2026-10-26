@@ -4,7 +4,7 @@ const url = `http://localhost:${port}`;
 export default defineConfig({
   outputDir: ".nakama/test-results/frontend",
   testDir: "./tests/browser",
-  testMatch: ["frontend.spec.ts", "themes.spec.ts"],
+  testMatch: ["frontend.spec.ts", "themes.spec.ts", "research-guide.spec.ts"],
   workers: 1,
   use: {
     baseURL: url,
