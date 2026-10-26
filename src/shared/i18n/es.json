@@ -1103,5 +1103,6 @@
   "Possible secret detected. Remove it from the source and start a fresh run before exporting.": "Se detectó un posible secreto. Quitalo de la fuente e iniciá otra ejecución antes de exportar.",
   "Could not save. Your draft is still here.": "No se pudo guardar. Tu borrador se conserva.",
   "Could not reload experiments. Check your access and try again.": "No se pudieron actualizar los experimentos. Revisá tu acceso y volvé a intentar.",
-  "Context changed. Reload and explicitly acknowledge the changed inputs before accepting this proposal.": "El contexto cambió. Actualizá y confirmá explícitamente que revisaste los cambios antes de aceptar esta propuesta."
+  "Context changed. Reload and explicitly acknowledge the changed inputs before accepting this proposal.": "El contexto cambió. Actualizá y confirmá explícitamente que revisaste los cambios antes de aceptar esta propuesta.",
+  "The experiment lab is awaiting its database update. Existing project tools remain available.": "El laboratorio espera una actualización de la base de datos. Las herramientas existentes del proyecto siguen disponibles."
 }
