@@ -1,3 +1,4 @@
+import { experimentPrompts } from "../flow-prompts";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ExperimentLab } from "./experiment-lab";
 import type { Experiment } from "../model";
@@ -79,4 +80,14 @@ export const EvidenceReview: Story = {};
 export const Empty: Story = { args: { initial: [] } };
 export const ChangedContext: Story = {
   args: { initial: [{ ...experiment, runs: experiment.runs.map((r) => ({ ...r, stale: true })) }] },
+};
+
+export const FromIdea: Story = {
+  args: {
+    initialClaim: "A shorter setup could help a new user finish independently.",
+    startNew: true,
+    initialNode: "idea-name",
+    questions: [{ id: "idea-name", label: "Name", stageId: "idea" }],
+    prompts: experimentPrompts.saas,
+  },
 };

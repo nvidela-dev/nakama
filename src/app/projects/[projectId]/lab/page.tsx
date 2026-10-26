@@ -1,3 +1,4 @@
+import { experimentPrompts } from "@/features/experiments/flow-prompts";
 import {
   saveExperiment,
   reloadExperiments,
@@ -18,10 +19,10 @@ export default async function LabPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ node?: string }>;
+  searchParams: Promise<{ node?: string; new?: string }>;
 }) {
   const { projectId } = await params;
-  const { node } = await searchParams;
+  const { node, new: newExperiment } = await searchParams;
   const person = await actor();
   const t = await getT();
   let project, items, guidance, people;
@@ -44,6 +45,13 @@ export default async function LabPage({
         .filter((n) => n.kind === "question")
         .map((n) => ({ id: n.id, label: t(n.label), stageId: s.id })),
     ) ?? [];
+  const selectedQuestion = questions.find((question) => question.id === node);
+  const seedClaim = selectedQuestion
+    ? (guidance?.answers.find((answer) => answer.node_id === selectedQuestion.id)?.content ?? "")
+    : newExperiment === "1"
+      ? project.description
+      : "";
+  const prompts = guidance ? experimentPrompts[guidance.flow.id] : undefined;
   return (
     <main id="main" className="max-w-360 mx-auto p-4 lg:p-6 min-w-0">
       <nav className="flex flex-wrap gap-4 mb-5 text-[14px]">
@@ -65,7 +73,19 @@ export default async function LabPage({
           projectId={projectId}
           initial={items}
           questions={questions}
-          initialNode={node ?? ""}
+          initialNode={selectedQuestion?.id ?? ""}
+          initialClaim={seedClaim}
+          startNew={newExperiment === "1" || !!selectedQuestion}
+          prompts={
+            prompts
+              ? {
+                  claim: t(prompts.claim),
+                  method: t(prompts.method),
+                  criteria: t(prompts.criteria),
+                  evidence: t(prompts.evidence),
+                }
+              : undefined
+          }
           names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
         />
       )}

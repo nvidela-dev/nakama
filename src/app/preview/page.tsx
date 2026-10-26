@@ -1,3 +1,4 @@
+import { ExperimentCycle } from "@/features/experiments/components/experiment-cycle";
 import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { Journey } from "@/features/guidance/components/journey";
@@ -79,6 +80,7 @@ export default async function Preview({
           )}{" "}
         </p>
       </div>
+      <ExperimentCycle projectId="example" flowId="creative" preview />
       <div
         className={"preview-journey max-w-185 my-0 mx-auto lg:compact:max-w-none lg:compact:m-0"}
       >

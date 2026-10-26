@@ -227,3 +227,21 @@ These project types use the same saved-question, revision, review, and membershi
 | | Handover | Action plan and ownership → Engagement outcomes |
 
 Stages remain revisitable; within each stage the steps above form a sequential dependency chain. The final question captures delivered outcomes and proposed follow-up work. It does not create linked projects or infer completion. These are planning workflows: they do not provision shops, billing, logistics, contracts, or external integrations. Importation prompts request current source-backed requirements and costs, without supplying jurisdiction-specific rules or guessed amounts.
+
+## Shared experiment cycle for every flow — 2026-10-26
+
+Every flow uses **Idea → Test plan → Run → Evidence → Review → Next decision → another test when useful**. The existing stages and node IDs remain intact so saved work stays addressable. Their answers frame ideas; the experiment lab retains repeated tests, sources, results and reviewed decisions. The project workspace exposes the cycle and a direct action to test its idea or selected question. A copied claim remains an editable draft; method and criterion are deliberately blank.
+
+| Flow | Typical uncertainty | Bounded test | Evidence and decision limits |
+| --- | --- | --- | --- |
+| Venture | Need, offer or demand | Observe a qualified customer behavior within a declared budget/window | Interest is not payment or repeat demand |
+| Creative | An artistic choice or intended experience | Try a small prototype with collaborators or an audience | Use chosen signals such as clarity or enjoyment; no profit requirement |
+| Investigation | Explanation or research claim | Compare independent sources and seek counterevidence | Retain provenance, contradictions and unresolved questions |
+| Platform | Capability, reliability or operational effort | Compare baseline/candidate on the same isolated workload | Retain configurations, failures, measured performance and costs |
+| E-shop | Offer, conversion or fulfillment | Run a bounded offer/delivery trial | Orders, returns, costs and delivery matter; visits are not profitable sales |
+| Shirt E-shop | Design, fit, durability or purchase behavior | Test a sample garment or bounded offer | Retain sample conditions; liking a design is not willingness to pay |
+| SaaS | User outcome or recurring value | Observe a fixed task or bounded pilot | Retain task failures and usage; a signup is not retained value |
+| Importation | Sourcing, landed cost, quality or delivery | Verify dated sources and compare samples/quotes | A quote is not a delivered shipment; preserve currency and date |
+| Consultancy | Client problem or proposed intervention | Agree a small pilot and comparable before/after observations | Client agreement is not measured improvement; preserve scope and consent |
+
+The typed prompt registry in `src/features/experiments/flow-prompts.ts` must cover every flow ID. Adding a flow without its experiment prompts fails type checking; an isolated database test exercises the full experiment/review cycle and unauthorized-read rejection for every registered flow. Prompts are guidance, not prefilled claims or fabricated measurements. The public example links to the fictional guide rather than an inaccessible sample project's lab.

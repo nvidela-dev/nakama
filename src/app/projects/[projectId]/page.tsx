@@ -1,3 +1,4 @@
+import { ExperimentCycle } from "@/features/experiments/components/experiment-cycle";
 import { ProjectRelations } from "@/features/projects/components/project-relations";
 import { projectLinksService } from "@/features/projects/server/project-links";
 import { ArtifactLibrary } from "@/features/artifacts/components/artifact-library";
@@ -278,14 +279,11 @@ export default async function ProjectPage({
           {project.description}
         </p>
       </div>
-      <nav className="flex flex-wrap gap-3 my-4" aria-label={t("Project lab")}>
-        <Link
-          className="text-lime underline"
-          href={`/projects/${projectId}/lab${query.node ? `?node=${encodeURIComponent(query.node)}` : ""}`}
-        >
-          {t(query.node ? "Explore this question in the lab" : "Open experiment lab")}
-        </Link>
-      </nav>
+      <ExperimentCycle
+        projectId={projectId}
+        flowId={guidance?.flow.id}
+        nodeId={selectedNode?.kind === "question" ? selectedNode.id : undefined}
+      />
       {guidance ? (
         <Journey
           projectId={projectId}

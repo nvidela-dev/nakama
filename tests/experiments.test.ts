@@ -435,3 +435,73 @@ test("unmigrated databases fail safely after membership checks and become ready 
     await old.close();
   }
 });
+
+test("every project flow supports a linked test, retained results and a separate next decision", async () => {
+  const { flows } = await import("../src/features/guidance/model/flows");
+  const { experimentPrompts } = await import("../src/features/experiments/flow-prompts");
+  const { messages } = await import("../src/shared/i18n/index");
+  assert.deepEqual(Object.keys(experimentPrompts).sort(), Object.keys(flows).sort());
+  for (const flow of Object.values(flows)) {
+    for (const prompt of Object.values(experimentPrompts[flow.id]))
+      assert.ok(messages[prompt], `Missing Spanish prompt for ${flow.id}: ${prompt}`);
+    const id = await setup();
+    const guidance = guidanceService(db);
+    await guidance.select(owner, id, flow.id);
+    const node = required(
+      flow.stages.flatMap((stage) => stage.nodes).find((node) => node.kind === "question"),
+    );
+    let e = required((await lab.create(owner, id, { ...plan, nodeId: node.id }))[0]);
+    e = required(
+      (
+        await lab.change(owner, id, e.id, e.revision, {
+          kind: "start",
+          executor: "Synthetic tester",
+        })
+      )[0],
+    );
+    const run = required(e.runs[0]);
+    assert.equal(run.context.nodeId, node.id);
+    e = required(
+      (
+        await lab.change(owner, id, e.id, e.revision, {
+          kind: "evidence",
+          runId: run.id,
+          evidenceKind: "observation",
+          content: "Four completed independently in this synthetic test.",
+          source: "Synthetic observation log",
+          measurement: "4",
+          unit: "participants",
+        })
+      )[0],
+    );
+    e = required(
+      (
+        await lab.change(owner, id, e.id, e.revision, {
+          kind: "finish",
+          runId: run.id,
+          status: "completed",
+          effortMinutes: null,
+          cost: "",
+          deviations: "",
+        })
+      )[0],
+    );
+    assert.equal(e.reviews.length, 0, `${flow.id}: completion must not infer validation`);
+    e = required(
+      (
+        await lab.change(owner, id, e.id, e.revision, {
+          kind: "review",
+          runId: run.id,
+          assessment: "supported",
+          nextAction: "revise",
+          rationale: "This bounded pilot met its criterion; revise before a broader repeat.",
+          reconciliation: "",
+        })
+      )[0],
+    );
+    assert.equal(e.reviews[0]?.assessment, "supported");
+    assert.equal(e.reviews[0]?.next_action, "revise");
+    assert.equal((await guidance.get(owner, id))?.flow.id, flow.id);
+    await assert.rejects(lab.list(outsider, id));
+  }
+});
