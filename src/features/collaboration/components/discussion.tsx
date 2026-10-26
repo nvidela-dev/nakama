@@ -17,7 +17,7 @@ import type { Comment, CommentTarget, Page } from "@/features/collaboration/mode
 import { readComments } from "@/features/notifications/actions";
 import { postComment, changeComment } from "@/features/collaboration/actions";
 import { useLocale, useT } from "@/shared/i18n/provider";
-import { formatDate } from "@/shared/i18n/index";
+import { formatDate } from "@/shared/i18n/date";
 import { Feedback } from "@/shared/ui/feedback";
 function CommentItem({
   comment,
