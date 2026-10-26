@@ -1,6 +1,35 @@
 /** Product vocabulary. See docs/domain.md for canonical semantics. Public, static content only. */
 export const glossary = [
   {
+    id: "experiment",
+    term: "Experiment",
+    code: "Experiment / experiment_plans",
+    definition:
+      "A project-owned claim, method and success criteria. Plan versions are retained; optional milestones are labels, not task containers.",
+  },
+  {
+    id: "experiment-run",
+    term: "Experiment run",
+    code: "experiment_runs",
+    definition:
+      "One execution preserving its plan and selected question snapshot. Completion is separate from supporting the claim; missing effort or cost stays unknown.",
+  },
+  {
+    id: "experiment-evidence",
+    term: "Experiment evidence",
+    code: "experiment_evidence",
+    definition:
+      "Retained observations, measurements, external evidence or attributed AI analysis. Links alone do not preserve external content. Corrections add records.",
+  },
+  {
+    id: "experiment-review",
+    term: "Claim review",
+    code: "experiment_reviews",
+    definition:
+      "A human assessment of a scoped claim against a preserved run and evidence snapshot. Supported, contradicted or inconclusive is separate from continue, revise or stop.",
+  },
+
+  {
     id: "project",
     term: "Project",
     code: "Project / project_id",
@@ -181,7 +210,15 @@ export const glossaryGroups = [
     id: "reasoning",
     title: "Learning and decisions",
     description: "What the work teaches us, what we choose, and what it produces.",
-    terms: ["learning", "decision", "outcome"],
+    terms: [
+      "learning",
+      "decision",
+      "outcome",
+      "experiment",
+      "experiment-run",
+      "experiment-evidence",
+      "experiment-review",
+    ],
   },
   {
     id: "execution",
