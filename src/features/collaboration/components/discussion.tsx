@@ -17,7 +17,7 @@ import type { Comment, CommentTarget, Page } from "@/features/collaboration/mode
 import { readComments } from "@/features/notifications/actions";
 import { postComment, changeComment } from "@/features/collaboration/actions";
 import { useLocale, useT } from "@/shared/i18n/provider";
-import { formatDate } from "@/shared/i18n/index";
+import { formatDate } from "@/shared/i18n/date";
 import { Feedback } from "@/shared/ui/feedback";
 function CommentItem({
   comment,
@@ -282,19 +282,19 @@ export function Discussion({
   );
   return (
     <Panel
-      className={"discussion mt-5 p-3 rounded-[10px]"}
+      className={"discussion mt-5 p-3 rounded-[10px] min-w-0 max-w-full overflow-hidden"}
       aria-label={`${t("Discussion")} · ${label}`}
     >
       <h2
         className={
-          "font-mono tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mb-3 text-[14px] leading-[1.35] mt-0 mx-0 mb-1"
+          "font-mono tracking-[-0.045em] font-medium lg:compact:text-[14px] lg:compact:mb-2.5 text-[14px] leading-[1.35] mt-0 mx-0 mb-1 break-words wrap-anywhere"
         }
       >
         {t("Discussion")} · {label}
       </h2>
       {latestHref && <Link href={latestHref}>{t("Latest comments")}</Link>}
       {comments.items.length ? (
-        <ol className={"comment-list list-none p-0 grid gap-1.5 my-3 mx-0"}>
+        <ol className={"comment-list list-none p-0 grid gap-1.5 my-3 mx-0 min-w-0 max-w-full"}>
           {[...comments.items].reverse().map((comment) => (
             <CommentItem
               key={comment.id}

@@ -35,3 +35,13 @@ test("custom selectors cannot hide in nesting, escapes or allowed at-rules", () 
   ])
     assert.ok(check(source).length, source);
 });
+
+test("Tailwind source scope is limited to application source, not arbitrary paths or inline utilities", () => {
+  assert.deepEqual(check('@import "tailwindcss" source("../");'), []);
+  for (const css of [
+    '@import "tailwindcss" source("../../");',
+    '@import "tailwindcss" source(none);',
+    '@source inline("bg-red-500");',
+  ])
+    assert.ok(check(css).length);
+});

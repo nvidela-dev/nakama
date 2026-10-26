@@ -51,7 +51,7 @@ export function styleViolations(file: string, source: string): string[] {
       if (
         context === "root" &&
         rule.name === "import" &&
-        /^['"]tailwindcss['"]$/.test(rule.params) &&
+        /^['"]tailwindcss['"](?: source\("\.\.\/"\))?$/.test(rule.params) &&
         !rule.nodes
       )
         return;
