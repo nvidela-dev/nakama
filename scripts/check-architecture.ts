@@ -16,6 +16,7 @@ const featureDependencies: Readonly<Record<string, readonly string[]>> = {
   projects: ["access", "guidance", "collaboration"],
   shell: ["access", "projects", "notifications", "preferences"],
   tasks: ["access", "projects"],
+  experiments: ["access", "projects", "guidance"],
 };
 
 /** Pure checker: tests can prove rejection using synthetic modules. */
