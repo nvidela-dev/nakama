@@ -159,3 +159,9 @@ The walkthrough includes five native nested-list trees: project structure, branc
 ## Readable project-card progress — 2026-10-24
 
 Project cards restore 26px concentric stage markers (from 11px), with 15px compact / 16px regular titles, 11px stage labels, 10px counts, and increased card padding. Connector centers derive from the shared marker-size variable and render behind markers. The inner disc continues to grow by answered-question ratio; it does not imply stage review or project viability. Compact desktop grid cards have a 360px minimum width. Long labels retain ellipsis with full accessible labels and tooltips.
+
+## Experiment laboratory — 2026-10-26
+
+Keep specialized streamlined questionnaires and their stage navigation. A visible project link opens the experimentation workspace; from a selected question it preselects that question for capture. The lab uses the existing theme and components, compact readable panels, an experiment selector and progressive disclosure for optional plan fields, run actions and history. Counts describe framed claims, AI analysis, external evidence, completed runs and recorded reviews; these are different records, not a linear checklist or score.
+
+Capture asks only claim, method and success criteria. Run sections expose evidence and measurements, optional effort/cost, deviations, scoped brief preview, returned agent proposals and human review. Review displays claim assessment separately from next action. Saved snapshots remain inspectable; changed context and later evidence are visible. Existing project flow, tasks and artifacts remain directly accessible. Optional milestone labels do not restructure tasks. Native browser details/forms and shared controls support keyboard use and responsive layouts. English and Spanish interface copy are provided.

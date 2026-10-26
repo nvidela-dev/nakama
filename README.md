@@ -8,6 +8,8 @@ Nakama will help a small group capture an idea, explore it through approachable 
 
 Project types include Venture, Creative/fun, Investigation, E-shop (generic or Shirt E-shop), SaaS, Importation, and Consultancy. The newest business flows are implemented locally; live deployment verification remains pending. Project relationships and spawning linked follow-ups are deployed and verified, with multiple source and resulting projects and independent access boundaries.
 
+The experiment lab extension is implemented locally for review: short plans, repeated runs, retained evidence, scoped claim reviews and manually reviewed agent contributions. Existing questionnaires, tasks and artifacts remain intact. Activation requires migration 016; until then the route shows a safe preparation message. Hosted activation and the authenticated lab journey remain unverified; see [lab verification and release](docs/development.md#experiment-lab-verification-and-release--2026-10-26).
+
 ## The experience
 
 Capture a name and a brief description. See a downward path of named stages. Expand a stage into its question tree, open a node, and answer with plain-language examples. Discuss the project, a stage, or an answer with invited friends. Return to earlier questions as you learn.

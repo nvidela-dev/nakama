@@ -206,5 +206,13 @@
   "An illustration of the project workspace, not a screenshot. Use the tree below to see how its parts relate.": "Ilustración del espacio de proyecto, no una captura de pantalla. Usá el árbol de abajo para ver cómo se relacionan sus partes.",
   "Related projects, independent workspaces": "Proyectos relacionados, espacios independientes",
   "Illustration of three separate project workbenches connected by branching paths.": "Ilustración de tres mesas de proyecto separadas conectadas por caminos ramificados.",
-  "A shared origin connects these projects. Access and content stay separate.": "Un origen compartido conecta estos proyectos. El acceso y el contenido permanecen separados."
+  "A shared origin connects these projects. Access and content stay separate.": "Un origen compartido conecta estos proyectos. El acceso y el contenido permanecen separados.",
+  "Experiment": "Experimento",
+  "A project-owned claim, method and success criteria. Plan versions are retained; optional milestones are labels, not task containers.": "Una hipótesis, método y criterios de éxito dentro de un proyecto. Se conservan las versiones del plan; los hitos opcionales son etiquetas, no contenedores de tareas.",
+  "Experiment run": "Ejecución de experimento",
+  "One execution preserving its plan and selected question snapshot. Completion is separate from supporting the claim; missing effort or cost stays unknown.": "Una ejecución que conserva su plan y la pregunta seleccionada. Completar no respalda la hipótesis; el esfuerzo o costo faltante sigue siendo desconocido.",
+  "Experiment evidence": "Evidencia del experimento",
+  "Retained observations, measurements, external evidence or attributed AI analysis. Links alone do not preserve external content. Corrections add records.": "Observaciones, mediciones, evidencia externa o análisis de IA atribuido que se conservan. Los enlaces por sí solos no preservan contenido externo. Las correcciones agregan registros.",
+  "Claim review": "Revisión de hipótesis",
+  "A human assessment of a scoped claim against a preserved run and evidence snapshot. Supported, contradicted or inconclusive is separate from continue, revise or stop.": "Una evaluación humana de una hipótesis acotada contra una ejecución y evidencia conservadas. Respaldada, contradicha o no concluyente se separa de continuar, revisar o detener."
 }

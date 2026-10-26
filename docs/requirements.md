@@ -41,3 +41,7 @@ Project creation starts with a single button and guided type/details setup. Name
 - Keep membership and content independent; require current access to both endpoints for writes and hide inaccessible endpoints from lists.
 - Reject self-links and cycles; concurrent graph edits must not create circular ancestry. A failed source check must roll back the complete new project.
 - Support destination navigation, keyboard forms, phone layouts, and English/Spanish labels.
+
+## Experiment lab first slice — 2026-10-26
+
+Members can capture an experiment inside any project without changing its flow, preserve a plan when starting a run, repeat runs, record attributed evidence/measurements and unknown effort/cost, and review completed execution against a retained evidence snapshot. Assessment and next action are independently recorded. AI-only analysis cannot establish empirical support. Question/plan changes flag stale context and require reconciliation for a claim review. Manual agent proposals preserve original content and human review; acceptance records AI analysis, not empirical validation. Scoped preview/copy handoff and nested membership checks apply; native execution is deferred. Existing task/artifact/questionnaire semantics remain unchanged.

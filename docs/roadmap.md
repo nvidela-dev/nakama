@@ -386,3 +386,9 @@ Accepted: increase project-card stage markers to 26px and enlarge card titles, s
 ## Named visual styles: Hacker and Zen — 2026-10-24
 
 Accepted: name the existing default style Hacker and introduce Zen using the supplied woodblock image's cream, sea blue, and rust palette. Select styles in the footer alongside language and density, persist the selection per browser, render it on the server to avoid a wrong-theme flash, and expose both in Storybook. Keep project data, the custom Nakama wave, density, and workflow behavior unchanged. Theme support is delivered independently from the Tailwind migration; no database migration or new service is required.
+
+## Accepted: extend projects into an experiment lab — 2026-10-26
+
+The user approved expanding Nakama into their experiment lab while preserving streamlined project questionnaires, artifacts and existing collaboration. Experiments belong within any project type; they are not a tenth flow. Retain short capture, versioned plans, repeated runs, attributed retained evidence, explicit unknowns, human effort/deviations, scoped reviews and manual external-agent handoff. Execution completion and AI opinion do not establish validity. Assessment and next action are separate. Creative work never requires commercial validation.
+
+Implementation choice: reuse Nakama components/theme rather than install Ant Design. Keep a dedicated lab route and optional milestone labels instead of rebuilding hierarchical tasks into a generic board. Retain evidence text/snapshots rather than relying solely on mutable artifact links. Initial tradeoffs: no generic evidence-file uploader, authenticated agent ingestion/dispatch, automatic answer application, milestone scheduling or individual experiment deletion. Full project context export remains a separate milestone. This work is local/PR development until migrations, deployment and authenticated live verification are explicitly completed.
