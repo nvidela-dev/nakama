@@ -1,6 +1,6 @@
 import type { AccessRequest } from "@/features/access/model";
 import { getLocale, getT } from "@/shared/i18n/server";
-import { formatDate } from "@/shared/i18n/index";
+import { formatDate } from "@/shared/i18n/date";
 import { RequestActions } from "@/features/access/components/request-actions";
 export async function AccessRequestList({ requests }: { requests: AccessRequest[] }) {
   const t = await getT();
