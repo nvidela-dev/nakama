@@ -382,3 +382,58 @@ for (const width of [390, 1440]) {
     );
   });
 }
+
+test("experiment lab preserves a review draft after a failed save and fits a phone", async ({
+  page,
+}) => {
+  await story(page, "features-experiments-lab--evidence-review");
+  await page.getByText("Review claim against evidence", { exact: true }).click();
+  const rationale = page.getByLabel("Rationale, scope and remaining uncertainty", { exact: true });
+  await rationale.fill("Three of five falls below the success criterion.");
+  await page.getByRole("button", { name: "Record review", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Preview only");
+  await expect(rationale).toHaveValue("Three of five falls below the success criterion.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const results = await new AxeBuilder({ page }).include("#storybook-root").analyze();
+  expect(
+    results.violations.filter((v) => ["serious", "critical"].includes(v.impact ?? "")),
+  ).toEqual([]);
+});
+test("experiment lab starts with three required fields and exposes optional detail progressively", async ({
+  page,
+}) => {
+  await story(page, "features-experiments-lab--empty");
+  await expect(page.getByLabel("Baseline (if known)", { exact: true })).toBeHidden();
+  await page
+    .getByLabel("Claim · what do you want to learn?", { exact: true })
+    .fill("A shorter form helps");
+  await page
+    .getByLabel("Method · how will you test it?", { exact: true })
+    .fill("Observe a prototype");
+  await page
+    .getByLabel("Success criteria · what would count?", { exact: true })
+    .fill("Four finish independently");
+  await page.getByRole("button", { name: "Create experiment", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Preview only");
+  await expect(page.getByLabel("Claim · what do you want to learn?", { exact: true })).toHaveValue(
+    "A shorter form helps",
+  );
+  await page.getByText("Scope, question, metrics and limits", { exact: true }).click();
+  await expect(page.getByLabel("Baseline (if known)", { exact: true })).toHaveValue("");
+});
+test("experiment lab flags changed context and previews an explicitly scoped brief", async ({
+  page,
+}) => {
+  await story(page, "features-experiments-lab--changed-context");
+  await expect(
+    page.getByText("Context changed · reconcile before accepting results or recording a review.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByText("Scoped agent brief", { exact: true }).click();
+  await page.getByRole("button", { name: "Preview brief", exact: true }).click();
+  await expect(page.getByLabel("Scoped brief", { exact: true })).toHaveValue(
+    "Synthetic scoped brief. External execution only.",
+  );
+});

@@ -11,12 +11,4 @@ export function resolveLocale(value?: string): Locale {
 export function translator(locale: Locale) {
   return createTranslator(locale === "es" ? messages : {});
 }
-export function formatDate(value: Date | string, locale: Locale) {
-  return (
-    new Intl.DateTimeFormat(locale === "es" ? "es-UY" : "en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "UTC",
-    }).format(new Date(value)) + " UTC"
-  );
-}
+export { formatDate } from "./date";

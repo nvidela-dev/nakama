@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Activity, Page, FeedKind } from "@/features/collaboration/model";
 import type { Flow } from "@/features/guidance/model/flows";
 import { useLocale, useT } from "@/shared/i18n/provider";
-import { formatDate } from "@/shared/i18n/index";
+import { formatDate } from "@/shared/i18n/date";
 const labels: Record<FeedKind, string> = {
   artifact_created: "created an artifact",
   artifact_updated: "updated an artifact",

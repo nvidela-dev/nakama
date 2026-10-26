@@ -7,7 +7,7 @@ import { AnswerFields } from "./answer-fields";
 import { Input } from "@/shared/ui/controls";
 import { Panel } from "@/shared/ui/panel";
 import { useLocale } from "@/shared/i18n/provider";
-import { formatDate } from "@/shared/i18n/index";
+import { formatDate } from "@/shared/i18n/date";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveAnswer, type GuidanceActionState } from "../actions";

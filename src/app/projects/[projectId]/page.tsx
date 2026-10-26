@@ -292,6 +292,14 @@ export default async function ProjectPage({
           {project.description}
         </p>
       </div>
+      <nav className="flex flex-wrap gap-3 my-4" aria-label={t("Project lab")}>
+        <Link
+          className="text-lime underline"
+          href={`/projects/${projectId}/lab${query.node ? `?node=${encodeURIComponent(query.node)}` : ""}`}
+        >
+          {t(query.node ? "Explore this question in the lab" : "Open experiment lab")}
+        </Link>
+      </nav>
       {guidance ? (
         <Journey
           projectId={projectId}
