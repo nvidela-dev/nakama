@@ -27,8 +27,7 @@ export function ProjectWork({
     const params = new URLSearchParams(query);
     if (view !== "steps") {
       params.set("view", view);
-      params.delete("stage");
-      params.delete("node");
+      // Keep the selected question mounted while switching workspaces so drafts survive.
     } else {
       params.delete("view");
     }

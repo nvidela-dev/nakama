@@ -3,6 +3,7 @@ import { expect, type Page } from "@playwright/test";
 export async function openProjectSetup(page: Page) {
   await page.getByRole("button", { name: /^(New project|Nuevo proyecto)(\s*\+)?$/ }).click();
   const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
   if (await dialog.getByRole("button", { name: /^(Choose later|Elegir más adelante)$/ }).count()) {
     await dialog.getByRole("button", { name: /^(Choose later|Elegir más adelante)$/ }).click();
     await dialog.getByRole("button", { name: /^(Continue|Continuar)/ }).click();

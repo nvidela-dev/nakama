@@ -251,7 +251,7 @@ export default async function ProjectPage({
     <main
       id="main"
       className={
-        "workspace w-full max-w-300 lg:max-w-360 lg:compact:max-w-360 min-[1280px]:[&:has(>_.has-discussion)]:max-w-360 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:px-6"
+        "workspace w-full max-w-none lg:max-w-none lg:compact:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:max-w-none pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:px-6"
       }
     >
       <div
@@ -286,6 +286,7 @@ export default async function ProjectPage({
       />
       {guidance ? (
         <Journey
+          wideWork={isTasksView}
           projectId={projectId}
           guidance={guidance}
           stageId={query.stage}
@@ -299,9 +300,13 @@ export default async function ProjectPage({
         />
       ) : (
         <div
-          className={
-            "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start"
-          }
+          className={[
+            "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start",
+            isTasksView &&
+              "[&_.project-working-column]:col-span-full! [&_.project-working-column]:col-start-1! [&_.project-working-column]:row-start-1! [&_.project-discussion-column]:row-start-2! [&_.project-discussion-column]:col-start-1! [&_.project-discussion-column]:static! [&_.project-sidebar]:row-start-2! [&_.project-sidebar]:col-start-8! max-[700px]:[&_.project-sidebar]:row-start-3! max-[700px]:[&_.project-sidebar]:col-start-1!",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           <div
             className={

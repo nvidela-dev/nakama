@@ -33,6 +33,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
     [error, setError] = useState(""),
     [conflict, setConflict] = useState(false),
     [notice, setNotice] = useState("");
+  const [view, setView] = useState<"board" | "list">("board");
   const [search, setSearch] = useState(""),
     [filter, setFilter] = useState("all");
   const [imports, setImports] = useState<LockInProject[]>([]),
@@ -141,6 +142,11 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
   const visible: TaskNode[] = [];
   const walk = (nodes: TaskNode[]) => {
     for (const node of nodes) {
+      if (view === "board") {
+        if (matches(node)) visible.push(node);
+        walk(node.children);
+        continue;
+      }
       if (filtering && !containsMatch(node)) continue;
       visible.push(node);
       if (filtering || !node.collapsed) walk(node.children);
@@ -209,6 +215,130 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
   function importCount(tasks: LockInProject["tasks"]): number {
     return tasks.reduce((sum, task) => sum + 1 + importCount(task.subtasks), 0);
   }
+  function renderTask(node: TaskNode) {
+    return (
+      <li
+        key={node.id}
+        data-task-id={node.id}
+        draggable={view === "board" && !pending}
+        onDragStart={(event) => {
+          event.dataTransfer.setData(
+            "application/x-nakama-task",
+            JSON.stringify({ projectId, id: node.id }),
+          );
+          event.dataTransfer.effectAllowed = "move";
+        }}
+        className={[
+          `task-row task-${node.status}`,
+          node.status === "done" && "[&_.task-title]:text-muted [&_.task-title]:line-through",
+          node.status === "in_progress" && "[&_.task-title]:text-lime",
+          view === "board"
+            ? "grid gap-3 p-3 border border-line rounded-[9px] bg-panel min-w-0"
+            : "flex flex-wrap items-center justify-between gap-[6px_12px] py-2.25 px-0 border-b border-b-line min-w-0",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={{ marginLeft: view === "board" ? 0 : Math.min(node.depth, 4) * 12 }}
+      >
+        <div
+          className={
+            "task-main flex items-center [flex:1_1_210px] min-w-0 gap-2 max-[700px]:[flex-basis:100%]"
+          }
+        >
+          {view === "list" && node.children.length > 0 ? (
+            <Button
+              type="button"
+              className={
+                "task-expand text-ink bg-transparent p-0 rounded-[4px] min-h-8 text-[13px] text-left [flex:0_0_26px] pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+              }
+              disabled={pending}
+              aria-label={t(node.collapsed ? "Expand subtasks" : "Collapse subtasks")}
+              aria-expanded={node.children.length ? filtering || !node.collapsed : undefined}
+              onClick={() => run({ kind: "collapse", ids: [node.id], collapsed: !node.collapsed })}
+            >
+              <Icon name={filtering || !node.collapsed ? "chevronDown" : "chevronRight"} />
+            </Button>
+          ) : (
+            <span
+              className={
+                "task-leaf [flex:0_0_26px] text-center text-muted pointer-coarse:[flex-basis:44px]"
+              }
+              aria-hidden="true"
+            >
+              ·
+            </span>
+          )}
+          <span className={"task-number text-lime text-[11px] wrap-anywhere max-w-[5em] shrink-0"}>
+            {node.number}
+          </span>
+          <Button
+            type="button"
+            className={
+              "task-title text-ink bg-transparent p-1 rounded-[4px] min-h-8 text-[13px] text-left block wrap-anywhere min-w-0 hover:bg-line hover:[transform:none]"
+            }
+            disabled={pending}
+            onClick={() =>
+              open({ kind: "edit", task: node, title: node.title, revision: list.revision })
+            }
+          >
+            {node.title}
+          </Button>
+        </div>
+        {view === "board" && node.parent_id && (
+          <p className="text-[11px] text-muted wrap-anywhere">
+            {t("Subtask of")}: {list.tasks.find((task) => task.id === node.parent_id)?.title}
+          </p>
+        )}
+        <div className={"task-row-controls flex flex-wrap items-center gap-1.5 min-w-0"}>
+          <Select
+            aria-label={`${t("Task status")} ${node.number}`}
+            disabled={pending}
+            value={node.status}
+            onChange={(e) => mark(node, e.target.value as TaskStatus)}
+            className={
+              "w-32.5 min-h-9 py-2 px-2.5 text-[11px] bg-bg text-ink border border-line rounded-[6px] font-sans pointer-coarse:min-h-11"
+            }
+          >
+            {Object.entries(taskStatusLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {t(label)}
+              </option>
+            ))}
+          </Select>
+          <Button
+            type="button"
+            className={
+              "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+            }
+            title={t("Add subtask")}
+            aria-label={`${t("Add subtask")} ${node.number}`}
+            disabled={pending}
+            onClick={() =>
+              open({ kind: "add", parentId: node.id, title: "", revision: list.revision })
+            }
+            variant="secondary"
+          >
+            <Icon name="plus" />
+          </Button>
+          <Button
+            type="button"
+            className={
+              "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+            }
+            title={t("Delete task")}
+            aria-label={`${t("Delete task")} ${node.number}`}
+            disabled={pending}
+            onClick={() =>
+              open({ kind: "delete", task: node, title: node.title, revision: list.revision })
+            }
+            variant="secondary"
+          >
+            <Icon name="delete" />
+          </Button>
+        </div>
+      </li>
+    );
+  }
   return (
     <Panel className={"task-list max-[700px]:p-4"} aria-label={t("Project to-do list")}>
       <div
@@ -235,6 +365,23 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
         >
           {t("Add task")}
         </Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <Button
+          variant="secondary"
+          aria-pressed={view === "board"}
+          onClick={() => setView("board")}
+        >
+          {t("Board")}
+        </Button>
+        <Button variant="secondary" aria-pressed={view === "list"} onClick={() => setView("list")}>
+          {t("Nested list")}
+        </Button>
+        <p className="text-[12px] text-muted">
+          {t(
+            "Drag cards between columns or use each card’s status menu. Subtasks keep their parent.",
+          )}
+        </p>
       </div>
       <div
         className={
@@ -281,6 +428,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           className={
             "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
           }
+          hidden={view === "board"}
           disabled={pending || !list.tasks.length}
           onClick={() =>
             run({ kind: "collapse", ids: list.tasks.map((t) => t.id), collapsed: false })
@@ -294,6 +442,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           className={
             "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
           }
+          hidden={view === "board"}
           disabled={pending || !list.tasks.length}
           onClick={() =>
             run({ kind: "collapse", ids: list.tasks.map((t) => t.id), collapsed: true })
@@ -355,123 +504,61 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
         </p>
       ) : !visible.length ? (
         <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>{t("No matching tasks.")}</p>
+      ) : view === "list" ? (
+        <ol className="task-tree list-none p-0 m-0">{visible.map(renderTask)}</ol>
       ) : (
-        <ol className={"task-tree list-none p-0 m-0"}>
-          {visible.map((node) => (
-            <li
-              key={node.id}
-              className={[
-                `task-row task-${node.status}`,
-                node.status === "done" && "[&_.task-title]:text-muted [&_.task-title]:line-through",
-                node.status === "in_progress" && "[&_.task-title]:text-lime",
-                "flex flex-wrap items-center justify-between gap-[6px_12px] py-2.25 px-0 border-b border-b-line min-w-0",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              style={{ marginLeft: Math.min(node.depth, 4) * 12 }}
-            >
-              <div
-                className={
-                  "task-main flex items-center [flex:1_1_210px] min-w-0 gap-2 max-[700px]:[flex-basis:100%]"
-                }
-              >
-                {node.children.length > 0 ? (
-                  <Button
-                    type="button"
-                    className={
-                      "task-expand text-ink bg-transparent p-0 rounded-[4px] min-h-8 text-[13px] text-left [flex:0_0_26px] pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+        <div
+          className="task-board grid grid-cols-1 min-[900px]:grid-cols-3 gap-3 items-start"
+          aria-label={t("Task board")}
+        >
+          {(Object.keys(taskStatusLabels) as TaskStatus[])
+            .filter((status) => filter === "all" || filter === status)
+            .map((status) => {
+              const cards = visible.filter((node) => node.status === status);
+              return (
+                <section
+                  key={status}
+                  aria-label={t(taskStatusLabels[status])}
+                  className="min-w-0 rounded-[12px] border border-line bg-[var(--theme-surface)] p-3 min-h-40"
+                  onDragOver={(event) => {
+                    if (!pending) {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
                     }
-                    disabled={pending}
-                    aria-label={t(node.collapsed ? "Expand subtasks" : "Collapse subtasks")}
-                    aria-expanded={node.children.length ? filtering || !node.collapsed : undefined}
-                    onClick={() =>
-                      run({ kind: "collapse", ids: [node.id], collapsed: !node.collapsed })
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    if (pending) return;
+                    try {
+                      const data: unknown = JSON.parse(
+                        event.dataTransfer.getData("application/x-nakama-task"),
+                      );
+                      if (
+                        !data ||
+                        typeof data !== "object" ||
+                        !("projectId" in data) ||
+                        data.projectId !== projectId ||
+                        !("id" in data)
+                      )
+                        return;
+                      const node = visible.find((task) => task.id === data.id);
+                      if (node && node.status !== status) mark(node, status);
+                    } catch {
+                      /* Ignore files and drags from other applications. */
                     }
-                  >
-                    <Icon name={filtering || !node.collapsed ? "chevronDown" : "chevronRight"} />
-                  </Button>
-                ) : (
-                  <span
-                    className={
-                      "task-leaf [flex:0_0_26px] text-center text-muted pointer-coarse:[flex-basis:44px]"
-                    }
-                    aria-hidden="true"
-                  >
-                    ·
-                  </span>
-                )}
-                <span
-                  className={"task-number text-lime text-[11px] wrap-anywhere max-w-[5em] shrink-0"}
+                  }}
                 >
-                  {node.number}
-                </span>
-                <Button
-                  type="button"
-                  className={
-                    "task-title text-ink bg-transparent p-1 rounded-[4px] min-h-8 text-[13px] text-left block wrap-anywhere min-w-0 hover:bg-line hover:[transform:none]"
-                  }
-                  disabled={pending}
-                  onClick={() =>
-                    open({ kind: "edit", task: node, title: node.title, revision: list.revision })
-                  }
-                >
-                  {node.title}
-                </Button>
-              </div>
-              <div
-                className={
-                  "task-row-controls flex items-center gap-1.5 shrink-0 ml-auto max-[700px]:ml-0 max-[700px]:flex-wrap"
-                }
-              >
-                <Select
-                  aria-label={`${t("Task status")} ${node.number}`}
-                  disabled={pending}
-                  value={node.status}
-                  onChange={(e) => mark(node, e.target.value as TaskStatus)}
-                  className={
-                    "w-32.5 min-h-9 py-2 px-2.5 text-[11px] bg-bg text-ink border border-line rounded-[6px] font-sans pointer-coarse:min-h-11"
-                  }
-                >
-                  {Object.entries(taskStatusLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {t(label)}
-                    </option>
-                  ))}
-                </Select>
-                <Button
-                  type="button"
-                  className={
-                    "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
-                  }
-                  title={t("Add subtask")}
-                  aria-label={`${t("Add subtask")} ${node.number}`}
-                  disabled={pending}
-                  onClick={() =>
-                    open({ kind: "add", parentId: node.id, title: "", revision: list.revision })
-                  }
-                  variant="secondary"
-                >
-                  <Icon name="plus" />
-                </Button>
-                <Button
-                  type="button"
-                  className={
-                    "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
-                  }
-                  title={t("Delete task")}
-                  aria-label={`${t("Delete task")} ${node.number}`}
-                  disabled={pending}
-                  onClick={() =>
-                    open({ kind: "delete", task: node, title: node.title, revision: list.revision })
-                  }
-                  variant="secondary"
-                >
-                  <Icon name="delete" />
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ol>
+                  <h3 className="font-semibold text-[14px] m-0 mb-3">
+                    {t(taskStatusLabels[status])} <span className="text-muted">{cards.length}</span>
+                  </h3>
+                  <ol className="grid gap-2 list-none p-0 m-0">{cards.map(renderTask)}</ol>
+                  {!cards.length && (
+                    <p className="text-[12px] text-muted">{t("No tasks in this column.")}</p>
+                  )}
+                </section>
+              );
+            })}
+        </div>
       )}
       {editor && (
         <Dialog

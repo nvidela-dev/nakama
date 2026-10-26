@@ -406,3 +406,8 @@ The reference's proposed collaborator identities, persistent bottom workspaces, 
 The user made experimentation central to all application flows: inputs develop ideas to test, retain results and inform the next decision. Introduce the same visible Idea → Test plan → Run → Evidence → Review → Next decision cycle in every project workspace, with flow-specific prompts for all nine project types and a generic entry before a flow is selected. Copy a selected answer or project description into an explicitly untested, editable claim only after the user chooses to test it. Do not auto-save experiments, invent criteria, or convert questionnaire/task completion into validation.
 
 Preserve existing flow stages/IDs, prior answers, independent tasks/artifacts and authorization. Creative validation remains about the user's intended experience, not compulsory profitability. This refines the earlier optional-lab framing: the experiment cycle is now a first-class part of every project, while multiple experiments and repeated runs remain independent records. See the canonical flow matrix and domain rules. No schema changes or hosted data mutation are required for this UI/guidance change; environments still need migration 016 for the previously implemented lab backend.
+
+
+## Accepted: dense project register and Kanban To-do — 2026-10-26
+
+Use the full browser width for project cards, with the creation control in the heading. Make To-do a status-column board by default, preserving the existing three task statuses, hierarchy, explicit subtree operations, revision conflicts and Lock-In interchange. Retain a nested-list option. This supersedes the earlier decision to avoid a task board; it does not merge task completion with experiment validity.

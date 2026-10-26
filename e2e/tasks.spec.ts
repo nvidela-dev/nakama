@@ -50,7 +50,17 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   test.setTimeout(240_000);
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
+  page.setDefaultTimeout(15000);
   await page.goto("/projects");
+  await page.setViewportSize({ width: 1800, height: 1000 });
+  const grid = page.locator(".project-list");
+  await expect
+    .poll(async () =>
+      grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length),
+    )
+    .toBeGreaterThanOrEqual(5);
+  await expect.poll(async () => (await grid.boundingBox())!.width).toBeGreaterThan(1700);
+  await page.setViewportSize({ width: 1280, height: 900 });
   await openProjectSetup(page);
   await page.getByLabel("Project name", { exact: true }).fill(fixtureName);
   await page
@@ -62,6 +72,7 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   fixtureId = path.split("/").at(-1);
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   const list = page.getByRole("region", { name: "Project to-do list" });
+  await list.getByRole("button", { name: "Nested list", exact: true }).click();
   await list.getByRole("button", { name: "Add task", exact: true }).click();
   let dialog = page.getByRole("dialog");
   await dialog.getByLabel("Task title", { exact: true }).fill("Root task");
@@ -72,6 +83,28 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await dialog.getByRole("button", { name: "Save task", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(2);
   await expect(list.locator(".task-number").nth(1)).toHaveText("1.1");
+  await list.getByRole("button", { name: "Board", exact: true }).click();
+  await expect(list.locator(".task-board > section")).toHaveCount(3);
+  const child = list
+    .locator(".task-row")
+    .filter({ has: page.getByRole("button", { name: "Nested child", exact: true }) });
+  await expect(child).toHaveAttribute("draggable", "true");
+  await child.dragTo(list.getByRole("region", { name: "In progress", exact: true }));
+  await expect(child.getByRole("combobox")).toHaveValue("in_progress");
+  await expect(child).toContainText("Subtask of: Root task");
+  await page.reload();
+  await expect(list.getByLabel("Task status 1.1", { exact: true })).toHaveValue("in_progress");
+  await list.getByLabel("Task status 1.1", { exact: true }).selectOption("ready");
+  await expect(list.getByLabel("Task status 1.1", { exact: true })).toHaveValue("ready");
+  await page.setViewportSize({ width: 1800, height: 1000 });
+  await expect.poll(async () => (await list.boundingBox())!.width).toBeGreaterThan(1600);
+  await page.screenshot({ path: test.info().outputPath("kanban-desktop.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.screenshot({ path: test.info().outputPath("kanban-phone.png"), fullPage: true });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await list.getByRole("button", { name: "Nested list", exact: true }).click();
+
   await list.getByLabel("Task status 1", { exact: true }).selectOption("done");
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -82,6 +115,7 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await list.getByRole("button", { name: "Collapse subtasks", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(1);
   await page.reload();
+  await list.getByRole("button", { name: "Nested list", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(1);
   await list.getByRole("button", { name: "Expand all", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(2);
@@ -184,6 +218,7 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await expect(second.getByRole("button", { name: "Stale task draft", exact: true })).toBeVisible();
   await second.close();
   await page.reload();
+  await list.getByRole("button", { name: "Nested list", exact: true }).click();
   await list.getByRole("button", { name: "Delete task 1", exact: true }).click();
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Confirm deletion", exact: true }).click();

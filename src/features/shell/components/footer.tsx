@@ -44,7 +44,7 @@ export async function Footer({
   return (
     <footer
       className={
-        "max-w-360 m-auto py-7 px-[6%] border-t border-t-[var(--theme-overlay,#ffffff0c)] flex justify-between text-[11px] [color:var(--theme-text,#8a9c92)] items-center gap-4 max-[700px]:gap-5 max-[700px]:text-[11px]"
+        "max-w-none m-auto py-7 px-[6%] border-t border-t-[var(--theme-overlay,#ffffff0c)] flex justify-between text-[11px] [color:var(--theme-text,#8a9c92)] items-center gap-4 max-[700px]:gap-5 max-[700px]:text-[11px]"
       }
     >
       <span>{t("Nakama")}</span>
