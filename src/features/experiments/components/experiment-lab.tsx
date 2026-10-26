@@ -173,7 +173,7 @@ export function ExperimentLab({
           <summary className="cursor-pointer text-lime">
             {t("Scope, question, metrics and limits")}
           </summary>
-          <div className="grid sm:grid-cols-2 gap-3 mt-3">
+          <div className="grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_240px),_1fr))] gap-3 mt-3">
             {(["scope", "metric", "baseline", "owner", "limits", "milestone"] as const).map(
               (key) => (
                 <Field
@@ -249,7 +249,7 @@ export function ExperimentLab({
       <div role="status" className="text-[14px] text-lime whitespace-pre-wrap">
         {message}
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 text-[14px]">
+      <div className="grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_140px),_1fr))] gap-2 text-[14px]">
         {[
           ["Framed claims", items.length],
           [
@@ -379,7 +379,7 @@ export function ExperimentLab({
                 </article>
               ))}
             </details>
-            <section className="border-t border-line pt-4">
+            <section className="border-t border-line py-4">
               <h4 className="font-bold mb-3">{t("Start a run")}</h4>
               {form(
                 "Start run",
@@ -490,7 +490,7 @@ export function ExperimentLab({
                       </div>
                     </details>
                   ) : (
-                    <dl className="grid sm:grid-cols-2 gap-2 text-[14px]">
+                    <dl className="grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_240px),_1fr))] gap-2 text-[14px]">
                       <div>
                         <dt className="text-muted">{t("Human effort")}</dt>
                         <dd>
@@ -503,7 +503,7 @@ export function ExperimentLab({
                         <dt className="text-muted">{t("Actual cost")}</dt>
                         <dd>{run.cost ?? t("Not recorded")}</dd>
                       </div>
-                      <div className="sm:col-span-2">
+                      <div className="lg:[grid-column:1_/_-1]">
                         <dt className="text-muted">{t("Deviations and limitations")}</dt>
                         <dd className="whitespace-pre-wrap">
                           {run.deviations || t("Not recorded")}
