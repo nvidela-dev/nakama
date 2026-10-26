@@ -28,7 +28,9 @@ export default async function LabPage({
   try {
     [project, items, guidance, people] = await Promise.all([
       projectService(database()).get(person, projectId),
-      experimentService(database()).list(person, projectId),
+      experimentService(database())
+        .available(person, projectId)
+        .then((ready) => (ready ? experimentService(database()).list(person, projectId) : null)),
       guidanceService(database()).get(person, projectId),
       projectService(database()).people(person, projectId),
     ]);
@@ -43,23 +45,29 @@ export default async function LabPage({
         .map((n) => ({ id: n.id, label: t(n.label), stageId: s.id })),
     ) ?? [];
   return (
-    <main className="max-w-360 mx-auto p-4 sm:p-6 min-w-0">
+    <main id="main" className="max-w-360 mx-auto p-4 min-w-0">
       <nav className="flex flex-wrap gap-4 mb-5 text-[14px]">
         <Link href={`/projects/${projectId}`}>{t("Project flow")}</Link>
         <Link href={`/projects/${projectId}?view=tasks`}>{t("To-do")}</Link>
         <Link href={`/projects/${projectId}?view=artifacts`}>{t("Artifacts")}</Link>
       </nav>
       <h1 className="text-[24px] mb-1">{project.name}</h1>
-      <ExperimentLab
-        save={saveExperiment}
-        reload={reloadExperiments}
-        exportBrief={exportExperimentBrief}
-        projectId={projectId}
-        initial={items}
-        questions={questions}
-        initialNode={node ?? ""}
-        names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
-      />
+      {items === null ? (
+        <p role="status">
+          {t("The experiment lab is being prepared. Your other project tools remain available.")}
+        </p>
+      ) : (
+        <ExperimentLab
+          save={saveExperiment}
+          reload={reloadExperiments}
+          exportBrief={exportExperimentBrief}
+          projectId={projectId}
+          initial={items}
+          questions={questions}
+          initialNode={node ?? ""}
+          names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
+        />
+      )}
     </main>
   );
 }

@@ -134,7 +134,7 @@ export function ExperimentLab({
       >
         <fieldset disabled={busy} className="grid gap-3 min-w-0">
           {children}
-          <Button type="submit" className="justify-self-start" pending={busy}>
+          <Button type="submit" className="w-fit" pending={busy}>
             {t(label)}
           </Button>
         </fieldset>
@@ -306,7 +306,7 @@ export function ExperimentLab({
             <Button
               key={item.id}
               variant={item.id === selected ? "primary" : "secondary"}
-              className="text-left justify-start whitespace-normal wrap-anywhere"
+              className="text-left justify-start wrap-anywhere"
               aria-pressed={item.id === selected}
               onClick={() => {
                 setSelected(item.id);
@@ -565,7 +565,7 @@ export function ExperimentLab({
                   </details>
                   <div className="grid gap-2">
                     {runEvidence.map((v) => (
-                      <article key={v.id} className="border-l-2 border-line pl-3 text-[14px]">
+                      <article key={v.id} className="border border-line p-3 text-[14px]">
                         <strong>{t(v.kind)}</strong>
                         <p className="whitespace-pre-wrap wrap-anywhere">{v.content}</p>
                         <p className="text-muted whitespace-pre-wrap wrap-anywhere">{v.source}</p>

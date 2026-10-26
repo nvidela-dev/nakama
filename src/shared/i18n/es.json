@@ -1215,5 +1215,7 @@
   "Decision": "Decisión",
   "Copied.": "Copiado.",
   "Context changed. Reload and explicitly acknowledge the changed inputs before accepting this proposal.": "El contexto cambió. Actualizá y confirmá explícitamente que revisaste los cambios antes de aceptar esta propuesta.",
-  "I reviewed the changed inputs and reconciled them in the note.": "Revisé los cambios de entrada y los concilié en la nota."
+  "I reviewed the changed inputs and reconciled them in the note.": "Revisé los cambios de entrada y los concilié en la nota.",
+  "The experiment lab is awaiting its database update. Existing project tools remain available.": "El laboratorio espera una actualización de la base de datos. Las herramientas existentes del proyecto siguen disponibles.",
+  "The experiment lab is being prepared. Your other project tools remain available.": "Estamos preparando el laboratorio de experimentos. Las demás herramientas de tu proyecto siguen disponibles."
 }

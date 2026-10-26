@@ -60,7 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       data-density={density}
       data-scroll-behavior="smooth"
       className={
-        'lg:[html&[data-density="compact"]_footer]:max-w-none lg:[html&[data-density="compact"]_footer]:py-4 lg:[html&[data-density="compact"]_footer]:px-7'
+        'lg:[html&[data-density="compact"]_footer]:max-w-360 lg:[html&[data-density="compact"]_footer]:py-4 lg:[html&[data-density="compact"]_footer]:px-7'
       }
     >
       <body className={"m-0 bg-bg text-ink font-mono text-[16px] leading-[1.6]"}>

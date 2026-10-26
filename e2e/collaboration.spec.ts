@@ -93,6 +93,7 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   ).toHaveAttribute("rel", "noopener noreferrer");
   await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
+  await page.locator(".project-people-panel > summary").click();
   await page.getByLabel("Approved person", { exact: true }).selectOption(friendEmail);
   await page.getByRole("button", { name: "Create invitation link", exact: true }).click();
   const link = await page.getByLabel("Share this link privately").inputValue();
@@ -187,17 +188,17 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await progressPanel.locator("> summary").click();
   await expect(progressPanel).toHaveAttribute("open", "");
   const relationsPanel = page.locator(".project-relations");
-  await expect(relationsPanel).toHaveAttribute("open", "");
-  await relationsPanel.locator("> summary").click();
   await expect(relationsPanel).not.toHaveAttribute("open");
   await relationsPanel.locator("> summary").click();
   await expect(relationsPanel).toHaveAttribute("open", "");
+  await relationsPanel.locator("> summary").click();
+  await expect(relationsPanel).not.toHaveAttribute("open");
   const peoplePanel = page.locator(".project-people-panel");
-  await expect(peoplePanel).toHaveAttribute("open", "");
-  await peoplePanel.locator("> summary").click();
   await expect(peoplePanel).not.toHaveAttribute("open");
   await peoplePanel.locator("> summary").click();
   await expect(peoplePanel).toHaveAttribute("open", "");
+  await peoplePanel.locator("> summary").click();
+  await expect(peoplePanel).not.toHaveAttribute("open");
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   await expect(page.locator(".discussion h2")).toHaveText("To-do discussion");
   await page.getByRole("tab", { name: "Artifacts", exact: true }).click();
@@ -206,12 +207,14 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await expect(page.locator(".discussion h2")).not.toHaveText("To-do discussion");
   await expect(page.locator(".discussion h2")).not.toHaveText("Artifacts discussion");
   await page.goto(path);
+  await page.locator(".project-people-panel > summary").click();
   await page.getByRole("button", { name: "Remove member", exact: true }).click();
   await friend.goto(node);
   await expect(
     friend.getByRole("heading", { name: "This project isn't available." }),
   ).toBeVisible();
   await page.reload();
+  await page.locator(".project-activity > summary").click();
   await expect(page.locator(".activity-list")).toContainText("Former member");
   await context.unrouteAll({ behavior: "wait" });
   await context.close();
