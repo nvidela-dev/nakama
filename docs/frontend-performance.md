@@ -73,3 +73,7 @@ The pre-refactor production-build sample at 1440px loaded 786,317 raw bytes / 23
 This local tracking suite combines static build/AST analysis with synthetic loopback browser measurements; it is not a field RUM study across real user networks or devices. Membership-scoped project/library reads still retain their existing complete-list behavior; large-list cursor pagination requires a separate product/service change. Keep private images on their authenticated noncached route rather than sending them through an unauthenticated optimization service.
 
 For a later production audit, compare the same real task across representative devices/networks, collect consented content-free timings with the matching release, and distinguish server/database time from client rendering and network transfer. Do not claim an improvement from package size alone.
+
+## PR integration budget fixes — 2026-10-26
+
+CI found the project route and shared CSS just above the existing budgets. Date formatting now has a locale-dictionary-free module, preventing client date consumers from importing the full Spanish message catalog. Tailwind scans `src` explicitly (`source("../")` relative to `src/app/globals.css`), so documentation and test strings outside the application do not create production utilities. Colocated component stories remain in that source tree. The stylesheet guard permits only this exact scoped configuration; performance thresholds are unchanged.

@@ -198,16 +198,40 @@ async function savePlan(
     [projectId, id, version, JSON.stringify(plan), actor.userId],
   );
 }
+async function ready(tx: Queryable) {
+  return required(
+    (
+      await queryRows(
+        tx,
+        z.object({ ready: z.boolean() }),
+        "SELECT bool_and(to_regclass(name) IS NOT NULL) AS ready FROM unnest(ARRAY['public.experiments','public.experiment_plans','public.experiment_runs','public.experiment_evidence','public.experiment_reviews','public.experiment_proposals']) AS name",
+      )
+    )[0],
+  ).ready;
+}
+async function requireReady(tx: Queryable) {
+  if (!(await ready(tx)))
+    throw new ProjectError(
+      "The experiment lab is awaiting its database update. Existing project tools remain available.",
+    );
+}
 export function experimentService(db: Database) {
   return {
+    available: (actor: Actor, projectId: string) =>
+      db.transaction(async (tx) => {
+        await authorize(tx, actor, projectId);
+        return ready(tx);
+      }),
     list: (actor: Actor, projectId: string) =>
       db.transaction(async (tx) => {
         await authorize(tx, actor, projectId);
+        await requireReady(tx);
         return snapshot(tx, projectId);
       }),
     create: (actor: Actor, projectId: string, input: unknown) =>
       db.transaction(async (tx) => {
         await authorize(tx, actor, projectId);
+        await requireReady(tx);
         const plan = planSchema.safeParse(input);
         if (!plan.success) throw new ProjectError("Enter a claim, method and success criteria.");
         const row = required(
@@ -226,6 +250,7 @@ export function experimentService(db: Database) {
     change: (actor: Actor, projectId: string, id: string, revision: number, input: unknown) =>
       db.transaction(async (tx) => {
         await authorize(tx, actor, projectId);
+        await requireReady(tx);
         const current = (await snapshot(tx, projectId)).find((e) => e.id === id);
         if (!current) throw new ProjectError("Experiment not found.");
         if (current.revision !== revision)
@@ -363,6 +388,7 @@ export function experimentService(db: Database) {
     brief: (actor: Actor, projectId: string, id: string, runId: string) =>
       db.transaction(async (tx) => {
         await authorize(tx, actor, projectId);
+        await requireReady(tx);
         const e = (await snapshot(tx, projectId)).find((e) => e.id === id);
         const r = e?.runs.find((r) => r.id === runId);
         const p = e?.plans.find((p) => p.id === r?.plan_id);

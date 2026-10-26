@@ -406,3 +406,32 @@ test("stale agent acceptance requires explicit reconciliation and rejection keep
     /Complete the run/,
   );
 });
+
+test("unmigrated databases fail safely after membership checks and become ready after the additive migration", async () => {
+  const old = new PGlite();
+  const oldDb: Database = {
+    query: (q, v) => old.query(q, v),
+    transaction: (work) => old.transaction((tx) => work(tx)),
+  };
+  try {
+    for (const f of (await readdir("migrations"))
+      .filter((f) => f.endsWith(".sql") && !f.startsWith("016_"))
+      .sort())
+      await old.exec(await readFile(`migrations/${f}`, "utf8"));
+    const id = await projectService(oldDb).create(owner, {
+      name: "Migration fixture",
+      description: "Synthetic existing project",
+    });
+    const service = experimentService(oldDb);
+    assert.equal(await service.available(owner, id), false);
+    await assert.rejects(service.available(outsider, id));
+    await assert.rejects(service.list(owner, id), /awaiting its database update/);
+    await assert.rejects(service.create(owner, id, plan), /awaiting its database update/);
+    await old.exec(await readFile("migrations/016_experiment_lab.sql", "utf8"));
+    assert.equal(await service.available(owner, id), true);
+    assert.deepEqual(await service.list(owner, id), []);
+    assert.equal((await projectService(oldDb).get(owner, id)).name, "Migration fixture");
+  } finally {
+    await old.close();
+  }
+});
