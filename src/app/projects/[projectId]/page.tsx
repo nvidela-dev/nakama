@@ -1,3 +1,4 @@
+import { productionStages } from "@/features/tasks/milestone-catalog";
 import { ExperimentCycle } from "@/features/experiments/components/experiment-cycle";
 import { ProjectRelations } from "@/features/projects/components/project-relations";
 import { projectLinksService } from "@/features/projects/server/project-links";
@@ -279,6 +280,7 @@ export default async function ProjectPage({
       </div>
       {guidance ? (
         <Journey
+          productionStages={productionStages[guidance.flow.id]}
           wideWork={isTasksView}
           projectId={projectId}
           guidance={guidance}
@@ -288,7 +290,14 @@ export default async function ProjectPage({
           names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
           sidebar={sidebar}
           discussion={discussion}
-          tasks={<TaskList projectId={projectId} initial={tasks} />}
+          tasks={
+            <TaskList
+              projectId={projectId}
+              initial={tasks}
+              artifacts={artifacts.map(({ id, name }) => ({ id, name }))}
+              flowId={guidance?.flow.id ?? null}
+            />
+          }
           artifacts={artifactLibrary}
         />
       ) : (
@@ -307,7 +316,13 @@ export default async function ProjectPage({
             }
           >
             <ProjectWork
-              tasks={<TaskList projectId={projectId} initial={tasks} />}
+              tasks={
+                <TaskList
+                  projectId={projectId}
+                  initial={tasks}
+                  artifacts={artifacts.map(({ id, name }) => ({ id, name }))}
+                />
+              }
               artifacts={artifactLibrary}
             >
               <FlowChooser projectId={projectId} />

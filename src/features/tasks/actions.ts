@@ -7,7 +7,7 @@ import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { ProjectError } from "@/features/projects/server/projects";
 import { taskService, TaskConflictError, type TaskOperation } from "@/features/tasks/server/tasks";
-import type { LockInState, TaskSnapshot } from "@/features/tasks/model";
+import type { TaskSnapshot } from "@/features/tasks/model";
 type TaskFailure =
   | { error: string; conflict?: false; snapshot?: never }
   | { error: string; conflict: true; snapshot: TaskSnapshot };
@@ -38,36 +38,5 @@ export async function changeTask(
     }
     revalidatePath(`/projects/${projectId}`);
     return { snapshot };
-  });
-}
-export async function importTasks(
-  projectId: string,
-  revision: number,
-  input: unknown,
-): Promise<TaskResult> {
-  return observeAction("task.import", async () => {
-    const person = await actor();
-    let snapshot;
-    try {
-      snapshot = await taskService(database()).import(person, projectId, revision, input);
-    } catch (error) {
-      telemetry.reportError(error);
-      return failure(error);
-    }
-    revalidatePath(`/projects/${projectId}`);
-    return { snapshot };
-  });
-}
-export async function exportTasks(
-  projectId: string,
-): Promise<{ data?: LockInState; error?: string }> {
-  return observeAction("task.export", async () => {
-    const person = await actor();
-    try {
-      return { data: await taskService(database()).export(person, projectId) };
-    } catch (error) {
-      telemetry.reportError(error);
-      return failure(error);
-    }
   });
 }

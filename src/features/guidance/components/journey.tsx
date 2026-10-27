@@ -71,6 +71,7 @@ export function Journey({
   tasks,
   artifacts,
   wideWork = false,
+  productionStages = [],
 }: {
   projectId: string;
   guidance: Guidance;
@@ -84,6 +85,7 @@ export function Journey({
   tasks?: React.ReactNode;
   artifacts?: React.ReactNode;
   wideWork?: boolean;
+  productionStages?: string[];
 }) {
   const t = useT();
   const [showMap, setShowMap] = useState(false);
@@ -347,7 +349,11 @@ export function Journey({
                       return (
                         <li key={stage.id}>
                           <Link
-                            href={href(stage.id)}
+                            href={
+                              productionStages.includes(stage.id)
+                                ? `${base}?view=tasks`
+                                : href(stage.id)
+                            }
                             className={
                               "stage-card flex gap-4.5 items-start py-6 px-5 border border-line rounded-[12px] min-w-0 max-w-full [background:linear-gradient(115deg,_var(--theme-surface,#20332a),_var(--color-panel))] hover:[border-color:var(--theme-border,#9eb97b)] lg:compact:py-1.5 lg:compact:px-2 lg:compact:gap-2 lg:compact:items-center lg:compact:rounded-[7px]"
                             }
@@ -400,6 +406,14 @@ export function Journey({
                               <Icon name="arrowUpRight" />
                             </span>
                           </Link>
+                          {productionStages.includes(stage.id) && (
+                            <div className="flex gap-3 text-xs py-1">
+                              <Link href={`${base}?view=tasks`}>{t("Open milestone boards")}</Link>
+                              <Link href={href(stage.id)}>
+                                {t("Earlier stage questions and answers")}
+                              </Link>
+                            </div>
+                          )}
                         </li>
                       );
                     })}

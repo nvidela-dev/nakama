@@ -1,7 +1,6 @@
 import { openProjectSetup } from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
-import { readFile } from "node:fs/promises";
 import { Pool } from "pg";
 import { projectService } from "../src/features/projects/server/projects";
 import type { Database } from "../src/server/database/database";
@@ -44,7 +43,7 @@ test.afterEach(async () => {
     await pool.end();
   }
 });
-test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts, and preserved guided drafts", async ({
+test("browser tasks, explicit subtree operations, conflicts, and preserved guided drafts", async ({
   page,
 }) => {
   test.setTimeout(240_000);
@@ -126,74 +125,10 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await list.getByLabel("Find a task", { exact: true }).fill("1.1");
   await expect(list.locator(".task-row")).toHaveCount(2);
   await list.getByLabel("Find a task", { exact: true }).fill("");
-  const stamp = "2026-10-21T12:00:00Z";
-  const source = {
-    version: 1,
-    active_project: "local-a",
-    projects: [
-      {
-        id: "local-a",
-        name: "Lock-In sample",
-        created_at: stamp,
-        updated_at: stamp,
-        tasks: [
-          {
-            id: "local-root",
-            title: "Imported root",
-            status: "in_progress",
-            collapsed: false,
-            created_at: stamp,
-            updated_at: stamp,
-            subtasks: [
-              {
-                id: "local-child",
-                title: "Imported child",
-                status: "ready",
-                collapsed: false,
-                created_at: stamp,
-                updated_at: stamp,
-                subtasks: null,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: "local-b",
-        name: "Other local project",
-        created_at: stamp,
-        updated_at: stamp,
-        tasks: [],
-      },
-    ],
-  };
-  const upload = () =>
-    list.getByLabel("Lock-In JSON file").setInputFiles({
-      name: "lock-in-state.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(source)),
-    });
-  await upload();
-  await expect(dialog.getByText("Imported child", { exact: false })).toBeVisible();
-  await dialog.screenshot({ path: test.info().outputPath("lock-in-import-preview.png") });
-  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(list.locator(".task-row")).toHaveCount(2);
-  await upload();
-  await dialog.getByRole("button", { name: "Add imported tasks", exact: true }).click();
-  await expect(list.locator(".task-row")).toHaveCount(4);
-  await expect(list.getByRole("button", { name: "Imported root", exact: true })).toBeVisible();
-  const downloaded = page.waitForEvent("download");
-  await list.getByRole("button", { name: "Export Lock-In", exact: true }).click();
-  const download = await downloaded;
-  const exported = JSON.parse(await readFile((await download.path())!, "utf8"));
-  expect(exported.version).toBe(1);
-  expect(exported.projects).toHaveLength(1);
-  expect(exported.projects[0].tasks).toHaveLength(2);
-  expect(exported.projects[0].tasks[1].subtasks[0].title).toBe("Imported child");
-  await upload();
-  await dialog.getByRole("button", { name: "Add imported tasks", exact: true }).click();
-  await expect(dialog.getByRole("alert")).toContainText("already been imported");
-  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(list.getByRole("button", { name: "Import Lock-In", exact: true })).toHaveCount(0);
+  await list.getByRole("button", { name: "Add task", exact: true }).click();
+  await dialog.getByLabel("Task title", { exact: true }).fill("Independent task");
+  await dialog.getByRole("button", { name: "Save task", exact: true }).click();
   // A second tab must not silently overwrite a task edited after its dialog opened.
   const second = await page.context().newPage();
   await second.goto(`${path}?view=tasks`);
@@ -222,7 +157,7 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await list.getByRole("button", { name: "Delete task 1", exact: true }).click();
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Confirm deletion", exact: true }).click();
-  await expect(list.locator(".task-row")).toHaveCount(2);
+  await expect(list.locator(".task-row")).toHaveCount(1);
   await expect(list.locator(".task-number").first()).toHaveText("1");
   await page.getByRole("tab", { name: "Project flow", exact: true }).click();
   await page.getByRole("button", { name: /Creative/ }).click();
@@ -230,7 +165,7 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await page.goto(`${path}?stage=imagine&node=inspiration`);
   await page.getByLabel("Your answer, learning, or uncertainty").fill("Unsaved guided draft");
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
-  await expect(list.getByRole("button", { name: "Imported root", exact: true })).toBeVisible();
+  await expect(list.getByRole("button", { name: "Independent task", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Project flow", exact: true }).click();
   await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
     "Unsaved guided draft",
@@ -238,6 +173,49 @@ test("browser tasks, explicit subtree operations, Lock-In round trip, conflicts,
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   await page.setViewportSize({ width: 2560, height: 1080 });
   await list.screenshot({ path: test.info().outputPath("tasks-desktop.png") });
+  await list.getByRole("button", { name: "Board", exact: true }).click();
+  await list.getByRole("button", { name: "New milestone", exact: true }).click();
+  await dialog.getByLabel("Milestone title", { exact: true }).fill("First creative session");
+  await dialog.getByRole("button", { name: "Save milestone", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await list
+    .getByRole("combobox", { name: "Milestone board", exact: true })
+    .selectOption({ label: "First creative session · Active" });
+  await expect(list.locator(".task-board > section")).toHaveCount(4);
+  const ideas = list.getByRole("region", { name: "Ideas", exact: true });
+  await ideas.getByLabel("New card Ideas", { exact: true }).fill("Make a sample");
+  await ideas.getByRole("button", { name: "Add card", exact: true }).click();
+  const sample = list
+    .locator(".task-row")
+    .filter({ has: page.getByRole("button", { name: "Make a sample", exact: true }) });
+  await expect(sample).toBeVisible();
+  await expect(sample).toHaveAttribute("draggable", "true");
+  await sample.dragTo(list.getByRole("region", { name: "Polishing", exact: true }));
+  await expect(list.getByRole("region", { name: "Polishing", exact: true })).toContainText(
+    "Make a sample",
+  );
+  await sample.locator("summary").first().click();
+  await sample.getByText("Create artifact for this task", { exact: true }).click();
+  await sample.getByLabel("Artifact name", { exact: true }).fill("Sample notes");
+  await sample.getByRole("button", { name: "Create and attach", exact: true }).click();
+  await sample.getByRole("button", { name: "Sample notes", exact: true }).click();
+  await expect(dialog.getByRole("heading", { name: "Task artifact", exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await page.reload();
+  await list
+    .getByRole("combobox", { name: "Milestone board", exact: true })
+    .selectOption({ label: "First creative session · Active" });
+  await expect(list.getByRole("region", { name: "Polishing", exact: true })).toContainText(
+    "Make a sample",
+  );
+  await list.getByRole("button", { name: "Manage milestone", exact: true }).click();
+  await dialog
+    .getByRole("button", { name: "Delete milestone and keep tasks", exact: true })
+    .click();
+  await expect(list.getByRole("combobox", { name: "Milestone board", exact: true })).toHaveValue(
+    "",
+  );
+  await expect(list.getByRole("button", { name: "Make a sample", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Español", exact: true }).click();
   await expect(page.getByRole("button", { name: "Agregar tarea", exact: true })).toBeVisible();
   await expect(page.getByRole("option", { name: "Pendiente", exact: true }).first()).toHaveText(

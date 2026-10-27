@@ -161,7 +161,7 @@ export const wikiChapters = [
       },
       {
         title: "Deletion and import deserve a check",
-        body: "Deleting a task removes its children. Completing only its parent leaves children unchanged. Lock-In imports append a selected task tree; exports contain tasks, not the full project context.",
+        body: "Deleting a task removes its children. Completing only its parent leaves children unchanged.",
       },
     ],
   },
@@ -185,7 +185,7 @@ export const wikiChapters = [
       },
       {
         title: "Can I ask AI to work on the project or export all its context?",
-        body: "Embedded AI and guided-context export are not implemented. The existing Lock-In export is only for project tasks. Do not treat it as a complete project backup.",
+        body: "Embedded AI and guided-context export are not implemented.",
       },
     ],
   },

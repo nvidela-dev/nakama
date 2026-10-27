@@ -2,9 +2,28 @@ import type { DatabaseRows, TaskStatus } from "@/shared/contracts/database.gener
 export type { TaskStatus } from "@/shared/contracts/database.generated";
 export type ProjectTask = Pick<
   DatabaseRows["project_tasks"],
-  "id" | "parent_id" | "title" | "status" | "collapsed" | "created_at" | "updated_at"
+  | "id"
+  | "parent_id"
+  | "title"
+  | "status"
+  | "collapsed"
+  | "created_at"
+  | "updated_at"
+  | "milestone_id"
+  | "column_id"
+  | "board_position"
 >;
-export type TaskSnapshot = { revision: number; tasks: ProjectTask[] };
+export type Milestone = Pick<
+  DatabaseRows["project_milestones"],
+  "id" | "title" | "description" | "template_id" | "flow_id" | "status" | "position"
+>;
+export type TaskAttachment = { task_id: string; artifact_id: string };
+export type TaskSnapshot = {
+  revision: number;
+  tasks: ProjectTask[];
+  milestones: Milestone[];
+  attachments: TaskAttachment[];
+};
 export type TaskNode = ProjectTask & { number: string; depth: number; children: TaskNode[] };
 export const taskStatusLabels: Record<TaskStatus, string> = {
   ready: "Ready",
@@ -26,20 +45,3 @@ export function taskTree(tasks: ProjectTask[]): TaskNode[] {
 export function descendants(task: TaskNode): TaskNode[] {
   return task.children.flatMap((child) => [child, ...descendants(child)]);
 }
-export type LockInTask = {
-  id: string;
-  title: string;
-  status: TaskStatus;
-  collapsed: boolean;
-  subtasks: LockInTask[];
-  created_at: string;
-  updated_at: string;
-};
-export type LockInProject = {
-  id: string;
-  name: string;
-  tasks: LockInTask[];
-  created_at: string;
-  updated_at: string;
-};
-export type LockInState = { version: 1; active_project: string; projects: LockInProject[] };

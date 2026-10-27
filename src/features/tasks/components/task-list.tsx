@@ -1,4 +1,7 @@
 "use client";
+import { TaskArtifacts } from "./task-artifacts";
+import { MilestoneBoard } from "./milestone-board";
+import type { FlowId } from "@/shared/contracts/database.generated";
 import { Icon } from "@/shared/ui/icon";
 import { Panel } from "@/shared/ui/panel";
 
@@ -7,25 +10,33 @@ import { Input, Select } from "@/shared/ui/controls";
 import { Dialog } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { changeTask, exportTasks, importTasks, type TaskResult } from "@/features/tasks/actions";
+import { useMemo, useRef, useState, useTransition } from "react";
+import { changeTask, type TaskResult } from "@/features/tasks/actions";
 import type { TaskOperation } from "@/features/tasks/input";
 import {
   descendants,
   taskTree,
   taskStatusLabels,
-  type LockInProject,
   type TaskNode,
   type TaskSnapshot,
   type TaskStatus,
 } from "@/features/tasks/model";
-import { parseLockInFile } from "@/features/tasks/lockin-format";
 import { useT } from "@/shared/i18n/provider";
 type Editor = { title: string; revision: number } & (
   | { kind: "add"; parentId?: string; task?: never }
   | { kind: "edit" | "delete" | "done"; task: TaskNode; parentId?: never }
 );
-export function TaskList({ projectId, initial }: { projectId: string; initial: TaskSnapshot }) {
+export function TaskList({
+  projectId,
+  initial,
+  flowId = null,
+  artifacts = [],
+}: {
+  projectId: string;
+  initial: TaskSnapshot;
+  flowId?: FlowId | null;
+  artifacts?: { id: string; name: string }[];
+}) {
   const t = useT();
   const [list, setList] = useState(initial),
     [pending, startTransition] = useTransition();
@@ -36,14 +47,8 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
   const [view, setView] = useState<"board" | "list">("board");
   const [search, setSearch] = useState(""),
     [filter, setFilter] = useState("all");
-  const [imports, setImports] = useState<LockInProject[]>([]),
-    [selected, setSelected] = useState(0),
-    [importRevision, setImportRevision] = useState(initial.revision);
-  const opener = useRef<HTMLElement | null>(null),
-    file = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    setList((current) => (initial.revision > current.revision ? initial : current));
-  }, [initial]);
+  const opener = useRef<HTMLElement | null>(null);
+  if (initial.revision > list.revision) setList(initial);
   const tree = useMemo(() => taskTree(list.tasks), [list.tasks]);
   const completed = list.tasks.filter((task) => task.status === "done").length;
   function open(value: Editor) {
@@ -54,7 +59,6 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
   }
   function close() {
     setEditor(null);
-    setImports([]);
     setError("");
     setConflict(false);
     requestAnimationFrame(() => opener.current?.isConnected && opener.current.focus());
@@ -73,60 +77,20 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
   }
   function run(operation: TaskOperation, revision = list.revision, closeAfter = false) {
     setNotice("");
-    startTransition(async () => {
-      try {
-        apply(await changeTask(projectId, revision, operation), closeAfter);
-      } catch {
-        setError("Could not save tasks. Your draft is still here.");
-      }
-    });
-  }
-  function download() {
-    startTransition(async () => {
-      try {
-        const { data, error } = await exportTasks(projectId);
-        if (error) setError(error);
-        else if (data) setNotice("Export ready.");
-        if (data) {
-          const blob = new Blob([JSON.stringify(data, null, 2) + "\n"], {
-            type: "application/json",
-          });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "lock-in-project.json";
-          a.click();
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return new Promise<boolean>((resolve) =>
+      startTransition(async () => {
+        try {
+          const result = await changeTask(projectId, revision, operation);
+          apply(result, closeAfter);
+          resolve(!result.error);
+        } catch {
+          setError("Could not save tasks. Your draft is still here.");
+          resolve(false);
         }
-      } catch {
-        setError("Could not export tasks.");
-      }
-    });
+      }),
+    );
   }
-  async function readFile(event: React.ChangeEvent<HTMLInputElement>) {
-    const input = event.target;
-    const chosen = input.files?.[0];
-    if (!chosen) return;
-    setError("");
-    try {
-      if (chosen.size > 512_000) throw new Error();
-      const state = parseLockInFile(await chosen.text());
-      setImports(state.projects);
-      setSelected(
-        Math.max(
-          0,
-          state.projects.findIndex((p) => p.id === state.active_project),
-        ),
-      );
-      setImportRevision(list.revision);
-    } catch {
-      setError(
-        "Choose a valid Lock-In version 1 JSON file up to 512 KB. Task titles must be at most 300 characters.",
-      );
-    } finally {
-      input.value = "";
-    }
-  }
+
   function mark(node: TaskNode, status: TaskStatus) {
     if (status === "done" && node.children.length)
       open({ kind: "done", task: node, title: node.title, revision: list.revision });
@@ -170,7 +134,7 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
             t("Task no longer exists.")}
         </p>
       )}
-      {conflict && (editor || imports.length > 0) && (
+      {conflict && editor && (
         <Button
           type="button"
           className={"button secondary"}
@@ -200,7 +164,6 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
                   title: editor.kind === "edit" ? editor.title : fresh.title,
                 });
             }
-            setImportRevision(list.revision);
             setError("");
             setConflict(false);
           }}
@@ -211,10 +174,6 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
       )}
     </div>
   );
-  const selectedImport = imports[selected];
-  function importCount(tasks: LockInProject["tasks"]): number {
-    return tasks.reduce((sum, task) => sum + 1 + importCount(task.subtasks), 0);
-  }
   function renderTask(node: TaskNode) {
     return (
       <li
@@ -288,6 +247,23 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           <p className="text-[11px] text-muted wrap-anywhere">
             {t("Subtask of")}: {list.tasks.find((task) => task.id === node.parent_id)?.title}
           </p>
+        )}
+        {view === "board" && (
+          <details className="min-w-0">
+            <summary className="text-xs cursor-pointer">
+              {t("Artifacts")} ({list.attachments.filter((a) => a.task_id === node.id).length})
+            </summary>
+            <TaskArtifacts
+              projectId={projectId}
+              taskId={node.id}
+              items={artifacts}
+              attached={list.attachments
+                .filter((a) => a.task_id === node.id)
+                .map((a) => a.artifact_id)}
+              run={run}
+              pending={pending}
+            />
+          </details>
         )}
         <div className={"task-row-controls flex flex-wrap items-center gap-1.5 min-w-0"}>
           <Select
@@ -451,43 +427,8 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
         >
           {t("Collapse all")}
         </Button>
-        <Button
-          type="button"
-          className={
-            "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
-          }
-          disabled={pending}
-          onClick={(event) => {
-            opener.current = event.currentTarget;
-            file.current?.click();
-          }}
-          variant="secondary"
-        >
-          {t("Import Lock-In")}
-        </Button>
-        <Button
-          type="button"
-          className={
-            "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
-          }
-          disabled={pending}
-          onClick={download}
-          variant="secondary"
-        >
-          {t("Export Lock-In")}
-        </Button>
-        <Input
-          ref={file}
-          className={
-            "sr-only absolute w-0.25 h-0.25 p-0 -m-0.25 overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0"
-          }
-          type="file"
-          accept=".json,application/json"
-          aria-label={t("Lock-In JSON file")}
-          onChange={readFile}
-        />
       </div>
-      {!editor && !imports.length && errorBox}
+      {!editor && errorBox}
       {notice && (
         <p
           className={
@@ -498,67 +439,21 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
           {t(notice)}
         </p>
       )}
-      {!list.tasks.length ? (
-        <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
-          {t("No tasks yet. Add a task or import a Lock-In project.")}
-        </p>
+      {view === "board" ? (
+        <MilestoneBoard
+          projectId={projectId}
+          flowId={flowId}
+          list={list}
+          visible={visible}
+          pending={pending}
+          run={run}
+          renderTask={renderTask}
+          error={error}
+        />
       ) : !visible.length ? (
-        <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>{t("No matching tasks.")}</p>
-      ) : view === "list" ? (
-        <ol className="task-tree list-none p-0 m-0">{visible.map(renderTask)}</ol>
+        <p>{t("No matching tasks.")}</p>
       ) : (
-        <div
-          className="task-board grid grid-cols-1 min-[900px]:grid-cols-3 gap-3 items-start"
-          aria-label={t("Task board")}
-        >
-          {(Object.keys(taskStatusLabels) as TaskStatus[])
-            .filter((status) => filter === "all" || filter === status)
-            .map((status) => {
-              const cards = visible.filter((node) => node.status === status);
-              return (
-                <section
-                  key={status}
-                  aria-label={t(taskStatusLabels[status])}
-                  className="min-w-0 rounded-[12px] border border-line bg-[var(--theme-surface)] p-3 min-h-40"
-                  onDragOver={(event) => {
-                    if (!pending) {
-                      event.preventDefault();
-                      event.dataTransfer.dropEffect = "move";
-                    }
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    if (pending) return;
-                    try {
-                      const data: unknown = JSON.parse(
-                        event.dataTransfer.getData("application/x-nakama-task"),
-                      );
-                      if (
-                        !data ||
-                        typeof data !== "object" ||
-                        !("projectId" in data) ||
-                        data.projectId !== projectId ||
-                        !("id" in data)
-                      )
-                        return;
-                      const node = visible.find((task) => task.id === data.id);
-                      if (node && node.status !== status) mark(node, status);
-                    } catch {
-                      /* Ignore files and drags from other applications. */
-                    }
-                  }}
-                >
-                  <h3 className="font-semibold text-[14px] m-0 mb-3">
-                    {t(taskStatusLabels[status])} <span className="text-muted">{cards.length}</span>
-                  </h3>
-                  <ol className="grid gap-2 list-none p-0 m-0">{cards.map(renderTask)}</ol>
-                  {!cards.length && (
-                    <p className="text-[12px] text-muted">{t("No tasks in this column.")}</p>
-                  )}
-                </section>
-              );
-            })}
-        </div>
+        <ol className="task-tree list-none p-0 m-0">{visible.map(renderTask)}</ol>
       )}
       {editor && (
         <Dialog
@@ -713,109 +608,6 @@ export function TaskList({ projectId, initial }: { projectId: string; initial: T
               </Button>
             </div>
           </form>
-        </Dialog>
-      )}
-      {selectedImport && (
-        <Dialog
-          open
-          onClose={close}
-          dismissible={!pending}
-          className={
-            "task-dialog [&_input]:w-full [&_input]:min-w-0 [&_input]:bg-bg [&_input]:text-ink [&_input]:border [&_input]:border-line [&_input]:rounded-[6px] [&_input]:font-sans [&_input]:py-2 [&_input]:px-2.5 [&_input]:min-h-9 w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
-          }
-          labelledBy="task-import-heading"
-        >
-          <h2
-            id="task-import-heading"
-            className={
-              "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
-            }
-          >
-            {t("Import Lock-In")}
-          </h2>
-          <label className={"grid gap-1.5 text-[11px] text-muted"}>
-            {t("Source project")}
-            <Select
-              value={selected}
-              disabled={pending}
-              onChange={(e) => setSelected(Number(e.target.value))}
-              className={
-                "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-sans py-2 px-2.5 min-h-9"
-              }
-            >
-              {imports.map((p, i) => (
-                <option key={p.id} value={i}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
-          </label>
-          <p className={"mb-[1em] mt-0"}>
-            {importCount(selectedImport.tasks)} {t("tasks to add")}
-          </p>
-          <p className={"muted mb-[1em] mt-0 text-muted text-[12px]"}>
-            {t(
-              "This adds tasks to the current project. Existing tasks and project details stay as they are. Source IDs are remapped; this is not a sync.",
-            )}
-          </p>
-          <ol
-            className={
-              "task-import-preview my-[1em] max-h-65 overflow-auto list-none p-3 bg-panel rounded-[8px] text-[11px]"
-            }
-          >
-            {(function preview(
-              tasks: LockInProject["tasks"],
-              prefix = "",
-              depth = 0,
-            ): React.ReactNode {
-              return tasks.map((task, i) => {
-                const number = prefix ? `${prefix}.${i + 1}` : `${i + 1}`;
-                return (
-                  <li
-                    key={task.id}
-                    style={{ marginLeft: Math.min(depth, 4) * 12 }}
-                    className={"py-1 px-0 wrap-anywhere"}
-                  >
-                    <span>
-                      {number} · {task.title} · {t(taskStatusLabels[task.status])}
-                    </span>
-                    {task.subtasks.length > 0 && (
-                      <ol className={"my-[1em] list-none p-0"}>
-                        {preview(task.subtasks, number, depth + 1)}
-                      </ol>
-                    )}
-                  </li>
-                );
-              });
-            })(selectedImport.tasks)}
-          </ol>
-          {errorBox}
-          <div className={"task-dialog-actions flex flex-wrap gap-2 mt-4"}>
-            <Button
-              type="button"
-              disabled={pending || conflict || !importCount(selectedImport.tasks)}
-              onClick={() =>
-                startTransition(async () => {
-                  try {
-                    apply(await importTasks(projectId, importRevision, selectedImport), true);
-                  } catch {
-                    setError("Could not save tasks. Your draft is still here.");
-                  }
-                })
-              }
-            >
-              {t("Add imported tasks")}
-            </Button>
-            <Button
-              type="button"
-              className={"button secondary"}
-              disabled={pending}
-              onClick={close}
-              variant="secondary"
-            >
-              {t("Cancel")}
-            </Button>
-          </div>
         </Dialog>
       )}
     </Panel>

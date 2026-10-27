@@ -163,13 +163,6 @@ export const glossary = [
       "Create a new project and its source links together. Memberships, answers, tasks, artifacts, and files are not copied. Linking existing projects records origin without creating a new project.",
   },
   {
-    id: "import",
-    term: "Task import / export",
-    code: "Lock-In v1 / import receipt",
-    definition:
-      "Explicit interchange of one project’s task tree. Import appends tasks with new IDs; a receipt prevents exact duplicate imports. Export excludes membership, answers, comments, and artifact files.",
-  },
-  {
     id: "learning",
     term: "Learning",
     code: "Concept; recorded in answers",
@@ -223,8 +216,8 @@ export const glossaryGroups = [
   {
     id: "execution",
     title: "Work and outputs",
-    description: "Actions to complete, outputs to use, and task interchange.",
-    terms: ["task", "artifact", "artifact-task", "readiness", "import"],
+    description: "Actions to complete and outputs to use.",
+    terms: ["task", "artifact", "artifact-task", "readiness"],
   },
   {
     id: "collaboration",

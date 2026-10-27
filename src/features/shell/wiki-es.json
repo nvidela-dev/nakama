@@ -264,5 +264,8 @@
   "Conclusion: bounded to this task and sample.\nNext action: repeat with new users, or revise the confusing step.\nLimitations: five participants; no evidence of willingness to pay.": "Conclusión: limitada a esta tarea y muestra.\nSiguiente paso: repetir con otros usuarios o revisar el paso confuso.\nLimitaciones: cinco participantes; sin evidencia de disposición a pagar.",
   "Run a small test. Make a better decision.": "Hacé una prueba pequeña. Tomá una mejor decisión.",
   "A visual field guide to validating ideas through Nakama. Follow one fictional test from question to evidence and a human decision.": "Una guía visual para validar ideas con Nakama. Seguí una prueba ficticia desde la pregunta hasta la evidencia y una decisión humana.",
-  "Back to the field manual": "Volver al manual"
+  "Back to the field manual": "Volver al manual",
+  "Deleting a task removes its children. Completing only its parent leaves children unchanged.": "Eliminar una tarea elimina sus hijos. Completar solo el padre no modifica los hijos.",
+  "Embedded AI and guided-context export are not implemented.": "La IA integrada y la exportación de contexto del flujo no están implementadas.",
+  "Actions to complete and outputs to use.": "Acciones por completar y resultados para usar."
 }
