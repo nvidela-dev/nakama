@@ -1,3 +1,5 @@
+import { ProjectTests } from "@/features/experiments/components/project-tests";
+import { experimentPrompts } from "@/features/experiments/flow-prompts";
 import { productionStages } from "@/features/tasks/milestone-catalog";
 import { ExperimentCycle } from "@/features/experiments/components/experiment-cycle";
 import { ProjectRelations } from "@/features/projects/components/project-relations";
@@ -10,7 +12,7 @@ import { ProjectWork } from "@/features/projects/components/project-work";
 import { invitationCandidates } from "@/features/collaboration/server/invitation-candidates";
 import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { ProjectError, projectService } from "@/features/projects/server/projects";
@@ -42,10 +44,22 @@ export default async function ProjectPage({
   const { projectId } = await params;
   const service = projectService(database());
   const query = await searchParams;
+  if (query.view === "tasks" && query.comment)
+    redirect(
+      `/projects/${projectId}/discussion?comment=${encodeURIComponent(query.comment)}#comment-${encodeURIComponent(query.comment)}`,
+    );
   const isTasksView = query.view === "tasks";
   const isArtifactsView = query.view === "artifacts";
-  const targetStageId = isTasksView ? "tasks" : isArtifactsView ? "artifacts" : query.stage;
-  const targetNodeId = isTasksView || isArtifactsView ? undefined : query.node;
+  const isTestsView = query.view === "tests";
+  const focusedWork = isTasksView || isTestsView;
+  const targetStageId = isTasksView
+    ? "tasks"
+    : isArtifactsView
+      ? "artifacts"
+      : isTestsView
+        ? undefined
+        : query.stage;
+  const targetNodeId = focusedWork || isArtifactsView ? undefined : query.node;
   const target = commentTarget(targetStageId, targetNodeId);
   let project, people, guidance, comments, activity, tasks, artifacts, links, accessibleProjects;
   let history: Awaited<ReturnType<ReturnType<typeof guidanceService>["history"]>> = [];
@@ -68,14 +82,18 @@ export default async function ProjectPage({
       query.node
         ? guidanceService(database()).history(person, projectId, query.node)
         : Promise.resolve([]),
-      collaborationService(database()).comments(
-        person,
-        projectId,
-        target,
-        query.commentsBefore,
-        query.comment,
-      ),
-      collaborationService(database()).activity(person, projectId, query.activityBefore),
+      focusedWork
+        ? Promise.resolve({ items: [], next: undefined })
+        : collaborationService(database()).comments(
+            person,
+            projectId,
+            target,
+            query.commentsBefore,
+            query.comment,
+          ),
+      focusedWork
+        ? Promise.resolve({ items: [], next: undefined })
+        : collaborationService(database()).activity(person, projectId, query.activityBefore),
       taskService(database()).list(person, projectId),
       artifactService(database()).list(person, projectId),
       projectLinksService(database()).list(person, projectId),
@@ -94,7 +112,34 @@ export default async function ProjectPage({
       stageId={query.stage}
     />
   );
-  const candidates = project.role === "owner" ? await invitationCandidates(person, projectId) : [];
+  const prompts = guidance ? experimentPrompts[guidance.flow.id] : undefined;
+  const tests = (
+    <ProjectTests
+      projectId={projectId}
+      questions={
+        guidance?.flow.stages.flatMap((stage) =>
+          stage.nodes
+            .filter((node) => node.kind === "question")
+            .map((node) => ({ id: node.id, label: t(node.label), stageId: stage.id })),
+        ) ?? []
+      }
+      names={Object.fromEntries(
+        people.members.map((member) => [member.user_id, member.display_name]),
+      )}
+      prompts={
+        prompts
+          ? {
+              claim: t(prompts.claim),
+              method: t(prompts.method),
+              criteria: t(prompts.criteria),
+              evidence: t(prompts.evidence),
+            }
+          : undefined
+      }
+    />
+  );
+  const candidates =
+    !focusedWork && project.role === "owner" ? await invitationCandidates(person, projectId) : [];
   const selectedStage = guidance?.flow.stages.find((stage) => stage.id === query.stage);
   const selectedNode = selectedStage?.nodes.find((node) => node.id === query.node);
   const discussionLabel = isTasksView
@@ -281,7 +326,7 @@ export default async function ProjectPage({
       {guidance ? (
         <Journey
           productionStages={productionStages[guidance.flow.id]}
-          wideWork={isTasksView}
+          wideWork={focusedWork}
           projectId={projectId}
           guidance={guidance}
           stageId={query.stage}
@@ -299,13 +344,13 @@ export default async function ProjectPage({
             />
           }
           artifacts={artifactLibrary}
+          tests={tests}
         />
       ) : (
         <div
           className={[
             "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-3 lg:compact:gap-3 items-start",
-            isTasksView &&
-              "[&_.project-working-column]:col-span-full! [&_.project-sidebar]:col-span-full! [&_.project-sidebar]:col-start-1! [&_.project-sidebar]:row-start-3! min-[701px]:[&_.project-sidebar]:grid-cols-3",
+            focusedWork && "[&_.project-working-column]:col-span-full!",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -324,31 +369,38 @@ export default async function ProjectPage({
                 />
               }
               artifacts={artifactLibrary}
+              tests={tests}
             >
               <FlowChooser projectId={projectId} />
             </ProjectWork>
           </div>
-          <div
-            className={
-              "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2"
-            }
-          >
-            {discussion}
-          </div>
-          <div
-            className={
-              "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11"
-            }
-          >
-            {sidebar}
-          </div>
+          {!focusedWork && (
+            <>
+              <div
+                className={
+                  "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2"
+                }
+              >
+                {discussion}
+              </div>
+              <div
+                className={
+                  "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11"
+                }
+              >
+                {sidebar}
+              </div>
+            </>
+          )}
         </div>
       )}
-      <ExperimentCycle
-        projectId={projectId}
-        flowId={guidance?.flow.id}
-        nodeId={selectedNode?.kind === "question" ? selectedNode.id : undefined}
-      />
+      {!focusedWork && (
+        <ExperimentCycle
+          projectId={projectId}
+          flowId={guidance?.flow.id}
+          nodeId={selectedNode?.kind === "question" ? selectedNode.id : undefined}
+        />
+      )}
     </main>
   );
 }

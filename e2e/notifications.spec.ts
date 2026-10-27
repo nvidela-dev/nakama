@@ -137,6 +137,30 @@ test("bell preserves unread state until explicit read or visible discussion, wit
     expect(discussionPosition.x).toBe(workingPosition.x);
     expect(discussionPosition.width).toBeGreaterThan(workingPosition.width);
     expect(discussionPosition.y).toBeGreaterThanOrEqual(workingPosition.bottom);
+    const taskComment = await comments.post(
+      friend,
+      id,
+      { stageId: "tasks" },
+      "Earlier task discussion fixture",
+    );
+    await page.goto(`/projects/${id}?view=tasks&comment=${taskComment}#comment-${taskComment}`);
+    await expect(page).toHaveURL(new RegExp(`/projects/${id}/discussion\\?comment=`));
+    await expect(page.locator(`#comment-${taskComment}`)).toBeInViewport();
+    await expect
+      .poll(async () =>
+        Number(
+          (
+            await pool.query(
+              "SELECT count(*)::int AS n FROM comment_reads WHERE comment_id=$1 AND user_id=$2",
+              [taskComment, userId],
+            )
+          ).rows[0].n,
+        ),
+      )
+      .toBe(1);
+    await page.getByRole("link", { name: "To-do", exact: true }).click();
+    await expect(page.locator(".discussion")).toHaveCount(0);
+    await expect(page.locator(".project-sidebar")).toHaveCount(0);
     await page.setViewportSize({ width: 390, height: 844 });
     await bell.click();
     await expect(panel).toBeVisible();

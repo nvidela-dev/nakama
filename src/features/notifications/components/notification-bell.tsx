@@ -156,17 +156,17 @@ function NotificationMenu() {
           <ol className={"notification-list list-none p-0 m-0"}>
             {inbox?.items.map((c) => {
               const query = new URLSearchParams();
-              if (c.stage_id === "tasks" || c.stage_id === "artifacts") {
+              if (c.stage_id === "artifacts") {
                 query.set("view", c.stage_id);
               } else {
-                if (c.stage_id) query.set("stage", c.stage_id);
+                if (c.stage_id && c.stage_id !== "tasks") query.set("stage", c.stage_id);
                 if (c.node_id) query.set("node", c.node_id);
               }
               query.set("comment", c.id);
               return (
                 <li key={c.id} className={"py-3.5 border-t border-t-line"}>
                   <Link
-                    href={`/projects/${c.project_id}?${query}#comment-${c.id}`}
+                    href={`/projects/${c.project_id}${c.stage_id === "tasks" ? "/discussion" : ""}?${query}#comment-${c.id}`}
                     onClick={() => setOpen(false)}
                   >
                     <strong className={"block"}>{c.project_name}</strong>
