@@ -8,6 +8,15 @@ export type ExperimentPrompts = {
 };
 /** Every project flow must define how to test its ideas; these are prompts, never saved results. */
 export const experimentPrompts = {
+  "self-improvement": {
+    claim: "Which small behavior change do you want to test in your own context?",
+    method:
+      "Try one alternative at a specific cue over a bounded set of opportunities; record observations and exceptions.",
+    criteria:
+      "Choose a personally useful signal, a review date and reasons to adjust or stop. Missing observations stay unknown.",
+    evidence:
+      "Keep dated observations, context and effort separate from interpretation. A completed task or a streak does not establish lasting change.",
+  },
   venture: {
     claim: "Which need or offer are we testing?",
     method: "Observe a bounded customer behavior, such as requesting a demo or trying the offer.",
