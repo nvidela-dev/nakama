@@ -478,3 +478,58 @@ test("business project types retain distinct flows, metadata, saved work, and ac
   });
   await assert.rejects(guidance.select(alice, id, "__proto__"));
 });
+
+test("self-improvement uses shared project tools without equating completed work with evidence", async () => {
+  const id = await project("self-improvement");
+  const initial = (await guidance.get(alice, id))!;
+  assert.deepEqual(
+    initial.flow.stages.map((s) => s.id),
+    ["pattern", "observe", "plan-change", "practice", "reflect"],
+  );
+  await guidance.save(alice, id, "self-triggers", answer("An unclear first step"));
+  const { taskService } = await import("../src/features/tasks/server/tasks");
+  const tasks = taskService(db);
+  const added = await tasks.change(alice, id, 0, {
+    kind: "add",
+    title: "Prepare a first step",
+    parentId: null,
+  });
+  await tasks.change(alice, id, added.revision, {
+    kind: "status",
+    id: added.tasks[0]!.id,
+    status: "done",
+  });
+  const { artifactService } = await import("../src/features/artifacts/server/artifacts");
+  const artifacts = artifactService(db);
+  const artifact = await artifacts.create(alice, id, {
+    name: "Observation journal",
+    kind: "markdown",
+    stageId: "observe",
+  });
+  assert.ok(artifact);
+  const { experimentService } = await import("../src/features/experiments/server/experiments");
+  const lab = experimentService(db);
+  let experiment = (
+    await lab.create(alice, id, {
+      claim: "A clear first step helps me begin",
+      method: "Observe five opportunities",
+      criteria: "Begin on four opportunities",
+      nodeId: "self-triggers",
+    })
+  )[0]!;
+  experiment = (
+    await lab.change(alice, id, experiment.id, experiment.revision, {
+      kind: "start",
+      executor: "Self",
+    })
+  )[0]!;
+  assert.equal(experiment.runs[0]!.context.nodeId, "self-triggers");
+  assert.equal(experiment.evidence.length, 0);
+  assert.equal(experiment.reviews.length, 0);
+  await guidance.save(alice, id, "self-triggers", answer("Notifications also distract me", 1));
+  assert.equal((await lab.list(alice, id))[0]!.runs[0]!.stale, true);
+  await assert.rejects(guidance.get(outsider, id));
+  await assert.rejects(lab.list(outsider, id));
+  const { projectProgress } = await import("../src/features/projects/server/project-progress");
+  assert.equal((await projectProgress(db, alice)).get(id)?.length, 5);
+});

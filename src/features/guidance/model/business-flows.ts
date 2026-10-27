@@ -1,7 +1,10 @@
 import type { FlowId } from "@/shared/contracts/database.generated";
 import type { Flow } from "@/features/guidance/model/flows";
 
-export type BusinessFlowId = Exclude<FlowId, "venture" | "creative" | "investigation" | "platform">;
+export type BusinessFlowId = Extract<
+  FlowId,
+  "eshop" | "shirt-eshop" | "saas" | "importation" | "consultancy"
+>;
 export const businessFlows: { readonly [Id in BusinessFlowId]: Flow & { readonly id: Id } } = {
   eshop: {
     id: "eshop",

@@ -12,6 +12,11 @@ export const flowCatalog = [
     "description": "Build infrastructure, automation, cloud services, and internal tooling to increase production."
   },
   {
+    "id": "self-improvement",
+    "name": "Self-improvement",
+    "description": "Understand a behavior pattern, try a small change, and learn from your observations."
+  },
+  {
     "id": "eshop",
     "name": "E-shop",
     "description": "Build a general online shop, from product selection to fulfilled orders."
