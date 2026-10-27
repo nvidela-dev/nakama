@@ -432,3 +432,7 @@ Accepted: the expanded question tree uses taller cards, a wider stage rail with 
 ## Focused To-do and Tests workspaces — 2026-10-26
 
 Accepted: To-do removes task search, discussion, sidebar, and the bottom experiment prompt. Board and nested-list modes use two icons and a labeled switch. Tests is a workspace tab exposing the existing experiment lab; load its data and editor on first opening and preserve drafts when switching tabs. Tests also uses the full-width focused layout. Earlier task-comment notification links open a separate authorized discussion page, preserving access while keeping the To-do workspace clear.
+
+## Single-row task controls — 2026-10-26
+
+Accepted: remove the repeated To-do heading and combine task count, view switch, status filter, milestone controls, and task creation into one compact toolbar. Retain accessible control names and allow wrapping on narrow screens.
