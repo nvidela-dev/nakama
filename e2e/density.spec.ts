@@ -48,6 +48,13 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   await page.locator(".stage-card").filter({ hasText: "Imagine" }).click();
   await expect(page.locator(".tree-row").first().locator(".question-node")).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  const connector = page.locator(".tree-connector").first();
+  await expect(connector).toBeVisible();
+  expect((await connector.locator("svg").boundingBox())!.width).toBeGreaterThanOrEqual(44);
+  await expect(connector.locator("svg")).toHaveAttribute("stroke-width", "3");
+  expect(
+    (await page.locator(".question-node").first().boundingBox())!.height,
+  ).toBeGreaterThanOrEqual(88);
   await page.screenshot({
     path: test.info().outputPath("ultrawide-branches.png"),
     fullPage: true,
@@ -67,6 +74,16 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
     path: test.info().outputPath("phone-unchanged.png"),
     fullPage: true,
   });
+  await page.goto("/preview?stage=imagine");
+  await expect(page.locator(".tree-connector").first()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.screenshot({
+    path: test.info().outputPath("phone-expanded-flow.png"),
+    fullPage: true,
+  });
+  await page.locator(".question-node").first().focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/node=inspiration/);
 });
 test("density changes keep capture and answer drafts, selections and saving intact", async ({
   page,
