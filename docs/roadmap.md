@@ -420,3 +420,7 @@ The user's density request applies to the project heading, experiment cycle, con
 ## Lock-In retirement and managed boards — 2026-10-26
 
 Accepted: Lock-In interoperability is no longer a requirement. Remove its import/export controls and runtime contract while preserving existing tasks, hierarchy, and historical import receipts. Managed milestone boards use project-scoped task revisions and flow-specific columns; board movement never implicitly completes subtasks. This supersedes the compatibility requirements above.
+
+## Flow workspace spacing — 2026-10-26
+
+Accepted: discussion spans the complete workspace below the flow and sidebar. Overview steps use taller cards, downward arrows, and individual progress bars counting answered question nodes. Skipped, blocked, review state, and experiment validity remain separate from answer coverage.

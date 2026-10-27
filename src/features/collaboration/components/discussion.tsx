@@ -38,6 +38,14 @@ function CommentItem({
   const [draft, setDraft] = useState(comment.content);
   const item = useRef<HTMLLIElement>(null);
   useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (window.location.hash !== `#comment-${comment.id}` || !item.current) return;
+      item.current.scrollIntoView({ block: "center" });
+      item.current.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [comment.id]);
+  useEffect(() => {
     if (!item.current || comment.deleted_at || comment.author_id === userId) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let visible = false,

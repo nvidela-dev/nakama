@@ -162,6 +162,23 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await page.getByRole("tab", { name: "Project flow", exact: true }).click();
   await page.getByRole("button", { name: /Creative/ }).click();
   await expect(page.locator(".stage-card")).toHaveCount(5);
+  for (const width of [1440, 2048, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const workspace = await page.locator(".workspace-columns").boundingBox();
+    const discussion = await page.locator(".project-discussion-column").boundingBox();
+    const work = await page.locator(".project-working-column").boundingBox();
+    expect(Math.abs(discussion!.x - workspace!.x)).toBeLessThan(1);
+    expect(Math.abs(discussion!.width - workspace!.width)).toBeLessThan(1);
+    expect(discussion!.y).toBeGreaterThanOrEqual(work!.y + work!.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
+      false,
+    );
+    await page.screenshot({
+      path: test.info().outputPath(`flow-layout-${width}.png`),
+      fullPage: true,
+    });
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(`${path}?stage=imagine&node=inspiration`);
   await page.getByLabel("Your answer, learning, or uncertainty").fill("Unsaved guided draft");
   await page.getByRole("tab", { name: "To-do", exact: true }).click();

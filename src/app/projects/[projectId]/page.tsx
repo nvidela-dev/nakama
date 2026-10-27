@@ -305,14 +305,14 @@ export default async function ProjectPage({
           className={[
             "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-3 lg:compact:gap-3 items-start",
             isTasksView &&
-              "[&_.project-working-column]:col-span-full! [&_.project-working-column]:col-start-1! [&_.project-working-column]:row-start-1! [&_.project-discussion-column]:row-start-2! [&_.project-discussion-column]:col-start-1! [&_.project-discussion-column]:static! [&_.project-sidebar]:row-start-2! [&_.project-sidebar]:col-start-8! max-[700px]:[&_.project-sidebar]:row-start-3! max-[700px]:[&_.project-sidebar]:col-start-1!",
+              "[&_.project-working-column]:col-span-full! [&_.project-sidebar]:col-span-full! [&_.project-sidebar]:col-start-1! [&_.project-sidebar]:row-start-3! min-[701px]:[&_.project-sidebar]:grid-cols-3",
           ]
             .filter(Boolean)
             .join(" ")}
         >
           <div
             className={
-              "project-working-column min-w-0 max-w-full overflow-hidden bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 [&_.answer-panel]:bg-[var(--theme-surface-low,#14221f)] col-span-1 col-start-1 row-start-1 min-[701px]:col-span-7 min-[1001px]:col-span-8 min-[1280px]:col-span-6 min-[1280px]:col-start-4 min-[1280px]:row-start-1"
+              "project-working-column min-w-0 max-w-full overflow-hidden bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 [&_.answer-panel]:bg-[var(--theme-surface-low,#14221f)] col-span-1 col-start-1 row-start-1 min-[701px]:col-span-8 min-[1280px]:col-span-10"
             }
           >
             <ProjectWork
@@ -330,14 +330,14 @@ export default async function ProjectPage({
           </div>
           <div
             className={
-              "project-discussion-column min-w-0 max-w-full overflow-hidden col-span-1 col-start-1 row-start-2 min-[701px]:col-span-7 min-[1001px]:col-span-8 min-[1280px]:col-span-3 min-[1280px]:col-start-1 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto"
+              "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2"
             }
           >
             {discussion}
           </div>
           <div
             className={
-              "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-5 min-[701px]:col-start-8 min-[701px]:row-span-2 min-[701px]:row-start-1 min-[1001px]:col-span-4 min-[1001px]:col-start-9 min-[1280px]:col-span-3 min-[1280px]:col-start-10 min-[1280px]:row-span-1 min-[1280px]:row-start-1"
+              "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11"
             }
           >
             {sidebar}

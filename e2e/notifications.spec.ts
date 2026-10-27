@@ -105,7 +105,7 @@ test("bell preserves unread state until explicit read or visible discussion, wit
     ).toBe(true);
     await panel.screenshot({ path: test.info().outputPath("notification-bell.png") });
     await panel.locator('a[href*="comment=' + old + '"]').click();
-    await expect(page.locator(`#comment-${old}`)).toBeVisible();
+    await expect(page.locator(`#comment-${old}`)).toBeInViewport();
     await expect
       .poll(async () =>
         Number(
@@ -119,18 +119,24 @@ test("bell preserves unread state until explicit read or visible discussion, wit
       )
       .toBe(1);
     await page.setViewportSize({ width: 1440, height: 900 });
-    const positions = await page
-      .locator(".workspace-columns")
-      .evaluate((el) =>
-        [...el.children]
-          .filter((e) =>
-            e.matches(".project-working-column,.project-discussion-column,.project-sidebar"),
-          )
-          .map((e) => ({ className: e.className, x: e.getBoundingClientRect().x })),
-      );
-    expect(positions.find((e) => e.className.includes("discussion"))!.x).toBeLessThan(
-      positions.find((e) => e.className.includes("working"))!.x,
+    const positions = await page.locator(".workspace-columns").evaluate((el) =>
+      [...el.children]
+        .filter((e) =>
+          e.matches(".project-working-column,.project-discussion-column,.project-sidebar"),
+        )
+        .map((e) => ({
+          className: e.className,
+          x: e.getBoundingClientRect().x,
+          y: e.getBoundingClientRect().y,
+          width: e.getBoundingClientRect().width,
+          bottom: e.getBoundingClientRect().bottom,
+        })),
     );
+    const discussionPosition = positions.find((e) => e.className.includes("discussion"))!;
+    const workingPosition = positions.find((e) => e.className.includes("working"))!;
+    expect(discussionPosition.x).toBe(workingPosition.x);
+    expect(discussionPosition.width).toBeGreaterThan(workingPosition.width);
+    expect(discussionPosition.y).toBeGreaterThanOrEqual(workingPosition.bottom);
     await page.setViewportSize({ width: 390, height: 844 });
     await bell.click();
     await expect(panel).toBeVisible();
