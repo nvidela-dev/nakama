@@ -312,110 +312,60 @@ export function TaskList({
       </li>
     );
   }
-  return (
-    <Panel className={"task-list max-[700px]:p-4"} aria-label={t("Project to-do list")}>
-      <div
-        className={
-          "task-list-heading flex justify-between items-center gap-4 mb-2 max-[700px]:flex-wrap"
-        }
+  const controls = (
+    <>
+      <small className="text-muted text-[11px] whitespace-nowrap">
+        {completed}/{list.tasks.length} {t("tasks done")}
+      </small>
+      <div className="flex items-center gap-1.5 shrink-0" role="group" aria-label={t("Task view")}>
+        <span title={t("Board")} className={view === "board" ? "text-lime" : "text-muted"}>
+          <Icon name="board" size={18} />
+        </span>
+        <Switch
+          label={t("Nested list")}
+          checked={view === "list"}
+          onCheckedChange={(checked) => setView(checked ? "list" : "board")}
+        />
+        <span title={t("Nested list")} className={view === "list" ? "text-lime" : "text-muted"}>
+          <Icon name="listTree" size={18} />
+        </span>
+      </div>
+      <Select
+        aria-label={t("Task status")}
+        value={filter}
+        onChange={(event) => setFilter(event.target.value)}
+        className="w-36 min-w-0 shrink-0 bg-bg text-ink border border-line rounded-md font-sans py-1.5 px-2 min-h-8 text-xs pointer-coarse:min-h-11"
       >
-        <div>
-          <h2
-            className={
-              "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
-            }
-          >
-            {t("To-do")}
-          </h2>
-          <small className={"text-muted text-[11px]"}>
-            {completed}/{list.tasks.length} {t("tasks done")}
-          </small>
-        </div>
-        <Button
-          type="button"
-          disabled={pending}
-          onClick={() => open({ kind: "add", title: "", revision: list.revision })}
-        >
-          {t("Add task")}
-        </Button>
-      </div>
-      <div className="task-toolbar flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-1.5" role="group" aria-label={t("Task view")}>
-          <span title={t("Board")} className={view === "board" ? "text-lime" : "text-muted"}>
-            <Icon name="board" size={18} />
-          </span>
-          <Switch
-            label={t("Nested list")}
-            checked={view === "list"}
-            onCheckedChange={(checked) => setView(checked ? "list" : "board")}
-          />
-          <span title={t("Nested list")} className={view === "list" ? "text-lime" : "text-muted"}>
-            <Icon name="listTree" size={18} />
-          </span>
-        </div>
-        <label className={"grid gap-1.5 text-[11px] text-muted"}>
-          {t("Task status")}
-          <Select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className={
-              "w-full min-w-0 bg-bg text-ink border border-line rounded-[6px] font-sans py-2 px-2.5 min-h-9 pointer-coarse:min-h-11"
-            }
-          >
-            <option value="all">{t("All statuses")}</option>
-            {Object.entries(taskStatusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {t(label)}
-              </option>
-            ))}
-          </Select>
-        </label>
-      </div>
-      {view === "list" && (
-        <div
-          className={
-            "task-tools flex flex-wrap gap-1.5 mb-3 max-[700px]:grid max-[700px]:grid-cols-[repeat(2,_minmax(0,_1fr))]"
-          }
-        >
-          <Button
-            type="button"
-            className={
-              "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
-            }
-            disabled={pending || !list.tasks.length}
-            onClick={() =>
-              run({ kind: "collapse", ids: list.tasks.map((t) => t.id), collapsed: false })
-            }
-            variant="secondary"
-          >
-            {t("Expand all")}
-          </Button>
-          <Button
-            type="button"
-            className={
-              "button secondary max-[700px]:py-2.25 max-[700px]:px-1.75 max-[700px]:text-[11px]"
-            }
-            disabled={pending || !list.tasks.length}
-            onClick={() =>
-              run({ kind: "collapse", ids: list.tasks.map((t) => t.id), collapsed: true })
-            }
-            variant="secondary"
-          >
-            {t("Collapse all")}
-          </Button>
-        </div>
-      )}
+        <option value="all">{t("All statuses")}</option>
+        {Object.entries(taskStatusLabels).map(([value, label]) => (
+          <option key={value} value={value}>
+            {t(label)}
+          </option>
+        ))}
+      </Select>
+    </>
+  );
+  const addTaskButton = (
+    <Button
+      type="button"
+      disabled={pending}
+      onClick={() => open({ kind: "add", title: "", revision: list.revision })}
+    >
+      {t("Add task")}
+    </Button>
+  );
+  const feedback = (
+    <>
       {!editor && errorBox}
       {notice && (
-        <p
-          className={
-            "message text-[13px]! bg-[var(--theme-surface,#30422d)] rounded-[8px] p-3 text-ink! m-0 [&.error]:bg-[var(--theme-danger,#4e3030)] [&.error]:[color:var(--theme-danger-ink,#ffe4dd)]!"
-          }
-          role="status"
-        >
+        <p className="text-xs text-muted py-1" role="status">
           {t(notice)}
         </p>
       )}
+    </>
+  );
+  return (
+    <Panel className="task-list max-[700px]:p-4" aria-label={t("Project to-do list")}>
       {view === "board" ? (
         <MilestoneBoard
           projectId={projectId}
@@ -426,11 +376,42 @@ export function TaskList({
           run={run}
           renderTask={renderTask}
           error={error}
+          toolbar={controls}
+          actions={addTaskButton}
+          feedback={feedback}
         />
-      ) : !visible.length ? (
-        <p>{t("No matching tasks.")}</p>
       ) : (
-        <ol className="task-tree list-none p-0 m-0">{visible.map(renderTask)}</ol>
+        <>
+          <div className="task-toolbar flex flex-wrap items-center gap-2 mb-3">
+            {controls}
+            <div className="flex-1" />
+            <Button
+              variant="secondary"
+              disabled={pending || !list.tasks.length}
+              onClick={() =>
+                run({ kind: "collapse", ids: list.tasks.map((task) => task.id), collapsed: false })
+              }
+            >
+              {t("Expand all")}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={pending || !list.tasks.length}
+              onClick={() =>
+                run({ kind: "collapse", ids: list.tasks.map((task) => task.id), collapsed: true })
+              }
+            >
+              {t("Collapse all")}
+            </Button>
+            {addTaskButton}
+          </div>
+          {feedback}
+          {!visible.length ? (
+            <p>{t("No matching tasks.")}</p>
+          ) : (
+            <ol className="task-tree list-none p-0 m-0">{visible.map(renderTask)}</ol>
+          )}
+        </>
       )}
       {editor && (
         <Dialog

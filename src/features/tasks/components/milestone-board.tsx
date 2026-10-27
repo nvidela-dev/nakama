@@ -21,6 +21,9 @@ type Props = {
   pending: boolean;
   run: (op: TaskOperation, revision?: number) => Promise<boolean>;
   error: string;
+  toolbar?: React.ReactNode;
+  actions?: React.ReactNode;
+  feedback?: React.ReactNode;
   renderTask: (task: TaskNode) => React.ReactNode;
 };
 export function MilestoneBoard({
@@ -32,6 +35,9 @@ export function MilestoneBoard({
   run,
   renderTask,
   error,
+  toolbar,
+  actions,
+  feedback,
 }: Props) {
   const t = useT();
   const [newCards, setNewCards] = useState<Record<string, string>>({});
@@ -94,9 +100,10 @@ export function MilestoneBoard({
   }
   return (
     <div className="grid gap-3">
-      <div className="flex flex-wrap items-end gap-2">
-        <label className="grid gap-1 text-xs flex-1 min-w-40">
-          {t("Milestone board")}
+      <div className="task-toolbar flex flex-wrap items-center gap-2">
+        {toolbar}
+        <label className="flex-1 min-w-40">
+          <span className="sr-only">{t("Milestone board")}</span>
           <Select
             className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
             value={milestone?.id ?? ""}
@@ -162,7 +169,9 @@ export function MilestoneBoard({
             </Button>
           </>
         )}
+        {actions}
       </div>
+      {feedback}
       {!flowId && (
         <p className="text-xs text-muted">
           {t("Choose a project flow to create milestone boards.")}
