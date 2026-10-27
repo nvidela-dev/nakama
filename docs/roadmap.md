@@ -411,3 +411,8 @@ Preserve existing flow stages/IDs, prior answers, independent tasks/artifacts an
 ## Accepted: dense project register and Kanban To-do — 2026-10-26
 
 Use the full browser width for project cards, with the creation control in the heading. Make To-do a status-column board by default, preserving the existing three task statuses, hierarchy, explicit subtree operations, revision conflicts and Lock-In interchange. Retain a nested-list option. This supersedes the earlier decision to avoid a task board; it does not merge task completion with experiment validity.
+
+
+## Accepted: compact the complete project workspace — 2026-10-26
+
+The user's density request applies to the project heading, experiment cycle, contextual discussion, stage list and progress/membership/activity panels as well as the project register. Prioritize space for the central work, reduce repeated card padding and decorative vertical space, and preserve visible context, readable text, navigation and touch access.

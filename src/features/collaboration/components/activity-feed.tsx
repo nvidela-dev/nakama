@@ -51,7 +51,7 @@ export function ActivityFeed({
   return (
     <details
       className={
-        "panel project-activity bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px]"
+        "panel project-activity bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] p-3 rounded-[8px]"
       }
       open={open}
     >

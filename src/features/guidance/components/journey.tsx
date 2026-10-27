@@ -154,7 +154,7 @@ export function Journey({
         `workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`,
         wideWork &&
           "[&_.project-working-column]:col-span-full! [&_.project-working-column]:col-start-1! [&_.project-working-column]:row-start-1! [&_.project-discussion-column]:row-start-2! [&_.project-discussion-column]:col-start-1! [&_.project-discussion-column]:static! [&_.project-sidebar]:row-start-2! [&_.project-sidebar]:col-start-8! max-[700px]:[&_.project-sidebar]:row-start-3! max-[700px]:[&_.project-sidebar]:col-start-1!",
-        "grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start",
+        "grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-3 lg:compact:gap-3 items-start",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -166,8 +166,8 @@ export function Journey({
       )}
       <div
         className={[
-          "project-working-column min-w-0 max-w-full overflow-hidden bg-panel border border-line rounded-[10px] p-4 lg:compact:py-3.5 lg:compact:px-4 col-span-1 col-start-1 row-start-1 min-[701px]:col-span-7 min-[1001px]:col-span-8",
-          discussion && "min-[1280px]:col-span-6 min-[1280px]:col-start-4 min-[1280px]:row-start-1",
+          "project-working-column min-w-0 max-w-full overflow-hidden bg-panel border border-line rounded-[10px] p-4 lg:compact:py-2.5 lg:compact:px-3 col-span-1 col-start-1 row-start-1 min-[701px]:col-span-7 min-[1001px]:col-span-8",
+          discussion && "min-[1280px]:col-span-8 min-[1280px]:col-start-3 min-[1280px]:row-start-1",
         ]
           .filter(Boolean)
           .join(" ")}
@@ -335,7 +335,7 @@ export function Journey({
                   </p>
                   <ol
                     className={
-                      'stage-list list-none p-0 my-6 mx-0 [&_>_li]:relative [&_>_li]:pb-4.5 [&_>_li:not(:last-child):after]:[content:""] [&_>_li:not(:last-child):after]:w-0.25 [&_>_li:not(:last-child):after]:h-4.5 [&_>_li:not(:last-child):after]:bg-[var(--theme-surface,#688454)] [&_>_li:not(:last-child):after]:absolute [&_>_li:not(:last-child):after]:bottom-0 [&_>_li:not(:last-child):after]:left-8.5 lg:compact:my-2 lg:compact:[&_>_li]:pb-1.5 lg:compact:[&_>_li:not(:last-child)::after]:h-1.5 lg:compact:[&_>_li:not(:last-child)::after]:left-5.5'
+                      'stage-list list-none p-0 my-6 mx-0 [&_>_li]:relative [&_>_li]:pb-4.5 [&_>_li:not(:last-child):after]:[content:""] [&_>_li:not(:last-child):after]:w-0.25 [&_>_li:not(:last-child):after]:h-4.5 [&_>_li:not(:last-child):after]:bg-[var(--theme-surface,#688454)] [&_>_li:not(:last-child):after]:absolute [&_>_li:not(:last-child):after]:bottom-0 [&_>_li:not(:last-child):after]:left-8.5 lg:compact:my-2 lg:compact:[&_>_li]:pb-1 lg:compact:[&_>_li:not(:last-child)::after]:h-1.5 lg:compact:[&_>_li:not(:last-child)::after]:left-5.5'
                     }
                   >
                     {flow.stages.map((stage, i) => {
@@ -349,7 +349,7 @@ export function Journey({
                           <Link
                             href={href(stage.id)}
                             className={
-                              "stage-card flex gap-4.5 items-start py-6 px-5 border border-line rounded-[12px] min-w-0 max-w-full [background:linear-gradient(115deg,_var(--theme-surface,#20332a),_var(--color-panel))] hover:[border-color:var(--theme-border,#9eb97b)] lg:compact:py-2 lg:compact:px-3 lg:compact:gap-2.5 lg:compact:items-center lg:compact:rounded-[7px]"
+                              "stage-card flex gap-4.5 items-start py-6 px-5 border border-line rounded-[12px] min-w-0 max-w-full [background:linear-gradient(115deg,_var(--theme-surface,#20332a),_var(--color-panel))] hover:[border-color:var(--theme-border,#9eb97b)] lg:compact:py-1.5 lg:compact:px-2 lg:compact:gap-2 lg:compact:items-center lg:compact:rounded-[7px]"
                             }
                           >
                             <span
@@ -651,7 +651,7 @@ export function Journey({
       {discussion && (
         <div
           className={
-            "project-discussion-column min-w-0 max-w-full overflow-hidden col-span-1 col-start-1 row-start-2 min-[701px]:col-span-7 min-[1001px]:col-span-8 [&_>_.discussion]:mt-0 min-[1280px]:col-span-3 min-[1280px]:col-start-1 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto"
+            "project-discussion-column min-w-0 max-w-full overflow-hidden col-span-1 col-start-1 row-start-2 min-[701px]:col-span-7 min-[1001px]:col-span-8 [&_>_.discussion]:mt-0 min-[1280px]:col-span-2 min-[1280px]:col-start-1 min-[1280px]:row-start-1 min-[1280px]:sticky min-[1280px]:top-5 min-[1280px]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:flex min-[1280px]:[&_>_.discussion]:flex-col min-[1280px]:[&_>_.discussion]:max-h-[calc(100dvh_-_40px)] min-[1280px]:[&_>_.discussion]:overflow-y-auto"
           }
         >
           {discussion}
@@ -659,19 +659,19 @@ export function Journey({
       )}
       <div
         className={[
-          "project-sidebar grid gap-4 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-5 min-[701px]:col-start-8 min-[701px]:row-span-2 min-[701px]:row-start-1 min-[1001px]:col-span-4 min-[1001px]:col-start-9",
+          "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-5 min-[701px]:col-start-8 min-[701px]:row-span-2 min-[701px]:row-start-1 min-[1001px]:col-span-4 min-[1001px]:col-start-9",
           discussion &&
-            "min-[1280px]:col-span-3 min-[1280px]:col-start-10 min-[1280px]:row-span-1 min-[1280px]:row-start-1",
+            "min-[1280px]:col-span-2 min-[1280px]:col-start-11 min-[1280px]:row-span-1 min-[1280px]:row-start-1",
         ]
           .filter(Boolean)
           .join(" ")}
       >
         <details
           open
-          className="panel journey-progress-panel p-4 bg-panel border border-line rounded-[10px] min-w-0 max-w-full overflow-hidden [&_.journey-progress-controls]:ml-auto"
+          className="panel journey-progress-panel p-2.5 bg-panel border border-line rounded-[10px] min-w-0 max-w-full overflow-hidden [&_.journey-progress-controls]:ml-auto"
           aria-label={t("Questions answered, not proof of success")}
         >
-          <summary className="cursor-pointer select-none [[open]>&]:mb-3">
+          <summary className="cursor-pointer select-none [[open]>&]:mb-2">
             <h2 className="inline-flex items-center m-0 text-[14px] leading-[1.3]">
               {t("Progress")}{" "}
               <span className="count text-[11px] px-1.5 py-0.5 ml-1.25">
@@ -681,12 +681,12 @@ export function Journey({
           </summary>
           <div
             className={
-              "journey-summary flex items-center justify-between gap-3 [&_.eyebrow]:mb-2.5 lg:compact:mb-2.5 lg:compact:[&_.eyebrow]:m-0 flex-wrap mb-3.5 min-w-0"
+              "journey-summary flex items-center justify-between gap-3 [&_.eyebrow]:mb-2.5 lg:compact:mb-1.5 lg:compact:[&_.eyebrow]:m-0 flex-wrap mb-3.5 min-w-0"
             }
           >
             <div
               className={
-                "min-w-0 flex-1 break-words first:grid first:gap-1 lg:compact:first:flex lg:compact:first:items-center lg:compact:first:flex-wrap lg:compact:first:gap-[8px_18px]"
+                "min-w-0 flex-1 break-words first:grid first:gap-1 lg:compact:first:flex lg:compact:first:items-center lg:compact:first:flex-wrap lg:compact:first:gap-[4px_8px]"
               }
             >
               <p className={"text-[15px] lg:compact:text-[13px] m-0"}>

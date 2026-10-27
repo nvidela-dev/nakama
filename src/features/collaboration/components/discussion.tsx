@@ -282,12 +282,12 @@ export function Discussion({
   );
   return (
     <Panel
-      className={"discussion mt-5 p-3 rounded-[10px] min-w-0 max-w-full overflow-hidden"}
+      className={"discussion mt-3 p-2.5 rounded-[10px] min-w-0 max-w-full overflow-hidden"}
       aria-label={`${t("Discussion")} · ${label}`}
     >
       <h2
         className={
-          "font-sans tracking-[-0.045em] font-medium lg:compact:text-[14px] lg:compact:mb-2.5 text-[14px] leading-[1.35] mt-0 mx-0 mb-1 break-words wrap-anywhere"
+          "font-sans tracking-[-0.045em] font-medium lg:compact:text-[14px] lg:compact:mb-1.5 text-[14px] leading-[1.35] mt-0 mx-0 mb-1 break-words wrap-anywhere"
         }
       >
         {t("Discussion")} · {label}

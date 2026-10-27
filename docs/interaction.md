@@ -184,3 +184,8 @@ The project register fills the viewport with 16–24px gutters and an automatic 
 To-do defaults to a Kanban board with Ready, In progress and Done columns. Dragging a card changes its status through the same revision-checked operation as the card's keyboard/touch status menu. Every matching subtask appears independently with its parent caption; moving it does not reparent it. Completing a parent still asks whether to include its descendants. Nested list remains available for collapsing and navigating the hierarchy; Lock-In import/export is unchanged. Failed writes retain the previous saved board and show the existing error/reload controls.
 
 The task workspace spans all project columns, with discussion and project context below; this applies before and after choosing a flow. Board columns stack on narrow screens. Other project tabs retain their contextual layout and mounted drafts.
+
+
+## Compact complete project workspace — 2026-10-26
+
+Project headings use a smaller title and tighter gutters. The experiment cycle is a short wrapping text strip instead of six padded cards, retaining its explanation and both lab entry links. At desktop widths of 1280px and above, the guided workspace allocates eight of twelve columns to the main work and two each to discussion and project context. Stage rows, discussion padding and sidebar panels use tighter spacing; labels wrap instead of clipping. The full-width To-do override remains. Coarse-pointer controls retain 44px minimum targets, and mobile fields retain their existing readable sizing.
