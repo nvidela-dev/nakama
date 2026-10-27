@@ -128,7 +128,7 @@ export default async function ProjectPage({
       />
       <details
         className={
-          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
+          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
         }
       >
         <summary className="cursor-pointer select-none [[open]>&]:mb-3">
@@ -251,21 +251,19 @@ export default async function ProjectPage({
     <main
       id="main"
       className={
-        "workspace w-full max-w-none lg:max-w-none lg:compact:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:max-w-none pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:px-6"
+        "workspace w-full max-w-none lg:max-w-none lg:compact:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:max-w-none pt-4 px-4 pb-6 m-auto min-h-[70vh] max-[700px]:pt-3 lg:compact:pt-3 lg:compact:px-4 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:px-4"
       }
     >
       <div
-        className={
-          "page-heading project-heading mx-0 mb-10.5 max-[700px]:mt-6 lg:compact:mb-5 mt-0"
-        }
+        className={"page-heading project-heading mx-0 mb-3 max-[700px]:mt-0 lg:compact:mb-3 mt-0"}
       >
-        <div className={"project-heading-line flex items-center gap-5 flex-wrap"}>
+        <div className={"project-heading-line flex items-center gap-3 flex-wrap"}>
           <Link className={"back-link text-[13px] text-muted m-0 shrink-0"} href="/projects">
             {t("← Your projects")}
           </Link>
           <h1
             className={
-              "font-sans tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px] m-0 min-w-0"
+              "font-sans tracking-[-0.045em] text-[26px] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[23px] lg:compact:text-[24px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-0 lg:compact:mx-0 lg:compact:tracking-[-1px] m-0 min-w-0"
             }
           >
             {project.name}
@@ -273,7 +271,7 @@ export default async function ProjectPage({
         </div>
         <p
           className={
-            "preserve-lines mb-[1em] mt-0 whitespace-pre-wrap wrap-anywhere text-muted max-w-175 lg:compact:max-w-none lg:compact:mt-2 lg:compact:mx-0 lg:compact:mb-0 lg:compact:text-[13px] lg:compact:leading-[1.5]"
+            "preserve-lines mb-[1em] mt-0 whitespace-pre-wrap wrap-anywhere text-muted max-w-175 lg:compact:max-w-none lg:compact:mt-1 lg:compact:mx-0 lg:compact:mb-0 lg:compact:text-[13px] lg:compact:leading-[1.5]"
           }
         >
           {project.description}
@@ -301,7 +299,7 @@ export default async function ProjectPage({
       ) : (
         <div
           className={[
-            "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start",
+            "workspace-columns project-capture-workspace has-discussion [&_>_.project-discussion-column_>_.discussion]:mt-0 grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-3 lg:compact:gap-3 items-start",
             isTasksView &&
               "[&_.project-working-column]:col-span-full! [&_.project-working-column]:col-start-1! [&_.project-working-column]:row-start-1! [&_.project-discussion-column]:row-start-2! [&_.project-discussion-column]:col-start-1! [&_.project-discussion-column]:static! [&_.project-sidebar]:row-start-2! [&_.project-sidebar]:col-start-8! max-[700px]:[&_.project-sidebar]:row-start-3! max-[700px]:[&_.project-sidebar]:col-start-1!",
           ]
@@ -329,7 +327,7 @@ export default async function ProjectPage({
           </div>
           <div
             className={
-              "project-sidebar grid gap-4 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-5 min-[701px]:col-start-8 min-[701px]:row-span-2 min-[701px]:row-start-1 min-[1001px]:col-span-4 min-[1001px]:col-start-9 min-[1280px]:col-span-3 min-[1280px]:col-start-10 min-[1280px]:row-span-1 min-[1280px]:row-start-1"
+              "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-5 min-[701px]:col-start-8 min-[701px]:row-span-2 min-[701px]:row-start-1 min-[1001px]:col-span-4 min-[1001px]:col-start-9 min-[1280px]:col-span-3 min-[1280px]:col-start-10 min-[1280px]:row-span-1 min-[1280px]:row-start-1"
             }
           >
             {sidebar}
