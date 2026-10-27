@@ -11,7 +11,7 @@ export async function Header() {
   return (
     <header
       className={
-        "site-header w-full max-w-360 m-auto flex items-center justify-between border-b border-line bg-panel relative px-4 py-3 gap-4 flex-wrap lg:px-6 [&:has(.project-navigation-panel)]:z-[60] [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:p-3 [&_.project-navigation-panel_a]:wrap-anywhere [&:has(.notification-panel)]:z-[60] [&_.notification-list_a]:block [&_.notification-list_a]:wrap-anywhere"
+        "site-header w-full max-w-none m-auto flex items-center justify-between border-b border-line bg-panel relative px-4 py-3 gap-4 flex-wrap lg:px-6 [&:has(.project-navigation-panel)]:z-[60] [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:p-3 [&_.project-navigation-panel_a]:wrap-anywhere [&:has(.notification-panel)]:z-[60] [&_.notification-list_a]:block [&_.notification-list_a]:wrap-anywhere"
       }
     >
       <Link

@@ -70,6 +70,7 @@ export function Journey({
   discussion,
   tasks,
   artifacts,
+  wideWork = false,
 }: {
   projectId: string;
   guidance: Guidance;
@@ -82,6 +83,7 @@ export function Journey({
   discussion?: React.ReactNode;
   tasks?: React.ReactNode;
   artifacts?: React.ReactNode;
+  wideWork?: boolean;
 }) {
   const t = useT();
   const [showMap, setShowMap] = useState(false);
@@ -150,6 +152,8 @@ export function Journey({
     <div
       className={[
         `workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`,
+        wideWork &&
+          "[&_.project-working-column]:col-span-full! [&_.project-working-column]:col-start-1! [&_.project-working-column]:row-start-1! [&_.project-discussion-column]:row-start-2! [&_.project-discussion-column]:col-start-1! [&_.project-discussion-column]:static! [&_.project-sidebar]:row-start-2! [&_.project-sidebar]:col-start-8! max-[700px]:[&_.project-sidebar]:row-start-3! max-[700px]:[&_.project-sidebar]:col-start-1!",
         "grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-6 lg:compact:gap-5 items-start",
       ]
         .filter(Boolean)

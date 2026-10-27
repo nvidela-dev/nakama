@@ -56,7 +56,7 @@ Compact desktop project cards stretch to the tallest card in each grid row. Mixe
 
 The Projects screen exposes edit and delete controls on owner project cards. These open a native modal dialog over the existing list, with a close control, Escape dismissal, keyboard focus containment/restoration, and the same revision-aware edit and exact-name delete forms used on project pages. Card titles/timelines remain navigation links; action buttons are separate siblings, never controls nested inside links. Settings forms mount only while the dialog is open, keeping the ordinary list light and avoiding duplicate active fields.
 
-Allowed-email management and access-request review are available only on the Administration page. The Projects screen does not fetch or render these administrative lists. A New project button in the main sidebar opens guided setup. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.
+Allowed-email management and access-request review are available only on the Administration page. The Projects screen does not fetch or render these administrative lists. A New project button in the page heading opens guided setup. Desktop cards retain aligned row heights and compact action buttons; phone controls support touch targets.
 
 ## Access-request review — 2026-10-22
 
@@ -175,3 +175,12 @@ The visual foundation follows the supplied Daylight Research PDF/design kit: cer
 ### Experiments across project flows — 2026-10-26
 
 Each project workspace shows the shared learning cycle and actions to test the project idea or currently selected question and to inspect experiments/results. The cycle is navigation, not a computed completion indicator. Opening a question test starts a new draft even when other experiments already exist. A saved answer can seed the claim, but the user must define its method and criterion. The lab displays type-specific framing, method, criterion and evidence guidance. The public preview illustrates this entry point by linking to the fictional walkthrough; it does not create or expose records.
+
+
+## Full-width projects and task board — 2026-10-26
+
+The project register fills the viewport with 16–24px gutters and an automatic grid of cards with a 280px minimum width. New project shares the heading, freeing the former sidebar for cards. Titles wrap; stage labels keep their full accessible names and hover descriptions.
+
+To-do defaults to a Kanban board with Ready, In progress and Done columns. Dragging a card changes its status through the same revision-checked operation as the card's keyboard/touch status menu. Every matching subtask appears independently with its parent caption; moving it does not reparent it. Completing a parent still asks whether to include its descendants. Nested list remains available for collapsing and navigating the hierarchy; Lock-In import/export is unchanged. Failed writes retain the previous saved board and show the existing error/reload controls.
+
+The task workspace spans all project columns, with discussion and project context below; this applies before and after choosing a flow. Board columns stack on narrow screens. Other project tabs retain their contextual layout and mounted drafts.
