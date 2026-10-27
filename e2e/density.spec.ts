@@ -11,23 +11,36 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/preview");
   await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
-  const compact = await page.locator(".stage-card").first().boundingBox();
-  expect(compact!.height).toBeLessThan(80);
+  await expect(page.locator(".stage-card:visible")).toHaveCount(5);
+  const compact = await page.locator(".stage-card:visible").first().boundingBox();
+  expect(compact!.height).toBeGreaterThanOrEqual(88);
+  await expect(page.locator(".stage-connector")).toHaveCount(4);
+  await expect(page.locator(".stage-card [role=progressbar]")).toHaveCount(5);
+  await expect(page.locator(".stage-card [role=progressbar]").first()).toHaveAttribute(
+    "aria-valuenow",
+    "2",
+  );
+  await expect(page.locator(".stage-card [role=progressbar]").nth(1)).toHaveAttribute(
+    "aria-valuenow",
+    "0",
+  );
   await page.screenshot({
     path: test.info().outputPath("desktop-compact.png"),
     fullPage: true,
   });
   await density(page, "comfortable");
-  const comfortable = await page.locator(".stage-card").first().boundingBox();
-  expect(comfortable!.height).toBeGreaterThan(compact!.height * 1.5);
+  await expect(page.locator(".stage-card:visible")).toHaveCount(5);
+  const comfortable = await page.locator(".stage-card:visible").first().boundingBox();
+  expect(comfortable!.height).toBeGreaterThan(compact!.height);
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-density", "comfortable");
   await density(page, "compact");
   await page.setViewportSize({ width: 3440, height: 1440 });
-  const workspace = await page.locator(".workspace").boundingBox();
+  await expect(page.locator(".workspace:visible")).toHaveCount(1);
+  const workspace = await page.locator(".workspace:visible").boundingBox();
   expect(workspace!.width).toBe(1440);
-  const last = await page.locator(".stage-card").last().boundingBox();
-  expect(last!.y + last!.height).toBeLessThan(800);
+  const last = await page.locator(".stage-card:visible").last().boundingBox();
+  expect(last!.y + last!.height).toBeLessThan(1100);
   await page.screenshot({
     path: test.info().outputPath("ultrawide-overview.png"),
     fullPage: true,
@@ -42,12 +55,13 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByLabel("Desktop layout")).toBeHidden();
   await page.goto("/preview");
+  await expect(page.locator(".stage-card:visible")).toHaveCount(5);
   expect(
     await page
       .locator(".stage-card")
       .first()
       .evaluate((el) => getComputedStyle(el).paddingTop),
-  ).toBe("24px");
+  ).toBe("16px");
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await page.screenshot({
     path: test.info().outputPath("phone-unchanged.png"),
@@ -88,10 +102,13 @@ test("density changes keep capture and answer drafts, selections and saving inta
       const left = await page.locator(".project-discussion-column").boundingBox();
       const middle = await page.locator(".project-working-column").boundingBox();
       const right = await page.locator(".project-sidebar").boundingBox();
-      expect(left!.x).toBeLessThan(middle!.x);
+      const workspace = await page.locator(".workspace-columns").boundingBox();
+      expect(Math.abs(left!.x - workspace!.x)).toBeLessThan(1);
+      expect(Math.abs(left!.width - workspace!.width)).toBeLessThan(1);
+      expect(left!.y).toBeGreaterThanOrEqual(
+        Math.max(middle!.y + middle!.height, right!.y + right!.height),
+      );
       expect(middle!.x).toBeLessThan(right!.x);
-      expect(Math.abs(left!.y - middle!.y)).toBeLessThan(1);
-      expect(Math.abs(right!.y - middle!.y)).toBeLessThan(1);
     }
   }
   await page.setViewportSize({ width: 1920, height: 1080 });
