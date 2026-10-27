@@ -428,3 +428,7 @@ Accepted: discussion spans the complete workspace below the flow and sidebar. Ov
 ## Expanded flow connectors — 2026-10-26
 
 Accepted: the expanded question tree uses taller cards, a wider stage rail with answer coverage, and large, thick downward arrows between dependency rows. Preserve branching, question links, saved answer states, and mobile navigation.
+
+## Focused To-do and Tests workspaces — 2026-10-26
+
+Accepted: To-do removes task search, discussion, sidebar, and the bottom experiment prompt. Board and nested-list modes use two icons and a labeled switch. Tests is a workspace tab exposing the existing experiment lab; load its data and editor on first opening and preserve drafts when switching tabs. Tests also uses the full-width focused layout. Earlier task-comment notification links open a separate authorized discussion page, preserving access while keeping the To-do workspace clear.

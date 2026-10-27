@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useId, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@/shared/ui/button";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
@@ -48,12 +48,19 @@ function Field({
   numeric?: boolean;
   hint?: string | undefined;
 }) {
+  const hintId = useId();
   return (
     <label className="grid gap-1 text-[14px]">
       <span>{label}</span>
-      {hint && <small className="text-muted text-[12px]">{hint}</small>}
+      {hint && (
+        <small id={hintId} className="text-muted text-[12px]">
+          {hint}
+        </small>
+      )}
       {numeric ? (
         <Input
+          aria-label={label}
+          aria-describedby={hint ? hintId : undefined}
           className={fieldClass}
           name={name}
           type="number"
@@ -63,6 +70,8 @@ function Field({
         />
       ) : (
         <Textarea
+          aria-label={label}
+          aria-describedby={hint ? hintId : undefined}
           className={fieldClass}
           name={name}
           defaultValue={value}

@@ -1,9 +1,15 @@
 import { openProjectSetup } from "./project-setup";
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 import { Pool } from "pg";
 import { projectService } from "../src/features/projects/server/projects";
 import type { Database } from "../src/server/database/database";
+async function taskView(list: Locator, view: "board" | "list") {
+  const toggle = list.getByRole("switch", { name: "Nested list", exact: true });
+  const checked = view === "list" ? "true" : "false";
+  if ((await toggle.getAttribute("aria-checked")) !== checked) await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-checked", checked);
+}
 let fixtureId: string | undefined;
 const fixtureName = `E2E project tasks ${Date.now()}`;
 test.afterEach(async () => {
@@ -71,7 +77,10 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   fixtureId = path.split("/").at(-1);
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   const list = page.getByRole("region", { name: "Project to-do list" });
-  await list.getByRole("button", { name: "Nested list", exact: true }).click();
+  await expect(page.locator(".project-discussion-column")).toHaveCount(0);
+  await expect(page.locator(".project-sidebar")).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Experiment cycle", exact: true })).toHaveCount(0);
+  await taskView(list, "list");
   await list.getByRole("button", { name: "Add task", exact: true }).click();
   let dialog = page.getByRole("dialog");
   await dialog.getByLabel("Task title", { exact: true }).fill("Root task");
@@ -82,7 +91,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await dialog.getByRole("button", { name: "Save task", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(2);
   await expect(list.locator(".task-number").nth(1)).toHaveText("1.1");
-  await list.getByRole("button", { name: "Board", exact: true }).click();
+  await taskView(list, "board");
   await expect(list.locator(".task-board > section")).toHaveCount(3);
   const child = list
     .locator(".task-row")
@@ -102,7 +111,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await page.screenshot({ path: test.info().outputPath("kanban-phone.png"), fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });
-  await list.getByRole("button", { name: "Nested list", exact: true }).click();
+  await taskView(list, "list");
 
   await list.getByLabel("Task status 1", { exact: true }).selectOption("done");
   await expect(dialog).toBeVisible();
@@ -114,7 +123,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await list.getByRole("button", { name: "Collapse subtasks", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(1);
   await page.reload();
-  await list.getByRole("button", { name: "Nested list", exact: true }).click();
+  await taskView(list, "list");
   await expect(list.locator(".task-row")).toHaveCount(1);
   await list.getByRole("button", { name: "Expand all", exact: true }).click();
   await expect(list.locator(".task-row")).toHaveCount(2);
@@ -122,9 +131,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await dialog.getByLabel("Task title", { exact: true }).fill("Renamed child");
   await dialog.getByRole("button", { name: "Save task", exact: true }).click();
   await expect(list.getByRole("button", { name: "Renamed child", exact: true })).toBeVisible();
-  await list.getByLabel("Find a task", { exact: true }).fill("1.1");
-  await expect(list.locator(".task-row")).toHaveCount(2);
-  await list.getByLabel("Find a task", { exact: true }).fill("");
+  await expect(list.getByLabel("Find a task", { exact: true })).toHaveCount(0);
   await expect(list.getByRole("button", { name: "Import Lock-In", exact: true })).toHaveCount(0);
   await list.getByRole("button", { name: "Add task", exact: true }).click();
   await dialog.getByLabel("Task title", { exact: true }).fill("Independent task");
@@ -153,7 +160,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await expect(second.getByRole("button", { name: "Stale task draft", exact: true })).toBeVisible();
   await second.close();
   await page.reload();
-  await list.getByRole("button", { name: "Nested list", exact: true }).click();
+  await taskView(list, "list");
   await list.getByRole("button", { name: "Delete task 1", exact: true }).click();
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Confirm deletion", exact: true }).click();
@@ -183,6 +190,19 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await page.getByLabel("Your answer, learning, or uncertainty").fill("Unsaved guided draft");
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   await expect(list.getByRole("button", { name: "Independent task", exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Tests", exact: true }).click();
+  const tests = page.getByRole("tabpanel", { name: "Tests", exact: true });
+  await expect(tests.getByRole("heading", { name: "Experiment lab", exact: true })).toBeVisible();
+  await tests
+    .getByLabel("Claim · what do you want to learn?", { exact: true })
+    .fill("Keep this test-plan draft across tabs");
+  await page.getByRole("tab", { name: "To-do", exact: true }).click();
+  await expect(page.locator(".project-discussion-column")).toHaveCount(0);
+  await expect(page.locator(".project-sidebar")).toHaveCount(0);
+  await page.getByRole("tab", { name: "Tests", exact: true }).click();
+  await expect(tests.getByLabel("Claim · what do you want to learn?", { exact: true })).toHaveValue(
+    "Keep this test-plan draft across tabs",
+  );
   await page.getByRole("tab", { name: "Project flow", exact: true }).click();
   await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
     "Unsaved guided draft",
@@ -190,7 +210,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   await page.setViewportSize({ width: 2560, height: 1080 });
   await list.screenshot({ path: test.info().outputPath("tasks-desktop.png") });
-  await list.getByRole("button", { name: "Board", exact: true }).click();
+  await taskView(list, "board");
   await list.getByRole("button", { name: "New milestone", exact: true }).click();
   await dialog.getByLabel("Milestone title", { exact: true }).fill("First creative session");
   await dialog.getByRole("button", { name: "Save milestone", exact: true }).click();

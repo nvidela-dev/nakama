@@ -81,7 +81,7 @@
   "READ-ONLY EXAMPLE · NOTHING HERE IS YOUR PROJECT DATA": "EJEMPLO DE SOLO LECTURA · ESTOS NO SON DATOS DE TU PROYECTO",
   "Try opening a stage, then a question. This sample shows the path; sign in and create your own project to save answers.": "Abrí una etapa y luego una pregunta. Este ejemplo muestra el recorrido; iniciá sesión y creá tu proyecto para guardar respuestas.",
   "We couldn't load this part of your workspace. Please try again in a moment.": "No pudimos cargar esta parte de tu espacio. Volvé a intentar en un momento.",
-  "Try again": "Volver a intentar",
+  "Try again": "Intentar de nuevo",
   "Skip to content": "Ir al contenido",
   "Private project ·": "Proyecto privado ·",
   "← Your projects": "← Tus proyectos",
@@ -1437,5 +1437,7 @@
   "Add card": "Agregar tarjeta",
   "Open milestone boards": "Abrir tableros de hitos",
   "Earlier stage questions and answers": "Preguntas y respuestas anteriores de la etapa",
-  "Reopen the milestone before changing card status.": "Reabrí el hito antes de cambiar el estado de sus tarjetas."
+  "Reopen the milestone before changing card status.": "Reabrí el hito antes de cambiar el estado de sus tarjetas.",
+  "Tests": "Pruebas",
+  "Task view": "Vista de tareas"
 }

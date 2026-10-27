@@ -70,6 +70,7 @@ export function Journey({
   discussion,
   tasks,
   artifacts,
+  tests,
   wideWork = false,
   productionStages = [],
 }: {
@@ -84,6 +85,7 @@ export function Journey({
   discussion?: React.ReactNode;
   tasks?: React.ReactNode;
   artifacts?: React.ReactNode;
+  tests?: React.ReactNode;
   wideWork?: boolean;
   productionStages?: string[];
 }) {
@@ -154,8 +156,7 @@ export function Journey({
     <div
       className={[
         `workspace-columns journey-workspace${discussion ? " has-discussion" : ""}`,
-        wideWork &&
-          "[&_.project-working-column]:col-span-full! [&_.project-sidebar]:col-span-full! [&_.project-sidebar]:col-start-1! [&_.project-sidebar]:row-start-3! min-[701px]:[&_.project-sidebar]:grid-cols-3",
+        wideWork && "[&_.project-working-column]:col-span-full!",
         "grid w-full max-w-full grid-cols-1 min-[701px]:grid-cols-12 gap-3 lg:compact:gap-3 items-start",
       ]
         .filter(Boolean)
@@ -173,7 +174,7 @@ export function Journey({
           .filter(Boolean)
           .join(" ")}
       >
-        <ProjectWork tasks={tasks} artifacts={artifacts}>
+        <ProjectWork tasks={tasks} artifacts={artifacts} tests={tests}>
           <section
             className={[
               `journey${activeStage ? " has-stage-rail" : ""}`,
@@ -697,7 +698,7 @@ export function Journey({
           </section>
         </ProjectWork>
       </div>
-      {discussion && (
+      {!wideWork && discussion && (
         <div
           className={
             "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2 [&_>_.discussion]:mt-0"
@@ -706,67 +707,69 @@ export function Journey({
           {discussion}
         </div>
       )}
-      <div
-        className={[
-          "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        <details
-          open
-          className="panel journey-progress-panel p-2.5 bg-panel border border-line rounded-[10px] min-w-0 max-w-full overflow-hidden [&_.journey-progress-controls]:ml-auto"
-          aria-label={t("Questions answered, not proof of success")}
+      {!wideWork && (
+        <div
+          className={[
+            "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
-          <summary className="cursor-pointer select-none [[open]>&]:mb-2">
-            <h2 className="inline-flex items-center m-0 text-[14px] leading-[1.3]">
-              {t("Progress")}{" "}
-              <span className="count text-[11px] px-1.5 py-0.5 ml-1.25">
-                {answered}/{questions.length}
-              </span>
-            </h2>
-          </summary>
-          <div
-            className={
-              "journey-summary flex items-center justify-between gap-3 [&_.eyebrow]:mb-2.5 lg:compact:mb-1.5 lg:compact:[&_.eyebrow]:m-0 flex-wrap mb-3.5 min-w-0"
-            }
+          <details
+            open
+            className="panel journey-progress-panel p-2.5 bg-panel border border-line rounded-[10px] min-w-0 max-w-full overflow-hidden [&_.journey-progress-controls]:ml-auto"
+            aria-label={t("Questions answered, not proof of success")}
           >
+            <summary className="cursor-pointer select-none [[open]>&]:mb-2">
+              <h2 className="inline-flex items-center m-0 text-[14px] leading-[1.3]">
+                {t("Progress")}{" "}
+                <span className="count text-[11px] px-1.5 py-0.5 ml-1.25">
+                  {answered}/{questions.length}
+                </span>
+              </h2>
+            </summary>
             <div
               className={
-                "min-w-0 flex-1 break-words first:grid first:gap-1 lg:compact:first:flex lg:compact:first:items-center lg:compact:first:flex-wrap lg:compact:first:gap-[4px_8px]"
+                "journey-summary flex items-center justify-between gap-3 [&_.eyebrow]:mb-2.5 lg:compact:mb-1.5 lg:compact:[&_.eyebrow]:m-0 flex-wrap mb-3.5 min-w-0"
               }
             >
-              <p className={"text-[15px] lg:compact:text-[13px] m-0"}>
-                <strong className={"text-[24px] text-lime lg:compact:text-[18px]"}>
-                  {answered}
-                </strong>{" "}
-                {t("of")} {questions.length} {t("questions answered")}{" "}
-              </p>
-              <small className={"text-muted text-[11px]"}>
-                {skipped} {t("skipped ·")} {blocked} {t("blocked ·")}{" "}
-                {t(guidance.projectState.replaceAll("_", " "))}
-              </small>
+              <div
+                className={
+                  "min-w-0 flex-1 break-words first:grid first:gap-1 lg:compact:first:flex lg:compact:first:items-center lg:compact:first:flex-wrap lg:compact:first:gap-[4px_8px]"
+                }
+              >
+                <p className={"text-[15px] lg:compact:text-[13px] m-0"}>
+                  <strong className={"text-[24px] text-lime lg:compact:text-[18px]"}>
+                    {answered}
+                  </strong>{" "}
+                  {t("of")} {questions.length} {t("questions answered")}{" "}
+                </p>
+                <small className={"text-muted text-[11px]"}>
+                  {skipped} {t("skipped ·")} {blocked} {t("blocked ·")}{" "}
+                  {t(guidance.projectState.replaceAll("_", " "))}
+                </small>
+              </div>
+              {!activeStage && progressControls}
             </div>
-            {!activeStage && progressControls}
-          </div>
-          <div
-            className={
-              "progress-track h-1 bg-[var(--theme-surface,#2f4337)] rounded-[4px] overflow-hidden"
-            }
-            role="progressbar"
-            aria-label={t("Questions answered, not proof of success")}
-            aria-valuemin={0}
-            aria-valuemax={questions.length}
-            aria-valuenow={answered}
-          >
-            <span
-              style={{ width: `${(answered / questions.length) * 100}%` }}
-              className={"h-full block bg-lime"}
-            />
-          </div>
-        </details>
-        {sidebar}
-      </div>
+            <div
+              className={
+                "progress-track h-1 bg-[var(--theme-surface,#2f4337)] rounded-[4px] overflow-hidden"
+              }
+              role="progressbar"
+              aria-label={t("Questions answered, not proof of success")}
+              aria-valuemin={0}
+              aria-valuemax={questions.length}
+              aria-valuenow={answered}
+            >
+              <span
+                style={{ width: `${(answered / questions.length) * 100}%` }}
+                className={"h-full block bg-lime"}
+              />
+            </div>
+          </details>
+          {sidebar}
+        </div>
+      )}
     </div>
   );
 }

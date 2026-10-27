@@ -38,12 +38,33 @@ function CommentItem({
   const [draft, setDraft] = useState(comment.content);
   const item = useRef<HTMLLIElement>(null);
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      if (window.location.hash !== `#comment-${comment.id}` || !item.current) return;
-      item.current.scrollIntoView({ block: "center" });
-      item.current.focus({ preventScroll: true });
-    });
-    return () => cancelAnimationFrame(frame);
+    const target = item.current;
+    if (!target || window.location.hash !== `#comment-${comment.id}`) return;
+    let frame = 0,
+      stopped = false;
+    const reveal = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (stopped || window.location.hash !== `#comment-${comment.id}`) return;
+        target.scrollIntoView({ block: "center" });
+        target.focus({ preventScroll: true });
+      });
+    };
+    // Lazy answer forms can change the height above a linked comment after hydration.
+    const observer = new ResizeObserver(reveal);
+    observer.observe(target.closest(".workspace-columns") ?? target.parentElement ?? target);
+    const stop = () => {
+      stopped = true;
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+    const events = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
+    for (const event of events) window.addEventListener(event, stop, { once: true, passive: true });
+    reveal();
+    return () => {
+      stop();
+      for (const event of events) window.removeEventListener(event, stop);
+    };
   }, [comment.id]);
   useEffect(() => {
     if (!item.current || comment.deleted_at || comment.author_id === userId) return;

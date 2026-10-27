@@ -62,7 +62,9 @@ test("live lab database target and availability", async ({ page }) => {
   } finally {
     await pool.end();
   }
-  await page.goto(`/projects/${fixtureId}/lab`);
+  await page.goto(
+    process.env.LAB_PREFLIGHT ? `/projects/${fixtureId}/lab` : `/projects/${fixtureId}?view=tests`,
+  );
   if (process.env.LAB_PREFLIGHT) {
     await expect(
       page.getByText(
@@ -70,6 +72,10 @@ test("live lab database target and availability", async ({ page }) => {
       ),
     ).toBeVisible();
   } else {
+    await expect(page.getByRole("tab", { name: "Tests", exact: true })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     await expect(
       page.getByRole("heading", { name: "Frame an experiment", exact: true }),
     ).toBeVisible();
