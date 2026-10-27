@@ -7,7 +7,6 @@ import { projectService, type Actor } from "../src/features/projects/server/proj
 import type { Database } from "../src/server/database/database";
 import { taskService, TaskConflictError } from "../src/features/tasks/server/tasks";
 import { taskTree } from "../src/features/tasks/model";
-import { parseLockInFile } from "../src/features/tasks/lockin-format";
 const sql = new PGlite();
 const db: Database = {
   query: (q, v) => sql.query(q, v),
@@ -34,33 +33,6 @@ async function project() {
   );
   return id;
 }
-const source = {
-  id: "project_local",
-  name: "Local tasks",
-  created_at: "2026-10-20T12:00:00Z",
-  updated_at: "2026-10-21T12:00:00Z",
-  tasks: [
-    {
-      id: "task_parent",
-      title: "Plan",
-      status: "in_progress",
-      collapsed: true,
-      created_at: "2026-10-20T12:00:00Z",
-      updated_at: "2026-10-21T12:00:00Z",
-      subtasks: [
-        {
-          id: "task_child",
-          title: "Research",
-          status: "ready",
-          collapsed: false,
-          created_at: "2026-10-20T12:00:00Z",
-          updated_at: "2026-10-21T12:00:00Z",
-          subtasks: null,
-        },
-      ],
-    },
-  ],
-};
 test("nested tasks preserve display numbering, shared statuses, edits, and project boundaries", async () => {
   const id = await project(),
     other = await project();
@@ -136,7 +108,6 @@ test("nested tasks preserve display numbering, shared statuses, edits, and proje
   });
   assert.equal(required(list.tasks[0]).collapsed, false);
   await assert.rejects(tasks.list(outsider, id));
-  await assert.rejects(tasks.export(outsider, id));
   await assert.rejects(
     tasks.change(outsider, id, list.revision, { kind: "delete", id: root, confirmed: true }),
   );
@@ -196,50 +167,7 @@ test("stale deletes and cascades reject new descendants; deletion renumbers rema
   assert.equal(list.tasks.length, 1);
   assert.equal(required(taskTree(list.tasks)[0]).number, "1");
 });
-test("Lock-In import/export preserves trees, statuses, collapse, timestamps, and rejects duplicates or unauthorized access", async () => {
-  const id = await project();
-  const input = parseLockInFile(
-    JSON.stringify({ version: 1, active_project: source.id, projects: [source] }),
-  );
-  let list = await tasks.import(owner, id, 0, input.projects[0]);
-  assert.equal(list.tasks.length, 2);
-  assert.notEqual(required(list.tasks[0]).id, required(source.tasks[0]).id);
-  const exported = await tasks.export(member, id);
-  assert.equal(exported.version, 1);
-  assert.equal(exported.active_project, id);
-  assert.equal(required(exported.projects[0]).name, "Task test");
-  const root = required(exported.projects[0]).tasks[0];
-  assert.equal(required(root).title, "Plan");
-  assert.equal(required(root).status, "in_progress");
-  assert.equal(required(root).collapsed, true);
-  assert.equal(required(root).created_at, "2026-10-20T12:00:00.000Z");
-  assert.equal(required(required(root).subtasks[0]).title, "Research");
-  assert.deepEqual(required(required(root).subtasks[0]).subtasks, []);
-  assert.doesNotThrow(() => parseLockInFile(JSON.stringify(exported)));
-  await assert.rejects(
-    tasks.import(owner, id, list.revision, input.projects[0]),
-    /already been imported/,
-  );
-  await assert.rejects(tasks.import(outsider, id, list.revision, input.projects[0]));
-  const other = await project();
-  await tasks.import(owner, other, 0, input.projects[0]);
-  assert.equal((await tasks.list(owner, other)).tasks.length, 2);
-  assert.throws(() => parseLockInFile(JSON.stringify({ ...exported, version: 2 })));
-  assert.throws(() =>
-    parseLockInFile(
-      JSON.stringify({
-        version: 1,
-        active_project: source.id,
-        projects: [{ ...source, tasks: [source.tasks[0], source.tasks[0]] }],
-      }),
-    ),
-  );
-  const bad = structuredClone(source);
-  required(bad.tasks[0]).status = "unknown";
-  await assert.rejects(tasks.import(owner, id, list.revision, bad));
-  assert.equal((await tasks.list(owner, id)).revision, list.revision);
-});
-test("task writes and imports roll back with their events, and whole-project deletion removes tasks", async () => {
+test("task writes roll back with their events, and whole-project deletion removes tasks", async () => {
   const id = await project();
   const faulty: Database = {
     ...db,
@@ -256,10 +184,13 @@ test("task writes and imports roll back with their events, and whole-project del
   await assert.rejects(
     taskService(faulty).change(owner, id, 0, { kind: "add", parentId: null, title: "Rolled back" }),
   );
-  await assert.rejects(taskService(faulty).import(owner, id, 0, source));
   assert.equal((await tasks.list(owner, id)).tasks.length, 0);
-  const list = await tasks.import(owner, id, 0, source);
-  assert.equal(list.tasks.length, 2);
+  const list = await tasks.change(owner, id, 0, {
+    kind: "add",
+    parentId: null,
+    title: "Preserved",
+  });
+  assert.equal(list.tasks.length, 1);
   await projects.deleteProject(owner, id, "Task test");
   for (const table of ["project_tasks", "project_task_lists", "project_task_imports"]) {
     assert.equal(
@@ -267,4 +198,249 @@ test("task writes and imports roll back with their events, and whole-project del
       0,
     );
   }
+});
+
+test("milestone workflows preserve task trees, ordering, revisions and project boundaries", async () => {
+  const id = await project(),
+    other = await project();
+  await db.query(
+    "INSERT INTO project_flows(project_id,flow_id,template_version,selected_by) VALUES($1,'platform',1,$2)",
+    [id, owner.userId],
+  );
+  let list = await tasks.list(owner, id);
+  await assert.rejects(
+    tasks.change(owner, id, list.revision, {
+      kind: "milestone-add",
+      title: "Wrong flow",
+      description: "",
+      templateId: "practice_cycle",
+    }),
+  );
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "milestone-add",
+    title: "Sprint",
+    description: "Build it",
+    templateId: "build_sprint",
+  });
+  const milestone = list.milestones[0]!;
+  await assert.rejects(
+    tasks.change(outsider, id, list.revision, {
+      kind: "milestone-delete",
+      id: milestone.id,
+      confirmed: true,
+    }),
+  );
+  await assert.rejects(
+    tasks.change(owner, other, 0, {
+      kind: "milestone-edit",
+      id: milestone.id,
+      title: "Foreign",
+      description: "",
+      status: "active",
+    }),
+  );
+  await assert.rejects(
+    tasks.change(owner, id, 0, { kind: "milestone-order", id: milestone.id, beforeId: null }),
+    TaskConflictError,
+  );
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "add",
+    title: "Parent",
+    parentId: null,
+    milestoneId: milestone.id,
+    columnId: "backlog",
+  });
+  const parent = list.tasks[0]!;
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "add",
+    title: "Child",
+    parentId: parent.id,
+    milestoneId: milestone.id,
+    columnId: "backlog",
+  });
+  const child = list.tasks[1]!;
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "move",
+    id: child.id,
+    milestoneId: milestone.id,
+    columnId: "backlog",
+    beforeId: parent.id,
+  });
+  assert.equal(list.tasks.find((t) => t.id === child.id)!.board_position, 0);
+  assert.equal(list.tasks.find((t) => t.id === parent.id)!.board_position, 1);
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "move",
+    id: child.id,
+    milestoneId: milestone.id,
+    columnId: "review",
+    beforeId: null,
+  });
+  assert.equal(list.tasks[1]!.status, "in_progress");
+  assert.equal(list.tasks[1]!.parent_id, parent.id);
+  await assert.rejects(
+    tasks.change(owner, id, list.revision, {
+      kind: "move",
+      id: child.id,
+      milestoneId: milestone.id,
+      columnId: "wrong",
+      beforeId: null,
+    }),
+  );
+  await assert.rejects(
+    tasks.change(owner, id, list.revision, {
+      kind: "move",
+      id: parent.id,
+      milestoneId: milestone.id,
+      columnId: "done",
+      beforeId: null,
+    }),
+  );
+  await assert.rejects(
+    tasks.change(owner, id, list.revision, {
+      kind: "milestone-edit",
+      id: milestone.id,
+      title: milestone.title,
+      description: "",
+      status: "completed",
+    }),
+  );
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "status",
+    id: parent.id,
+    status: "done",
+    scope: "subtree",
+    confirmed: true,
+  });
+  assert.ok(list.tasks.every((t) => t.column_id === "done"));
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "milestone-delete",
+    id: milestone.id,
+    confirmed: true,
+  });
+  assert.equal(list.tasks.length, 2);
+  assert.ok(list.tasks.every((t) => t.milestone_id === null && t.status === "done"));
+  assert.equal(list.tasks[1]!.parent_id, parent.id);
+  await projects.deleteProject(owner, id, "Task test");
+});
+
+test("task artifacts are atomic, project-scoped, detachable and retained when a card is deleted", async () => {
+  const id = await project(),
+    other = await project();
+  let list = await tasks.change(owner, id, 0, {
+    kind: "add",
+    title: "Evidence card",
+    parentId: null,
+  });
+  const card = list.tasks[0]!;
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "create-artifact",
+    id: card.id,
+    name: "Evidence",
+    artifactKind: "markdown",
+  });
+  const artifactId = list.attachments[0]!.artifact_id;
+  await assert.rejects(
+    tasks.change(outsider, id, list.revision, {
+      kind: "attach",
+      id: card.id,
+      artifactId,
+      remove: true,
+    }),
+  );
+  let foreign = await tasks.change(owner, other, 0, {
+    kind: "add",
+    title: "Other card",
+    parentId: null,
+  });
+  await assert.rejects(
+    tasks.change(owner, other, foreign.revision, {
+      kind: "attach",
+      id: foreign.tasks[0]!.id,
+      artifactId,
+      remove: false,
+    }),
+  );
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "attach",
+    id: card.id,
+    artifactId,
+    remove: true,
+  });
+  assert.equal(list.attachments.length, 0);
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "attach",
+    id: card.id,
+    artifactId,
+    remove: false,
+  });
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "attach",
+    id: card.id,
+    artifactId,
+    remove: false,
+  });
+  assert.equal(list.attachments.length, 1);
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "delete",
+    id: card.id,
+    confirmed: true,
+  });
+  assert.equal(list.attachments.length, 0);
+  assert.equal(
+    (
+      await db.query("SELECT id FROM project_artifacts WHERE project_id=$1 AND id=$2", [
+        id,
+        artifactId,
+      ])
+    ).rows.length,
+    1,
+  );
+  await projects.deleteProject(owner, id, "Task test");
+});
+
+test("completed milestones require reopening, and card creation respects unassigned columns", async () => {
+  const id = await project();
+  await db.query(
+    "INSERT INTO project_flows(project_id,flow_id,template_version,selected_by) VALUES($1,'self-improvement',1,$2)",
+    [id, owner.userId],
+  );
+  let list = await tasks.change(owner, id, 0, {
+    kind: "milestone-add",
+    title: "Practice",
+    description: "",
+    templateId: "practice_cycle",
+  });
+  const milestone = list.milestones[0]!;
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "add",
+    title: "Reflect",
+    parentId: null,
+    milestoneId: milestone.id,
+    columnId: "reviewed",
+  });
+  assert.equal(list.tasks[0]!.status, "done");
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "milestone-edit",
+    id: milestone.id,
+    title: milestone.title,
+    description: "",
+    status: "completed",
+  });
+  await assert.rejects(
+    tasks.change(owner, id, list.revision, {
+      kind: "status",
+      id: list.tasks[0]!.id,
+      status: "ready",
+    }),
+    /Reopen/,
+  );
+  list = await tasks.change(owner, id, list.revision, {
+    kind: "add",
+    title: "Already started",
+    parentId: null,
+    columnId: "in_progress",
+  });
+  assert.equal(list.tasks[1]!.status, "in_progress");
+  assert.equal(list.tasks[1]!.column_id, null);
+  await projects.deleteProject(owner, id, "Task test");
 });

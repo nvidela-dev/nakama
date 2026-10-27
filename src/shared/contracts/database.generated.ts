@@ -22,6 +22,8 @@ export const LabRunStatusValues = ["running","completed","cancelled"] as const;
 export type LabRunStatus = (typeof LabRunStatusValues)[number];
 export const MembershipRoleValues = ["owner","member"] as const;
 export type MembershipRole = (typeof MembershipRoleValues)[number];
+export const MilestoneStatusValues = ["active","completed","archived"] as const;
+export type MilestoneStatus = (typeof MilestoneStatusValues)[number];
 export const NodeStatusValues = ["unanswered","draft","answered","skipped","blocked"] as const;
 export type NodeStatus = (typeof NodeStatusValues)[number];
 export const ProjectStateValues = ["active","parked","finished_enough"] as const;
@@ -140,6 +142,16 @@ export interface DatabaseRows {
     created_by: string;
     created_at: Date;
   };
+  milestone_columns: {
+    template_id: string;
+    column_id: string;
+    status: TaskStatus;
+    position: number;
+  };
+  milestone_template_flows: {
+    template_id: string;
+    flow_id: FlowId;
+  };
   node_answers: {
     project_id: string;
     node_id: string;
@@ -229,6 +241,20 @@ export interface DatabaseRows {
     role: MembershipRole;
     joined_at: Date;
   };
+  project_milestones: {
+    id: string;
+    project_id: string;
+    flow_id: FlowId;
+    template_id: string;
+    title: string;
+    description: string;
+    status: MilestoneStatus;
+    position: number;
+    created_by: string;
+    updated_by: string;
+    created_at: Date;
+    updated_at: Date;
+  };
   project_task_imports: {
     project_id: string;
     fingerprint: string;
@@ -251,6 +277,9 @@ export interface DatabaseRows {
     updated_by: string;
     created_at: Date;
     updated_at: Date;
+    milestone_id: string | null;
+    column_id: string | null;
+    board_position: number;
   };
   projects: {
     id: string;
@@ -274,5 +303,12 @@ export interface DatabaseRows {
     rationale: string;
     reviewed_by: string;
     reviewed_at: Date;
+  };
+  task_artifacts: {
+    project_id: string;
+    task_id: string;
+    artifact_id: string;
+    created_by: string;
+    created_at: Date;
   };
 }

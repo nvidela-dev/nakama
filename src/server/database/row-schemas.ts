@@ -58,10 +58,22 @@ export const projectTaskSchema = z.object({
   collapsed: z.boolean(),
   created_at: z.date(),
   updated_at: z.date(),
+  milestone_id: id.nullable(),
+  column_id: z.string().nullable(),
+  board_position: z.number().int(),
 }) satisfies z.ZodType<
   Pick<
     DatabaseRows["project_tasks"],
-    "id" | "parent_id" | "title" | "status" | "collapsed" | "created_at" | "updated_at"
+    | "id"
+    | "parent_id"
+    | "title"
+    | "status"
+    | "collapsed"
+    | "created_at"
+    | "updated_at"
+    | "milestone_id"
+    | "column_id"
+    | "board_position"
   >
 >;
 export const artifactRowSchema = z.object({

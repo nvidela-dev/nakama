@@ -11,6 +11,7 @@ export const operationNames = [
   "invitation.create",
   "invitation.accept",
   "artifact.create",
+  "artifact.read",
   "artifact.change",
   "artifact.upload",
   "artifact.file",

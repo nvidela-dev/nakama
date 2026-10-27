@@ -416,3 +416,7 @@ Use the full browser width for project cards, with the creation control in the h
 ## Accepted: compact the complete project workspace — 2026-10-26
 
 The user's density request applies to the project heading, experiment cycle, contextual discussion, stage list and progress/membership/activity panels as well as the project register. Prioritize space for the central work, reduce repeated card padding and decorative vertical space, and preserve visible context, readable text, navigation and touch access.
+
+## Lock-In retirement and managed boards — 2026-10-26
+
+Accepted: Lock-In interoperability is no longer a requirement. Remove its import/export controls and runtime contract while preserving existing tasks, hierarchy, and historical import receipts. Managed milestone boards use project-scoped task revisions and flow-specific columns; board movement never implicitly completes subtasks. This supersedes the compatibility requirements above.

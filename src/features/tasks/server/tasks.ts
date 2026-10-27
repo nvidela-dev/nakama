@@ -1,16 +1,13 @@
-import {
-  taskListRevisionSchema,
-  projectSchema,
-  projectTaskSchema,
-} from "@/server/database/row-schemas";
-import { queryRows, required } from "@/server/database/query";
-import { createHash, randomUUID } from "node:crypto";
+import { applyBoardOperation } from "./boards";
+import { flowIdSchema } from "@/shared/contracts/domain-schemas";
+import { taskListRevisionSchema, projectTaskSchema } from "@/server/database/row-schemas";
+import { queryRows } from "@/server/database/query";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
 import { membership, ProjectError, type Actor } from "@/features/projects/server/projects";
 import { recordActivity } from "@/server/database/activity-log";
 import type { TaskSnapshot } from "@/features/tasks/model";
-import { validateLockInProject, toLockIn } from "@/features/tasks/lockin-format";
 import { operation } from "@/features/tasks/input";
 export type { TaskOperation } from "@/features/tasks/input";
 export class TaskConflictError extends ProjectError {
@@ -35,10 +32,30 @@ async function snapshot(tx: Queryable, projectId: string): Promise<TaskSnapshot>
   const tasks = await queryRows(
     tx,
     projectTaskSchema,
-    "SELECT id,parent_id,title,status,collapsed,created_at,updated_at FROM project_tasks WHERE project_id=$1 ORDER BY position",
+    "SELECT id,parent_id,title,status,collapsed,created_at,updated_at,milestone_id,column_id,board_position FROM project_tasks WHERE project_id=$1 ORDER BY position",
     [projectId],
   );
-  return { revision, tasks };
+  const milestones = await queryRows(
+    tx,
+    z.object({
+      id: z.uuid(),
+      title: z.string(),
+      description: z.string(),
+      template_id: z.string(),
+      flow_id: flowIdSchema,
+      status: z.enum(["active", "completed", "archived"]),
+      position: z.number().int(),
+    }),
+    "SELECT id,title,description,template_id,flow_id,status,position FROM project_milestones WHERE project_id=$1 ORDER BY position,id",
+    [projectId],
+  );
+  const attachments = await queryRows(
+    tx,
+    z.object({ task_id: z.uuid(), artifact_id: z.uuid() }),
+    "SELECT task_id,artifact_id FROM task_artifacts WHERE project_id=$1 ORDER BY created_at,artifact_id",
+    [projectId],
+  );
+  return { revision, tasks, milestones, attachments };
 }
 // A list-wide revision protects subtree operations when another member adds a child.
 async function lock(tx: Queryable, actor: Actor, projectId: string, revision: number) {
@@ -74,6 +91,8 @@ export function taskService(db: Database) {
             "Check the task title and action. Titles can have up to 300 characters.",
           );
         const op = parsed.data;
+        if (await applyBoardOperation(tx, actor, projectId, current, op))
+          return changed(tx, projectId);
         if (op.kind === "add") {
           if (current.tasks.length >= 2000)
             throw new ProjectError("This project has reached the 2,000-task limit.");
@@ -90,8 +109,18 @@ export function taskService(db: Database) {
             if (depth > 32) throw new ProjectError("Task nesting is limited to 32 levels.");
           }
           await tx.query(
-            "INSERT INTO project_tasks(id,project_id,parent_id,title,created_by,updated_by) VALUES($1,$2,$3,$4,$5,$5)",
-            [randomUUID(), projectId, op.parentId, op.title, actor.userId],
+            "INSERT INTO project_tasks(id,project_id,parent_id,title,created_by,updated_by,milestone_id,column_id,board_position,status) VALUES($1,$2,$3,$4,$5,$5,$6,$7,$8,$9)",
+            [
+              randomUUID(),
+              projectId,
+              op.parentId,
+              op.title,
+              actor.userId,
+              op.milestoneId ?? null,
+              op.milestoneId ? (op.columnId ?? null) : null,
+              Math.max(0, ...current.tasks.map((t) => t.board_position)) + 1,
+              op.milestoneId ? "ready" : (op.columnId ?? "ready"),
+            ],
           );
           if (op.parentId)
             await tx.query(
@@ -106,7 +135,7 @@ export function taskService(db: Database) {
             "UPDATE project_tasks SET collapsed=$3,updated_at=now(),updated_by=$4 WHERE project_id=$1 AND id=ANY($2::uuid[])",
             [projectId, op.ids, op.collapsed, actor.userId],
           );
-        } else {
+        } else if (op.kind === "edit" || op.kind === "delete" || op.kind === "status") {
           const task = current.tasks.find((t) => t.id === op.id);
           if (!task) throw new ProjectError("Task not found.");
           const subtree = [task.id];
@@ -127,6 +156,17 @@ export function taskService(db: Database) {
             ]);
             await recordActivity(tx, actor, projectId, "task_deleted");
           } else {
+            const targets = op.scope === "subtree" ? subtree : [op.id];
+            if (
+              current.tasks.some(
+                (task) =>
+                  targets.includes(task.id) &&
+                  current.milestones.some(
+                    (m) => m.id === task.milestone_id && m.status !== "active",
+                  ),
+              )
+            )
+              throw new ProjectError("Reopen the milestone before changing card status.");
             if (op.scope === "subtree" && op.status !== "done")
               throw new ProjectError("Only Done can be applied to subtasks together.");
             if (op.status === "done" && subtree.length > 1 && !op.confirmed)
@@ -141,97 +181,6 @@ export function taskService(db: Database) {
           }
         }
         return changed(tx, projectId);
-      }),
-    import: (actor: Actor, projectId: string, revision: number, input: unknown) =>
-      db.transaction(async (tx) => {
-        const current = await lock(tx, actor, projectId, revision);
-        let project;
-        try {
-          if (Buffer.byteLength(JSON.stringify(input), "utf8") > 512_000) throw new Error();
-          project = validateLockInProject(input);
-        } catch {
-          throw new ProjectError(
-            "Choose a valid Lock-In version 1 project with up to 2,000 tasks and 32 nesting levels.",
-          );
-        }
-        const fingerprint = createHash("sha256").update(JSON.stringify(project)).digest("hex");
-        if (
-          (
-            await queryRows(
-              tx,
-              z.object({ fingerprint: z.string() }),
-              "SELECT fingerprint FROM project_task_imports WHERE project_id=$1 AND fingerprint=$2",
-              [projectId, fingerprint],
-            )
-          ).length
-        )
-          throw new ProjectError("This exact Lock-In project has already been imported.");
-        let count = 0;
-        const countTasks = (items: typeof project.tasks) => {
-          for (const t of items) {
-            count++;
-            countTasks(t.subtasks);
-          }
-        };
-        countTasks(project.tasks);
-        if (!count) throw new ProjectError("The selected project has no tasks to import.");
-        if (current.tasks.length + count > 2000)
-          throw new ProjectError("This project has reached the 2,000-task limit.");
-        // Remap every source ID and preserve preorder so imports append deterministically.
-        const rows: {
-          id: string;
-          parent_id: string | null;
-          title: string;
-          status: string;
-          collapsed: boolean;
-          created_at: string;
-          updated_at: string;
-          ordinal: number;
-        }[] = [];
-        const flatten = (items: typeof project.tasks, parent: string | null) => {
-          for (const t of items) {
-            const id = randomUUID();
-            rows.push({
-              id,
-              parent_id: parent,
-              title: t.title,
-              status: t.status,
-              collapsed: t.collapsed,
-              created_at: t.created_at,
-              updated_at: t.updated_at,
-              ordinal: rows.length,
-            });
-            flatten(t.subtasks, id);
-          }
-        };
-        flatten(project.tasks, null);
-        await tx.query(
-          `INSERT INTO project_tasks(id,project_id,parent_id,title,status,collapsed,created_by,updated_by,created_at,updated_at)
-      SELECT id,$1,parent_id,title,status::task_status,collapsed,$2,$2,created_at,updated_at
-      FROM jsonb_to_recordset($3::jsonb) AS imported(id uuid,parent_id uuid,title text,status text,collapsed boolean,created_at timestamptz,updated_at timestamptz,ordinal integer)
-      ORDER BY ordinal`,
-          [projectId, actor.userId, JSON.stringify(rows)],
-        );
-        await tx.query(
-          "INSERT INTO project_task_imports(project_id,fingerprint,imported_by) VALUES($1,$2,$3)",
-          [projectId, fingerprint, actor.userId],
-        );
-        await recordActivity(tx, actor, projectId, "tasks_imported");
-        return changed(tx, projectId);
-      }),
-    export: (actor: Actor, projectId: string) =>
-      db.transaction(async (tx) => {
-        await membership(tx, actor, projectId);
-        await tx.query("SELECT id FROM projects WHERE id=$1 FOR SHARE", [projectId]);
-        const project = (
-          await queryRows(
-            tx,
-            projectSchema.pick({ id: true, name: true, created_at: true }),
-            "SELECT id,name,created_at FROM projects WHERE id=$1",
-            [projectId],
-          )
-        )[0];
-        return toLockIn(required(project), await snapshot(tx, projectId));
       }),
   };
 }

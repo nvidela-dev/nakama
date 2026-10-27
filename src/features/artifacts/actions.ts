@@ -122,3 +122,17 @@ export async function uploadArtifactFile(
     }
   });
 }
+
+export async function readArtifact(
+  projectId: string,
+  id: string,
+): Promise<ArtifactSaved | ArtifactFailure> {
+  return observeAction("artifact.read", async () => {
+    try {
+      return { artifact: await artifactService(database()).get(await actor(), projectId, id) };
+    } catch (error) {
+      telemetry.reportError(error);
+      return failure(error);
+    }
+  });
+}
