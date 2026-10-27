@@ -178,8 +178,7 @@ export function Journey({
             className={[
               `journey${activeStage ? " has-stage-rail" : ""}`,
               "min-w-0",
-              activeStage &&
-                "lg:grid lg:grid-cols-[136px_minmax(0,_1fr)] lg:gap-3.5 lg:items-start",
+              activeStage && "lg:grid lg:grid-cols-[168px_minmax(0,_1fr)] lg:gap-4 lg:items-start",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -292,7 +291,7 @@ export function Journey({
                       href={href(stage.id)}
                       className={[
                         `stage-rail-link${reviewed ? " reviewed" : ""}${revisit ? " revisit" : ""}`,
-                        "flex items-center flex-none gap-2 min-h-11 py-2 px-2.5 border border-[var(--theme-border,#637a55)] rounded-[6px] text-[12px] wrap-anywhere justify-start bg-[var(--theme-surface,#2a4034)]",
+                        "flex items-center flex-none gap-2 min-h-18 py-3 px-2.5 border border-[var(--theme-border,#637a55)] rounded-[6px] text-[12px] wrap-anywhere justify-start bg-[var(--theme-surface,#2a4034)]",
                         stage.id === activeStage.id &&
                           "border-lime bg-[var(--theme-surface,#405b39)] shadow-[inset_3px_0_var(--color-lime)]",
                       ]
@@ -304,7 +303,7 @@ export function Journey({
                       <span className={"rail-number [font:10px_monospace] shrink-0 text-lime"}>
                         {String(index + 1).padStart(2, "0")}
                       </span>
-                      <div className={"rail-label min-w-0"}>
+                      <div className={"rail-label min-w-0 flex-1"}>
                         <strong className={"block text-[12px] font-semibold"}>
                           {t(stage.name)}
                         </strong>
@@ -314,6 +313,17 @@ export function Journey({
                           {answered}/{questions.length} · {t(status)}
                           {revisit ? t(" · revisit") : ""}
                         </small>
+                        <span
+                          className="block h-1 rounded-full bg-line overflow-hidden mt-2"
+                          aria-hidden="true"
+                        >
+                          <span
+                            className="block h-full bg-lime"
+                            style={{
+                              width: `${questions.length ? (answered / questions.length) * 100 : 0}%`,
+                            }}
+                          />
+                        </span>
                       </div>
                     </Link>
                   );
@@ -526,74 +536,80 @@ export function Journey({
                         "stage-expanded [&_>_h2]:text-[15px] [&_>_h2]:mt-4 lg:compact:[&_>_h2]:mt-3 lg:compact:[&_>_h2]:mx-0 lg:compact:[&_>_h2]:mb-2 lg:compact:[&_>_.muted]:my-2 lg:compact:[&_>_.muted]:mx-0"
                       }
                     >
-                      <div
-                        className={
-                          "node-tree flex flex-col gap-4 my-4.5 mx-0 lg:compact:gap-3.5 lg:compact:my-3.5"
-                        }
-                      >
+                      <div className={"node-tree flex flex-col my-4 mx-0 lg:compact:my-3"}>
                         {levels(activeStage).map((row, i) => (
-                          <div
-                            key={i}
-                            className={
-                              'tree-row grid grid-cols-[repeat(auto-fit,_minmax(145px,_1fr))] gap-2.5 relative [&:not(:first-child)::before]:[content:"↓"] [&:not(:first-child)::before]:absolute [&:not(:first-child)::before]:top-[-19px] [&:not(:first-child)::before]:left-[49%] [&:not(:first-child)::before]:[color:var(--theme-text,#9cad82)] [&:not(:first-child)::before]:text-[12px] [&:not(:first-child)::before]:leading-[16px] lg:compact:[&:not(:first-child)::before]:top-[-16px] lg:compact:[&:not(:first-child)::before]:leading-[14px] min-[2000px]:compact:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] max-[700px]:grid-cols-[minmax(0,_1fr)]'
-                            }
-                          >
-                            {row.map((node) => {
-                              const answer = answers.find((a) => a.node_id === node.id);
-                              return (
-                                <Link
-                                  key={node.id}
-                                  href={href(activeStage.id, node.id)}
-                                  className={[
-                                    `question-node ${answer?.status ?? "unanswered"}`,
-                                    "grid flex-col gap-[3px_10px] border border-line rounded-[7px] py-2.25 px-3 bg-[var(--theme-surface,#1c3028)] wrap-anywhere grid-cols-[minmax(0,_1fr)_auto] [align-content:center] items-center min-h-11 [&.answered]:[border-color:var(--theme-border,#738d50)] [&.blocked]:[border-color:var(--theme-border,#b59769)] hover:[background:var(--theme-surface,#284332)] max-[700px]:p-3.5 lg:compact:py-1.75 lg:compact:px-2.5 lg:compact:gap-[2px_10px] lg:compact:rounded-[8px]",
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" ")}
-                                >
-                                  <span
-                                    className={
-                                      "node-state [text-transform:capitalize] text-lime col-start-2 row-start-1 text-[11px] text-right"
-                                    }
+                          <div key={i} className="tree-level min-w-0">
+                            {i > 0 && (
+                              <div
+                                className="tree-connector flex h-12 items-center justify-center text-lime"
+                                aria-hidden="true"
+                              >
+                                <Icon name="arrowDown" size={48} strokeWidth={3} />
+                              </div>
+                            )}
+                            <div className="tree-row grid grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] gap-3 max-[700px]:grid-cols-[minmax(0,_1fr)]">
+                              {row.map((node) => {
+                                const answer = answers.find((a) => a.node_id === node.id);
+                                return (
+                                  <Link
+                                    key={node.id}
+                                    href={href(activeStage.id, node.id)}
+                                    className={[
+                                      `question-node ${answer?.status ?? "unanswered"}`,
+                                      "grid gap-[6px_12px] border border-line rounded-[8px] py-4 px-4 bg-[var(--theme-surface,#1c3028)] wrap-anywhere grid-cols-[minmax(0,_1fr)_auto] content-center items-center min-h-22 [&.answered]:[border-color:var(--theme-border,#738d50)] [&.blocked]:[border-color:var(--theme-border,#b59769)] hover:[background:var(--theme-surface,#284332)] max-[700px]:p-3.5",
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" ")}
                                   >
-                                    <Icon
-                                      name={symbols[answer?.status ?? "unanswered"] ?? "unanswered"}
-                                      size={12}
-                                    />{" "}
-                                    {t(answer?.status ?? "unanswered")}
-                                    {answer?.needs_review ? t(" · revisit") : ""}
-                                  </span>
-                                  <strong
-                                    className={"text-[13px] leading-[1.4] col-start-1 row-start-1"}
-                                  >
-                                    {t(node.label)}
-                                  </strong>
-                                  <small
-                                    className={
-                                      "node-type text-muted col-start-2 row-start-2 text-[11px] text-right"
-                                    }
-                                  >
-                                    {t(node.kind)}
-                                  </small>
-                                  {node.after.length > 0 && (
-                                    <small
+                                    <span
                                       className={
-                                        "node-after max-[700px]:hidden text-muted text-[11px] border-t-line col-start-1 row-start-2 border-0 p-0 leading-[1.4]"
+                                        "node-state [text-transform:capitalize] text-lime col-start-2 row-start-1 text-[11px] text-right"
                                       }
                                     >
-                                      {t("After:")}{" "}
-                                      {node.after
-                                        .map((id) =>
-                                          t(
-                                            activeStage.nodes.find((n) => n.id === id)?.label ?? "",
-                                          ),
-                                        )
-                                        .join(" + ")}
+                                      <Icon
+                                        name={
+                                          symbols[answer?.status ?? "unanswered"] ?? "unanswered"
+                                        }
+                                        size={12}
+                                      />{" "}
+                                      {t(answer?.status ?? "unanswered")}
+                                      {answer?.needs_review ? t(" · revisit") : ""}
+                                    </span>
+                                    <strong
+                                      className={
+                                        "text-[13px] leading-[1.4] col-start-1 row-start-1"
+                                      }
+                                    >
+                                      {t(node.label)}
+                                    </strong>
+                                    <small
+                                      className={
+                                        "node-type text-muted col-start-2 row-start-2 text-[11px] text-right"
+                                      }
+                                    >
+                                      {t(node.kind)}
                                     </small>
-                                  )}
-                                </Link>
-                              );
-                            })}
+                                    {node.after.length > 0 && (
+                                      <small
+                                        className={
+                                          "node-after max-[700px]:hidden text-muted text-[11px] border-t-line col-start-1 row-start-2 border-0 p-0 leading-[1.4]"
+                                        }
+                                      >
+                                        {t("After:")}{" "}
+                                        {node.after
+                                          .map((id) =>
+                                            t(
+                                              activeStage.nodes.find((n) => n.id === id)?.label ??
+                                                "",
+                                            ),
+                                          )
+                                          .join(" + ")}
+                                      </small>
+                                    )}
+                                  </Link>
+                                );
+                              })}
+                            </div>
                           </div>
                         ))}
                       </div>

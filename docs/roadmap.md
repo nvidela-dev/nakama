@@ -424,3 +424,7 @@ Accepted: Lock-In interoperability is no longer a requirement. Remove its import
 ## Flow workspace spacing — 2026-10-26
 
 Accepted: discussion spans the complete workspace below the flow and sidebar. Overview steps use taller cards, downward arrows, and individual progress bars counting answered question nodes. Skipped, blocked, review state, and experiment validity remain separate from answer coverage.
+
+## Expanded flow connectors — 2026-10-26
+
+Accepted: the expanded question tree uses taller cards, a wider stage rail with answer coverage, and large, thick downward arrows between dependency rows. Preserve branching, question links, saved answer states, and mobile navigation.
