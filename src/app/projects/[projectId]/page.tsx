@@ -277,11 +277,6 @@ export default async function ProjectPage({
           {project.description}
         </p>
       </div>
-      <ExperimentCycle
-        projectId={projectId}
-        flowId={guidance?.flow.id}
-        nodeId={selectedNode?.kind === "question" ? selectedNode.id : undefined}
-      />
       {guidance ? (
         <Journey
           wideWork={isTasksView}
@@ -334,6 +329,11 @@ export default async function ProjectPage({
           </div>
         </div>
       )}
+      <ExperimentCycle
+        projectId={projectId}
+        flowId={guidance?.flow.id}
+        nodeId={selectedNode?.kind === "question" ? selectedNode.id : undefined}
+      />
     </main>
   );
 }
