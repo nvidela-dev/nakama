@@ -1,6 +1,8 @@
 "use client";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { LabPath, LabResults } from "./lab-visuals";
+import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
 import { useT } from "@/shared/i18n/provider";
@@ -40,6 +42,7 @@ function Field({
   required = false,
   numeric = false,
   hint,
+  step,
 }: {
   name: string;
   label: string;
@@ -47,15 +50,26 @@ function Field({
   required?: boolean;
   numeric?: boolean;
   hint?: string | undefined;
+  step?: number;
 }) {
   const hintId = useId();
+  const [filled, setFilled] = useState(Boolean(value.trim()));
   return (
-    <label className="grid gap-1 text-[14px]">
-      <span>{label}</span>
+    <label
+      className={`grid content-start gap-2 text-[14px] min-w-0 ${step ? "rounded-lg border border-line bg-panel p-3" : ""}`}
+    >
+      <span className="flex items-center gap-2">
+        {step && (
+          <span className="flex size-7 items-center justify-center rounded-full bg-lime/10 text-lime font-bold">
+            {filled ? <Icon name="answered" /> : step}
+          </span>
+        )}
+        {label}
+      </span>
       {hint && (
-        <small id={hintId} className="text-muted text-[12px]">
+        <span id={hintId} className="sr-only">
           {hint}
-        </small>
+        </span>
       )}
       {numeric ? (
         <Input
@@ -75,9 +89,11 @@ function Field({
           className={fieldClass}
           name={name}
           defaultValue={value}
+          onChange={(event) => setFilled(Boolean(event.target.value.trim()))}
+          placeholder={hint}
           required={required}
           maxLength={12000}
-          rows={2}
+          rows={step ? 3 : 2}
         />
       )}
     </label>
@@ -151,7 +167,10 @@ export function ExperimentLab({
           }
         }}
       >
-        <fieldset disabled={busy} className="grid gap-3 min-w-0">
+        <fieldset
+          disabled={busy}
+          className="grid gap-3 min-w-0 sm:grid-cols-2 [&>button]:sm:col-span-2 [&>p]:sm:col-span-2"
+        >
           {children}
           <Button type="submit" className="w-fit" pending={busy}>
             {t(label)}
@@ -170,28 +189,33 @@ export function ExperimentLab({
         ) as Plan,
       }),
       <>
-        <Field
-          name="claim"
-          label={t("Claim · what do you want to learn?")}
-          hint={prompts?.claim}
-          value={current.claim}
-          required
-        />
-        <Field
-          name="method"
-          label={t("Method · how will you test it?")}
-          hint={prompts?.method}
-          value={current.method}
-          required
-        />
-        <Field
-          name="criteria"
-          label={t("Success criteria · what would count?")}
-          hint={prompts?.criteria}
-          value={current.criteria}
-          required
-        />
-        <details>
+        <div className="grid gap-3 lg:grid-cols-3 sm:col-span-2">
+          <Field
+            step={1}
+            name="claim"
+            label={t("Claim · what do you want to learn?")}
+            hint={prompts?.claim}
+            value={current.claim}
+            required
+          />
+          <Field
+            step={2}
+            name="method"
+            label={t("Method · how will you test it?")}
+            hint={prompts?.method}
+            value={current.method}
+            required
+          />
+          <Field
+            step={3}
+            name="criteria"
+            label={t("Success criteria · what would count?")}
+            hint={prompts?.criteria}
+            value={current.criteria}
+            required
+          />
+        </div>
+        <details className="sm:col-span-2">
           <summary className="cursor-pointer text-lime">
             {t("Scope, question, metrics and limits")}
           </summary>
@@ -233,7 +257,7 @@ export function ExperimentLab({
     );
   }
   return (
-    <div className="grid gap-5 min-w-0">
+    <div className="grid gap-3 min-w-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-[20px]">{t("Experiment lab")}</h2>
@@ -271,7 +295,7 @@ export function ExperimentLab({
       <div role="status" className="text-[14px] text-lime whitespace-pre-wrap">
         {message}
       </div>
-      <div className="grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_140px),_1fr))] gap-2 text-[14px]">
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-[12px]">
         {[
           ["Framed claims", items.length],
           [
@@ -294,21 +318,26 @@ export function ExperimentLab({
           ],
           ["Recorded reviews", items.reduce((n, x) => n + x.reviews.length, 0)],
         ].map(([label, count]) => (
-          <div key={label} className="border border-line rounded-[12px] p-3 bg-panel">
-            <span className="block text-muted">{t(String(label))}</span>
-            <strong className="text-[20px] tabular-nums">{count}</strong>
+          <div key={label} className="flex items-center gap-2">
+            <span className="text-muted">{t(String(label))}</span>
+            <strong className="rounded-md bg-lime/10 px-2 py-1 tabular-nums">{count}</strong>
           </div>
         ))}
       </div>
-      {prompts && <p className="text-[12px] text-muted">{prompts.evidence}</p>}
-      <p className="text-[12px] text-muted">
-        {t(
-          "These are records of exploration, not a viability score. Reviews apply only to their claim, scope and evidence snapshot.",
-        )}
-      </p>
+      <details className="text-[12px] text-muted">
+        <summary className="cursor-pointer">{t("How to read this lab")}</summary>
+        {prompts && <p>{prompts.evidence}</p>}
+        <p>
+          {t(
+            "These are records of exploration, not a viability score. Reviews apply only to their claim, scope and evidence snapshot.",
+          )}
+        </p>
+      </details>
       {creating && (
         <section className="rounded-[18px] border border-line p-4 bg-panel">
           <h3 className="text-[18px] mb-3">{t("Frame an experiment")}</h3>
+          <LabPath />
+          <div className="mt-3" />
           {initialClaim && (
             <p className="text-[12px] text-muted mb-3">
               {t(
@@ -327,7 +356,7 @@ export function ExperimentLab({
         </section>
       )}
       <div className="grid lg:grid-cols-[repeat(12,minmax(0,1fr))] gap-4 min-w-0">
-        <aside className="grid content-start gap-2 lg:col-span-3" aria-label={t("Experiments")}>
+        <aside className="grid content-start gap-2 lg:col-span-2" aria-label={t("Experiments")}>
           {!items.length && (
             <p className="text-muted">
               {t("Start with one uncertainty. No commercial validation is required.")}
@@ -344,15 +373,22 @@ export function ExperimentLab({
                 setBrief("");
               }}
             >
-              {item.plans.at(-1)?.definition.claim}
+              <span className="grid gap-2">
+                <span className="line-clamp-2">{item.plans.at(-1)?.definition.claim}</span>
+                <span className="text-[11px] opacity-75">
+                  {item.runs.length} {t("Run")} · {item.evidence.length} {t("Evidence")} ·{" "}
+                  {item.reviews.length} {t("Review")}
+                </span>
+              </span>
             </Button>
           ))}
         </aside>
         {e && plan && (
           <section
             key={e.id}
-            className="min-w-0 rounded-[18px] border border-line bg-panel p-4 grid gap-5 lg:col-span-9"
+            className="min-w-0 rounded-[18px] border border-line bg-panel p-4 grid gap-5 lg:col-span-10"
           >
+            <LabPath experiment={e} />
             <header>
               <p className="text-[12px] text-muted">
                 {t("Plan version")} {plan.version}{" "}
@@ -381,6 +417,7 @@ export function ExperimentLab({
                   </Link>
                 ))}
             </header>
+            <LabResults experiment={e} />
             <details>
               <summary className="cursor-pointer text-lime">
                 {t("Edit next plan · earlier runs keep their version")}
@@ -429,7 +466,7 @@ export function ExperimentLab({
               return (
                 <article
                   key={run.id}
-                  className="border border-line rounded-lg p-4 grid gap-4 min-w-0"
+                  className="border border-line rounded-lg p-4 grid gap-4 min-w-0 lg:grid-cols-2 [&>header]:lg:col-span-2 [&>div]:lg:col-span-2 [&>section]:lg:col-span-2 [&>dl]:lg:col-span-2"
                 >
                   <header>
                     <h4 className="font-bold">
@@ -594,7 +631,7 @@ export function ExperimentLab({
                       )}
                     </div>
                   </details>
-                  <div className="grid gap-2">
+                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                     {runEvidence.map((v) => (
                       <article key={v.id} className="border border-line p-3 text-[14px]">
                         <strong>{t(v.kind)}</strong>

@@ -436,3 +436,7 @@ Accepted: To-do removes task search, discussion, sidebar, and the bottom experim
 ## Single-row task controls — 2026-10-26
 
 Accepted: remove the repeated To-do heading and combine task count, view switch, status filter, milestone controls, and task creation into one compact toolbar. Retain accessible control names and allow wrapping on narrow screens.
+
+### Visual experiment workspace — 2026-10-29
+
+Accepted: use three parallel plan cards, live field-completion feedback, recorded milestone counts, run-activity bars and numeric measurement plots. Group plots by plan version and unit; retain nonnumeric evidence without coercing it into a number. Charts describe recorded values, not causal effects or claim confidence. Keep detailed guidance expandable and preserve existing save, revision, review and access semantics.
