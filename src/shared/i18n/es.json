@@ -1439,5 +1439,16 @@
   "Earlier stage questions and answers": "Preguntas y respuestas anteriores de la etapa",
   "Reopen the milestone before changing card status.": "Reabrí el hito antes de cambiar el estado de sus tarjetas.",
   "Tests": "Pruebas",
-  "Task view": "Vista de tareas"
+  "Task view": "Vista de tareas",
+  "Recorded milestones": "Hitos registrados",
+  "Plan": "Plan",
+  "Results at a glance": "Resultados a simple vista",
+  "Run activity": "Actividad de ejecuciones",
+  "Execution is not validation.": "Ejecutar no es validar.",
+  "Your measurements appear here": "Tus mediciones aparecen aquí",
+  "Add a measurement with a numeric value and unit to a run.": "Agrega una medición con valor numérico y unidad a una ejecución.",
+  "Unit not recorded": "Unidad no registrada",
+  "Recorded measurements": "Mediciones registradas",
+  "Measurement values": "Valores medidos",
+  "How to read this lab": "Cómo leer este laboratorio"
 }

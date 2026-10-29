@@ -79,6 +79,16 @@ test("live lab database target and availability", async ({ page }) => {
     await expect(
       page.getByRole("heading", { name: "Frame an experiment", exact: true }),
     ).toBeVisible();
+    await page.screenshot({
+      path: test.info().outputPath("lab-setup-desktop.png"),
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: test.info().outputPath("lab-setup-phone.png"), fullPage: true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.setViewportSize({ width: 1600, height: 1000 });
     await page
       .getByLabel("Claim · what do you want to learn?", { exact: true })
       .fill("Synthetic participants can identify the next step");
@@ -100,7 +110,40 @@ test("live lab database target and availability", async ({ page }) => {
         exact: true,
       })
       .fill("Disposable browser fixture; no real participants.");
+    await page.locator('select[name="kind"]').selectOption("measurement");
+    await page.getByLabel("Measured value (blank if unknown)", { exact: true }).fill("0");
+    await page.getByLabel("Unit", { exact: true }).fill("errors");
     await page.getByRole("button", { name: "Retain evidence", exact: true }).click();
+    await expect(
+      page.getByRole("img", { name: "Recorded measurements · errors", exact: true }),
+    ).toBeVisible();
+    for (const [value, unit] of [
+      ["-2", "errors"],
+      ["3", "seconds"],
+      ["unknown", "seconds"],
+    ]) {
+      await page
+        .getByLabel("Retained evidence · observation, excerpt or data", { exact: true })
+        .fill(`Synthetic measurement ${value} ${unit}`);
+      await page
+        .getByLabel("Source and attribution · URL, artifact reference or observation details", {
+          exact: true,
+        })
+        .fill("Disposable graph fixture");
+      await page.locator('select[name="kind"]').selectOption("measurement");
+      await page.getByLabel("Measured value (blank if unknown)", { exact: true }).fill(value!);
+      await page.getByLabel("Unit", { exact: true }).fill(unit!);
+      await page.getByRole("button", { name: "Retain evidence", exact: true }).click();
+      await expect(
+        page.getByText(`Synthetic measurement ${value} ${unit}`, { exact: true }),
+      ).toBeVisible();
+    }
+    await expect(
+      page.getByRole("img", { name: "Recorded measurements · errors", exact: true }),
+    ).toContainText("-2");
+    await expect(
+      page.getByRole("img", { name: "Recorded measurements · seconds", exact: true }),
+    ).not.toContainText("unknown");
     await page.getByText("Complete or cancel run", { exact: true }).click();
     await page.getByRole("button", { name: "Record execution outcome", exact: true }).click();
     await page.getByText("Review claim against evidence", { exact: true }).click();
@@ -121,5 +164,13 @@ test("live lab database target and availability", async ({ page }) => {
       page.getByText("Three synthetic trials identified the next step.", { exact: true }),
     ).toBeVisible();
     await page.screenshot({ path: test.info().outputPath("lab-verified.png"), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({
+      path: test.info().outputPath("lab-results-phone.png"),
+      fullPage: true,
+    });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
   }
 });
