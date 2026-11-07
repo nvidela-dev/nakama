@@ -46,6 +46,7 @@ export function TaskList({
     [error, setError] = useState(""),
     [conflict, setConflict] = useState(false),
     [notice, setNotice] = useState("");
+  const [attachmentTask, setAttachmentTask] = useState<string | null>(null);
   const [view, setView] = useState<"board" | "list">("board");
   const [filter, setFilter] = useState("all");
   const opener = useRef<HTMLElement | null>(null);
@@ -367,16 +368,7 @@ export function TaskList({
                 }
                 status={(value) => mark(node, value)}
                 attachmentCount={attached.length}
-                attachments={
-                  <TaskArtifacts
-                    projectId={projectId}
-                    taskId={node.id}
-                    items={artifacts}
-                    attached={attached}
-                    run={run}
-                    pending={pending}
-                  />
-                }
+                showAttachments={() => setAttachmentTask(node.id)}
               />
             );
           }}
@@ -417,6 +409,20 @@ export function TaskList({
             <ol className="task-tree list-none p-0 m-0">{visible.map(renderTask)}</ol>
           )}
         </>
+      )}
+      {attachmentTask && (
+        <TaskArtifacts
+          key={attachmentTask}
+          projectId={projectId}
+          taskId={attachmentTask}
+          items={artifacts}
+          attached={list.attachments
+            .filter((a) => a.task_id === attachmentTask)
+            .map((a) => a.artifact_id)}
+          run={run}
+          pending={pending}
+          onClose={() => setAttachmentTask(null)}
+        />
       )}
       {editor && (
         <Dialog

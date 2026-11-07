@@ -253,7 +253,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await files.getByRole("button", { name: "Create and attach", exact: true }).click();
   await files.getByRole("button", { name: "Sample notes", exact: true }).click();
   const preview = page.getByRole("dialog", { name: "Task artifact" });
-  await expect(preview.getByRole("heading", { name: "Task artifact" })).toBeVisible();
+  await expect(preview.getByRole("region", { name: "Artifact output", exact: true })).toBeVisible();
   await preview.getByRole("button", { name: "Close", exact: true }).click();
   await files.getByRole("button", { name: "Close", exact: true }).click();
   await page.reload();
