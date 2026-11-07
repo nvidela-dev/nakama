@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icon } from "@/shared/ui/icon";
-import { Button } from "@/shared/ui/button";
+import { Button, ToolbarAction } from "@/shared/ui/button";
 import { useT } from "@/shared/i18n/provider";
 import { createProject } from "@/features/projects/actions";
 
@@ -21,23 +21,34 @@ function ProjectTrigger({ initialSourceIds = [], label = "New project" }: Props)
   const t = useT();
   const [open, setOpen] = useState(false);
   const [started, setStarted] = useState(false);
+  function showSetup() {
+    setStarted(true);
+    setOpen(true);
+  }
   return (
     <>
-      <Button
-        type="button"
-        className="new-project-trigger"
-        title={t(label)}
-        aria-label={t(label)}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => {
-          setStarted(true);
-          setOpen(true);
-        }}
-      >
-        <Icon name="plus" />
-        <span className={initialSourceIds.length ? "" : "hidden sm:inline"}>{t(label)}</span>
-      </Button>
+      {initialSourceIds.length ? (
+        <Button
+          variant="secondary"
+          size="small"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={showSetup}
+          icon={<Icon name="newProject" />}
+        >
+          {t(label)}
+        </Button>
+      ) : (
+        <ToolbarAction
+          label={t(label)}
+          className="new-project-trigger"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={showSetup}
+        >
+          <Icon name="newProject" />
+        </ToolbarAction>
+      )}
       {started && (
         <ProjectSetup
           open={open}

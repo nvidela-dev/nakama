@@ -444,3 +444,5 @@ Accepted: use three parallel plan cards, live field-completion feedback, recorde
 ### Ant Design workspace — 2026-11-07
 
 Use Ant Design for shared controls, tabs, cards and action menus. Keep layout utilities for responsive geometry. The header contains project creation and the Wiki alongside the Lab guide. The project Activity tab holds its paginated history. Board cards reveal editing and movement commands through the same menu on right-click or the ellipsis, with an explicit confirmation for deletion. The workspace scrolls between persistent navigation and preferences.
+
+Header and board creation actions use small, neutral Ant Design icon buttons with translated tooltips and accessible names. Touch targets expand to 44 pixels. The footer shows EN and ES with an outline around the selected language.

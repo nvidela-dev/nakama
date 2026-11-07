@@ -10,7 +10,7 @@ import { Panel } from "@/shared/ui/panel";
 import { Input, Select } from "@/shared/ui/controls";
 
 import { Dialog } from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
+import { Button, ToolbarAction } from "@/shared/ui/button";
 
 import { useMemo, useRef, useState, useTransition } from "react";
 import { changeTask, type TaskResult } from "@/features/tasks/actions";
@@ -316,15 +316,13 @@ export function TaskList({
     </>
   );
   const addTaskButton = (
-    <Button
-      type="button"
+    <ToolbarAction
+      label={t("Add task")}
       disabled={pending}
-      aria-label={t("Add task")}
-      title={t("Add task")}
       onClick={() => open({ kind: "add", title: "", revision: list.revision })}
     >
-      <Icon name="plus" />
-    </Button>
+      <Icon name="addTask" />
+    </ToolbarAction>
   );
   const feedback = (
     <>

@@ -22,6 +22,10 @@ export function LanguageSwitcher() {
             key={language}
             type="button"
             lang={language}
+            size="small"
+            className="pointer-coarse:min-w-11! pointer-coarse:min-h-11!"
+            title={language === "en" ? "English" : "Español"}
+            aria-label={language === "en" ? "English" : "Español"}
             aria-pressed={locale === language}
             disabled={pending}
             onClick={() => {
@@ -35,9 +39,9 @@ export function LanguageSwitcher() {
                 }
               });
             }}
-            variant={locale === language ? "primary" : "ghost"}
+            variant={locale === language ? "secondary" : "ghost"}
           >
-            {language === "en" ? "English" : "Español"}
+            {language.toUpperCase()}
           </Button>
         ))}
       </div>

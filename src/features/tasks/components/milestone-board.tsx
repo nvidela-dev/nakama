@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Icon } from "@/shared/ui/icon";
-import { Button, IconButton } from "@/shared/ui/button";
+import { Button, IconButton, ToolbarAction } from "@/shared/ui/button";
 import { Input, Select } from "@/shared/ui/controls";
 import { Dialog } from "@/shared/ui/dialog";
 import { useT } from "@/shared/i18n/provider";
@@ -130,7 +130,8 @@ export function MilestoneBoard({
             ))}
           </Select>
         </label>
-        <Button
+        <ToolbarAction
+          label={t("New milestone")}
           disabled={pending || !templates.length}
           onClick={() => {
             setTitle("");
@@ -140,12 +141,13 @@ export function MilestoneBoard({
             setEditing(true);
           }}
         >
-          {t("New milestone")}
-        </Button>
+          <Icon name="milestone" />
+        </ToolbarAction>
         {milestone && (
           <>
-            <Button
-              variant="secondary"
+            <ToolbarAction
+              label={t("Manage milestone")}
+
               disabled={pending}
               onClick={() => {
                 setTitle(milestone.title);
@@ -155,10 +157,11 @@ export function MilestoneBoard({
                 setEditing(true);
               }}
             >
-              {t("Manage milestone")}
-            </Button>
-            <Button
-              variant="secondary"
+              <Icon name="edit" />
+            </ToolbarAction>
+            <ToolbarAction
+              label={t("Move milestone earlier")}
+
               disabled={pending || list.milestones[0]?.id === milestone.id}
               onClick={() =>
                 run({
@@ -171,8 +174,8 @@ export function MilestoneBoard({
                 })
               }
             >
-              {t("Move milestone earlier")}
-            </Button>
+              <Icon name="arrowUp" />
+            </ToolbarAction>
           </>
         )}
         {actions}
