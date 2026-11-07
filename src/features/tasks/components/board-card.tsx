@@ -1,11 +1,11 @@
 "use client";
-import { useState, type ReactNode } from "react";
+
 import Card from "antd/es/card";
 import Dropdown from "antd/es/dropdown";
 import type { MenuProps } from "antd";
 import { Button, IconButton } from "@/shared/ui/button";
 import { Icon } from "@/shared/ui/icon";
-import { Dialog } from "@/shared/ui/dialog";
+
 import { useT } from "@/shared/i18n/provider";
 import { taskStatusLabels, type TaskNode, type TaskStatus } from "../model";
 
@@ -15,7 +15,7 @@ type Props = {
   pending: boolean;
   parent?: string | undefined;
   attachmentCount: number;
-  attachments: ReactNode;
+  showAttachments: () => void;
   edit: () => void;
   remove: () => void;
   addChild: () => void;
@@ -28,7 +28,7 @@ export function BoardCard({
   pending,
   parent,
   attachmentCount,
-  attachments,
+  showAttachments,
   edit,
   remove,
   addChild,
@@ -36,7 +36,7 @@ export function BoardCard({
   status,
 }: Props) {
   const t = useT();
-  const [files, setFiles] = useState(false);
+
   const menu: MenuProps = {
     items: [
       { key: "edit", label: t("Edit task"), icon: <Icon name="edit" />, onClick: edit },
@@ -56,7 +56,7 @@ export function BoardCard({
         key: "files",
         label: t("Artifacts"),
         icon: <Icon name="box" />,
-        onClick: () => setFiles(true),
+        onClick: showAttachments,
       },
       { type: "divider" },
       {
@@ -107,7 +107,7 @@ export function BoardCard({
                 </span>
               )}
               {attachmentCount > 0 && (
-                <IconButton label={t("Artifacts")} variant="ghost" onClick={() => setFiles(true)}>
+                <IconButton label={t("Artifacts")} variant="ghost" onClick={showAttachments}>
                   <Icon name="box" />
                   {attachmentCount}
                 </IconButton>
@@ -115,22 +115,6 @@ export function BoardCard({
             </div>
           </Card>
         </div>
-        {files && (
-          <Dialog
-            open
-            label={t("Artifacts")}
-            onClose={() => setFiles(false)}
-            className="p-4 rounded-lg bg-panel text-ink w-[min(32rem,90vw)]"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <strong>{t("Artifacts")}</strong>
-              <IconButton label={t("Close")} variant="ghost" onClick={() => setFiles(false)}>
-                <Icon name="close" />
-              </IconButton>
-            </div>
-            {attachments}
-          </Dialog>
-        )}
       </li>
     </Dropdown>
   );
