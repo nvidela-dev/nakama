@@ -1,5 +1,5 @@
 "use client";
-import { Button as AntButton } from "antd";
+import { Button as AntButton, Tooltip } from "antd";
 import type { ComponentProps } from "react";
 import { useHydrated } from "@/shared/lib/use-hydrated";
 export type ButtonProps = Omit<
@@ -37,4 +37,24 @@ export function IconButton({
   ...props
 }: Omit<ButtonProps, "aria-label"> & { label: string }) {
   return <Button {...props} title={label} aria-label={label} icon={children} />;
+}
+
+/** Compact desktop actions keep a larger target on touchscreens. */
+export function ToolbarAction({
+  label,
+  children,
+  ...props
+}: Omit<ButtonProps, "aria-label" | "variant" | "size" | "icon"> & { label: string }) {
+  return (
+    <Tooltip title={label} trigger={["hover", "focus"]}>
+      <Button
+        {...props}
+        size="small"
+        variant="ghost"
+        className={`pointer-coarse:min-w-11! pointer-coarse:min-h-11! ${props.className ?? ""}`}
+        aria-label={label}
+        icon={children}
+      />
+    </Tooltip>
+  );
 }
