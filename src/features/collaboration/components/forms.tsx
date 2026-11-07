@@ -34,7 +34,7 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
     <form
       action={action}
       className={
-        "form-stack flex flex-col gap-1.5 pt-2 border-t border-t-line min-w-0 max-w-full [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] lg:compact:gap-1.5 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
+        "form-stack flex flex-col gap-1.5 pt-2 border-t border-t-line min-w-0 max-w-full [&_textarea]:w-full lg:compact:gap-1.5"
       }
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
@@ -67,7 +67,7 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
         required
         disabled={pending || !candidates.length}
         className={
-          "w-full min-w-0 max-w-full overflow-hidden text-ellipsis bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
+          "w-full min-w-0 max-w-full overflow-hidden text-ellipsis focus-visible:[outline-offset:4px]"
         }
       >
         <option value="">{t("Choose an approved person")}</option>
@@ -101,14 +101,13 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
             readOnly
             value={link}
             onFocus={(e) => e.currentTarget.select()}
-            className={
-              "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] mt-2 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-            }
+            className={"w-full [resize:vertical] mt-2"}
           />
           <Button
             type="button"
+            variant="ghost"
             className={
-              "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1"
+              "min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1"
             }
             onClick={async () => {
               try {
@@ -143,9 +142,8 @@ export function AccessButton({
       <Input type="hidden" name="operation" value={operation} />
       <Button
         type="submit"
-        className={
-          "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"
-        }
+        variant="ghost"
+        className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"}
         disabled={pending}
       >
         {pending
@@ -175,17 +173,10 @@ export function AcceptForm() {
     <form
       action={action}
       className={
-        "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+        "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
       }
     >
-      <Input
-        type="hidden"
-        name="token"
-        value={token}
-        className={
-          "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-        }
-      />
+      <Input type="hidden" name="token" value={token} className={"w-full [resize:vertical]"} />
       <Feedback state={state} />
       <Button type="submit" disabled={pending || !token} className={"mt-2 lg:compact:mt-1"}>
         {pending ? t("Joining…") : t("Join this project")}

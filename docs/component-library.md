@@ -29,13 +29,13 @@ The browser checks use installed Chrome by default. For a managed Playwright Chr
 | `@/shared/ui/icon` | Typed Lucide interface icon catalog, consistent sizing and decorative SVG semantics |
 | `@/shared/ui/wave-mark` | Shared brand mark |
 
-`src/app/globals.css` is the only stylesheet. Tailwind CSS v4 supplies utilities; `@theme` owns the `--color-*`, font, and animation tokens. The root PostCSS configuration is shared by Next.js and Storybook. Import globals once in each entrypoint.
+Use Ant Design for component appearance and interaction. Shared components render Ant buttons, inputs, cards, menus, tabs and feedback with one theme provider. Load richer Ant widgets where they are used. The only authored CSS entrypoint contains utility compiler configuration and color aliases. Responsive layout, canvas and domain diagrams are composed in their features.
 
 Put complete utility strings on the element they style. Use component props and conditional utility strings for variants, `lg:compact:` for desktop density, responsive variants for layout, and `motion-reduce:` for animation. Keep arbitrary descendant variants for rendered Markdown or component composition where the child is not owned locally. Prefer direct utilities for children owned by the component. Marker classes used by tests remain stable, but have no custom stylesheet rules.
 
 Shared primitives use `:where` for low-specificity defaults so caller utilities override them without a runtime class-merging dependency. The small `cn` helper joins complete strings; it does not resolve conflicting utilities. Choose one value per property and variant. Inline styles are reserved for runtime values such as progress percentages, task depth, and 3D label positions.
 
-The architecture check parses CSS and rejects additional stylesheets, custom selectors, nested component rules, and CSS imports outside the Tailwind entrypoint. Globals permits only theme tokens/keyframes, the compact variant, and the documented browser motion resets. Do not copy component markup or styling into stories. The project setup dialog is a feature component loaded on its first opening; it stays mounted afterward to preserve drafts across dismissal. Its creation action is injected so stories can exercise validation without backend writes.
+The architecture check parses CSS and rejects additional stylesheets, custom selectors, nested component rules, and CSS imports outside the Tailwind entrypoint. Globals permits only color aliases, the compact variant and the scoped Tailwind import. Do not copy component markup or styling into stories. The project setup dialog is a feature component loaded on its first opening; it stays mounted afterward to preserve drafts across dismissal. Its creation action is injected so stories can exercise validation without backend writes.
 
 ## How to add UI
 

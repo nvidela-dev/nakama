@@ -135,16 +135,14 @@ export function AnswerEditor({
       <form
         action={action}
         className={
-          "form-stack answer-form flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5 lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
+          "form-stack answer-form flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:w-full [&_select]:max-w-full lg:compact:gap-1.75 lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
         }
       >
         <Input
           type="hidden"
           name="revision"
           value={revision}
-          className={
-            "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-          }
+          className={"w-full [resize:vertical]"}
         />
         <AnswerFields
           node={node}
@@ -200,7 +198,7 @@ export function AnswerEditor({
             <div className={"conflict-actions flex flex-wrap gap-2"}>
               <Button
                 type="button"
-                className={"secondary mt-2 lg:compact:mt-1 text-[12px]"}
+                className={"secondary mt-2 lg:compact:mt-1"}
                 onClick={() => {
                   setContent(state.conflict!.content);
                   setStatus(state.conflict!.status);
@@ -215,7 +213,7 @@ export function AnswerEditor({
               </Button>
               <Button
                 type="button"
-                className={"secondary mt-2 lg:compact:mt-1 text-[12px]"}
+                className={"secondary mt-2 lg:compact:mt-1"}
                 onClick={() => {
                   setRevision(state.conflict!.revision);
                   setReconciled(true);

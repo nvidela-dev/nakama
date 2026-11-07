@@ -18,6 +18,7 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   await page.getByRole("button", { name: "Create project", exact: true }).click();
   await expect(page.getByRole("heading", { name: original, exact: true })).toBeVisible();
   const path = new URL(page.url()).pathname;
+  await page.getByRole("button", { name: "Project actions", exact: true }).click();
   await page.getByRole("button", { name: "Edit project", exact: true }).click();
   const form = page.locator("form[id$='-edit-project-form']");
   await form.getByLabel("Project name", { exact: true }).fill(`${original} renamed`);
@@ -30,6 +31,7 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   await expect(page.locator(".stage-card")).toHaveCount(5);
   // Reopen after a reload to test persisted project values and a fresh revision snapshot.
   await page.reload();
+  await page.getByRole("button", { name: "Project actions", exact: true }).click();
   await page.getByRole("button", { name: "Edit project", exact: true }).click();
   await form.getByLabel("Description", { exact: true }).fill("Updated synthetic project purpose.");
   await form.getByRole("button", { name: "Save changes", exact: true }).click();
@@ -40,6 +42,7 @@ test("owner edits project metadata, preserves guided answers, and confirms delet
   );
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.getByRole("button", { name: "Project actions", exact: true }).click();
   await page.getByRole("button", { name: "Delete project", exact: true }).click();
   const deletion = page.locator("form[id$='-delete-project-form']");
   const remove = deletion.getByRole("button", { name: "Permanently delete project", exact: true });

@@ -77,3 +77,7 @@ For a later production audit, compare the same real task across representative d
 ## PR integration budget fixes — 2026-10-26
 
 CI found the project route and shared CSS just above the existing budgets. Date formatting now has a locale-dictionary-free module, preventing client date consumers from importing the full Spanish message catalog. Tailwind scans `src` explicitly (`source("../")` relative to `src/app/globals.css`), so documentation and test strings outside the application do not create production utilities. Colocated component stories remain in that source tree. The stylesheet guard permits only this exact scoped configuration; performance thresholds are unchanged.
+
+## Ant Design workspace — 2026-11-07
+
+The application now uses Ant Design across shared controls and navigation. A production build measured 328,236 compressed JavaScript bytes on the landing page, 334,957 on the preview and 357,139 on the project page. The approved hard limits are 345,000, 350,000 and 375,000 bytes respectively. The project board loads on its first visit. Existing CSS, 3D, layout stability and interaction budgets continue to apply.

@@ -1,3 +1,4 @@
+import { flowCatalog } from "../src/features/guidance/model/flow-catalog.generated";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 import { Pool } from "pg";
@@ -55,7 +56,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await page.getByRole("button", { name: "New project", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".flow-option")).toHaveCount(8);
+  await expect(dialog.locator(".flow-option")).toHaveCount(flowCatalog.length);
   const tiles = await dialog.locator(".flow-option").evaluateAll((es) =>
     es.map((e) => {
       const r = e.getBoundingClientRect();
@@ -87,6 +88,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await page.goto("/projects");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "New project", exact: true }).click();
+  await expect(dialog.locator(".flow-option")).toHaveCount(flowCatalog.length);
   const positions = await dialog
     .locator(".flow-option")
     .evaluateAll((es) => es.map((e) => Math.round(e.getBoundingClientRect().x)));
@@ -104,7 +106,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await dialog.getByRole("button", { name: "Create project", exact: true }).click();
   await expect(page.getByRole("heading", { name: later, exact: true })).toBeVisible();
   await expect(page.locator(".flow-options")).toBeVisible();
-  await expect(page.locator(".flow-option")).toHaveCount(8);
+  await expect(page.locator(".flow-option")).toHaveCount(flowCatalog.length);
   await page
     .locator(".flow-options")
     .screenshot({ path: test.info().outputPath("existing-project-type-grid.png") });

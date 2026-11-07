@@ -258,9 +258,7 @@ export function ArtifactEditor({
                   <figure key={file.id} className={"min-w-0 m-0"}>
                     <Button
                       type="submit"
-                      className={
-                        "artifact-image-button w-full flex flex-col p-0 gap-0 border border-line overflow-hidden bg-bg text-ink hover:bg-bg hover:border-lime"
-                      }
+                      className={"artifact-image-button w-full flex flex-col gap-0 overflow-hidden"}
                       aria-label={`${t("Expand image")}: ${file.name}`}
                       onClick={(event) => {
                         imageOpener.current = event.currentTarget;
@@ -294,9 +292,8 @@ export function ArtifactEditor({
                       </a>
                       <Button
                         type="submit"
-                        className={
-                          "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"
-                        }
+                        variant="ghost"
+                        className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"}
                         disabled={pending}
                         onClick={() => setRemoveFile(file.id)}
                       >
@@ -367,7 +364,7 @@ export function ArtifactEditor({
                     : ".md,.markdown,text/markdown"
                 }
                 onChange={uploadFiles}
-                className={"max-w-full text-[12px]"}
+                className={"max-w-full"}
               />
               <small className={"text-[11px] text-muted"}>
                 {t(
@@ -411,7 +408,7 @@ export function ArtifactEditor({
           "artifact-details-column min-w-0 grid gap-4.5 max-[1000px]:grid-cols-[repeat(auto-fit,_minmax(min(100%,_280px),_1fr))]"
         }
       >
-        <Panel className="">
+        <Panel>
           <h2
             className={
               "mb-[0.83em] font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 mt-0 text-[17px]"
@@ -435,9 +432,7 @@ export function ArtifactEditor({
                 required
                 maxLength={160}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                className={
-                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"w-full [resize:vertical]"}
               />
             </label>
             <label className={"text-[13px] text-ink"}>
@@ -447,9 +442,7 @@ export function ArtifactEditor({
                 maxLength={4000}
                 rows={3}
                 onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-                className={
-                  "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"min-h-30 w-full [resize:vertical] lg:compact:min-h-22.5"}
               />
             </label>
             {!!stages.length && (
@@ -459,9 +452,7 @@ export function ArtifactEditor({
                   aria-label={t("Phase (optional)")}
                   value={draft.stageId}
                   onChange={(e) => setDraft({ ...draft, stageId: e.target.value })}
-                  className={
-                    "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-                  }
+                  className={"max-w-full focus-visible:[outline-offset:4px]"}
                 >
                   <option value="">{t("Whole project")}</option>
                   {stages.map((stage) => (
@@ -481,9 +472,7 @@ export function ArtifactEditor({
                   placeholder="https://github.com/…"
                   required={draft.status === "ready"}
                   onChange={(e) => setDraft({ ...draft, githubUrl: e.target.value })}
-                  className={
-                    "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                  }
+                  className={"w-full [resize:vertical]"}
                 />
               </label>
             )}
@@ -495,9 +484,7 @@ export function ArtifactEditor({
                 onChange={(e) =>
                   setDraft({ ...draft, status: e.target.value as "ready" | "in_progress" })
                 }
-                className={
-                  "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-                }
+                className={"max-w-full focus-visible:[outline-offset:4px]"}
               >
                 <option value="in_progress">{t("In progress")}</option>
                 <option value="ready">{t("Ready to use")}</option>
@@ -531,7 +518,7 @@ export function ArtifactEditor({
           </div>
           <form
             className={
-              "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px]"
+              "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75"
             }
             onSubmit={(e) => {
               e.preventDefault();
@@ -549,9 +536,7 @@ export function ArtifactEditor({
                   aria-label={`${t("Task title")} ${index + 1}`}
                   value={task.title}
                   onChange={(e) => patchTask(task.id, { title: e.target.value })}
-                  className={
-                    "min-w-0 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                  }
+                  className={"min-w-0 w-full [resize:vertical]"}
                 />
                 <div className={"flex items-center gap-2.5"}>
                   <Select
@@ -560,9 +545,7 @@ export function ArtifactEditor({
                     onChange={(e) =>
                       patchTask(task.id, { status: e.target.value as ArtifactTask["status"] })
                     }
-                    className={
-                      "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 min-w-0 flex-1 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-                    }
+                    className={"max-w-full min-w-0 flex-1 focus-visible:[outline-offset:4px]"}
                   >
                     <option value="ready">{t("Ready")}</option>
                     <option value="in_progress">{t("In progress")}</option>
@@ -570,8 +553,9 @@ export function ArtifactEditor({
                   </Select>
                   <Button
                     type="button"
+                    variant="ghost"
                     className={
-                      "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1"
+                      "min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1"
                     }
                     aria-label={`${t("Remove task")} ${index + 1}`}
                     onClick={() => setTasks((items) => items.filter((item) => item.id !== task.id))}
@@ -666,7 +650,7 @@ export function ArtifactEditor({
           </summary>
           <form
             className={
-              "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5 pt-3"
+              "form-stack flex flex-col gap-3 [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75 pt-3"
             }
             onSubmit={(e) => {
               e.preventDefault();
@@ -684,9 +668,7 @@ export function ArtifactEditor({
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
                 required
-                className={
-                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"w-full [resize:vertical]"}
               />
             </label>
             <Button

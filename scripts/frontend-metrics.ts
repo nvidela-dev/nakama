@@ -169,11 +169,11 @@ export type MetricDelta = z.infer<typeof metricDeltaSchema>;
 export type FrontendReport = z.infer<typeof frontendReportSchema>;
 
 export const frontendBudgets = {
-  previewInitialJsGzip: 220_000,
-  previewInitialJsGzipWarn: 205_000,
-  landingInitialJsGzip: 205_000,
-  maxRouteInitialJsGzip: 290_000,
-  maxRouteInitialJsGzipWarn: 220_000,
+  previewInitialJsGzip: 350_000,
+  previewInitialJsGzipWarn: 338_000,
+  landingInitialJsGzip: 345_000,
+  maxRouteInitialJsGzip: 375_000,
+  maxRouteInitialJsGzipWarn: 360_000,
   initialCssGzip: 20_000,
   mapLazyJsGzip: 155_000,
   maxCls: 0.05,

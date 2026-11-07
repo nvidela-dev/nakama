@@ -7,7 +7,7 @@ import { projectLinksService } from "@/features/projects/server/project-links";
 import { ArtifactLibrary } from "@/features/artifacts/components/artifact-library";
 import { artifactService } from "@/features/artifacts/server/artifacts";
 import { taskService } from "@/features/tasks/server/tasks";
-import { TaskList } from "@/features/tasks/components/task-list";
+import { ProjectTasks } from "@/features/tasks/components/project-tasks";
 import { ProjectWork } from "@/features/projects/components/project-work";
 import { invitationCandidates } from "@/features/collaboration/server/invitation-candidates";
 import { getT } from "@/shared/i18n/server";
@@ -51,7 +51,12 @@ export default async function ProjectPage({
   const isTasksView = query.view === "tasks";
   const isArtifactsView = query.view === "artifacts";
   const isTestsView = query.view === "tests";
-  const focusedWork = isTasksView || isTestsView;
+  const isActivityView = query.view === "activity" || (!query.view && !!query.activityBefore);
+  if (isActivityView && !query.view)
+    redirect(
+      `/projects/${projectId}?view=activity&activityBefore=${encodeURIComponent(query.activityBefore!)}`,
+    );
+  const focusedWork = isTasksView || isTestsView || isActivityView;
   const targetStageId = isTasksView
     ? "tasks"
     : isArtifactsView
@@ -91,7 +96,7 @@ export default async function ProjectPage({
             query.commentsBefore,
             query.comment,
           ),
-      focusedWork
+      !isActivityView
         ? Promise.resolve({ items: [], next: undefined })
         : collaborationService(database()).activity(person, projectId, query.activityBefore),
       taskService(database()).list(person, projectId),
@@ -165,6 +170,15 @@ export default async function ProjectPage({
     if (value) params.set(kind, value);
     return `/projects/${projectId}${params.size ? `?${params}` : ""}`;
   }
+  const activityPanel = (
+    <ActivityFeed
+      projectId={projectId}
+      activity={activity}
+      flow={guidance?.flow}
+      olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined}
+      latestHref={query.activityBefore ? pageHref("activityBefore") : undefined}
+    />
+  );
   const sidebar = (
     <>
       <ProjectRelations
@@ -174,7 +188,7 @@ export default async function ProjectPage({
       />
       <details
         className={
-          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:min-w-0 [&_select]:w-full [&_select]:text-[11px] [&_select]:py-1.25 [&_select]:px-2 [&_select]:min-h-7 [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:py-1.25 [&_input]:px-2 [&_button]:m-0 [&_button]:min-h-7 [&_button]:py-1.25 [&_button]:px-2 [&_button]:text-[11px] [&_button]:leading-[1.4] pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
+          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:w-full pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
         }
       >
         <summary className="cursor-pointer select-none [[open]>&]:mb-3">
@@ -262,14 +276,7 @@ export default async function ProjectPage({
           )}
         </div>
       </details>
-      <ActivityFeed
-        projectId={projectId}
-        activity={activity}
-        flow={guidance?.flow}
-        open={Boolean(query.activityBefore)}
-        olderHref={activity.next ? pageHref("activityBefore", activity.next) : undefined}
-        latestHref={query.activityBefore ? pageHref("activityBefore") : undefined}
-      />
+
       {project.role === "owner" && (
         <ProjectSettings
           projectId={projectId}
@@ -336,7 +343,7 @@ export default async function ProjectPage({
           sidebar={sidebar}
           discussion={discussion}
           tasks={
-            <TaskList
+            <ProjectTasks
               projectId={projectId}
               initial={tasks}
               artifacts={artifacts.map(({ id, name }) => ({ id, name }))}
@@ -345,6 +352,7 @@ export default async function ProjectPage({
           }
           artifacts={artifactLibrary}
           tests={tests}
+          activity={activityPanel}
         />
       ) : (
         <div
@@ -362,7 +370,7 @@ export default async function ProjectPage({
           >
             <ProjectWork
               tasks={
-                <TaskList
+                <ProjectTasks
                   projectId={projectId}
                   initial={tasks}
                   artifacts={artifacts.map(({ id, name }) => ({ id, name }))}
@@ -370,6 +378,7 @@ export default async function ProjectPage({
               }
               artifacts={artifactLibrary}
               tests={tests}
+              activity={activityPanel}
             >
               <FlowChooser projectId={projectId} />
             </ProjectWork>

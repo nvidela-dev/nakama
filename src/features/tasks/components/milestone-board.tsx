@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Button } from "@/shared/ui/button";
+import { Icon } from "@/shared/ui/icon";
+import { Button, IconButton } from "@/shared/ui/button";
 import { Input, Select } from "@/shared/ui/controls";
 import { Dialog } from "@/shared/ui/dialog";
 import { useT } from "@/shared/i18n/provider";
@@ -24,7 +25,7 @@ type Props = {
   toolbar?: React.ReactNode;
   actions?: React.ReactNode;
   feedback?: React.ReactNode;
-  renderTask: (task: TaskNode) => React.ReactNode;
+  renderTask: (task: TaskNode, move: () => void) => React.ReactNode;
 };
 export function MilestoneBoard({
   projectId,
@@ -41,6 +42,7 @@ export function MilestoneBoard({
 }: Props) {
   const t = useT();
   const [newCards, setNewCards] = useState<Record<string, string>>({});
+  const [composing, setComposing] = useState<string | null>(null);
   const [selected, setSelected] = useState("");
   const [draftRevision, setDraftRevision] = useState(list.revision);
   const [editing, setEditing] = useState(false);
@@ -105,9 +107,13 @@ export function MilestoneBoard({
         <label className="flex-1 min-w-40">
           <span className="sr-only">{t("Milestone board")}</span>
           <Select
-            className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+            className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
             value={milestone?.id ?? ""}
-            onChange={(event) => setSelected(event.target.value)}
+            onChange={(event) => {
+              setSelected(event.target.value);
+              setComposing(null);
+              setNewCards({});
+            }}
           >
             <option value="">{t("Unassigned tasks")}</option>
             {list.milestones.map((m) => (
@@ -181,7 +187,7 @@ export function MilestoneBoard({
         <p className="text-xs text-muted whitespace-pre-wrap">{milestone.description}</p>
       )}
       <div
-        className={`task-board grid grid-cols-1 ${milestone ? "min-[900px]:grid-cols-4" : "min-[900px]:grid-cols-3"} gap-2 items-start`}
+        className="task-board flex items-start gap-3 overflow-x-auto rounded-xl bg-bg p-3 min-h-[55vh] max-w-full"
         aria-label={t("Task board")}
       >
         {columns.map((column) => {
@@ -190,7 +196,7 @@ export function MilestoneBoard({
             <section
               key={column.id}
               aria-label={t(column.name)}
-              className="min-w-0 border border-line bg-panel rounded-md p-2 min-h-40"
+              className="basis-72 grow max-w-[85vw] shrink-0 rounded-xl bg-[var(--theme-surface)] p-2 min-h-24"
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => drop(event, column.id, null)}
             >
@@ -205,76 +211,71 @@ export function MilestoneBoard({
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={(event) => drop(event, column.id, task.id)}
                   >
-                    <ol className="list-none p-0 m-0">{renderTask(task)}</ol>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      <Button
-                        variant="secondary"
-                        disabled={pending}
-                        onClick={() =>
-                          setMove({
-                            id: task.id,
-                            milestoneId: milestone?.id ?? "",
-                            columnId: column.id,
-                            beforeId: "",
-                          })
-                        }
-                      >
-                        {t("Move card")}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        disabled={
-                          pending ||
-                          cards[0]?.id === task.id ||
-                          (milestone?.status !== undefined && milestone.status !== "active")
-                        }
-                        onClick={() =>
-                          requestMove(
-                            task.id,
-                            column.id,
-                            cards[cards.findIndex((c) => c.id === task.id) - 1]!.id,
-                          )
-                        }
-                      >
-                        {t("Move up")}
-                      </Button>
-                    </div>
+                    <ol className="list-none p-0 m-0">
+                      {renderTask(task, () =>
+                        setMove({
+                          id: task.id,
+                          milestoneId: milestone?.id ?? "",
+                          columnId: column.id,
+                          beforeId: "",
+                        }),
+                      )}
+                    </ol>
                   </li>
                 ))}
               </ol>
-              {(!milestone || milestone.status === "active") && (
-                <form
-                  className="grid gap-1 mt-2"
-                  onSubmit={async (event) => {
-                    event.preventDefault();
-                    const saved = await run({
-                      kind: "add",
-                      title: newCards[column.id] ?? "",
-                      parentId: null,
-                      milestoneId: milestone?.id ?? null,
-                      columnId: column.id,
-                    });
-                    if (saved) setNewCards({ ...newCards, [column.id]: "" });
-                  }}
-                >
-                  <Input
-                    className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
-                    aria-label={`${t("New card")} ${t(column.name)}`}
-                    value={newCards[column.id] ?? ""}
-                    maxLength={300}
-                    required
-                    onChange={(event) =>
-                      setNewCards({ ...newCards, [column.id]: event.target.value })
-                    }
-                  />
-                  <Button type="submit" disabled={pending || !newCards[column.id]?.trim()}>
-                    {t("Add card")}
-                  </Button>
-                </form>
-              )}
-              {!cards.length && (
-                <p className="text-xs text-muted">{t("No tasks in this column.")}</p>
-              )}
+              {(!milestone || milestone.status === "active") &&
+                (composing !== column.id ? (
+                  <IconButton
+                    variant="ghost"
+                    className="w-full mt-2"
+                    label={t("Add card")}
+                    onClick={() => setComposing(column.id)}
+                  >
+                    <Icon name="plus" />
+                  </IconButton>
+                ) : (
+                  <form
+                    className="flex gap-1 mt-2"
+                    onSubmit={async (event) => {
+                      event.preventDefault();
+                      const saved = await run({
+                        kind: "add",
+                        title: newCards[column.id] ?? "",
+                        parentId: null,
+                        milestoneId: milestone?.id ?? null,
+                        columnId: column.id,
+                      });
+                      if (saved) {
+                        setNewCards((current) => ({ ...current, [column.id]: "" }));
+                        setComposing(null);
+                      }
+                    }}
+                  >
+                    <Input
+                      className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                      autoFocus
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") setComposing(null);
+                      }}
+                      aria-label={`${t("New card")} ${t(column.name)}`}
+                      value={newCards[column.id] ?? ""}
+                      maxLength={300}
+                      required
+                      onChange={(event) =>
+                        setNewCards({ ...newCards, [column.id]: event.target.value })
+                      }
+                    />
+                    <Button
+                      type="submit"
+                      aria-label={t("Add card")}
+                      title={t("Add card")}
+                      disabled={pending || !newCards[column.id]?.trim()}
+                    >
+                      <Icon name="answered" />
+                    </Button>
+                  </form>
+                ))}
             </section>
           );
         })}
@@ -322,7 +323,7 @@ export function MilestoneBoard({
             <label className="grid gap-1">
               {t("Milestone title")}
               <Input
-                className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+                className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                 required
                 maxLength={160}
                 value={title}
@@ -332,7 +333,7 @@ export function MilestoneBoard({
             <label className="grid gap-1">
               {t("Description")}
               <Input
-                className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+                className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                 maxLength={2000}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -342,7 +343,7 @@ export function MilestoneBoard({
               <label className="grid gap-1">
                 {t("Board template")}
                 <Select
-                  className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+                  className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                   value={template}
                   onChange={(event) => setTemplate(event.target.value)}
                 >
@@ -438,7 +439,7 @@ export function MilestoneBoard({
             <label className="grid gap-1">
               {t("Destination board")}
               <Select
-                className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+                className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                 value={move.milestoneId}
                 onChange={(event) => {
                   const m = list.milestones.find((m) => m.id === event.target.value);
@@ -465,7 +466,7 @@ export function MilestoneBoard({
             <label className="grid gap-1">
               {t("Destination column")}
               <Select
-                className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+                className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                 value={move.columnId}
                 onChange={(event) =>
                   setMove({ ...move, columnId: event.target.value, beforeId: "" })
@@ -481,7 +482,7 @@ export function MilestoneBoard({
             <label className="grid gap-1">
               {t("Place before")}
               <Select
-                className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+                className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                 value={move.beforeId}
                 onChange={(event) => setMove({ ...move, beforeId: event.target.value })}
               >

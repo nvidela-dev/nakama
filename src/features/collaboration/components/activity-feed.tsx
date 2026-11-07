@@ -34,14 +34,12 @@ export function ActivityFeed({
   flow,
   olderHref,
   latestHref,
-  open,
 }: {
   projectId: string;
   activity: Page<Activity>;
   flow?: Flow | undefined;
   olderHref?: string | undefined;
   latestHref?: string | undefined;
-  open: boolean;
 }) {
   const t = useT(),
     locale = useLocale();
@@ -49,32 +47,7 @@ export function ActivityFeed({
     "Earlier history includes recorded answers and stage reviews. Other activity starts with this release.",
   );
   return (
-    <details
-      className={
-        "panel project-activity bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] p-3 rounded-[8px]"
-      }
-      open={open}
-    >
-      <summary
-        className={
-          "cursor-pointer select-none [[open]>&]:mb-2 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5"
-        }
-      >
-        <h2
-          className={
-            "font-sans tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
-          }
-        >
-          {t("Activity")}{" "}
-          <span
-            className={
-              "count align-middle text-muted border border-line rounded-[100px] text-[11px] py-0.5 px-1.5 ml-1.25"
-            }
-          >
-            {activity.items.length}
-          </span>
-        </h2>
-      </summary>
+    <section className="project-activity" aria-label={t("Activity")}>
       <div className="flex items-center justify-end gap-2 min-w-0">
         {latestHref && (
           <Link className="text-[11px]" href={latestHref}>
@@ -89,11 +62,7 @@ export function ActivityFeed({
         </details>
       </div>
       {activity.items.length ? (
-        <ol
-          className={
-            "activity-list list-none my-2 mx-0 p-0 max-h-80 overflow-y-auto pr-1 min-w-0 max-w-full"
-          }
-        >
+        <ol className={"activity-list list-none my-2 mx-0 p-0  pr-1 min-w-0 max-w-full"}>
           {activity.items.map((event) => {
             const stage = flow?.stages.find((stage) => stage.id === event.stage_id);
             const node = stage?.nodes.find((node) => node.id === event.node_id);
@@ -172,6 +141,6 @@ export function ActivityFeed({
           {t("Older activity")}
         </Link>
       )}
-    </details>
+    </section>
   );
 }

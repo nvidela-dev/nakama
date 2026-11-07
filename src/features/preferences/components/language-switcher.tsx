@@ -12,9 +12,7 @@ export function LanguageSwitcher() {
   return (
     <div className={"language-control relative shrink-0"}>
       <div
-        className={
-          "language-switch flex border border-[var(--theme-border,#5f7565)] rounded-[999px] p-0.75 gap-0.5"
-        }
+        className="language-switch flex items-center gap-1"
         role="group"
         aria-label={t("Language")}
         aria-busy={pending}
@@ -37,9 +35,7 @@ export function LanguageSwitcher() {
                 }
               });
             }}
-            className={
-              'min-h-9 py-1.5 px-2.5 border-0 rounded-[999px] text-[12px] bg-transparent text-ink max-[700px]:min-h-10 max-[700px]:px-2 [&[aria-pressed="true"]]:bg-lime [&[aria-pressed="true"]]:[color:var(--theme-on-accent,#14241a)] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px]'
-            }
+            variant={locale === language ? "primary" : "ghost"}
           >
             {language === "en" ? "English" : "Español"}
           </Button>

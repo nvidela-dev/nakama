@@ -1,3 +1,5 @@
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { DesignProvider } from "@/shared/ui/design-provider";
 import { palettes, parseStyleTheme, styleThemeProperties } from "@/shared/ui/style-theme";
 import { cookies } from "next/headers";
 import { messages } from "@/shared/i18n/index";
@@ -6,8 +8,7 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { authConfigured } from "@/features/access/server/auth";
 import { Header } from "@/features/shell/components/header";
-import "@fontsource-variable/manrope";
-import "@fontsource/ibm-plex-mono/latin-400.css";
+
 import "./globals.css";
 import { Footer } from "@/features/shell/components/footer";
 import { LanguageProvider } from "@/shared/i18n/provider";
@@ -49,9 +50,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       >
         {t("Skip to content")}{" "}
       </a>
-      <Header />
-      {children}
-      <Footer density={density} theme={theme} />
+      <div className="fixed inset-0 grid grid-rows-[auto_minmax(0,1fr)_auto]">
+        <Header />
+        <div className="min-h-0 overflow-y-auto" id="workspace-scroll">
+          {children}
+        </div>
+        <Footer density={density} theme={theme} />
+      </div>
     </>
   );
   return (
@@ -61,18 +66,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={locale}
       data-density={density}
       data-scroll-behavior="smooth"
-      className={
-        'lg:[html&[data-density="compact"]_footer]:max-w-none lg:[html&[data-density="compact"]_footer]:py-4 lg:[html&[data-density="compact"]_footer]:px-7'
-      }
     >
       <body className={"m-0 bg-bg text-ink font-sans text-[14px] leading-[1.5]"}>
-        <LanguageProvider locale={locale} dictionary={locale === "es" ? messages : {}}>
-          {authConfigured() ? (
-            <ClerkProvider localization={locale === "es" ? esUY : enUS}>{content}</ClerkProvider>
-          ) : (
-            content
-          )}
-        </LanguageProvider>
+        <AntdRegistry>
+          <DesignProvider mode={theme}>
+            <LanguageProvider locale={locale} dictionary={locale === "es" ? messages : {}}>
+              {authConfigured() ? (
+                <ClerkProvider localization={locale === "es" ? esUY : enUS}>
+                  {content}
+                </ClerkProvider>
+              ) : (
+                content
+              )}
+            </LanguageProvider>
+          </DesignProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

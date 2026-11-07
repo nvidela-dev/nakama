@@ -72,9 +72,8 @@ export function ProjectSetup({
             </div>
             <Button
               type="button"
-              className={
-                "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] m-0"
-              }
+              variant="ghost"
+              className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] m-0"}
               aria-label={t("Close setup")}
               disabled={pending}
               onClick={close}
@@ -91,9 +90,8 @@ export function ProjectSetup({
               <div className={"project-setup-actions flex items-center justify-between gap-3 mt-4"}>
                 <Button
                   type="button"
-                  className={
-                    "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-0"
-                  }
+                  variant="ghost"
+                  className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-0"}
                   aria-pressed={flow === "later"}
                   onClick={() => setFlow("later")}
                 >
@@ -112,17 +110,13 @@ export function ProjectSetup({
           ) : (
             <form
               action={action}
-              className={
-                "form-stack flex flex-col gap-3 [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
-              }
+              className={"form-stack flex flex-col gap-3 [&_select]:max-w-full lg:compact:gap-1.75"}
             >
               <Input
                 type="hidden"
                 name="flow"
                 value={flow === "later" ? "" : flow}
-                className={
-                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"w-full [resize:vertical]"}
               />
               <p className={"project-setup-selection mt-3 mx-0 mb-0 text-[12px]"}>
                 {t("Project type")}:{" "}
@@ -150,9 +144,7 @@ export function ProjectSetup({
                 required
                 maxLength={100}
                 placeholder={t("Audio production project")}
-                className={
-                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"w-full [resize:vertical]"}
               />
               <label htmlFor="setup-project-description" className={"text-[13px] text-ink"}>
                 {t("Description")}
@@ -166,9 +158,7 @@ export function ProjectSetup({
                 maxLength={2000}
                 rows={3}
                 placeholder={t("Describe the project's purpose and scope.")}
-                className={
-                  "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"min-h-30 w-full [resize:vertical] lg:compact:min-h-22.5"}
               />
               {initialSourceIds.map((id) => (
                 <Input
@@ -176,9 +166,7 @@ export function ProjectSetup({
                   type="hidden"
                   name="sourceIds"
                   value={id}
-                  className={
-                    "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                  }
+                  className={"w-full [resize:vertical]"}
                 />
               ))}
               <Feedback state={state} />

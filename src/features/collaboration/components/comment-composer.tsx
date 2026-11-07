@@ -48,7 +48,7 @@ export function CommentComposer({
         maxLength={4000}
         required
         rows={2}
-        className="col-start-2 row-start-2 min-h-9.5 max-h-40 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[14px] py-1.75 px-2.25 text-[12px] leading-[1.4] resize-y"
+        className={"col-start-2 row-start-2 min-h-9.5 max-h-40 w-full leading-[1.4] resize-y"}
       />
       <ReferencePicker
         disabled={pending}
@@ -89,7 +89,9 @@ export function CommentComposer({
         disabled={pending}
         aria-label={pending ? t("Posting…") : t("Post comment")}
         title={t("Post comment")}
-        className="col-start-3 row-start-2 w-9 min-h-9 p-2 rounded-full pointer-coarse:w-11 pointer-coarse:min-h-11"
+        className={
+          "col-start-3 row-start-2 w-9 min-h-9 pointer-coarse:w-11 pointer-coarse:min-h-11"
+        }
       >
         <Icon name="arrowRight" />
       </Button>

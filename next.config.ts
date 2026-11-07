@@ -7,7 +7,11 @@ const config: NextConfig = {
     NAKAMA_BUILD_ID: process.env.NAKAMA_BUILD_ID ?? "",
   },
   generateBuildId: async () => process.env.NAKAMA_BUILD_ID ?? "local",
-  experimental: { serverSourceMaps: true, serverActions: { bodySizeLimit: "3mb" } },
+  experimental: {
+    optimizePackageImports: ["antd", "@ant-design/icons"],
+    serverSourceMaps: true,
+    serverActions: { bodySizeLimit: "3mb" },
+  },
   // Server Action arguments can contain answers and invitation tokens.
   logging: { serverFunctions: false },
 };

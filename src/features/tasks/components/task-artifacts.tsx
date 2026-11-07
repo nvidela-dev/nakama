@@ -37,7 +37,7 @@ export function TaskArtifacts({
       <label className="grid gap-1 text-xs">
         {t("Attach artifact")}
         <Select
-          className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+          className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
           value=""
           disabled={pending}
           onChange={(event) => {
@@ -87,14 +87,14 @@ export function TaskArtifacts({
         <summary className="cursor-pointer text-xs">{t("Create artifact for this task")}</summary>
         <div className="grid gap-2 mt-2">
           <Input
-            className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+            className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
             aria-label={t("Artifact name")}
             value={name}
             maxLength={160}
             onChange={(event) => setName(event.target.value)}
           />
           <Select
-            className="w-full min-w-0 border border-line rounded-md bg-bg text-ink px-2 py-1.5 text-xs min-h-8 pointer-coarse:min-h-11"
+            className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
             aria-label={t("Artifact type")}
             value={kind}
             onChange={(event) => setKind(event.target.value as ArtifactKind)}

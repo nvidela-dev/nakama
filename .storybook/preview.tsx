@@ -1,10 +1,10 @@
+import { DesignProvider } from "../src/shared/ui/design-provider";
 import { applyStyleTheme, type StyleTheme } from "../src/shared/ui/style-theme";
 import type { Preview } from "@storybook/nextjs-vite";
 import { useEffect, type ReactNode } from "react";
 import { messages } from "../src/shared/i18n/index";
 import { LanguageProvider } from "../src/shared/i18n/provider";
-import "@fontsource-variable/manrope";
-import "@fontsource/ibm-plex-mono/latin-400.css";
+
 import "../src/app/globals.css";
 function StorySurface({
   children,
@@ -24,9 +24,11 @@ function StorySurface({
     applyStyleTheme(theme, document.documentElement);
   }, [locale, density, theme]);
   return (
-    <LanguageProvider locale={locale} dictionary={locale === "es" ? messages : {}}>
-      {children}
-    </LanguageProvider>
+    <DesignProvider mode={theme}>
+      <LanguageProvider locale={locale} dictionary={locale === "es" ? messages : {}}>
+        {children}
+      </LanguageProvider>
+    </DesignProvider>
   );
 }
 const preview: Preview = {

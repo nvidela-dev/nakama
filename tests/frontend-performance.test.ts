@@ -83,7 +83,7 @@ test("evaluateFrontendBudgets distinguishes pass, warn, and fail thresholds", ()
           route: "/projects/[projectId]",
           scripts: 15,
           jsBytes: 914_000,
-          jsGzip: 274_000,
+          jsGzip: 366_000,
           routeOnlyScripts: 4,
           routeOnlyJsBytes: 314_000,
           routeOnlyJsGzip: 81_000,
