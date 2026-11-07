@@ -33,9 +33,10 @@ export function ProjectCard({
   }
   return (
     <article
+      data-action-scope
       className={[
         `project-card ${project.role === "owner" ? "has-management" : ""}`,
-        "block p-3 border border-line rounded-[9px] mb-2 [background:linear-gradient(120deg,_var(--theme-surface,#21342c),_var(--color-panel))] relative hover:[border-color:var(--theme-border,#9cba7b)] [&_.eyebrow]:flex [&_.eyebrow]:justify-between [&_p]:text-[14px] [&_p]:text-muted [&_p]:whitespace-pre-wrap [&_p]:wrap-anywhere [&_small]:text-muted [&_small]:text-[12px] lg:compact:py-3 lg:compact:px-4 lg:compact:rounded-[8px] lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:mt-1.25 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-1.75 lg:compact:[&_p]:leading-[1.45] lg:compact:[&_small]:text-[11px]",
+        "relative rounded-lg border border-line bg-panel p-4 hover:shadow-sm",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -79,7 +80,7 @@ export function ProjectCard({
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label={t("Close")}
-                className={"shrink-0 p-0 w-11 min-h-11 bg-panel text-ink"}
+                className={"shrink-0 w-11 min-h-11"}
               >
                 <Icon name="close" />
               </Button>

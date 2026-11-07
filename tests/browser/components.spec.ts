@@ -23,8 +23,10 @@ test("tab keyboard navigation preserves drafts in inactive panels", async ({ pag
   await page.getByRole("tab", { name: "Project flow" }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("tab", { name: "To-do" })).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("tabpanel")).toContainText("Plan the next small step.");
   await page.keyboard.press("Home");
+  await page.keyboard.press("Enter");
   await expect(page.getByLabel("Draft")).toHaveValue("Keep this draft");
 });
 for (const id of [
@@ -230,7 +232,7 @@ test("loading skeletons render animated bones and respect reduced motion", async
     .locator(".loading-bone")
     .first()
     .evaluate((el) => getComputedStyle(el).animationName);
-  expect(animationName).toBe("loading-shimmer");
+  expect(animationName).toBe("pulse");
   await page.emulateMedia({ reducedMotion: "reduce" });
   const reducedAnimationName = await page
     .locator(".loading-bone")

@@ -24,8 +24,9 @@ export function FlowOptions({
     >
       {flowCatalog.map((flow) => (
         <Button
+          variant="secondary"
           className={
-            'flow-option grid grid-cols-[18px_minmax(0,_1fr)] text-left bg-[var(--theme-surface,#22382d)] border border-[var(--theme-border,#58714b)] text-ink p-2.5 gap-[5px_8px] min-h-22 content-start rounded-[7px] hover:[background:var(--theme-selected,#2b4436)] lg:compact:p-3.5 [&[aria-pressed="true"]]:border-lime [&[aria-pressed="true"]]:bg-[var(--theme-surface,#304630)] [&[aria-pressed="true"]]:[box-shadow:inset_0_0_0_1px_var(--color-lime)] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] max-[700px]:grid-cols-[16px_minmax(0,_1fr)] max-[700px]:gap-[4px_6px] max-[700px]:p-2'
+            'flow-option h-auto! whitespace-normal! grid! grid-cols-[18px_minmax(0,_1fr)] text-left gap-[5px_8px] min-h-22 content-start hover:[background:var(--theme-selected,#2b4436)] [&[aria-pressed="true"]]:[box-shadow:inset_0_0_0_1px_var(--color-lime)] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] max-[700px]:grid-cols-[16px_minmax(0,_1fr)] max-[700px]:gap-[4px_6px]'
           }
           key={flow.id}
           name="flow"

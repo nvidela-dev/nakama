@@ -119,18 +119,14 @@ export function ArtifactLibrary({
           placeholder={t("Find an artifact")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={
-            "min-w-0 [flex:1_1_140px] py-2.25 px-3 bg-panel text-ink border border-line rounded-[6px] [font:inherit] text-[12px] [flex-basis:220px]"
-          }
+          className={"min-w-0 [flex:1_1_140px] [flex-basis:220px]"}
         />
         {!projectId && (
           <Select
             aria-label={t("Project")}
             value={project}
             onChange={(e) => setProject(e.target.value)}
-            className={
-              "min-w-0 [flex:1_1_140px] py-2.25 px-3 bg-panel text-ink border border-line rounded-[6px] [font:inherit] text-[12px]"
-            }
+            className={"min-w-0 [flex:1_1_140px]"}
           >
             <option value="all">{t("All projects")}</option>
             {projects.map((p) => (
@@ -144,9 +140,7 @@ export function ArtifactLibrary({
           aria-label={t("Artifact type")}
           value={kind}
           onChange={(e) => setKind(e.target.value)}
-          className={
-            "min-w-0 [flex:1_1_140px] py-2.25 px-3 bg-panel text-ink border border-line rounded-[6px] [font:inherit] text-[12px]"
-          }
+          className={"min-w-0 [flex:1_1_140px]"}
         >
           <option value="all">{t("All types")}</option>
           {Object.entries(artifactKinds).map(([key, label]) => (
@@ -159,9 +153,7 @@ export function ArtifactLibrary({
           aria-label={t("Artifact status")}
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className={
-            "min-w-0 [flex:1_1_140px] py-2.25 px-3 bg-panel text-ink border border-line rounded-[6px] [font:inherit] text-[12px]"
-          }
+          className={"min-w-0 [flex:1_1_140px]"}
         >
           <option value="all">{t("All statuses")}</option>
           <option value="in_progress">{t("In progress")}</option>
@@ -314,8 +306,9 @@ export function ArtifactLibrary({
               </h2>
               <Button
                 type="button"
+                variant="ghost"
                 className={
-                  "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1 max-[700px]:w-full"
+                  "min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)] mt-2 lg:compact:mt-1 max-[700px]:w-full"
                 }
                 onClick={close}
                 aria-label={t("Close")}
@@ -328,9 +321,7 @@ export function ArtifactLibrary({
                 type="hidden"
                 name="projectId"
                 value={projectId}
-                className={
-                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"w-full [resize:vertical]"}
               />
             ) : (
               <label className={"text-[13px] text-ink"}>
@@ -339,9 +330,7 @@ export function ArtifactLibrary({
                   aria-label={t("Project")}
                   name="projectId"
                   required
-                  className={
-                    "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-                  }
+                  className={"max-w-full focus-visible:[outline-offset:4px]"}
                 >
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -358,9 +347,7 @@ export function ArtifactLibrary({
                 required
                 maxLength={160}
                 autoFocus
-                className={
-                  "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"w-full [resize:vertical]"}
               />
             </label>
             <label className={"text-[13px] text-ink"}>
@@ -369,9 +356,7 @@ export function ArtifactLibrary({
                 aria-label={t("Artifact type")}
                 name="kind"
                 defaultValue="image"
-                className={
-                  "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-                }
+                className={"max-w-full focus-visible:[outline-offset:4px]"}
               >
                 {Object.entries(artifactKinds).map(([key, label]) => (
                   <option key={key} value={key}>
@@ -386,9 +371,7 @@ export function ArtifactLibrary({
                 name="description"
                 maxLength={4000}
                 rows={3}
-                className={
-                  "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                }
+                className={"min-h-30 w-full [resize:vertical] lg:compact:min-h-22.5"}
               />
             </label>
             {!!stages.length && (
@@ -398,9 +381,7 @@ export function ArtifactLibrary({
                   aria-label={t("Phase (optional)")}
                   name="stageId"
                   defaultValue={stageId ?? ""}
-                  className={
-                    "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-                  }
+                  className={"max-w-full focus-visible:[outline-offset:4px]"}
                 >
                   <option value="">{t("Whole project")}</option>
                   {stages.map((s) => (

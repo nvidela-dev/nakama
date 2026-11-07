@@ -31,22 +31,37 @@ export async function WikiVisuals({ chapter }: { chapter: string }) {
   const t = await getT();
   const trees = wikiTrees.filter((tree) => tree.chapter === chapter);
   const picture =
-    chapter === "map"
+    chapter === "philosophy"
       ? {
-          src: "/wiki/project-workbench.webp",
-          title: "A shared place for ideas, actions, and outputs",
-          alt: "Illustration of people organizing questions, tasks, and artwork on one shared project workbench.",
-          caption:
-            "An illustration of the project workspace, not a screenshot. Use the tree below to see how its parts relate.",
+          src: "/wiki/studio-0.webp",
+          title: "Frame a shared question",
+          alt: "A team discussing a blue prototype in a design studio.",
+          caption: "Start with a change the team can observe.",
         }
-      : chapter === "daily"
+      : chapter === "practice"
         ? {
-            src: "/wiki/related-projects.webp",
-            title: "Related projects, independent workspaces",
-            alt: "Illustration of three separate project workbenches connected by branching paths.",
-            caption: "A shared origin connects these projects. Access and content stay separate.",
+            src: "/wiki/studio-1.webp",
+            title: "Compare two samples",
+            alt: "Two material samples and measuring instruments on a workbench.",
+            caption: "Keep measurements, units and observations together.",
           }
-        : null;
+        : chapter === "map"
+          ? {
+              src: "/wiki/project-workbench.webp",
+              title: "A shared place for ideas, actions, and outputs",
+              alt: "Illustration of people organizing questions, tasks, and artwork on one shared project workbench.",
+              caption:
+                "An illustration of the project workspace, not a screenshot. Use the tree below to see how its parts relate.",
+            }
+          : chapter === "daily"
+            ? {
+                src: "/wiki/related-projects.webp",
+                title: "Related projects, independent workspaces",
+                alt: "Illustration of three separate project workbenches connected by branching paths.",
+                caption:
+                  "A shared origin connects these projects. Access and content stay separate.",
+              }
+            : null;
   return (
     <>
       {picture && (
@@ -56,7 +71,7 @@ export async function WikiVisuals({ chapter }: { chapter: string }) {
           }
         >
           <Image
-            className="block h-auto w-full object-contain"
+            className="block w-full max-h-80 object-cover"
             src={picture.src}
             alt={t(picture.alt)}
             width={1536}

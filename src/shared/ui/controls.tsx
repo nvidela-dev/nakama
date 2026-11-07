@@ -1,49 +1,57 @@
 "use client";
-import { cn } from "./cn";
+import { Input as AntInput } from "antd";
 import type { ComponentProps } from "react";
 import { useHydrated } from "@/shared/lib/use-hydrated";
-
-// A controlled field must not accept input before React can retain its draft.
-// Uncontrolled/hidden server-form inputs remain progressively usable.
-export function Input({ disabled, className, ...props }: ComponentProps<"input">) {
+export function Input({
+  disabled,
+  type = "text",
+  ref,
+  size,
+  prefix,
+  ...props
+}: ComponentProps<"input">) {
   const hydrated = useHydrated();
-  const controlled = !!props.onChange && (props.value !== undefined || props.checked !== undefined);
+  const locked =
+    disabled ||
+    (!hydrated && !!props.onChange && (props.value !== undefined || props.checked !== undefined));
+  if (["checkbox", "radio", "file", "hidden", "color", "range"].includes(type))
+    return <input {...props} {...{ ref, type, size, prefix }} disabled={locked} />;
   return (
-    <input
-      {...props}
-      disabled={disabled || (controlled && !hydrated)}
-      className={cn(
-        "[font:inherit] border-[var(--theme-border)]! rounded-[9px] max-[700px]:text-[16px]! focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
-        className,
-      )}
+    <AntInput
+      {...(props as Omit<ComponentProps<typeof AntInput>, "ref">)}
+      {...(size ? { htmlSize: size } : {})}
+      prefix={prefix}
+      type={type}
+      disabled={locked}
+      ref={(instance) => {
+        if (typeof ref === "function") return ref(instance?.input ?? null);
+        if (ref) ref.current = instance?.input ?? null;
+      }}
     />
   );
 }
-export function Textarea({ disabled, className, ...props }: ComponentProps<"textarea">) {
+export function Textarea({ disabled, ref, ...props }: ComponentProps<"textarea">) {
   const hydrated = useHydrated();
-  const controlled = !!props.onChange && props.value !== undefined;
   return (
-    <textarea
-      {...props}
-      disabled={disabled || (controlled && !hydrated)}
-      className={cn(
-        "[font:inherit] border-[var(--theme-border)]! rounded-[9px] max-[700px]:text-[16px]! focus-visible:[:where(&)]:outline-3 focus-visible:[:where(&)]:outline-solid focus-visible:[:where(&)]:outline-lime focus-visible:[:where(&)]:outline-offset-5",
-        className,
-      )}
+    <AntInput.TextArea
+      {...(props as Omit<ComponentProps<typeof AntInput.TextArea>, "ref">)}
+      disabled={disabled || (!hydrated && !!props.onChange && props.value !== undefined)}
+      ref={(instance) => {
+        const element = instance?.resizableTextArea?.textArea ?? null;
+        if (typeof ref === "function") return ref(element);
+        if (ref) ref.current = element;
+      }}
     />
   );
 }
+// Native options retain browser form submission, keyboard selection and reset behavior.
 export function Select({ disabled, className, ...props }: ComponentProps<"select">) {
   const hydrated = useHydrated();
-  const controlled = !!props.onChange && props.value !== undefined;
   return (
     <select
-      className={cn(
-        "border-[var(--theme-border)]! rounded-[9px] max-[700px]:text-[16px]! focus-visible:outline-3 focus-visible:outline-lime focus-visible:outline-offset-3",
-        className,
-      )}
       {...props}
-      disabled={disabled || (controlled && !hydrated)}
+      className={`rounded-md border border-line bg-panel px-2 min-h-8 ${className ?? ""}`}
+      disabled={disabled || (!hydrated && !!props.onChange && props.value !== undefined)}
     />
   );
 }

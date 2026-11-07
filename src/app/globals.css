@@ -3,50 +3,12 @@
 @custom-variant compact (&:where(html[data-density="compact"] *));
 
 @theme {
-  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:
-    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono",
-    monospace;
-  --color-ink: #203a32;
-  --color-muted: #53645a;
-  --color-bg: #f3f4ea;
-  --color-panel: #fcfcf6;
-  --color-line: #d6dece;
-  --color-lime: #294c3b;
-  --color-dark: #fcfcf6;
-  --color-pink: #a14435;
-  --animate-loading-pulse: loading-pulse 1.5s ease-in-out infinite alternate;
-  --animate-loading-shimmer: loading-shimmer 1.8s ease-in-out infinite;
-
-  @keyframes loading-pulse {
-    to {
-      opacity: 0.65;
-    }
-  }
-  @keyframes loading-shimmer {
-    0% {
-      background-position: 100% 0;
-    }
-    100% {
-      background-position: -100% 0;
-    }
-  }
-}
-
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-    *,
-    *::before,
-    *::after {
-      animation: none !important;
-      transition: none !important;
-      scroll-behavior: auto !important;
-    }
-  }
+  --color-ink: #141414;
+  --color-muted: #595959;
+  --color-bg: #f5f5f5;
+  --color-panel: #ffffff;
+  --color-line: #d9d9d9;
+  --color-lime: #0958d9;
+  --color-dark: #ffffff;
+  --color-pink: #a8071a;
 }

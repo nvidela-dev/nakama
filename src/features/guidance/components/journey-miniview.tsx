@@ -264,9 +264,7 @@ export default function JourneyMiniview({
             onClick={() => setAngle(Math.max(-2, angle - 1))}
             disabled={failed || angle === -2}
             aria-label={t("Rotate left")}
-            className={
-              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
-            }
+            className={"min-h-10 py-[0.35rem] px-[0.65rem] text-[0.75rem] disabled:opacity-50"}
           >
             <Icon name="rotateLeft" />
           </Button>
@@ -274,9 +272,7 @@ export default function JourneyMiniview({
             type="button"
             onClick={() => setAngle(0)}
             disabled={failed || angle === 0}
-            className={
-              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
-            }
+            className={"min-h-10 py-[0.35rem] px-[0.65rem] text-[0.75rem] disabled:opacity-50"}
           >
             {t("Reset view")}
           </Button>
@@ -285,9 +281,7 @@ export default function JourneyMiniview({
             onClick={() => setAngle(Math.min(2, angle + 1))}
             disabled={failed || angle === 2}
             aria-label={t("Rotate right")}
-            className={
-              "text-lime bg-dark border rounded-[2px] min-h-10 py-[0.35rem] px-[0.65rem] border-line text-[0.75rem] disabled:opacity-50"
-            }
+            className={"min-h-10 py-[0.35rem] px-[0.65rem] text-[0.75rem] disabled:opacity-50"}
           >
             <Icon name="rotateRight" />
           </Button>

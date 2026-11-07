@@ -6,7 +6,7 @@ import { database } from "@/server/database/db";
 import { projectService } from "@/features/projects/server/projects";
 import { projectProgress } from "@/features/projects/server/project-progress";
 import { ProjectTimeline } from "@/features/projects/components/project-timeline";
-import { NewProjectButton } from "@/features/projects/components/new-project";
+
 export const dynamic = "force-dynamic";
 export default async function ProjectsPage() {
   const t = await getT();
@@ -33,9 +33,6 @@ export default async function ProjectsPage() {
             {projects.length}
           </span>
         </h1>
-        <div className="w-full sm:w-auto">
-          <NewProjectButton />
-        </div>
       </div>
       <section className="project-list grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3 items-stretch [&_.project-card]:mb-0">
         <h2

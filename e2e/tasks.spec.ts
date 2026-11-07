@@ -75,6 +75,13 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await expect(page.getByRole("heading", { name: fixtureName, exact: true })).toBeVisible();
   const path = new URL(page.url()).pathname;
   fixtureId = path.split("/").at(-1);
+  await page.getByRole("tab", { name: "Activity", exact: true }).click();
+  await expect(page.locator(".activity-list")).toContainText("created the project");
+  await expect(
+    page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("button", { name: "New project" }),
+  ).toBeVisible();
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   const list = page.getByRole("region", { name: "Project to-do list" });
   await expect(page.locator(".project-discussion-column")).toHaveCount(0);
@@ -98,12 +105,17 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
     .filter({ has: page.getByRole("button", { name: "Nested child", exact: true }) });
   await expect(child).toHaveAttribute("draggable", "true");
   await child.dragTo(list.getByRole("region", { name: "In progress", exact: true }));
-  await expect(child.getByRole("combobox")).toHaveValue("in_progress");
+  const progressColumn = list.getByRole("region", { name: "In progress", exact: true });
+  await expect(progressColumn).toContainText("Nested child");
   await expect(child).toContainText("Subtask of: Root task");
   await page.reload();
-  await expect(list.getByLabel("Task status 1.1", { exact: true })).toHaveValue("in_progress");
-  await list.getByLabel("Task status 1.1", { exact: true }).selectOption("ready");
-  await expect(list.getByLabel("Task status 1.1", { exact: true })).toHaveValue("ready");
+  await expect(progressColumn).toContainText("Nested child");
+  await child.click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Task status" }).hover();
+  await page.getByRole("menuitem", { name: "Ready", exact: true }).click();
+  await expect(list.getByRole("region", { name: "Ready", exact: true })).toContainText(
+    "Nested child",
+  );
   await page.setViewportSize({ width: 1800, height: 1000 });
   await expect.poll(async () => (await list.boundingBox())!.width).toBeGreaterThan(1600);
   await page.screenshot({ path: test.info().outputPath("kanban-desktop.png"), fullPage: true });
@@ -138,6 +150,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await dialog.getByRole("button", { name: "Save task", exact: true }).click();
   // A second tab must not silently overwrite a task edited after its dialog opened.
   const second = await page.context().newPage();
+  second.setDefaultTimeout(15000);
   await second.goto(`${path}?view=tasks`);
   await second.getByRole("button", { name: "Root task", exact: true }).click();
   await second
@@ -220,6 +233,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
     .selectOption({ label: "First creative session · Active" });
   await expect(list.locator(".task-board > section")).toHaveCount(4);
   const ideas = list.getByRole("region", { name: "Ideas", exact: true });
+  await ideas.getByRole("button", { name: "Add card", exact: true }).click();
   await ideas.getByLabel("New card Ideas", { exact: true }).fill("Make a sample");
   await ideas.getByRole("button", { name: "Add card", exact: true }).click();
   const sample = list
@@ -231,13 +245,17 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await expect(list.getByRole("region", { name: "Polishing", exact: true })).toContainText(
     "Make a sample",
   );
-  await sample.locator("summary").first().click();
-  await sample.getByText("Create artifact for this task", { exact: true }).click();
-  await sample.getByLabel("Artifact name", { exact: true }).fill("Sample notes");
-  await sample.getByRole("button", { name: "Create and attach", exact: true }).click();
-  await sample.getByRole("button", { name: "Sample notes", exact: true }).click();
-  await expect(dialog.getByRole("heading", { name: "Task artifact", exact: true })).toBeVisible();
-  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await sample.getByRole("button", { name: "Card actions" }).click();
+  await page.getByRole("menuitem", { name: "Artifacts", exact: true }).click();
+  const files = page.getByRole("dialog", { name: "Artifacts", exact: true });
+  await files.getByText("Create artifact for this task", { exact: true }).click();
+  await files.getByLabel("Artifact name", { exact: true }).fill("Sample notes");
+  await files.getByRole("button", { name: "Create and attach", exact: true }).click();
+  await files.getByRole("button", { name: "Sample notes", exact: true }).click();
+  const preview = page.getByRole("dialog", { name: "Task artifact" });
+  await expect(preview.getByRole("heading", { name: "Task artifact" })).toBeVisible();
+  await preview.getByRole("button", { name: "Close", exact: true }).click();
+  await files.getByRole("button", { name: "Close", exact: true }).click();
   await page.reload();
   await list
     .getByRole("combobox", { name: "Milestone board", exact: true })

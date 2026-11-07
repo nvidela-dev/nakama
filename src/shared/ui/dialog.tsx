@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, type ComponentProps } from "react";
+import { useLayoutEffect, useRef, type ComponentProps } from "react";
 
 type AccessibleName = { label: string; labelledBy?: never } | { label?: never; labelledBy: string };
 export type DialogProps = Omit<
@@ -25,7 +25,7 @@ export function Dialog({
   ...props
 }: DialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = dialog.current;
     if (!open || !element) return;
     const previousFocus = document.activeElement;
@@ -44,8 +44,8 @@ export function Dialog({
       ref={dialog}
       aria-label={label}
       aria-labelledby={labelledBy}
-      onClose={() => {
-        if (open && dismissible) onClose();
+      onClose={(event) => {
+        if (!event.currentTarget.open && open && dismissible) onClose();
       }}
       onKeyDown={(event) => {
         onKeyDown?.(event);

@@ -1,6 +1,56 @@
 /** Public teaching examples only; no private project data. */
 export const wikiChapters = [
   {
+    id: "philosophy",
+    title: "Why a project starts with a question",
+    intro:
+      "A project gives an idea a place, a purpose, and people who can act on it. Start by describing the change you hope to see. Choose a question small enough that a single observation could change your next decision.",
+    kind: "cards",
+    cards: [
+      {
+        title: "Capture the assumption",
+        body: "Suppose meetings regularly end without a clear owner. In a self-improvement project, describe the behavior you can observe. Record when it happens and who is affected. A short description gives you something concrete to revisit.",
+      },
+      {
+        title: "Choose a process that fits",
+        body: "A creative team can test whether a chorus is memorable. A venture can explore demand. An investigation can compare explanations. The flow supplies questions suited to that purpose. Revisit an answer when new information changes your thinking.",
+      },
+      {
+        title: "Give work an owner and an output",
+        body: "Create a To-do card for the next action. Break it into subtasks if several actions are needed. Keep the meeting checklist or the recording as an artifact, then link it to the card so the next collaborator can inspect it.",
+      },
+      {
+        title: "Keep a record of the decision",
+        body: "Write down what you observed, what it suggests, and what you will do next. A disappointing run can justify changing the plan. A later review lets collaborators see how and why the decision changed.",
+      },
+    ],
+  },
+  {
+    id: "practice",
+    title: "Follow an idea through the lab",
+    intro:
+      "Try a one-week practice cycle. Suppose you add one question at the end of every meeting: who owns the next action? Before starting, choose which meetings count and how you will recognize a useful change.",
+    kind: "cards",
+    cards: [
+      {
+        title: "Plan and run",
+        body: "Open Tests. Enter the claim, method and success criteria. Record a baseline if you have one. Start a run with the person carrying it out. Nakama saves the plan version used for that run.",
+      },
+      {
+        title: "Measure and retain evidence",
+        body: "For each observation, record the source and what happened. To graph a measurement, select Measurement and enter a number and unit. Record zero when you observed zero. Leave an unknown quantity blank. Compare points within the same plan version and unit.",
+      },
+      {
+        title: "Review and repeat",
+        body: "Complete the run, compare the observations to the original criterion, and record the assessment and next action. Explain other possible causes. Revise the plan and start a new run when the method changes. Prior reviews keep their evidence snapshots.",
+      },
+      {
+        title: "Find the supporting work",
+        body: "Use the board plus icon to add a card in a list. Drag it to a new position or choose Move card from its ellipsis menu. Right-click the card for the same actions. Open Activity for the project history and Discussion for the conversation behind the work.",
+      },
+    ],
+  },
+  {
     id: "start",
     title: "Start with one small project",
     intro:
@@ -34,10 +84,10 @@ export const wikiChapters = [
     cards: [
       {
         title: "Discussion",
-        body: "Talk with the team. Select the stage, question, To-do, or Artifacts context before posting so the conversation stays attached to the right work.",
+        body: "Discuss the project, a stage, a question, or an artifact in its own context. Follow notifications back to the relevant conversation.",
       },
       {
-        title: "Project flow · To-do · Artifacts",
+        title: "Project flow · To-do · Artifacts · Tests · Activity",
         body: "Use the center tabs to switch between answering questions, organizing actions, and keeping outputs. Returning to earlier questions is normal.",
       },
       {

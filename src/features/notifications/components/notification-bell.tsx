@@ -12,6 +12,7 @@ import { LoadingState } from "@/shared/ui/loading-state";
 import { useT } from "@/shared/i18n/provider";
 
 type Inbox = Awaited<ReturnType<typeof unreadComments>>;
+
 export function NotificationBell() {
   const path = usePathname();
   return <NotificationMenu key={path} />;
@@ -104,8 +105,9 @@ function NotificationMenu() {
       <Button
         type="submit"
         ref={button}
+        variant="ghost"
         className={
-          "notification-trigger relative min-w-7 min-h-7 p-1 border-0 rounded-full bg-transparent text-ink hover:[background:transparent] hover:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
+          "notification-trigger relative min-w-7 min-h-7 hover:[background:transparent] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
         }
         aria-label={`${t("Unread comments")}${inbox ? `: ${inbox.count}` : ""}`}
         aria-expanded={open}
@@ -173,12 +175,7 @@ function NotificationMenu() {
                     <span className={"block text-muted text-[12px] mt-1"}>{c.author_name}</span>
                     <p className={"mb-[1em] mt-0 text-[13px] my-2"}>{c.content}</p>
                   </Link>
-                  <Button
-                    type="submit"
-                    disabled={busy}
-                    onClick={() => void mark(c.id)}
-                    className={"text-[12px]"}
-                  >
+                  <Button type="submit" disabled={busy} onClick={() => void mark(c.id)}>
                     {t("Mark as read")}
                   </Button>
                 </li>

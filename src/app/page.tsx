@@ -11,9 +11,6 @@ export default async function Home() {
     <main id="main" className="w-full max-w-360 m-auto p-4 lg:p-6 grid gap-4">
       <section className="grid gap-6 lg:grid-cols-2 bg-panel border border-line rounded-[18px] p-6 lg:p-8">
         <div className="grid gap-4 content-start">
-          <p className="font-mono text-[11px] tracking-[2px] text-muted">
-            NAKAMA / DAYLIGHT RESEARCH
-          </p>
           <h1 className="text-[clamp(32px,_4vw,_44px)] leading-[1.15] font-semibold tracking-[-1px] max-w-175">
             {t("A question. A bounded test. A useful decision.")}
           </h1>

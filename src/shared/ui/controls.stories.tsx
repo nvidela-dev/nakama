@@ -18,9 +18,7 @@ export const Fields: Story = {
         id="story-name"
         defaultValue="Research notes"
         required
-        className={
-          "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-        }
+        className={"w-full [resize:vertical]"}
       />
       <label htmlFor="story-description" className={"text-[13px] text-ink"}>
         Description
@@ -28,19 +26,12 @@ export const Fields: Story = {
       <Textarea
         id="story-description"
         rows={3}
-        className={
-          "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-        }
+        className={"min-h-30 w-full [resize:vertical] lg:compact:min-h-22.5"}
       />
       <label htmlFor="story-status" className={"text-[13px] text-ink"}>
         Status
       </label>
-      <Select
-        id="story-status"
-        className={
-          "bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] max-w-full lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
-        }
-      >
+      <Select id="story-status" className={"max-w-full focus-visible:[outline-offset:4px]"}>
         <option>In progress</option>
         <option>Ready</option>
       </Select>

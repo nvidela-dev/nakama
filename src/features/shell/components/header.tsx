@@ -1,3 +1,4 @@
+import { NewProjectButton } from "@/features/projects/components/new-project";
 import { Button } from "@/shared/ui/button";
 import { ProjectNavigation } from "@/features/projects/components/project-navigation";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
@@ -11,7 +12,7 @@ export async function Header() {
   return (
     <header
       className={
-        "site-header w-full max-w-none m-auto flex items-center justify-between border-b border-line bg-panel relative px-4 py-3 gap-4 flex-wrap lg:px-6 [&:has(.project-navigation-panel)]:z-[60] [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:p-3 [&_.project-navigation-panel_a]:wrap-anywhere [&:has(.notification-panel)]:z-[60] [&_.notification-list_a]:block [&_.notification-list_a]:wrap-anywhere"
+        "site-header w-full max-w-none m-auto flex items-center justify-between border-b border-line bg-panel relative z-40 px-4 py-3 gap-4 flex-wrap lg:px-6 [&:has(.project-navigation-panel)]:z-[60] [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:p-3 [&_.project-navigation-panel_a]:wrap-anywhere [&:has(.notification-panel)]:z-[60] [&_.notification-list_a]:block [&_.notification-list_a]:wrap-anywhere"
       }
     >
       <Link
@@ -44,9 +45,11 @@ export async function Header() {
           {t("Example project")}
         </Link>
         <Link href="/wiki/experiments">{t("Lab guide")}</Link>
+        <Link href="/wiki">{t("Wiki")}</Link>
         {authConfigured() && (
           <>
             <Show when="signed-in">
+              <NewProjectButton />
               <ProjectNavigation />
               <Link href="/artifacts">{t("Artifacts")}</Link>
               <NotificationBell />
@@ -54,12 +57,7 @@ export async function Header() {
             </Show>
             <Show when="signed-out">
               <SignInButton mode="redirect">
-                <Button
-                  type="submit"
-                  className={
-                    "nav-button bg-transparent border border-[var(--theme-border,#5f7565)] text-ink text-[13px] min-h-10 py-2 px-3.75"
-                  }
-                >
+                <Button type="submit" variant="ghost" className={"nav-button min-h-10"}>
                   {t("Sign in")}
                 </Button>
               </SignInButton>

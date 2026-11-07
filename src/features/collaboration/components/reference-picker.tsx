@@ -18,7 +18,9 @@ export function ReferencePicker({ load, onSelect, disabled }: Props) {
   return (
     <>
       <Button
-        className="comment-reference-trigger col-start-1 row-start-2 w-7.5 min-h-9 p-1.25 pointer-coarse:min-h-11"
+        className={
+          "comment-reference-trigger col-start-1 row-start-2 w-7.5 min-h-9 pointer-coarse:min-h-11"
+        }
         variant="ghost"
         disabled={disabled}
         aria-label={t("Link a project or artifact")}
@@ -137,9 +139,7 @@ function ReferenceSearch({ load, onSelect, close }: Props & { close: () => void 
                 <Button
                   variant="ghost"
                   onClick={() => onSelect(item)}
-                  className={
-                    "flex gap-2 w-full p-2.25 text-left rounded-[6px] hover:bg-[var(--theme-overlay,#ffffff0c)]"
-                  }
+                  className={"flex gap-2 w-full text-left"}
                 >
                   <Icon name={item.kind === "project" ? "overview" : "markdown"} />
                   <span>

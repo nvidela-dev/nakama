@@ -1,7 +1,8 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import { Steps, Progress, Tag, Segmented } from "antd";
-import { ResearchProvider } from "@/shared/ui/research-provider";
+
 import { Button } from "@/shared/ui/button";
 import { Select } from "@/shared/ui/controls";
 import { Icon } from "@/shared/ui/icon";
@@ -49,7 +50,7 @@ export default function LabGuide({ copy }: { copy: GuideCopy }) {
     return () => animations.forEach((a) => a.cancel());
   }, [step, motion, replay, observed]);
   return (
-    <ResearchProvider>
+    <>
       <div className="grid gap-4 min-w-0">
         <div className="flex flex-wrap gap-3 items-center justify-between border-b border-line py-3">
           <span className="font-mono text-[11px] text-muted">{copy.sample}</span>
@@ -68,7 +69,7 @@ export default function LabGuide({ copy }: { copy: GuideCopy }) {
         <label className="grid gap-2 lg:hidden text-[12px]">
           {step + 1} / {copy.steps.length} · {current.title}
           <Select
-            className="min-h-11 border bg-panel p-2 text-ink"
+            className={"min-h-11"}
             value={step}
             onChange={(event) => setStep(Number(event.target.value))}
           >
@@ -158,6 +159,6 @@ export default function LabGuide({ copy }: { copy: GuideCopy }) {
           </aside>
         </div>
       </div>
-    </ResearchProvider>
+    </>
   );
 }

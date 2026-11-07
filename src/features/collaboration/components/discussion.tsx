@@ -112,6 +112,7 @@ function CommentItem({
   );
   return (
     <li
+      data-action-scope
       ref={item}
       id={`comment-${comment.id}`}
       tabIndex={-1}
@@ -172,16 +173,14 @@ function CommentItem({
               <form
                 action={action}
                 className={
-                  "form-stack comment-edit flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+                  "form-stack comment-edit flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
                 }
               >
                 <Input
                   type="hidden"
                   name="operation"
                   value="edit"
-                  className={
-                    "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                  }
+                  className={"w-full [resize:vertical]"}
                 />
                 <label htmlFor={`edit-comment-${comment.id}`} className={"text-[13px] text-ink"}>
                   {t("Edit comment")}
@@ -195,27 +194,23 @@ function CommentItem({
                   required
                   maxLength={4000}
                   rows={3}
-                  className={
-                    "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                  }
+                  className={"min-h-30 w-full [resize:vertical] lg:compact:min-h-22.5"}
                 />
                 <div
                   className={
-                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[11px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
+                    "comment-controls flex gap-1 flex-wrap my-1.25 pointer-coarse:[&_button]:min-h-11"
                   }
                 >
                   <Button
                     type="submit"
                     disabled={pending}
-                    className={"mt-2 lg:compact:mt-1 min-h-9 py-1.5 px-2.5 text-[12px]"}
+                    className={"mt-2 lg:compact:mt-1 min-h-9"}
                   >
                     {pending ? t("Saving…") : t("Save changes")}
                   </Button>
                   <Button
                     type="button"
-                    className={
-                      "button secondary mt-2 lg:compact:mt-1 min-h-9 py-1.5 px-2.5 text-[12px]"
-                    }
+                    className={"button secondary mt-2 lg:compact:mt-1 min-h-9"}
                     onClick={() => {
                       setEditing(false);
                       requestAnimationFrame(() =>
@@ -238,7 +233,7 @@ function CommentItem({
                 </p>
                 <div
                   className={
-                    "comment-controls flex gap-1 flex-wrap my-1.25 [&_button]:min-h-7 [&_button]:text-[11px] [&_button]:py-1 [&_button]:px-1.75 pointer-coarse:[&_button]:min-h-11"
+                    "comment-controls flex gap-1 flex-wrap my-1.25 pointer-coarse:[&_button]:min-h-11"
                   }
                 >
                   <Button
@@ -247,13 +242,13 @@ function CommentItem({
                     name="operation"
                     value="delete"
                     disabled={pending}
-                    className={"min-h-9 py-1.5 px-2.5 text-[12px]"}
+                    className={"min-h-9"}
                   >
                     {t("Confirm removal")}
                   </Button>
                   <Button
                     type="button"
-                    className={"button secondary min-h-9 py-1.5 px-2.5 text-[12px]"}
+                    className={"button secondary min-h-9"}
                     onClick={() => {
                       setConfirming(false);
                       requestAnimationFrame(() =>

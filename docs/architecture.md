@@ -143,7 +143,7 @@ Reusable UI has no project, identity, database, router or Server Action dependen
 
 Prefer server composition and small interactive components. The language provider receives only the selected locale dictionary, so English pages do not import the complete Spanish dictionary through a shared hook. The type picker uses a generated summary catalog; full templates remain server-owned. Markdown and question/review editors load conditionally, and the 3D module remains conditional on opening its dialog. No shared caching of private project reads is introduced.
 
-The app has one stylesheet, `src/app/globals.css`, for Tailwind v4 configuration, theme tokens/keyframes, the compact-density variant, and minimal browser motion resets. Component styling lives in TSX utilities; shared primitives own reusable defaults. Next.js and Storybook use the same PostCSS configuration. The architecture checker parses CSS to enforce the no-custom-selector policy; see the component library guide for override and variant conventions.
+Use Ant Design for component appearance and interaction. Shared components render Ant buttons, inputs, cards, menus, tabs and feedback with one theme provider. Load richer Ant widgets where they are used. The only authored CSS entrypoint contains utility compiler configuration and color aliases. Responsive layout, canvas and domain diagrams are composed in their features.
 
 See [engineering preferences](engineering-preferences.md), [contribution steps](../CONTRIBUTING.md), and [frontend measurements](frontend-performance.md). Architecture and documentation changes do not establish deployed or production performance by themselves.
 

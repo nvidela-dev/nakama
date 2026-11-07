@@ -1,5 +1,6 @@
 "use client";
 import { Switch } from "@/shared/ui/switch";
+import { BoardCard } from "./board-card";
 import { TaskArtifacts } from "./task-artifacts";
 import { MilestoneBoard } from "./milestone-board";
 import type { FlowId } from "@/shared/contracts/database.generated";
@@ -176,36 +177,27 @@ export function TaskList({
       <li
         key={node.id}
         data-task-id={node.id}
-        draggable={view === "board" && !pending}
-        onDragStart={(event) => {
-          event.dataTransfer.setData(
-            "application/x-nakama-task",
-            JSON.stringify({ projectId, id: node.id }),
-          );
-          event.dataTransfer.effectAllowed = "move";
-        }}
         className={[
           `task-row task-${node.status}`,
           node.status === "done" && "[&_.task-title]:text-muted [&_.task-title]:line-through",
           node.status === "in_progress" && "[&_.task-title]:text-lime",
-          view === "board"
-            ? "grid gap-3 p-3 border border-line rounded-[9px] bg-panel min-w-0"
-            : "flex flex-wrap items-center justify-between gap-[6px_12px] py-2.25 px-0 border-b border-b-line min-w-0",
+          "flex flex-wrap items-center justify-between gap-2 py-2 border-b border-line min-w-0",
         ]
           .filter(Boolean)
           .join(" ")}
-        style={{ marginLeft: view === "board" ? 0 : Math.min(node.depth, 4) * 12 }}
+        style={{ marginLeft: Math.min(node.depth, 4) * 12 }}
       >
         <div
           className={
             "task-main flex items-center [flex:1_1_210px] min-w-0 gap-2 max-[700px]:[flex-basis:100%]"
           }
         >
-          {view === "list" && node.children.length > 0 ? (
+          {node.children.length > 0 ? (
             <Button
               type="button"
+              variant="ghost"
               className={
-                "task-expand text-ink bg-transparent p-0 rounded-[4px] min-h-8 text-[13px] text-left [flex:0_0_26px] pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+                "task-expand min-h-8 text-left [flex:0_0_26px] pointer-coarse:min-h-11 pointer-coarse:min-w-11"
               }
               disabled={pending}
               aria-label={t(node.collapsed ? "Expand subtasks" : "Collapse subtasks")}
@@ -229,8 +221,9 @@ export function TaskList({
           </span>
           <Button
             type="button"
+            variant="ghost"
             className={
-              "task-title text-ink bg-transparent p-1 rounded-[4px] min-h-8 text-[13px] text-left block wrap-anywhere min-w-0 hover:bg-line hover:[transform:none]"
+              "task-title min-h-8 text-left block wrap-anywhere min-w-0 hover:[transform:none]"
             }
             disabled={pending}
             onClick={() =>
@@ -240,37 +233,13 @@ export function TaskList({
             {node.title}
           </Button>
         </div>
-        {view === "board" && node.parent_id && (
-          <p className="text-[11px] text-muted wrap-anywhere">
-            {t("Subtask of")}: {list.tasks.find((task) => task.id === node.parent_id)?.title}
-          </p>
-        )}
-        {view === "board" && (
-          <details className="min-w-0">
-            <summary className="text-xs cursor-pointer">
-              {t("Artifacts")} ({list.attachments.filter((a) => a.task_id === node.id).length})
-            </summary>
-            <TaskArtifacts
-              projectId={projectId}
-              taskId={node.id}
-              items={artifacts}
-              attached={list.attachments
-                .filter((a) => a.task_id === node.id)
-                .map((a) => a.artifact_id)}
-              run={run}
-              pending={pending}
-            />
-          </details>
-        )}
         <div className={"task-row-controls flex flex-wrap items-center gap-1.5 min-w-0"}>
           <Select
             aria-label={`${t("Task status")} ${node.number}`}
             disabled={pending}
             value={node.status}
             onChange={(e) => mark(node, e.target.value as TaskStatus)}
-            className={
-              "w-32.5 min-h-9 py-2 px-2.5 text-[11px] bg-bg text-ink border border-line rounded-[6px] font-sans pointer-coarse:min-h-11"
-            }
+            className={"w-32.5 min-h-9 pointer-coarse:min-h-11"}
           >
             {Object.entries(taskStatusLabels).map(([value, label]) => (
               <option key={value} value={value}>
@@ -281,7 +250,7 @@ export function TaskList({
           <Button
             type="button"
             className={
-              "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+              "button secondary task-icon w-8 h-8 min-h-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             }
             title={t("Add subtask")}
             aria-label={`${t("Add subtask")} ${node.number}`}
@@ -296,7 +265,7 @@ export function TaskList({
           <Button
             type="button"
             className={
-              "button secondary task-icon w-8 h-8 min-h-8 p-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+              "button secondary task-icon w-8 h-8 min-h-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             }
             title={t("Delete task")}
             aria-label={`${t("Delete task")} ${node.number}`}
@@ -334,7 +303,7 @@ export function TaskList({
         aria-label={t("Task status")}
         value={filter}
         onChange={(event) => setFilter(event.target.value)}
-        className="w-36 min-w-0 shrink-0 bg-bg text-ink border border-line rounded-md font-sans py-1.5 px-2 min-h-8 text-xs pointer-coarse:min-h-11"
+        className={"w-36 min-w-0 shrink-0 min-h-8 pointer-coarse:min-h-11"}
       >
         <option value="all">{t("All statuses")}</option>
         {Object.entries(taskStatusLabels).map(([value, label]) => (
@@ -349,9 +318,11 @@ export function TaskList({
     <Button
       type="button"
       disabled={pending}
+      aria-label={t("Add task")}
+      title={t("Add task")}
       onClick={() => open({ kind: "add", title: "", revision: list.revision })}
     >
-      {t("Add task")}
+      <Icon name="plus" />
     </Button>
   );
   const feedback = (
@@ -374,7 +345,41 @@ export function TaskList({
           visible={visible}
           pending={pending}
           run={run}
-          renderTask={renderTask}
+          renderTask={(node, move) => {
+            const attached = list.attachments
+              .filter((a) => a.task_id === node.id)
+              .map((a) => a.artifact_id);
+            return (
+              <BoardCard
+                projectId={projectId}
+                node={node}
+                pending={pending}
+                parent={list.tasks.find((task) => task.id === node.parent_id)?.title}
+                move={move}
+                edit={() =>
+                  open({ kind: "edit", task: node, title: node.title, revision: list.revision })
+                }
+                remove={() =>
+                  open({ kind: "delete", task: node, title: node.title, revision: list.revision })
+                }
+                addChild={() =>
+                  open({ kind: "add", parentId: node.id, title: "", revision: list.revision })
+                }
+                status={(value) => mark(node, value)}
+                attachmentCount={attached.length}
+                attachments={
+                  <TaskArtifacts
+                    projectId={projectId}
+                    taskId={node.id}
+                    items={artifacts}
+                    attached={attached}
+                    run={run}
+                    pending={pending}
+                  />
+                }
+              />
+            );
+          }}
           error={error}
           toolbar={controls}
           actions={addTaskButton}
@@ -419,13 +424,13 @@ export function TaskList({
           onClose={close}
           dismissible={!pending}
           className={
-            "task-dialog [&_select]:w-full [&_select]:min-w-0 [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-line [&_select]:rounded-[6px] [&_select]:font-sans [&_select]:py-2 [&_select]:px-2.5 [&_select]:min-h-9 w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
+            "task-dialog [&_select]:w-full w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
           }
           labelledBy="task-editor-heading"
         >
           <form
             className={
-              "form-stack flex flex-col gap-3 [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+              "form-stack flex flex-col gap-3 [&_textarea]:w-full [&_select]:max-w-full lg:compact:gap-1.75"
             }
             onSubmit={(event) => {
               event.preventDefault();
@@ -473,9 +478,7 @@ export function TaskList({
                   disabled={pending}
                   value={editor.title}
                   onChange={(event) => setEditor({ ...editor, title: event.target.value })}
-                  className={
-                    "min-w-0 font-sans min-h-9 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-                  }
+                  className={"min-w-0 min-h-9 w-full [resize:vertical]"}
                 />
               </label>
             ) : (

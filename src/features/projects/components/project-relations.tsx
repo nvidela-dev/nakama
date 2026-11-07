@@ -30,9 +30,8 @@ function RemoveLink({
         <Input type="hidden" name="operation" value="remove" />
         <Button
           type="submit"
-          className={
-            "bg-transparent text-lime p-2 text-[11px] min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"
-          }
+          variant="ghost"
+          className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"}
           disabled={pending}
           aria-label={t("Unlink {name}", { name: other.name })}
         >
@@ -128,7 +127,7 @@ export function ProjectRelations({
         <form
           action={action}
           className={
-            "form-stack flex flex-col min-w-0 max-w-full [&_textarea]:min-h-30 [&_textarea]:w-full [&_textarea]:border [&_textarea]:border-[var(--theme-border,#4b6056)] [&_textarea]:bg-bg [&_textarea]:text-ink [&_textarea]:rounded-[8px] [&_textarea]:p-3 [&_textarea]:text-[14px] [&_textarea]:[resize:vertical] [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75 lg:compact:[&_textarea]:min-h-22.5 lg:compact:[&_textarea]:py-2 lg:compact:[&_textarea]:px-2.5 lg:compact:[&_textarea]:text-[13px] [&_input]:w-full [&_input]:border [&_input]:border-[var(--theme-border,#4b6056)] [&_input]:bg-bg [&_input]:text-ink [&_input]:rounded-[8px] [&_input]:p-3 [&_input]:text-[14px] [&_input]:[resize:vertical] lg:compact:[&_input]:py-2 lg:compact:[&_input]:px-2.5 lg:compact:[&_input]:text-[13px] gap-1.5 mt-2"
+            "form-stack flex flex-col min-w-0 max-w-full [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75 [&_input]:w-full gap-1.5 mt-2"
           }
         >
           <div className="flex items-center justify-between gap-2 min-w-0">
@@ -163,7 +162,7 @@ export function ProjectRelations({
             name="direction"
             aria-label={t("Relationship")}
             className={
-              "w-full min-w-0 max-w-full overflow-hidden text-ellipsis min-h-7 compact:py-1.25 compact:px-2 compact:text-[11px] pointer-coarse:min-h-11 bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
+              "w-full min-w-0 max-w-full overflow-hidden text-ellipsis min-h-7 pointer-coarse:min-h-11 focus-visible:[outline-offset:4px]"
             }
           >
             <option value="child">{t("Spawned project")}</option>
@@ -177,7 +176,7 @@ export function ProjectRelations({
               required
               defaultValue=""
               className={
-                "w-full min-w-0 max-w-full overflow-hidden text-ellipsis min-h-7 compact:py-1.25 compact:px-2 compact:text-[11px] pointer-coarse:min-h-11 bg-bg text-ink border border-[var(--theme-border,#4b6056)] rounded-[8px] p-3 [font:inherit] text-[13px] lg:compact:py-2 lg:compact:px-2.5 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:[outline-offset:4px]"
+                "w-full min-w-0 max-w-full overflow-hidden text-ellipsis min-h-7 pointer-coarse:min-h-11 focus-visible:[outline-offset:4px]"
               }
             >
               <option value="" disabled>
@@ -195,9 +194,7 @@ export function ProjectRelations({
           <Button
             type="submit"
             disabled={pending || projects.length < 2}
-            className={
-              "min-h-7 py-1.25 px-2 text-[11px] pointer-coarse:min-h-11 mt-2 lg:compact:mt-1"
-            }
+            className={"min-h-7 pointer-coarse:min-h-11 mt-2 lg:compact:mt-1"}
           >
             {pending ? t("Saving…") : t("Link project")}
           </Button>

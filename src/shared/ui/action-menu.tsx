@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useRef, type ReactNode } from "react";
+import { Popover } from "antd";
+import { useState, useRef, useEffect, type ReactNode } from "react";
+import { IconButton } from "./button";
 import { Icon } from "./icon";
-
-/** Native disclosure: actions retain ordinary button semantics and Tab navigation. */
 export function ActionMenu({
   label,
   id,
@@ -12,56 +12,58 @@ export function ActionMenu({
   id?: string;
   children: ReactNode;
 }) {
-  const ref = useRef<HTMLDetailsElement>(null);
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    const closeOutside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !ref.current?.contains(event.target) && ref.current)
-        ref.current.open = false;
-    };
-    document.addEventListener("pointerdown", closeOutside);
-    return () => document.removeEventListener("pointerdown", closeOutside);
+    const scope = trigger.current?.closest<HTMLElement>("[data-action-scope]");
+    if (!scope) return;
+    function show(event: MouseEvent) {
+      if (
+        event.target instanceof Element &&
+        event.target.closest("input,textarea,select,dialog,[contenteditable]")
+      )
+        return;
+      event.preventDefault();
+      setOpen(true);
+    }
+    scope.addEventListener("contextmenu", show);
+
+    return () => scope.removeEventListener("contextmenu", show);
   }, []);
   return (
-    <details
-      ref={ref}
-      className={
-        "ui-action-menu relative flex-none [&[open]_>_summary]:bg-[var(--theme-overlay,#ffffff12)] [&[open]_>_summary]:text-ink"
-      }
+    <span
+      ref={trigger}
+      className="relative inline-flex"
       onKeyDown={(event) => {
-        if (event.key === "Escape" && ref.current?.open) {
-          event.preventDefault();
+        if (open && event.key === "Escape") {
           event.stopPropagation();
-          ref.current.open = false;
-          ref.current.querySelector("summary")?.focus();
+          setOpen(false);
+          trigger.current?.querySelector("button")?.focus();
         }
       }}
     >
-      <summary
-        role="button"
-        id={id}
-        aria-label={label}
-        title={label}
-        className={
-          "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 grid place-items-center w-6.5 h-6.5 p-0 rounded-[5px] list-none cursor-pointer text-muted pointer-coarse:w-9 pointer-coarse:h-9 [&::-webkit-details-marker]:hidden hover:bg-[var(--theme-overlay,#ffffff12)] hover:text-ink"
+      <Popover
+        placement="bottomRight"
+        trigger="click"
+        open={open}
+        onOpenChange={setOpen}
+        getPopupContainer={(element) => element.parentElement ?? document.body}
+        content={
+          <div
+            className="ui-action-menu-items flex flex-col items-stretch"
+            onClick={(event) => {
+              if (event.target instanceof Element && event.target.closest("button:not(:disabled)"))
+                setOpen(false);
+            }}
+          >
+            {children}
+          </div>
         }
       >
-        <Icon name="chevronDown" />
-      </summary>
-      <div
-        className={
-          "ui-action-menu-items absolute top-[calc(100%_+_3px)] right-0 z-[15] min-w-42.5 p-1 border border-line rounded-[8px] bg-[var(--theme-surface-low,#172b25)] [box-shadow:0_6px_20px_#0006] [&_button]:w-full [&_button]:justify-start [&_button]:min-h-8 [&_button]:py-1.5 [&_button]:px-2 [&_button]:text-[12px] [&_button]:text-left [&_button]:border-0 pointer-coarse:[&_button]:min-h-11"
-        }
-        onClick={(event) => {
-          if (
-            event.target instanceof Element &&
-            event.target.closest("button:not(:disabled)") &&
-            ref.current
-          )
-            ref.current.open = false;
-        }}
-      >
-        {children}
-      </div>
-    </details>
+        <IconButton id={id} variant="ghost" aria-expanded={open} label={label}>
+          <Icon name="more" />
+        </IconButton>
+      </Popover>
+    </span>
   );
 }

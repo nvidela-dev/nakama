@@ -31,7 +31,7 @@ export function LoadingState({
         <div
           key={index}
           className={
-            "loading-placeholder grid gap-2 [align-content:center] min-h-16 py-3 px-3.5 rounded-[9px] bg-panel border border-line animate-loading-pulse motion-reduce:[animation:none]"
+            "loading-placeholder grid gap-2 [align-content:center] min-h-16 py-3 px-3.5 rounded-[9px] bg-panel border border-line motion-safe:animate-pulse motion-reduce:[animation:none]"
           }
           aria-hidden="true"
         >
@@ -39,7 +39,7 @@ export function LoadingState({
             <>
               <span
                 className={
-                  "loading-bone loading-bone-title block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[48%] h-3"
+                  "loading-bone loading-bone-title block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[48%] h-3"
                 }
               />
               <span
@@ -52,12 +52,12 @@ export function LoadingState({
                   >
                     <span
                       className={
-                        "loading-bone loading-bone-dot block [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-2.75 h-2.75 rounded-full shrink-0 my-0 mx-auto"
+                        "loading-bone loading-bone-dot block [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-2.75 h-2.75 rounded-full shrink-0 my-0 mx-auto"
                       }
                     />
                     <span
                       className={
-                        "loading-bone loading-bone-tiny block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[62%] h-1.25 my-0 mx-auto"
+                        "loading-bone loading-bone-tiny block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[62%] h-1.25 my-0 mx-auto"
                       }
                     />
                   </span>
@@ -68,18 +68,18 @@ export function LoadingState({
             <span className={"loading-bone-row flex items-center gap-2"}>
               <span
                 className={
-                  "loading-bone loading-bone-dot block [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-2.75 h-2.75 rounded-full shrink-0 my-0 mx-auto"
+                  "loading-bone loading-bone-dot block [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-2.75 h-2.75 rounded-full shrink-0 my-0 mx-auto"
                 }
               />
               <span className={"loading-bone-col flex-1 grid gap-1 min-w-0"}>
                 <span
                   className={
-                    "loading-bone loading-bone-line block h-2.25 rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[86%]"
+                    "loading-bone loading-bone-line block h-2.25 rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[86%]"
                   }
                 />
                 <span
                   className={
-                    "loading-bone loading-bone-short block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[56%] h-1.75"
+                    "loading-bone loading-bone-short block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[56%] h-1.75"
                   }
                 />
               </span>
@@ -88,7 +88,7 @@ export function LoadingState({
             <>
               <span
                 className={
-                  "loading-bone loading-bone-short block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[56%] h-1.75"
+                  "loading-bone loading-bone-short block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[56%] h-1.75"
                 }
               />
               <span
@@ -101,12 +101,12 @@ export function LoadingState({
                   >
                     <span
                       className={
-                        "loading-bone loading-bone-dot block [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-2.75 h-2.75 rounded-full shrink-0 my-0 mx-auto"
+                        "loading-bone loading-bone-dot block [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-2.75 h-2.75 rounded-full shrink-0 my-0 mx-auto"
                       }
                     />
                     <span
                       className={
-                        "loading-bone loading-bone-tiny block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[62%] h-1.25 my-0 mx-auto"
+                        "loading-bone loading-bone-tiny block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[62%] h-1.25 my-0 mx-auto"
                       }
                     />
                   </span>
@@ -117,17 +117,17 @@ export function LoadingState({
             <>
               <span
                 className={
-                  "loading-bone loading-bone-title block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[48%] h-3"
+                  "loading-bone loading-bone-title block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[48%] h-3"
                 }
               />
               <span
                 className={
-                  "loading-bone loading-bone-line block h-2.25 rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[86%]"
+                  "loading-bone loading-bone-line block h-2.25 rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[86%]"
                 }
               />
               <span
                 className={
-                  "loading-bone loading-bone-short block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] animate-loading-shimmer motion-reduce:[animation:none] w-[56%] h-1.75"
+                  "loading-bone loading-bone-short block rounded-[4px] [background:linear-gradient(90deg,_#243b31_20%,_#345244_50%,_#243b31_80%)] [background-size:200%_100%] motion-safe:animate-pulse motion-reduce:[animation:none] w-[56%] h-1.75"
                 }
               />
             </>

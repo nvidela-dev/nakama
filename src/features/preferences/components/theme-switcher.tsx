@@ -16,7 +16,7 @@ export function ThemeSwitcher({ theme }: { theme: StyleTheme }) {
       </label>
       <Select
         id="display-style"
-        className="h-7.5 min-h-7.5 px-2 py-1 border border-line rounded-[7px] bg-panel text-ink font-[inherit] focus-visible:outline-2 focus-visible:outline-lime focus-visible:outline-offset-3 pointer-coarse:min-h-11"
+        className={"h-7.5 min-h-7.5 pointer-coarse:min-h-11"}
         value={theme}
         disabled={pending}
         aria-busy={pending || undefined}

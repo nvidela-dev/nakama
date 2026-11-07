@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
@@ -11,13 +12,12 @@ const ProjectSetup = dynamic(
   { loading: () => null },
 );
 
-export function NewProjectButton({
-  initialSourceIds = [],
-  label = "New project",
-}: {
-  initialSourceIds?: string[];
-  label?: string;
-}) {
+type Props = { initialSourceIds?: string[]; label?: string };
+export function NewProjectButton(props: Props) {
+  const path = usePathname();
+  return <ProjectTrigger key={path} {...props} />;
+}
+function ProjectTrigger({ initialSourceIds = [], label = "New project" }: Props) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [started, setStarted] = useState(false);
@@ -25,7 +25,9 @@ export function NewProjectButton({
     <>
       <Button
         type="button"
-        className="new-project-trigger w-full justify-between [&_>_span]:text-[20px] [&_>_span]:leading-[1]"
+        className="new-project-trigger"
+        title={t(label)}
+        aria-label={t(label)}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => {
@@ -33,7 +35,8 @@ export function NewProjectButton({
           setOpen(true);
         }}
       >
-        {t(label)} <Icon name="plus" />
+        <Icon name="plus" />
+        <span className={initialSourceIds.length ? "" : "hidden sm:inline"}>{t(label)}</span>
       </Button>
       {started && (
         <ProjectSetup

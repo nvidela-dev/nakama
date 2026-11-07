@@ -71,6 +71,7 @@ export function Journey({
   tasks,
   artifacts,
   tests,
+  activity,
   wideWork = false,
   productionStages = [],
 }: {
@@ -86,6 +87,7 @@ export function Journey({
   tasks?: React.ReactNode;
   artifacts?: React.ReactNode;
   tests?: React.ReactNode;
+  activity?: React.ReactNode;
   wideWork?: boolean;
   productionStages?: string[];
 }) {
@@ -119,7 +121,7 @@ export function Journey({
       <Button
         type="button"
         className={
-          'button secondary miniview-icon [&[aria-expanded="true"]]:bg-lime [&[aria-expanded="true"]]:text-bg grid place-items-center w-11 h-11 min-w-11 p-0 rounded-full'
+          'button secondary miniview-icon [&[aria-expanded="true"]]:text-bg grid place-items-center w-11 h-11 min-w-11'
         }
         aria-label={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")}
         title={showMap ? t("Hide 3D mini-view") : t("Show 3D mini-view")}
@@ -174,7 +176,7 @@ export function Journey({
           .filter(Boolean)
           .join(" ")}
       >
-        <ProjectWork tasks={tasks} artifacts={artifacts} tests={tests}>
+        <ProjectWork tasks={tasks} artifacts={artifacts} tests={tests} activity={activity}>
           <section
             className={[
               `journey${activeStage ? " has-stage-rail" : ""}`,

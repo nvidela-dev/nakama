@@ -27,15 +27,8 @@ export default async function WikiPage() {
       }
     >
       <header className={"shell-wiki-header max-w-300 mb-8"}>
-        <p className={"eyebrow"}>{t("Nakama wiki")}</p>
-        <h1 className="my-4 text-[28px] leading-tight">
-          {t("Learn the system, one project at a time.")}
-        </h1>
-        <p className="my-2">
-          {t(
-            "Start here, follow the examples, then use the reference when you need precise definitions.",
-          )}
-        </p>
+        <h1 className="text-3xl font-semibold">{t("Nakama wiki")}</h1>
+        <p className="mt-2">{t("Learn the system, one project at a time.")}</p>
         <div className={"shell-wiki-actions flex items-center flex-wrap gap-5 my-5"}>
           <Link
             className={
@@ -49,16 +42,11 @@ export default async function WikiPage() {
             {t("Open your projects")}
           </Link>
         </div>
-        <small className="block text-muted">
-          {t(
-            "The examples on this page are illustrative. They do not create projects or change your data.",
-          )}
-        </small>
       </header>
       <div className={"shell-wiki-layout flex items-start gap-5 max-[700px]:block"}>
         <nav
           className={
-            "shell-wiki-index w-66.25 shrink-0 max-[700px]:w-full rounded-lg border border-line bg-panel p-4 "
+            "shell-wiki-index md:sticky md:top-4 w-66.25 shrink-0 max-[700px]:w-full rounded-lg border border-line bg-panel p-4 "
           }
           aria-label={t("On this page")}
         >
@@ -82,7 +70,7 @@ export default async function WikiPage() {
           </Link>
         </nav>
         <div className={"shell-wiki-chapters min-w-0 flex-1"}>
-          {wikiChapters.map((chapter, index) => (
+          {wikiChapters.map((chapter) => (
             <section
               className="mb-10 scroll-mt-6"
               key={chapter.id}
@@ -90,12 +78,6 @@ export default async function WikiPage() {
               aria-labelledby={`wiki-${chapter.id}`}
             >
               <header className={"shell-wiki-section-heading flex items-start gap-3.5 mb-4"}>
-                <span
-                  className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-lime"
-                  aria-hidden="true"
-                >
-                  {String(index + 1).padStart(2, "0")}
-                </span>
                 <div>
                   <h2 className="mt-5 mb-2 text-[20px]" id={`wiki-${chapter.id}`}>
                     {t(chapter.title)}

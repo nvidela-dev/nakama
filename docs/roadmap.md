@@ -440,3 +440,7 @@ Accepted: remove the repeated To-do heading and combine task count, view switch,
 ### Visual experiment workspace — 2026-10-29
 
 Accepted: use three parallel plan cards, live field-completion feedback, recorded milestone counts, run-activity bars and numeric measurement plots. Group plots by plan version and unit; retain nonnumeric evidence without coercing it into a number. Charts describe recorded values, not causal effects or claim confidence. Keep detailed guidance expandable and preserve existing save, revision, review and access semantics.
+
+### Ant Design workspace — 2026-11-07
+
+Use Ant Design for shared controls, tabs, cards and action menus. Keep layout utilities for responsive geometry. The header contains project creation and the Wiki alongside the Lab guide. The project Activity tab holds its paginated history. Board cards reveal editing and movement commands through the same menu on right-click or the ellipsis, with an explicit confirmation for deletion. The workspace scrolls between persistent navigation and preferences.

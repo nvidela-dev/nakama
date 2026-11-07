@@ -38,16 +38,14 @@ export function StageReviewForm({
       <form
         action={action}
         className={
-          "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:bg-bg [&_select]:text-ink [&_select]:border [&_select]:border-[var(--theme-border,#4b6056)] [&_select]:rounded-[8px] [&_select]:p-3 [&_select]:[font:inherit] [&_select]:text-[13px] [&_select]:max-w-full [&_select:focus-visible]:outline-3 [&_select:focus-visible]:outline-solid [&_select:focus-visible]:outline-lime [&_select:focus-visible]:[outline-offset:4px] lg:compact:gap-1.75 lg:compact:[&_select]:py-2 lg:compact:[&_select]:px-2.5"
+          "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
         }
       >
         <Input
           type="hidden"
           name="revision"
           value={contentRevision}
-          className={
-            "w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-          }
+          className={"w-full [resize:vertical]"}
         />
         <label htmlFor="rationale" className={"text-[13px] text-ink"}>
           {t("What should we remember?")}
@@ -59,9 +57,7 @@ export function StageReviewForm({
           required
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={
-            "min-h-30 w-full border border-[var(--theme-border,#4b6056)] bg-bg text-ink rounded-[8px] p-3 text-[14px] [resize:vertical] lg:compact:min-h-22.5 lg:compact:py-2 lg:compact:px-2.5 lg:compact:text-[13px]"
-          }
+          className={"min-h-30 w-full [resize:vertical] lg:compact:min-h-22.5"}
         />
         <Feedback state={state} />
         <Button

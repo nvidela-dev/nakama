@@ -170,7 +170,7 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
     .getByRole("button", { name: "Confirm removal", exact: true })
     .click();
   await expect(page.locator(".comment-item")).toContainText("Comment removed.");
-  await page.locator(".project-activity summary").click();
+  await page.getByRole("tab", { name: "Activity", exact: true }).click();
   await expect(page.locator(".activity-list")).toContainText("moderated a comment");
   await expect(page.locator(".activity-list")).toContainText("edited a comment");
   await expect(page.locator(".activity-list")).not.toContainText("Newer saved version");
@@ -214,7 +214,7 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
     friend.getByRole("heading", { name: "This project isn't available." }),
   ).toBeVisible();
   await page.reload();
-  await page.locator(".project-activity > summary").click();
+  await page.getByRole("tab", { name: "Activity", exact: true }).click();
   await expect(page.locator(".activity-list")).toContainText("Former member");
   await context.unrouteAll({ behavior: "wait" });
   await context.close();
