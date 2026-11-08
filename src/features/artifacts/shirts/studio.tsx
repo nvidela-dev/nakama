@@ -50,6 +50,8 @@ export function ShirtStudio({
   const layer = design.layout.layers.find((l) => l.id === selected && l.zone === zone);
   const panel = panels[zone],
     layers = design.layout.layers.filter((l) => l.zone === zone);
+  const artworkReady =
+    design.layout.layers.length > 0 && design.layout.layers.every((l) => images.has(l.fileId));
   const [imageError, setImageError] = useState(false);
   const fileKeys = artifact.files.map((f) => f.id).join(",");
   useEffect(() => {
@@ -237,7 +239,7 @@ export function ShirtStudio({
                     title={label}
                     aria-label={label}
                     variant={brush.tool === tool ? "primary" : "secondary"}
-                    disabled={tool !== "move" && !design.layout.layers.length}
+                    disabled={tool !== "move" && !artworkReady}
                     onClick={() => {
                       setError("");
                       brush.setTool(tool);
@@ -250,6 +252,11 @@ export function ShirtStudio({
                   />
                 );
               })}
+              {design.layout.layers.length > 0 && !artworkReady && !imageError && (
+                <small role="status" className="text-muted">
+                  {t("Loading artwork…")}
+                </small>
+              )}
               {brush.tool !== "move" && (
                 <>
                   {brush.tool === "paint" && (
