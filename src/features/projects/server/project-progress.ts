@@ -67,3 +67,44 @@ export async function projectProgress(db: Database, actor: Actor) {
     }),
   );
 }
+
+// Aggregate each child relation independently. Joining task rows to run rows would inflate both counts.
+export async function projectActivityCounts(db: Database, actor: Actor) {
+  if (!actor.userId) throw new ProjectError("Please sign in to continue.");
+  const count = z.number().int().nonnegative();
+  const rows = await queryRows(
+    db,
+    z.object({
+      id: z.uuid(),
+      milestones: count,
+      covered: count,
+      tasks: count,
+      open_tasks: count,
+      experiments: count,
+      active: count,
+      completed: count,
+      shirts: count,
+      collections: count,
+    }),
+    `SELECT m.project_id AS id, ms.*, t.*, e.*, s.*
+      FROM project_memberships m
+      CROSS JOIN LATERAL (SELECT count(*)::int AS milestones,
+        count(*) FILTER(WHERE status='completed')::int AS covered
+        FROM project_milestones WHERE project_id=m.project_id) ms
+      CROSS JOIN LATERAL (SELECT count(*)::int AS tasks, count(*) FILTER(WHERE status<>'done')::int AS open_tasks
+        FROM project_tasks WHERE project_id=m.project_id) t
+      CROSS JOIN LATERAL (SELECT count(*)::int AS experiments,
+        count(*) FILTER(WHERE run.status='running')::int AS active,
+        count(*) FILTER(WHERE run.status='completed')::int AS completed
+        FROM experiments x LEFT JOIN LATERAL (
+          SELECT r.status FROM experiment_runs r JOIN experiment_plans p ON (p.project_id,p.experiment_id,p.id)=(r.project_id,r.experiment_id,r.plan_id)
+          WHERE r.project_id=x.project_id AND r.experiment_id=x.id AND p.version=(SELECT max(version) FROM experiment_plans WHERE experiment_id=x.id)
+          ORDER BY (r.status='running') DESC, r.started_at DESC,r.id DESC LIMIT 1
+        ) run ON TRUE WHERE x.project_id=m.project_id) e
+      CROSS JOIN LATERAL (SELECT count(*)::int AS shirts,count(DISTINCT lower(collection))::int AS collections
+        FROM shirt_designs WHERE project_id=m.project_id) s
+      WHERE m.user_id=$1`,
+    [actor.userId],
+  );
+  return new Map(rows.map((row) => [row.id, row]));
+}

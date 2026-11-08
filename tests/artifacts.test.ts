@@ -287,3 +287,94 @@ test("a failed activity write rolls back Markdown replacement and preserves the 
   assert.equal(required(preserved.files[0]).id, required(initial.files[0]).id);
   assert.equal(preserved.markdown, "# Keep this original");
 });
+
+test("shirt artwork, collections and project counts follow membership, revisions and the current experiment plan", async () => {
+  const { projectActivityCounts } =
+    await import("../src/features/projects/server/project-progress");
+  const shop = await projects.create(owner, { name: "Sample store", description: "Print fixture" });
+  await guidance.select(owner, shop, "shirt-eshop");
+  const create = { name: "Crew tee", kind: "shirt", collection: "Autumn" };
+  await assert.rejects(artifacts.create(owner, await fixture(), create));
+  const id = await artifacts.create(owner, shop, create);
+  let item = await artifacts.get(owner, shop, id);
+  assert.equal(item.shirt?.collection, "Autumn");
+  const image = await sharp({ create: { width: 32, height: 32, channels: 4, background: "red" } })
+    .png()
+    .toBuffer();
+  item = await artifacts.upload(owner, shop, id, item.revision, { name: "motif.png", data: image });
+  const fileId = item.files[0]!.id;
+  const layer = {
+    id: randomUUID(),
+    fileId,
+    zone: "left_sleeve",
+    x: 0.5,
+    y: 0.6,
+    width: 0.7,
+    rotation: 20,
+  };
+  const design = { collection: "Winter", layout: { ...item.shirt!.layout, layers: [layer] } };
+  await assert.rejects(artifacts.shirt(outsider, shop, id, item.revision, design));
+  await assert.rejects(
+    artifacts.shirt(owner, shop, id, item.revision, {
+      ...design,
+      layout: { ...design.layout, layers: [{ ...layer, fileId: randomUUID() }] },
+    }),
+  );
+  const saved = await artifacts.shirt(owner, shop, id, item.revision, design);
+  assert.deepEqual(saved.shirt, design);
+  assert.equal((await artifacts.list(owner, shop))[0]?.collection, "Winter");
+  await assert.rejects(
+    artifacts.shirt(owner, shop, id, item.revision, design),
+    ArtifactConflictError,
+  );
+  await assert.rejects(artifacts.removeFile(owner, shop, id, saved.revision, fileId));
+  await artifacts.create(owner, shop, { ...create, collection: "WINTER" });
+  await db.query(
+    "INSERT INTO project_tasks(id,project_id,title,status,created_by,updated_by) VALUES(gen_random_uuid(),$1,'A','done','s','s'),(gen_random_uuid(),$1,'B','in_progress','s','s')",
+    [shop],
+  );
+  await db.query(
+    "INSERT INTO project_milestones(project_id,flow_id,template_id,title,status,position,created_by,updated_by) VALUES($1,'shirt-eshop','garment_run','Sample','completed',0,'s','s'),($1,'shirt-eshop','garment_run','Print','active',1,'s','s')",
+    [shop],
+  );
+  for (const state of ["running", "completed", "planned"]) {
+    const experiment = randomUUID(),
+      plan = randomUUID();
+    await db.query("INSERT INTO experiments(id,project_id,created_by) VALUES($1,$2,'s')", [
+      experiment,
+      shop,
+    ]);
+    await db.query(
+      "INSERT INTO experiment_plans(id,project_id,experiment_id,version,definition,author_id) VALUES($1,$2,$3,1,'{}','s')",
+      [plan, shop, experiment],
+    );
+    // A past run is historical evidence, even after a replacement plan starts.
+    await db.query(
+      "INSERT INTO experiment_runs(project_id,experiment_id,plan_id,context,status,executor,started_by,started_at,ended_at) VALUES($1,$2,$3,'{}','completed','s','s',now()-interval '1 day',now()-interval '1 hour')",
+      [shop, experiment, plan],
+    );
+    if (state === "planned")
+      await db.query(
+        "INSERT INTO experiment_plans(project_id,experiment_id,version,definition,author_id) VALUES($1,$2,2,'{}','s')",
+        [shop, experiment],
+      );
+    if (state !== "planned")
+      await db.query(
+        "INSERT INTO experiment_runs(project_id,experiment_id,plan_id,context,status,executor,started_by,ended_at) VALUES($1,$2,$3,'{}',$4,'s','s',CASE WHEN $4::lab_run_status='completed' THEN now() END)",
+        [shop, experiment, plan, state],
+      );
+  }
+  assert.deepEqual((await projectActivityCounts(db, owner)).get(shop), {
+    id: shop,
+    milestones: 2,
+    covered: 1,
+    tasks: 2,
+    open_tasks: 1,
+    experiments: 3,
+    active: 1,
+    completed: 1,
+    shirts: 2,
+    collections: 1,
+  });
+  assert.equal((await projectActivityCounts(db, outsider)).has(shop), false);
+});

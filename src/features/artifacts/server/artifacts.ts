@@ -20,6 +20,8 @@ import { flows } from "@/features/guidance/model/flows";
 import { recordActivity } from "@/server/database/activity-log";
 import type { ArtifactDetail, ArtifactKind } from "@/features/artifacts/model";
 
+import { shirtSchema } from "./shirt-schema";
+import { emptyLayout } from "../shirts/design";
 const uuid = z.uuid();
 const metadata = z.object({
   name: z.string().trim().min(1).max(160),
@@ -82,7 +84,18 @@ async function detail(
     )[0];
     markdown = Buffer.from(required(row).data).toString("utf8");
   }
-  return { ...artifact, tasks, files, markdown };
+  const shirt =
+    artifact.kind === "image"
+      ? ((
+          await queryRows(
+            tx,
+            shirtSchema,
+            "SELECT collection,layout FROM shirt_designs WHERE project_id=$1 AND artifact_id=$2",
+            [projectId, artifactId],
+          )
+        )[0] ?? null)
+      : null;
+  return { ...artifact, tasks, files, markdown, shirt };
 }
 async function lock(
   tx: Queryable,
@@ -158,17 +171,20 @@ export function artifactService(db: Database) {
           await queryRows(
             tx,
             artifactRowSchema.extend({
+              collection: z.string().nullable(),
+              shirt_cover: shirtSchema.shape.layout.pick({ color: true, layers: true }).nullable(),
               task_count: z.number().int().nonnegative(),
               done_task_count: z.number().int().nonnegative(),
               cover_id: z.uuid().nullable(),
               file_count: z.number().int().nonnegative(),
             }),
-            `SELECT ${columns},
+            `SELECT ${columns}, s.collection, CASE WHEN s.artifact_id IS NOT NULL THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers') END AS shirt_cover,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id) AS task_count,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id AND t.status='done') AS done_task_count,
         (SELECT f.id FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id AND f.media_type::text LIKE 'image/%' ORDER BY f.created_at,f.id LIMIT 1) AS cover_id,
         (SELECT count(*)::int FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id) AS file_count
         FROM project_artifacts a JOIN projects p ON p.id=a.project_id
+        LEFT JOIN shirt_designs s ON (s.project_id,s.artifact_id)=(a.project_id,a.id)
         JOIN project_memberships m ON m.project_id=a.project_id AND m.user_id=$1
         WHERE ($2::uuid IS NULL OR a.project_id=$2) ORDER BY a.updated_at DESC,a.id`,
             [person.userId, projectId ?? null],
@@ -192,14 +208,31 @@ export function artifactService(db: Database) {
       db.transaction(async (tx) => {
         await membership(tx, person, projectId);
         await tx.query("SELECT id FROM projects WHERE id=$1 FOR UPDATE", [projectId]);
-        const parsed = metadata.extend({ kind: artifactKindSchema }).safeParse(input);
+        const parsed = metadata
+          .extend({
+            kind: z.union([artifactKindSchema, z.literal("shirt")]),
+            collection: shirtSchema.shape.collection.optional(),
+          })
+          .safeParse(input);
         if (!parsed.success)
           throw new ProjectError("Check the artifact name, description, and type.");
         const data = parsed.data,
           url = github(data.githubUrl);
         if (url && data.kind !== "software")
           throw new ProjectError("Only software artifacts use a GitHub link.");
-        ready(data.kind, data.status, url, 0);
+        const isShirt = data.kind === "shirt";
+        const kind = data.kind === "shirt" ? "image" : data.kind;
+        if (
+          isShirt &&
+          !(
+            await tx.query(
+              "SELECT 1 FROM project_flows WHERE project_id=$1 AND flow_id='shirt-eshop'",
+              [projectId],
+            )
+          ).rows.length
+        )
+          throw new ProjectError("Shirt designs belong to Shirt E-shop projects.");
+        ready(kind, data.status, url, 0);
         if (
           required(
             (
@@ -224,12 +257,17 @@ export function artifactService(db: Database) {
             data.stageId,
             data.name,
             data.description,
-            data.kind,
+            kind,
             data.status,
             url,
             person.userId,
           ],
         );
+        if (isShirt)
+          await tx.query(
+            "INSERT INTO shirt_designs(project_id,artifact_id,collection,layout) VALUES($1,$2,$3,$4)",
+            [projectId, id, data.collection ?? "Collection 01", JSON.stringify(emptyLayout)],
+          );
         await recordActivity(tx, person, projectId, "artifact_created");
         return id;
       }),
@@ -249,6 +287,8 @@ export function artifactService(db: Database) {
           url = github(data.githubUrl);
         if (url && current.kind !== "software")
           throw new ProjectError("Only software artifacts use a GitHub link.");
+        if (current.shirt && data.status === "ready" && !current.shirt.layout.layers.length)
+          throw new ProjectError("Place artwork before marking this shirt ready.");
         ready(current.kind, data.status, url, current.files.length);
         const flowId = await stageFlow(tx, projectId, data.stageId);
         await tx.query(
@@ -263,6 +303,29 @@ export function artifactService(db: Database) {
             data.status,
             url,
           ],
+        );
+        return updated(tx, person, projectId, artifactId);
+      }),
+    shirt: (
+      person: Actor,
+      projectId: string,
+      artifactId: string,
+      revision: number,
+      input: unknown,
+    ) =>
+      db.transaction(async (tx) => {
+        const current = await lock(tx, person, projectId, artifactId, revision);
+        const parsed = shirtSchema.safeParse(input);
+        if (!current.shirt || !parsed.success)
+          throw new ProjectError("Check the shirt design and collection.");
+        const { collection, layout } = parsed.data;
+        if (layout.layers.some((layer) => !current.files.some((file) => file.id === layer.fileId)))
+          throw new ProjectError("Choose artwork from this design.");
+        if (current.status === "ready" && !layout.layers.length)
+          throw new ProjectError("A ready shirt needs placed artwork.");
+        await tx.query(
+          "UPDATE shirt_designs SET collection=$3,layout=$4 WHERE project_id=$1 AND artifact_id=$2",
+          [projectId, artifactId, collection, JSON.stringify(layout)],
         );
         return updated(tx, person, projectId, artifactId);
       }),
@@ -383,6 +446,8 @@ export function artifactService(db: Database) {
         const current = await lock(tx, person, projectId, artifactId, revision);
         if (!current.files.some((file) => file.id === fileId))
           throw new ProjectError("Artifact file not found.");
+        if (current.shirt?.layout.layers.some((layer) => layer.fileId === fileId))
+          throw new ProjectError("Remove this artwork from its print areas first.");
         ready(current.kind, current.status, current.github_url, current.files.length - 1);
         await tx.query(
           "DELETE FROM artifact_files WHERE project_id=$1 AND artifact_id=$2 AND id=$3",

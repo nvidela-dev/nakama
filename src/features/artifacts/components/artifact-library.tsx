@@ -1,4 +1,5 @@
 "use client";
+import dynamic from "next/dynamic";
 import { Icon } from "@/shared/ui/icon";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
 
@@ -17,6 +18,8 @@ import {
 } from "@/features/artifacts/model";
 import { useT } from "@/shared/i18n/provider";
 
+const ShirtCover = dynamic(() => import("../shirts/cover").then((m) => m.ShirtCover));
+
 export function ArtifactLibrary({
   items,
   projects,
@@ -25,7 +28,7 @@ export function ArtifactLibrary({
   stageId,
 }: {
   items: ArtifactCard[];
-  projects: { id: string; name: string }[];
+  projects: { id: string; name: string; flow_id?: string | null }[];
   projectId?: string;
   stages?: { id: string; name: string }[];
   stageId?: string | undefined;
@@ -40,18 +43,35 @@ export function ArtifactLibrary({
     [status, setStatus] = useState("all"),
     [project, setProject] = useState("all");
   const [editing, setEditing] = useState(false);
+  const [createProject, setCreateProject] = useState(projectId ?? projects[0]?.id);
+  const shirtShop = projects.find((p) => p.id === createProject)?.flow_id === "shirt-eshop";
+  const [createKind, setCreateKind] = useState(projectId && shirtShop ? "shirt" : "image");
   const searchQuery = useDeferredValue(search.trim().toLowerCase());
   const visible = useMemo(
     () =>
       items.filter(
         (a) =>
-          (kind === "all" || a.kind === kind) &&
+          (kind === "all" || (a.collection ? "shirt" : a.kind) === kind) &&
           (status === "all" || a.status === status) &&
           (project === "all" || a.project_id === project) &&
-          `${a.name} ${a.project_name} ${a.description}`.toLowerCase().includes(searchQuery),
+          `${a.name} ${a.project_name} ${a.collection ?? ""} ${a.description}`
+            .toLowerCase()
+            .includes(searchQuery),
       ),
     [items, kind, status, project, searchQuery],
   );
+  const groups = new Map<string, { label: string; items: ArtifactCard[] }>();
+  for (const item of visible) {
+    const key = item.collection ? item.project_id + ":" + item.collection.toLowerCase() : "";
+    if (!groups.has(key))
+      groups.set(key, {
+        label: item.collection
+          ? (projectId ? "" : item.project_name + " · ") + item.collection
+          : "",
+        items: [],
+      });
+    groups.get(key)!.items.push(item);
+  }
   function close() {
     setEditing(false);
     setError("");
@@ -66,6 +86,7 @@ export function ArtifactLibrary({
           name: form.get("name"),
           description: form.get("description"),
           kind: form.get("kind"),
+          ...(form.get("collection") ? { collection: form.get("collection") } : {}),
           stageId: form.get("stageId") || null,
           status: "in_progress",
           githubUrl: form.get("githubUrl") || "",
@@ -143,6 +164,7 @@ export function ArtifactLibrary({
           className={"min-w-0 [flex:1_1_140px]"}
         >
           <option value="all">{t("All types")}</option>
+          <option value="shirt">{t("Shirt design")}</option>
           {Object.entries(artifactKinds).map(([key, label]) => (
             <option key={key} value={key}>
               {t(label)}
@@ -178,100 +200,116 @@ export function ArtifactLibrary({
           </p>
         </div>
       ) : (
-        <div
-          className={
-            "artifact-grid grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_260px),_1fr))] gap-4"
-          }
-        >
-          {visible.map((a) => (
-            <Link
-              key={a.id}
-              className={
-                "artifact-card panel bg-panel rounded-[16px] max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] flex flex-col min-w-0 overflow-hidden border border-line hover:border-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:4px] p-0"
-              }
-              href={artifactUrl(a.project_id, a.id)}
-            >
-              <div
-                className={[
-                  `artifact-cover artifact-cover-${a.kind}`,
-                  a.kind === "markdown" &&
-                    "[background:linear-gradient(135deg,var(--theme-surface,#313b2c),#17231c)]!",
-                  a.kind === "software" &&
-                    "[background:linear-gradient(135deg,var(--theme-surface,#243736),var(--theme-surface-low,#142327))]!",
-                  "h-45 [background:linear-gradient(135deg,_var(--theme-surface,#243b32),_#101c1b)] grid place-items-center border-b border-b-line relative overflow-hidden [flex:0_0_180px] [&_>_span]:text-[48px] [&_>_span]:text-lime [&_>_span]:opacity-80",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                {a.cover_id ? (
-                  <img
-                    decoding="async"
-                    loading="lazy"
-                    src={artifactFileUrl(a.project_id, a.id, a.cover_id)}
-                    alt={a.name}
-                    className={"w-full h-full [object-fit:cover] absolute inset-0 block min-h-0"}
-                  />
-                ) : (
-                  <span aria-hidden="true">
-                    <Icon
-                      name={
-                        a.kind === "markdown"
-                          ? "markdown"
-                          : a.kind === "software"
-                            ? "code"
-                            : "image"
-                      }
-                      size={32}
-                    />
-                  </span>
-                )}
-              </div>
-              <div className={"artifact-card-body p-4"}>
-                <div
-                  className={
-                    "artifact-card-meta flex justify-between items-center gap-2 text-[11px] text-muted"
-                  }
-                >
-                  <span>{t(artifactKinds[a.kind])}</span>
-                  <span
-                    className={[
-                      `artifact-status ${a.status}`,
-                      "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[var(--theme-surface,#304630)] [&.ready]:text-lime [&.ready]:[border-color:var(--theme-border,#5c7544)]",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    {t(a.status === "ready" ? "Ready to use" : "In progress")}
-                  </span>
-                </div>
-                <h3
-                  className={
-                    "font-sans tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-3 mx-0 mb-1 text-[18px] wrap-anywhere"
-                  }
-                >
-                  {a.name}
+        <div className="grid gap-5">
+          {Array.from(groups, ([key, group]) => (
+            <section key={key}>
+              {(group.label || groups.size > 1) && (
+                <h3 className="mb-2 font-semibold">
+                  {group.label || t("Other artifacts")}{" "}
+                  <small className="text-muted">{group.items.length}</small>
                 </h3>
-                <p className={"muted text-muted my-1.25 mx-0 text-[12px]"}>
-                  {a.project_name}
-                  {a.stage_id
-                    ? ` · ${t(a.stage_name ?? stages.find((s) => s.id === a.stage_id)?.name ?? a.stage_id)}`
-                    : ""}
-                </p>
-                {a.description && (
-                  <p
+              )}
+              <div
+                className={
+                  "artifact-grid grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_260px),_1fr))] gap-4"
+                }
+              >
+                {group.items.map((a) => (
+                  <Link
+                    key={a.id}
                     className={
-                      "artifact-excerpt [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] overflow-hidden text-muted my-1.25 mx-0 text-[12px]"
+                      "artifact-card panel bg-panel rounded-[16px] max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] flex flex-col min-w-0 overflow-hidden border border-line hover:border-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:4px] p-0"
                     }
+                    href={artifactUrl(a.project_id, a.id)}
                   >
-                    {a.description}
-                  </p>
-                )}
-                <small className={"block mt-3.75 text-muted text-[11px]"}>
-                  {a.done_task_count}/{a.task_count} {t("tasks done")}
-                  {a.file_count ? ` · ${a.file_count} ${t("files")}` : ""}
-                </small>
+                    <div
+                      className={[
+                        `artifact-cover artifact-cover-${a.kind}`,
+                        a.kind === "markdown" &&
+                          "[background:linear-gradient(135deg,var(--theme-surface,#313b2c),#17231c)]!",
+                        a.kind === "software" &&
+                          "[background:linear-gradient(135deg,var(--theme-surface,#243736),var(--theme-surface-low,#142327))]!",
+                        "h-45 [background:linear-gradient(135deg,_var(--theme-surface,#243b32),_#101c1b)] grid place-items-center border-b border-b-line relative overflow-hidden [flex:0_0_180px] [&_>_span]:text-[48px] [&_>_span]:text-lime [&_>_span]:opacity-80",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    >
+                      {a.shirt_cover ? (
+                        <ShirtCover card={a} />
+                      ) : a.cover_id ? (
+                        <img
+                          decoding="async"
+                          loading="lazy"
+                          src={artifactFileUrl(a.project_id, a.id, a.cover_id)}
+                          alt={a.name}
+                          className={
+                            "w-full h-full [object-fit:cover] absolute inset-0 block min-h-0"
+                          }
+                        />
+                      ) : (
+                        <span aria-hidden="true">
+                          <Icon
+                            name={
+                              a.kind === "markdown"
+                                ? "markdown"
+                                : a.kind === "software"
+                                  ? "code"
+                                  : "image"
+                            }
+                            size={32}
+                          />
+                        </span>
+                      )}
+                    </div>
+                    <div className={"artifact-card-body p-4"}>
+                      <div
+                        className={
+                          "artifact-card-meta flex justify-between items-center gap-2 text-[11px] text-muted"
+                        }
+                      >
+                        <span>{t(a.collection ? "Shirt design" : artifactKinds[a.kind])}</span>
+                        <span
+                          className={[
+                            `artifact-status ${a.status}`,
+                            "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[var(--theme-surface,#304630)] [&.ready]:text-lime [&.ready]:[border-color:var(--theme-border,#5c7544)]",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        >
+                          {t(a.status === "ready" ? "Ready to use" : "In progress")}
+                        </span>
+                      </div>
+                      <h3
+                        className={
+                          "font-sans tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-3 mx-0 mb-1 text-[18px] wrap-anywhere"
+                        }
+                      >
+                        {a.name}
+                      </h3>
+                      <p className={"muted text-muted my-1.25 mx-0 text-[12px]"}>
+                        {a.project_name}
+                        {a.stage_id
+                          ? ` · ${t(a.stage_name ?? stages.find((s) => s.id === a.stage_id)?.name ?? a.stage_id)}`
+                          : ""}
+                      </p>
+                      {a.description && (
+                        <p
+                          className={
+                            "artifact-excerpt [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] overflow-hidden text-muted my-1.25 mx-0 text-[12px]"
+                          }
+                        >
+                          {a.description}
+                        </p>
+                      )}
+                      <small className={"block mt-3.75 text-muted text-[11px]"}>
+                        {a.done_task_count}/{a.task_count} {t("tasks done")}
+                        {a.file_count ? ` · ${a.file_count} ${t("files")}` : ""}
+                      </small>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </Link>
+            </section>
           ))}
         </div>
       )}
@@ -329,6 +367,15 @@ export function ArtifactLibrary({
                 <Select
                   aria-label={t("Project")}
                   name="projectId"
+                  value={createProject}
+                  onChange={(e) => {
+                    setCreateProject(e.target.value);
+                    setCreateKind(
+                      projects.find((p) => p.id === e.target.value)?.flow_id === "shirt-eshop"
+                        ? "shirt"
+                        : "image",
+                    );
+                  }}
                   required
                   className={"max-w-full focus-visible:[outline-offset:4px]"}
                 >
@@ -355,9 +402,11 @@ export function ArtifactLibrary({
               <Select
                 aria-label={t("Artifact type")}
                 name="kind"
-                defaultValue="image"
+                value={createKind}
+                onChange={(e) => setCreateKind(e.target.value)}
                 className={"max-w-full focus-visible:[outline-offset:4px]"}
               >
+                {shirtShop && <option value="shirt">{t("Shirt design")}</option>}
                 {Object.entries(artifactKinds).map(([key, label]) => (
                   <option key={key} value={key}>
                     {t(label)}
@@ -365,6 +414,33 @@ export function ArtifactLibrary({
                 ))}
               </Select>
             </label>
+            {createKind === "shirt" && (
+              <label>
+                {t("Collection")}
+                <Input
+                  name="collection"
+                  maxLength={80}
+                  required
+                  defaultValue={
+                    items.find((a) => a.project_id === createProject && a.collection)?.collection ??
+                    t("Collection 01")
+                  }
+                  list="shop-collections"
+                />
+                <datalist id="shop-collections">
+                  {Array.from(
+                    new Set(
+                      items
+                        .filter((a) => a.project_id === createProject)
+                        .map((a) => a.collection)
+                        .filter(Boolean),
+                    ),
+                  ).map((c) => (
+                    <option key={c} value={c!} />
+                  ))}
+                </datalist>
+              </label>
+            )}
             <label className={"text-[13px] text-ink"}>
               {t("Description")}
               <Textarea

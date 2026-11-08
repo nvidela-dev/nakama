@@ -1,3 +1,4 @@
+import type { ShirtDesign } from "./shirts/design";
 import type { DatabaseRows, ArtifactKind } from "@/shared/contracts/database.generated";
 export type { ArtifactKind } from "@/shared/contracts/database.generated";
 export type ArtifactTask = Pick<DatabaseRows["artifact_tasks"], "id" | "title" | "status">;
@@ -10,13 +11,19 @@ export type Artifact = Omit<
   "created_by" | "updated_by" | "created_at"
 > & { project_name: string; tasks: ArtifactTask[] };
 export type ArtifactCard = Omit<Artifact, "tasks"> & {
+  collection: string | null;
+  shirt_cover: Pick<ShirtDesign["layout"], "color" | "layers"> | null;
   task_count: number;
   done_task_count: number;
   cover_id: string | null;
   file_count: number;
   stage_name?: string | null;
 };
-export type ArtifactDetail = Artifact & { files: ArtifactFile[]; markdown: string | null };
+export type ArtifactDetail = Artifact & {
+  files: ArtifactFile[];
+  markdown: string | null;
+  shirt: ShirtDesign | null;
+};
 export const artifactKinds: Record<ArtifactKind, string> = {
   image: "Images / designs",
   markdown: "Markdown document",

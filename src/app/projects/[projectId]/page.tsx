@@ -111,7 +111,7 @@ export default async function ProjectPage({
   const artifactLibrary = (
     <ArtifactLibrary
       items={artifacts}
-      projects={[{ id: projectId, name: project.name }]}
+      projects={[{ id: projectId, name: project.name, flow_id: guidance?.flow.id ?? null }]}
       projectId={projectId}
       stages={guidance?.flow.stages.map(({ id, name }) => ({ id, name })) ?? []}
       stageId={query.stage}

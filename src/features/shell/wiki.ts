@@ -148,6 +148,14 @@ export const wikiChapters = [
         body: "Artifact: create an image artifact and upload the images. Markdown artifacts hold a document; software artifacts hold a GitHub link. Audio files are not currently a supported artifact upload.",
       },
       {
+        title: "How do I send a shirt to a printer?",
+        body: "Open Artifacts in a Shirt E-shop. Create a Shirt design and name its collection. Drop artwork into the tray, choose a print area and click an asset, or drag it onto the flat print area. Set its position, width and angle. Rotate the shirt to inspect it. Save the design and download the print pack. The ZIP includes the original artwork, transparent 300 PPI panels at their specified sizes, and instructions for the printer.",
+      },
+      {
+        title: "Reading the project cards",
+        body: "Projects are grouped by type. Milestones count as covered when marked completed. Open tasks include subtasks. Each experiment counts once. Active means a run is running on the current plan. Completed means its latest run on that plan finished. Plans without runs still count toward the total. Shirt shops also show how many designs and collections they have.",
+      },
+      {
         title: "“Can we rehearse on Thursday?”",
         body: "Discussion: post a comment in the relevant project context. Talking about an action does not create a task or save an answer automatically.",
       },

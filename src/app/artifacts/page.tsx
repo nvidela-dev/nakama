@@ -39,7 +39,10 @@ export default async function ArtifactsPage() {
           {t("Browse the outputs of projects you belong to.")}
         </p>
       </div>
-      <ArtifactLibrary items={items} projects={projects.map(({ id, name }) => ({ id, name }))} />
+      <ArtifactLibrary
+        items={items}
+        projects={projects.map(({ id, name, flow_id }) => ({ id, name, flow_id }))}
+      />
     </main>
   );
 }
