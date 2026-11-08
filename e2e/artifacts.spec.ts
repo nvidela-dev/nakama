@@ -305,6 +305,48 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
     .png()
     .toBuffer();
   const mesh = studio.getByRole("img", { name: "Rotatable shirt preview" }).locator("canvas");
+  const sheet = studio.getByLabel("Print area preview");
+  const sample = (x: number, y: number) =>
+    sheet.evaluate(
+      (el, p) => {
+        const c = el as HTMLCanvasElement;
+        return Array.from(
+          c
+            .getContext("2d")!
+            .getImageData(Math.floor(p.x * c.width), Math.floor(p.y * c.height), 1, 1).data,
+        );
+      },
+      { x, y },
+    );
+  await studio.getByRole("button", { name: "Brush", exact: true }).click();
+  // Exercise the same hold-and-drag input stream as a finger on a blank print panel.
+  await sheet.scrollIntoViewIfNeeded();
+  const blank = (await sheet.boundingBox())!;
+  const touch = await page.context().newCDPSession(page);
+  try {
+    await touch.send("Emulation.setTouchEmulationEnabled", { enabled: true });
+    for (const [i, x] of [0.08, 0.18, 0.32, 0.49, 0.61, 0.75, 0.92].entries()) {
+      await touch.send("Input.dispatchTouchEvent", {
+        type: i === 0 ? "touchStart" : "touchMove",
+        touchPoints: [{ x: blank.x + x * blank.width, y: blank.y + 0.18 * blank.height }],
+      });
+    }
+    await expect.poll(() => sample(0.5, 0.18)).toEqual([223, 86, 56, 255]);
+    await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  } finally {
+    await touch.send("Emulation.setTouchEmulationEnabled", { enabled: false });
+    await touch.detach();
+  }
+  await studio.getByRole("button", { name: "Save design", exact: true }).click();
+  await expect(studio.getByRole("button", { name: "Download print pack" })).toBeEnabled();
+  const blankDownload = page.waitForEvent("download");
+  await studio.getByRole("button", { name: "Download print pack" }).click();
+  const { unzipSync } = await import("fflate"),
+    { readFile } = await import("node:fs/promises");
+  const paintOnly = unzipSync(await readFile((await (await blankDownload).path())!));
+  expect(Object.keys(paintOnly).filter((p) => p.startsWith("originals/"))).toHaveLength(0);
+  expect(paintOnly["print/chest.png"]).toBeDefined();
+  await studio.getByRole("button", { name: "Move and rotate" }).click();
   let releaseImage!: () => void;
   const gate = new Promise<void>((resolve) => {
     releaseImage = resolve;
@@ -348,34 +390,44 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
     startY = working!.y + working!.height / 2;
   await page.mouse.move(startX, startY);
   await page.mouse.down();
-  await page.mouse.move(startX + 9, startY + 4, { steps: 5 });
+  await page.mouse.move(startX + working!.height * 0.18, startY, { steps: 24 });
   await page.mouse.up();
   await expect(studio.getByRole("button", { name: "Undo stroke" })).toBeEnabled();
-  const sheet = studio.getByLabel("Print area preview");
   const px = Number(await studio.getByRole("slider", { name: /Centre X/ }).inputValue()) / 30,
     py = Number(await studio.getByRole("slider", { name: /Centre Y/ }).inputValue()) / 40;
-  const sample = (x: number, y: number) =>
-    sheet.evaluate(
-      (el, p) => {
-        const canvas = el as HTMLCanvasElement;
-        return Array.from(
-          canvas
-            .getContext("2d")!
-            .getImageData(Math.floor(p.x * canvas.width), Math.floor(p.y * canvas.height), 1, 1)
-            .data,
-        );
-      },
-      { x, y },
-    );
   await expect.poll(() => sample(px, py)).toEqual([223, 86, 56, 255]);
+  const outsideX = px + 0.32;
+  const fabricY = await sheet.evaluate((el, x) => {
+    const c = el as HTMLCanvasElement;
+    const pixels = c.getContext("2d")!.getImageData(Math.floor(c.width * x), 0, 1, c.height).data;
+    for (let y = Math.floor(c.height * 0.4); y < c.height * 0.7; y++)
+      if (pixels[y * 4] === 223 && pixels[y * 4 + 1] === 86 && pixels[y * 4 + 2] === 56)
+        return (y + 0.5) / c.height;
+    return -1;
+  }, outsideX);
+  expect(fabricY).toBeGreaterThan(0);
   await studio.getByRole("button", { name: "Undo stroke" }).click();
   await expect.poll(() => sample(px, py)).not.toEqual([223, 86, 56, 255]);
   await studio.getByRole("button", { name: "Redo stroke" }).click();
   await expect.poll(() => sample(px, py)).toEqual([223, 86, 56, 255]);
   await studio.getByRole("button", { name: "Eraser", exact: true }).click();
   const rect = await sheet.boundingBox();
-  await sheet.click({ position: { x: (px + 0.09) * rect!.width, y: py * rect!.height } });
+  const moveOnSheet = (x: number, y: number, steps = 12) =>
+    page.mouse.move(rect!.x + x * rect!.width, rect!.y + y * rect!.height, { steps });
+  await moveOnSheet(px + 0.09, py);
+  await page.mouse.down();
+  await moveOnSheet(1.07, py);
+  await moveOnSheet(1.07, py + 0.08);
+  await moveOnSheet(px + 0.09, py + 0.08);
+  await expect.poll(async () => (await sample(px + 0.09, py + 0.08))[3]).toBe(0);
+  await page.mouse.up();
   await expect.poll(async () => (await sample(px + 0.09, py))[3]).toBe(0);
+  await studio.getByRole("button", { name: "Move and rotate" }).click();
+  await studio.getByRole("button", { name: "Undo stroke" }).click();
+  await studio.getByRole("button", { name: "Brush", exact: true }).click();
+  await expect.poll(() => sample(outsideX, fabricY)).toEqual([223, 86, 56, 255]);
+  await studio.getByRole("button", { name: "Redo stroke" }).click();
+  await expect.poll(async () => (await sample(px + 0.09, py + 0.08))[3]).toBe(0);
   await studio.getByRole("button", { name: "Move and rotate" }).click();
   await studio.getByRole("button", { name: "Back panel · 0" }).click();
   await tile.dragTo(mesh);
@@ -403,8 +455,7 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
   expect(before.equals(await mesh.screenshot())).toBe(false);
   const downloaded = page.waitForEvent("download");
   await studio.getByRole("button", { name: "Download print pack" }).click();
-  const { unzipSync } = await import("fflate"),
-    { readFile } = await import("node:fs/promises");
+
   const packed = unzipSync(await readFile((await (await downloaded).path())!));
   const job = JSON.parse(Buffer.from(packed["job.json"]!).toString());
   expect(job.collection).toBe("Fieldwork");
@@ -432,9 +483,8 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
         );
       expect(await point(px)).toEqual([223, 86, 56, 255]);
       expect((await point(px + 0.09))[3]).toBe(0);
-      expect(
-        job.layout.layers.find((l: { zone: string }) => l.zone === "chest").strokes,
-      ).toHaveLength(2);
+      expect(job.layout.ink).toHaveLength(3);
+      expect(job.layout.ink.at(-1).paths).toHaveLength(2);
     }
     const stats = await png.stats();
     expect(stats.channels[3]!.min).toBe(0);

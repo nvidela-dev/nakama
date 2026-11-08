@@ -149,7 +149,7 @@ export const wikiChapters = [
       },
       {
         title: "How do I send a shirt to a printer?",
-        body: "Create a Shirt design in Artifacts and choose its collection. Drop an image onto the chest, back or either sleeve of the rotating model. You can also pick a print area and tap an image in the tray. Use Brush or Eraser on the artwork, adjust the brush size and undo a stroke as needed. Save to update the gallery photo. Download the print pack for the original artwork, edited transparent panels at 300 PPI and printer instructions.",
+        body: "Create a Shirt design in Artifacts and choose its collection. Drop an image onto the chest, back or either sleeve of the rotating model. You can also pick a print area and tap an image in the tray. Drag Brush across the printable area to paint bare fabric or artwork, even before uploading an image. Eraser clears earlier ink and images to reveal the fabric. Lift to finish a stroke, or undo it in one step. Save to update the gallery photo. Download the print pack for the original artwork, edited transparent panels at 300 PPI and printer instructions.",
       },
       {
         title: "Reading the project cards",

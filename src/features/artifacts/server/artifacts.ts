@@ -20,7 +20,8 @@ import { flows } from "@/features/guidance/model/flows";
 import { recordActivity } from "@/server/database/activity-log";
 import type { ArtifactDetail, ArtifactKind } from "@/features/artifacts/model";
 
-import { shirtSchema } from "./shirt-schema";
+import { hasPrint } from "../shirts/texture";
+import { shirtSchema, shirtCoverSchema } from "./shirt-schema";
 import { emptyLayout } from "../shirts/design";
 const uuid = z.uuid();
 const metadata = z.object({
@@ -144,11 +145,17 @@ async function stageFlow(tx: Queryable, projectId: string, stageId: string | nul
     throw new ProjectError("Choose a stage from this project.");
   return row.flow_id;
 }
-function ready(kind: ArtifactKind, status: string, githubUrl: string | null, fileCount: number) {
+function ready(
+  kind: ArtifactKind,
+  status: string,
+  githubUrl: string | null,
+  fileCount: number,
+  painted = false,
+) {
   if (status !== "ready") return;
   if (kind === "software" && !githubUrl)
     throw new ProjectError("Add a GitHub link before marking software ready.");
-  if (kind !== "software" && !fileCount)
+  if (kind !== "software" && !fileCount && !painted)
     throw new ProjectError(
       "Upload the required image or Markdown file before marking this artifact ready.",
     );
@@ -173,13 +180,13 @@ export function artifactService(db: Database) {
             artifactRowSchema.extend({
               collection: z.string().nullable(),
               shirt_poster: z.string().nullable(),
-              shirt_cover: shirtSchema.shape.layout.pick({ color: true, layers: true }).nullable(),
+              shirt_cover: shirtCoverSchema.nullable(),
               task_count: z.number().int().nonnegative(),
               done_task_count: z.number().int().nonnegative(),
               cover_id: z.uuid().nullable(),
               file_count: z.number().int().nonnegative(),
             }),
-            `SELECT ${columns}, s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers') END AS shirt_cover,
+            `SELECT ${columns}, s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers','ink',COALESCE(s.layout->'ink','[]'::jsonb)) END AS shirt_cover,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id) AS task_count,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id AND t.status='done') AS done_task_count,
         (SELECT f.id FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id AND f.media_type::text LIKE 'image/%' ORDER BY f.created_at,f.id LIMIT 1) AS cover_id,
@@ -288,9 +295,15 @@ export function artifactService(db: Database) {
           url = github(data.githubUrl);
         if (url && current.kind !== "software")
           throw new ProjectError("Only software artifacts use a GitHub link.");
-        if (current.shirt && data.status === "ready" && !current.shirt.layout.layers.length)
-          throw new ProjectError("Place artwork before marking this shirt ready.");
-        ready(current.kind, data.status, url, current.files.length);
+        if (current.shirt && data.status === "ready" && !hasPrint(current.shirt.layout))
+          throw new ProjectError("Add artwork or paint before marking this shirt ready.");
+        ready(
+          current.kind,
+          data.status,
+          url,
+          current.files.length,
+          current.shirt?.layout.ink?.some((s) => s.tool === "paint"),
+        );
         const flowId = await stageFlow(tx, projectId, data.stageId);
         await tx.query(
           "UPDATE project_artifacts SET name=$3,description=$4,flow_id=$5,stage_id=$6,status=$7,github_url=$8 WHERE project_id=$1 AND id=$2",
@@ -330,8 +343,8 @@ export function artifactService(db: Database) {
         const { collection, layout } = parsed.data;
         if (layout.layers.some((layer) => !current.files.some((file) => file.id === layer.fileId)))
           throw new ProjectError("Choose artwork from this design.");
-        if (current.status === "ready" && !layout.layers.length)
-          throw new ProjectError("A ready shirt needs placed artwork.");
+        if (current.status === "ready" && !hasPrint(layout))
+          throw new ProjectError("A ready shirt needs artwork or paint.");
         let poster: string | undefined;
         if (parsed.data.poster) {
           try {
@@ -478,7 +491,13 @@ export function artifactService(db: Database) {
           throw new ProjectError("Artifact file not found.");
         if (current.shirt?.layout.layers.some((layer) => layer.fileId === fileId))
           throw new ProjectError("Remove this artwork from its print areas first.");
-        ready(current.kind, current.status, current.github_url, current.files.length - 1);
+        ready(
+          current.kind,
+          current.status,
+          current.github_url,
+          current.files.length - 1,
+          current.shirt?.layout.ink?.some((s) => s.tool === "paint"),
+        );
         await tx.query(
           "DELETE FROM artifact_files WHERE project_id=$1 AND artifact_id=$2 AND id=$3",
           [projectId, artifactId, fileId],

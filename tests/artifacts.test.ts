@@ -302,6 +302,47 @@ test("shirt artwork, collections and project counts follow membership, revisions
     .png()
     .toBuffer();
   item = await artifacts.upload(owner, shop, id, item.revision, { name: "motif.png", data: image });
+  const paintedId = await artifacts.create(owner, shop, create);
+  const blank = await artifacts.get(owner, shop, paintedId);
+  const stroke = {
+    zone: "chest",
+    tool: "paint",
+    color: "#223344",
+    order: 1,
+    size: 0.05,
+    paths: [
+      [
+        [0, 0.5],
+        [1, 0.5],
+      ],
+    ],
+  };
+  const printed = { collection: "Painted", layout: { ...blank.shirt!.layout, ink: [stroke] } };
+  await assert.rejects(
+    artifacts.shirt(owner, shop, paintedId, blank.revision, {
+      ...printed,
+      layout: { ...printed.layout, ink: [{ ...stroke, paths: [[[2, 0.5]]] }] },
+    }),
+  );
+  const paint = await artifacts.shirt(owner, shop, paintedId, blank.revision, printed);
+  const ready = await artifacts.save(owner, shop, paintedId, paint.revision, {
+    name: "Paint-only",
+    status: "ready",
+  });
+  assert.equal(ready.files.length, 0);
+  await assert.rejects(
+    artifacts.shirt(owner, shop, paintedId, ready.revision, {
+      ...printed,
+      layout: { ...printed.layout, ink: [] },
+    }),
+  );
+  await assert.rejects(
+    db.query(
+      "UPDATE shirt_designs SET layout=layout-'ink' WHERE project_id=$1 AND artifact_id=$2",
+      [shop, paintedId],
+    ),
+  );
+  await artifacts.remove(owner, shop, paintedId, ready.revision, "Paint-only");
   const fileId = item.files[0]!.id;
   const layer = {
     id: randomUUID(),

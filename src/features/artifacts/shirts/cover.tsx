@@ -6,6 +6,7 @@ import { useT } from "@/shared/i18n/provider";
 import { artifactFileUrl, type ArtifactCard } from "../model";
 import { loadArt, type ArtImages } from "./print";
 import type { mountGarment } from "./garment";
+import { hasPrint } from "./texture";
 import { emptyLayout } from "./design";
 
 let camera: ReturnType<typeof mountGarment> | null = null,
@@ -23,7 +24,9 @@ async function photograph(card: ArtifactCard, images: ArtImages, active: () => b
       images,
     );
     camera.view(
-      cover.layers.find((l) => l.zone === "chest")?.zone ?? cover.layers[0]?.zone ?? "chest",
+      hasPrint(cover, "chest")
+        ? "chest"
+        : (cover.layers[0]?.zone ?? cover.ink?.[0]?.zone ?? "chest"),
     );
     return camera.snapshot();
   } finally {
@@ -39,7 +42,7 @@ export function ShirtCover({ card }: { card: ArtifactCard }) {
     [photo, setPhoto] = useState<string>();
   useEffect(() => {
     let active = true;
-    if (!host.current || !card.shirt_cover?.layers.length) return;
+    if (!host.current || !card.shirt_cover || !hasPrint(card.shirt_cover)) return;
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
       observer.disconnect();

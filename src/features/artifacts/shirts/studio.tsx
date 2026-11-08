@@ -11,7 +11,7 @@ import { zones, panels, type Zone, type ShirtLayer, type ShirtDesign } from "./d
 import { drawPanel, loadArt, downloadPrintPack, type ArtImages } from "./print";
 import { flatShirt, flatHit } from "./flat-shirt";
 import { useTextureBrush } from "./use-texture-brush";
-import type { SurfaceHit, TextureTool } from "./texture";
+import { hasPrint, nextPrintOrder, printStack, type SurfaceHit, type TextureTool } from "./texture";
 import { ShirtPreview, type PreviewHandle } from "./preview";
 
 const colors = ["#e8e4da", "#f8f8f4", "#282a2b", "#6b765e", "#4b6473", "#884d44"];
@@ -50,8 +50,7 @@ export function ShirtStudio({
   const layer = design.layout.layers.find((l) => l.id === selected && l.zone === zone);
   const panel = panels[zone],
     layers = design.layout.layers.filter((l) => l.zone === zone);
-  const artworkReady =
-    design.layout.layers.length > 0 && design.layout.layers.every((l) => images.has(l.fileId));
+  const artworkReady = design.layout.layers.every((l) => images.has(l.fileId));
   const [imageError, setImageError] = useState(false);
   const fileKeys = artifact.files.map((f) => f.id).join(",");
   useEffect(() => {
@@ -73,17 +72,7 @@ export function ShirtStudio({
       active = false;
     };
   }, [fileKeys, artifact.project_id, artifact.id]);
-  const brush = useTextureBrush(
-    design,
-    images,
-    selected,
-    onChange,
-    (l) => {
-      setZone(l.zone);
-      setSelected(l.id);
-    },
-    setError,
-  );
+  const brush = useTextureBrush(design, zone, selected, onChange, setZone, setError);
   useEffect(() => {
     if (!canvas.current) return;
     if (brush.tool === "move")
@@ -99,7 +88,8 @@ export function ShirtStudio({
       setError("A design supports 32 placements.");
       return;
     }
-    const items = fileIds.map((fileId) => ({
+    const items = fileIds.map((fileId, i) => ({
+      order: nextPrintOrder(design.layout) + i,
       id: crypto.randomUUID(),
       fileId,
       zone: target,
@@ -206,7 +196,7 @@ export function ShirtStudio({
           </Button>
           <Button
             variant="secondary"
-            disabled={dirty || pending || !artifact.shirt?.layout.layers.length}
+            disabled={dirty || pending || !artifact.shirt || !hasPrint(artifact.shirt.layout)}
             pending={exporting}
             onClick={exportPack}
           >
@@ -389,6 +379,7 @@ export function ShirtStudio({
                   if (!e.isPrimary || e.button !== 0) return;
                   e.currentTarget.focus({ preventScroll: true });
                   if (brush.tool !== "move") {
+                    e.preventDefault();
                     if (brush.begin(point(e, zone))) e.currentTarget.setPointerCapture(e.pointerId);
                   } else if (layer) {
                     e.currentTarget.setPointerCapture(e.pointerId);
@@ -398,17 +389,34 @@ export function ShirtStudio({
                 onPointerMove={(e) => {
                   if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
                   if (brush.tool === "move") position(e);
-                  else brush.move(point(e, zone));
+                  else {
+                    for (const sample of e.nativeEvent.getCoalescedEvents?.() ?? [])
+                      brush.move(
+                        point(
+                          {
+                            currentTarget: e.currentTarget,
+                            clientX: sample.clientX,
+                            clientY: sample.clientY,
+                          },
+                          zone,
+                        ),
+                      );
+                    brush.move(point(e, zone));
+                  }
                 }}
                 onPointerCancel={() => brush.finish(true)}
+                onLostPointerCapture={() => brush.finish()}
                 onPointerUp={(e) => {
-                  if (e.currentTarget.hasPointerCapture(e.pointerId)) brush.finish();
+                  if (e.currentTarget.hasPointerCapture(e.pointerId) && brush.tool !== "move") {
+                    brush.move(point(e, zone));
+                    brush.finish();
+                  }
                   if (e.currentTarget.hasPointerCapture(e.pointerId))
                     e.currentTarget.releasePointerCapture(e.pointerId);
                 }}
               />
             </div>
-            {!layers.length && (
+            {!layers.length && brush.tool === "move" && (
               <p className="text-xs text-muted mt-2">
                 {t("Drop artwork onto the shirt or choose it from the tray.")}
               </p>
@@ -479,12 +487,12 @@ export function ShirtStudio({
                       <div>
                         <ToolbarAction
                           label={t("Bring to front")}
-                          disabled={layers.at(-1)?.id === layer.id}
+                          disabled={printStack(design.layout, zone).at(-1) === layer}
                           onClick={() =>
                             patch({
                               layers: [
                                 ...design.layout.layers.filter((l) => l.id !== layer.id),
-                                layer,
+                                { ...layer, order: nextPrintOrder(design.layout) },
                               ],
                             })
                           }

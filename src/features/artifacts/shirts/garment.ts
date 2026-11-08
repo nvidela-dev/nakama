@@ -3,7 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { zones, type Zone, type ShirtDesign } from "./design";
 import { drawPanel, type ArtImages } from "./print";
 
-import { printRect, type SurfaceHit } from "./texture";
+import { printStack, printRect, type SurfaceHit } from "./texture";
 type Sample = (u: number, v: number) => [number, number, number, number, number];
 function fabric(columns: number, rows: number, sample: Sample) {
   const vertices = [],
@@ -172,14 +172,13 @@ export function mountGarment(host: HTMLElement) {
   view("chest");
   const painted = new Map<Zone, string>();
   let loaded: ArtImages | undefined;
-  function paint(design: ShirtDesign, images: ArtImages) {
+  function paint(design: ShirtDesign, images: ArtImages, guides = false) {
     if (loaded !== images) {
       painted.clear();
       loaded = images;
     }
     for (const zone of zones) {
-      const key =
-        design.layout.color + JSON.stringify(design.layout.layers.filter((l) => l.zone === zone));
+      const key = design.layout.color + guides + JSON.stringify(printStack(design.layout, zone));
       if (painted.get(zone) === key) continue;
       painted.set(zone, key);
       const mat = mats[zone];
@@ -203,6 +202,17 @@ export function mountGarment(host: HTMLElement) {
         rect.w * atlas.width,
         rect.h * atlas.height,
       );
+      if (guides) {
+        ctx.setLineDash([6, 5]);
+        ctx.lineWidth = 1.7;
+        ctx.strokeStyle = "#455563";
+        ctx.strokeRect(
+          rect.x * atlas.width,
+          rect.y * atlas.height,
+          rect.w * atlas.width,
+          rect.h * atlas.height,
+        );
+      }
       mat.map ??= new THREE.CanvasTexture(atlas);
       mat.map.needsUpdate = true;
       mat.map.colorSpace = THREE.SRGBColorSpace;
