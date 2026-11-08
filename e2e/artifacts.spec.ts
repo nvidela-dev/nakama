@@ -321,10 +321,11 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
   await studio.getByRole("button", { name: "Brush", exact: true }).click();
   // Exercise the same hold-and-drag input stream as a finger on a blank print panel.
   await sheet.scrollIntoViewIfNeeded();
-  const blank = (await sheet.boundingBox())!;
   const touch = await page.context().newCDPSession(page);
   try {
     await touch.send("Emulation.setTouchEmulationEnabled", { enabled: true });
+    await sheet.scrollIntoViewIfNeeded();
+    const blank = (await sheet.boundingBox())!;
     for (const [i, x] of [0.08, 0.18, 0.32, 0.49, 0.61, 0.75, 0.92].entries()) {
       await touch.send("Input.dispatchTouchEvent", {
         type: i === 0 ? "touchStart" : "touchMove",
@@ -429,6 +430,13 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
   await studio.getByRole("button", { name: "Redo stroke" }).click();
   await expect.poll(async () => (await sample(px + 0.09, py + 0.08))[3]).toBe(0);
   await studio.getByRole("button", { name: "Move and rotate" }).click();
+  // A later image prints over previous erasures. Removing that image reveals the erased area again.
+  await tile.click();
+  await studio.getByRole("button", { name: "Brush", exact: true }).click();
+  await expect.poll(async () => (await sample(px + 0.09, py))[3]).toBe(255);
+  await studio.getByRole("button", { name: "Remove placement", exact: true }).click();
+  await expect.poll(async () => (await sample(px + 0.09, py))[3]).toBe(0);
+  await studio.getByRole("button", { name: "Move and rotate", exact: true }).click();
   await studio.getByRole("button", { name: "Back panel · 0" }).click();
   await tile.dragTo(mesh);
   await expect(studio.getByRole("button", { name: "Back panel · 1" })).toBeVisible();
