@@ -164,9 +164,11 @@ test("private artifact library, typed outputs, image lightbox, Markdown reader, 
   await second.getByLabel("Artifact name", { exact: true }).fill("Other tab draft");
   await page.getByLabel("Artifact name", { exact: true }).fill("Revised research plan");
   await page.getByRole("button", { name: "Save details", exact: true }).click();
-  await expect(page.locator(".artifact-output > .artifact-library-heading h2")).toHaveText(
-    "Revised research plan",
-  );
+  await expect(
+    page
+      .getByRole("region", { name: "Artifact output" })
+      .getByRole("heading", { name: "Revised research plan", exact: true }),
+  ).toBeVisible();
   await second.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(second.locator(".artifact-feedback [role=alert]")).toContainText(
     "This artifact changed",
@@ -176,9 +178,11 @@ test("private artifact library, typed outputs, image lightbox, Markdown reader, 
     .getByRole("button", { name: "Use latest version and keep my drafts", exact: true })
     .click();
   await second.getByRole("button", { name: "Save details", exact: true }).click();
-  await expect(second.locator(".artifact-output > .artifact-library-heading h2")).toHaveText(
-    "Other tab draft",
-  );
+  await expect(
+    second
+      .getByRole("region", { name: "Artifact output" })
+      .getByRole("heading", { name: "Other tab draft", exact: true }),
+  ).toBeVisible();
   await second.close();
   await page.goto("/artifacts");
   await page.getByRole("button", { name: "New artifact", exact: true }).click();
