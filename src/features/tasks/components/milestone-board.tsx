@@ -199,7 +199,7 @@ export function MilestoneBoard({
             <section
               key={column.id}
               aria-label={t(column.name)}
-              className="basis-72 grow max-w-[85vw] shrink-0 rounded-xl bg-[var(--theme-surface)] p-2 min-h-24"
+              className="basis-72 grow max-w-[85vw] shrink-0 rounded-xl bg-[var(--theme-board-column)] p-2 min-h-24"
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => drop(event, column.id, null)}
             >

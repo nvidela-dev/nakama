@@ -2,6 +2,7 @@ import { cn } from "./cn";
 import {
   Ellipsis,
   FolderPlus,
+  Gamepad2,
   Flag,
   ListPlus,
   ArrowDown,
@@ -44,6 +45,7 @@ import type { LucideProps } from "lucide-react";
 /** Explicit catalog: never import the whole library or construct icon names at runtime. */
 export const iconCatalog = {
   more: Ellipsis,
+  game: Gamepad2,
   newProject: FolderPlus,
   milestone: Flag,
   addTask: ListPlus,

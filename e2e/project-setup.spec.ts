@@ -57,6 +57,9 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.locator(".flow-option")).toHaveCount(flowCatalog.length);
+  const bounds = await dialog.boundingBox();
+  expect(Math.abs(bounds!.x + bounds!.width / 2 - 720)).toBeLessThan(2);
+  expect(Math.abs(bounds!.y + bounds!.height / 2 - 500)).toBeLessThan(2);
   const tiles = await dialog.locator(".flow-option").evaluateAll((es) =>
     es.map((e) => {
       const r = e.getBoundingClientRect();
@@ -66,7 +69,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   expect(new Set(tiles.map((t) => t.x)).size).toBeGreaterThan(1);
   expect(Math.max(...tiles.map((t) => t.height))).toBeLessThan(120);
   await dialog.screenshot({ path: test.info().outputPath("project-type-grid-desktop.png") });
-  await dialog.locator('button[value="creative"]').click();
+  await dialog.locator('button[value="video-game"]').click();
   await dialog.getByRole("button", { name: /Continue/ }).click();
   const name = "E2E guided setup " + Date.now();
   names.push(name);
@@ -75,7 +78,10 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
     .getByLabel("Description", { exact: true })
     .fill("Disposable guided setup verification.");
   await dialog.getByRole("button", { name: /Back/ }).click();
-  await expect(dialog.locator('button[value="creative"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.locator('button[value="video-game"]')).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await dialog.getByRole("button", { name: /Continue/ }).click();
   await expect(dialog.getByLabel("Project name", { exact: true })).toHaveValue(name);
   await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
@@ -85,6 +91,19 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await dialog.getByRole("button", { name: "Create project", exact: true }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await expect(page.locator(".stage-card")).toHaveCount(5);
+  await expect(page.locator(".stage-card").first()).toContainText("All questions answered");
+  await expect(page.locator(".project-sidebar > details").first()).toHaveAttribute("open", "");
+  await expect(page.getByRole("region", { name: "Experiment cycle", exact: true })).toHaveCount(0);
+  await page.getByRole("tab", { name: "To-do", exact: true }).click();
+  await page.getByRole("button", { name: "New milestone", exact: true }).click();
+  const board = page.getByRole("dialog");
+  await board.getByLabel("Milestone title").fill("First playable");
+  await board.getByLabel("Board template").selectOption("build_sprint");
+  await board.getByRole("button", { name: "Save milestone" }).click();
+  await expect(board).toHaveCount(0);
+  await page.getByRole("tab", { name: "Tests", exact: true }).click();
+  await expect(page.getByLabel("Budget and action limits", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Related question", { exact: true })).toHaveCount(0);
   await page.goto("/projects");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "New project", exact: true }).click();

@@ -8,6 +8,12 @@ export type ExperimentPrompts = {
 };
 /** Every project flow must define how to test its ideas; these are prompts, never saved results. */
 export const experimentPrompts = {
+  "video-game": {
+    claim: "What should players understand or feel in this build?",
+    method: "Give players the same build and record what they do before offering hints.",
+    criteria: "Define the player behavior that would justify keeping the mechanic.",
+    evidence: "Record the build version, observed actions and where players got stuck.",
+  },
   "self-improvement": {
     claim: "Which small behavior change do you want to test in your own context?",
     method:

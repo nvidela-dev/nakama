@@ -1,5 +1,6 @@
 "use client";
 import { Icon, type IconName } from "@/shared/ui/icon";
+import { stageCoverage, stageLabel } from "../model/stage-progress";
 import { Panel } from "@/shared/ui/panel";
 
 import { Button } from "@/shared/ui/button";
@@ -273,21 +274,9 @@ export function Journey({
                 aria-label={t("All stages")}
               >
                 {flow.stages.map((stage, index) => {
-                  const questions = stage.nodes.filter((node) => node.kind === "question");
-                  const saved = answers.filter((answer) =>
-                    stage.nodes.some((node) => node.id === answer.node_id),
-                  );
-                  const answered = questions.filter((node) =>
-                    saved.some(
-                      (answer) => answer.node_id === node.id && answer.status === "answered",
-                    ),
-                  ).length;
-                  const revisit = saved.some((answer) => answer.needs_review);
-                  const reviewed =
-                    reviews.some((review) => review.stage_id === stage.id && review.reviewed) &&
-                    !revisit;
-                  const started = saved.some((answer) => answer.status !== "unanswered");
-                  const status = reviewed ? "✓ Reviewed" : started ? "In progress" : "Not started";
+                  const coverage = stageCoverage(stage, guidance);
+                  const { answered, total, reviewed, revisit } = coverage;
+                  const status = stageLabel(coverage);
                   return (
                     <Link
                       key={stage.id}
@@ -301,7 +290,7 @@ export function Journey({
                         .filter(Boolean)
                         .join(" ")}
                       aria-current={stage.id === activeStage.id ? "step" : undefined}
-                      title={`${t(status)} · ${answered}/${questions.length} ${t("questions answered")}${revisit ? t(" · revisit") : ""}`}
+                      title={`${t(status)} · ${answered}/${total} ${t("questions answered")}${revisit ? t(" · revisit") : ""}`}
                     >
                       <span className={"rail-number [font:10px_monospace] shrink-0 text-lime"}>
                         {String(index + 1).padStart(2, "0")}
@@ -313,7 +302,7 @@ export function Journey({
                         <small
                           className={`block mt-0.75 text-[11px] leading-[1.4] ${revisit ? "text-[var(--theme-text,#d5df8a)]" : reviewed ? "text-lime" : "text-muted"}`}
                         >
-                          {answered}/{questions.length} · {t(status)}
+                          {answered}/{total} · {t(status)}
                           {revisit ? t(" · revisit") : ""}
                         </small>
                         <span
@@ -323,7 +312,7 @@ export function Journey({
                           <span
                             className="block h-full bg-lime"
                             style={{
-                              width: `${questions.length ? (answered / questions.length) * 100 : 0}%`,
+                              width: `${total ? (answered / total) * 100 : 0}%`,
                             }}
                           />
                         </span>
@@ -349,11 +338,8 @@ export function Journey({
                   </p>
                   <ol className="stage-list list-none p-0 mt-2 mb-3 mx-0">
                     {flow.stages.map((stage, i) => {
-                      const questions = stage.nodes.filter((n) => n.kind === "question");
-                      const count = questions.filter((n) =>
-                        answers.some((a) => a.node_id === n.id && a.status === "answered"),
-                      ).length;
-                      const reviewed = reviews.some((r) => r.stage_id === stage.id && r.reviewed);
+                      const coverage = stageCoverage(stage, guidance);
+                      const { answered: count, total } = coverage;
                       return (
                         <li key={stage.id}>
                           <Link
@@ -397,26 +383,22 @@ export function Journey({
                                   "text-[11px] text-muted break-words lg:compact:col-start-2 lg:compact:row-start-1 lg:compact:text-right lg:compact:leading-[1.2]"
                                 }
                               >
-                                {reviewed
-                                  ? t("✓ Reviewed")
-                                  : count
-                                    ? t("In progress")
-                                    : t("Not started")}{" "}
-                                · {count}/{questions.length} {t("questions answered")}{" "}
+                                {t(stageLabel(coverage))} · {count}/{total}{" "}
+                                {t("questions answered")}{" "}
                               </small>
                               <div
                                 className="stage-progress h-1.5 bg-line rounded-full overflow-hidden col-span-full mt-2"
                                 role="progressbar"
                                 aria-label={`${t(stage.name)} · ${t("questions answered")}`}
                                 aria-valuemin={0}
-                                aria-valuemax={questions.length || 1}
+                                aria-valuemax={total || 1}
                                 aria-valuenow={count}
-                                aria-valuetext={`${count} / ${questions.length} ${t("questions answered")}`}
+                                aria-valuetext={`${count} / ${total} ${t("questions answered")}`}
                               >
                                 <span
                                   className="block h-full bg-lime rounded-full"
                                   style={{
-                                    width: `${questions.length ? (count / questions.length) * 100 : 0}%`,
+                                    width: `${total ? (count / total) * 100 : 0}%`,
                                   }}
                                 />
                               </div>
@@ -703,7 +685,7 @@ export function Journey({
       {!wideWork && discussion && (
         <div
           className={
-            "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2 [&_>_.discussion]:mt-0"
+            "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2 min-[701px]:col-span-8 min-[1280px]:col-span-10 [&_>_.discussion]:mt-0"
           }
         >
           {discussion}
@@ -712,7 +694,7 @@ export function Journey({
       {!wideWork && (
         <div
           className={[
-            "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11",
+            "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:row-span-2 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11",
           ]
             .filter(Boolean)
             .join(" ")}

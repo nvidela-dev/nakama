@@ -245,3 +245,7 @@ Every flow uses **Idea → Test plan → Run → Evidence → Review → Next de
 | Consultancy | Client problem or proposed intervention | Agree a small pilot and comparable before/after observations | Client agreement is not measured improvement; preserve scope and consent |
 
 The typed prompt registry in `src/features/experiments/flow-prompts.ts` must cover every flow ID. Adding a flow without its experiment prompts fails type checking; an isolated database test exercises the full experiment/review cycle and unauthorized-read rejection for every registered flow. Prompts are guidance, not prefilled claims or fabricated measurements. The public example links to the fictional guide rather than an inaccessible sample project's lab.
+
+## Video game
+
+Game concept captures the name and player premise. Core loop defines a repeatable decision and its feedback. Playable prototype scopes a build for one session. Playtest records the method and observations. Release and iterate identifies the candidate build and the next change. Prototype and release offer build-sprint and rollout boards. Teams can record versioned playtests, measurements and reviews from Tests.

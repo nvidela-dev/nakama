@@ -7,7 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { ActionState } from "@/shared/contracts/action-state";
 import { flowCatalog, isFlowId } from "@/features/guidance/model/flow-catalog.generated";
-import { Dialog } from "@/shared/ui/dialog";
+import { Modal } from "antd";
 import { FlowOptions } from "@/features/guidance/components/flow-options";
 import { Feedback } from "@/shared/ui/feedback";
 import { useT } from "@/shared/i18n/provider";
@@ -37,14 +37,21 @@ export function ProjectSetup({
     if (!pending) onClose();
   }
   return (
-    <Dialog
+    <Modal
       open={open}
-      onClose={close}
-      dismissible={!pending}
-      className={
-        'project-setup-dialog w-[min(760px,_calc(100vw_-_32px))] max-h-[90dvh] overflow-y-auto bg-panel text-ink border border-line rounded-[12px] p-6 backdrop:[background:var(--theme-map,#06100dd9)] [&_>_.muted]:text-[13px] [&_>_.muted]:my-3.5 [&_>_.muted]:mx-0 [&_.text-button[aria-pressed="true"]]:text-lime [&_.text-button[aria-pressed="true"]]:underline max-[700px]:p-4.5'
+      centered
+      width={760}
+      footer={null}
+      onCancel={close}
+      mask={{ closable: !pending }}
+      keyboard={!pending}
+      closable={false}
+      title={
+        <h2 ref={heading} tabIndex={-1} id="project-setup-title">
+          {t("New project")}
+        </h2>
       }
-      labelledBy="project-setup-title"
+      styles={{ body: { maxHeight: "min(70dvh,680px)", overflowY: "auto" } }}
     >
       {open && (
         <>
@@ -59,16 +66,6 @@ export function ProjectSetup({
                   step === "type" ? "Step 1 of 2 · Project type" : "Step 2 of 2 · Project details",
                 )}
               </p>
-              <h2
-                ref={heading}
-                tabIndex={-1}
-                id="project-setup-title"
-                className={
-                  "font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0 text-[24px]"
-                }
-              >
-                {t("New project")}
-              </h2>
             </div>
             <Button
               type="button"
@@ -191,6 +188,6 @@ export function ProjectSetup({
           )}
         </>
       )}
-    </Dialog>
+    </Modal>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { stageCoverage, stageLabel } from "../model/stage-progress";
 import { useStyleTheme } from "@/shared/ui/use-style-theme";
 import { Icon, type IconName } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
@@ -24,7 +25,8 @@ const symbols: Record<string, IconName> = {
   answered: "answered",
   skipped: "skipped",
   blocked: "warning",
-  reviewed: "answered",
+  "✓ Reviewed": "answered",
+  "All questions answered": "answered",
   "In progress": "draft",
   "Not started": "unanswered",
 };
@@ -52,16 +54,13 @@ export default function JourneyMiniview({
       const x = (index - (guidance.flow.stages.length - 1) / 2) * 3.5;
       const y = index % 2 ? 2.5 : 1.3;
       const z = index % 2 ? -2 : 1.5;
-      const review = guidance.reviews.find((r) => r.stage_id === stage.id);
-      const worked =
-        guidance.answers.some((a) => a.stage_id === stage.id && a.status !== "unanswered") ||
-        !!review;
+      const coverage = stageCoverage(stage, guidance);
       points.push({
         id: stage.id,
         stageId: stage.id,
         label: stage.name,
-        status: review?.reviewed ? "reviewed" : worked ? "In progress" : "Not started",
-        revisit: !!review && !review.reviewed,
+        status: stageLabel(coverage),
+        revisit: coverage.revisit,
         position: new THREE.Vector3(x, y, z),
       });
       const previous = guidance.flow.stages[index - 1];
@@ -122,7 +121,8 @@ export default function JourneyMiniview({
       answered: lime,
       skipped: muted,
       blocked: peach,
-      reviewed: lime,
+      "✓ Reviewed": lime,
+      "All questions answered": lime,
       "In progress": peach,
       "Not started": muted,
     };

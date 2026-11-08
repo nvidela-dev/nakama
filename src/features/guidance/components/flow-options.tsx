@@ -45,23 +45,25 @@ export function FlowOptions({
           >
             <Icon
               name={
-                flow.id === "self-improvement"
-                  ? "rotateRight"
-                  : flow.id === "platform"
-                    ? "server"
-                    : flow.id === "investigation"
-                      ? "search"
-                      : flow.id === "creative"
-                        ? "creative"
-                        : flow.id.includes("eshop")
-                          ? "shop"
-                          : flow.id === "saas"
-                            ? "software"
-                            : flow.id === "importation"
-                              ? "import"
-                              : flow.id === "consultancy"
-                                ? "consultancy"
-                                : "idea"
+                flow.id === "video-game"
+                  ? "game"
+                  : flow.id === "self-improvement"
+                    ? "rotateRight"
+                    : flow.id === "platform"
+                      ? "server"
+                      : flow.id === "investigation"
+                        ? "search"
+                        : flow.id === "creative"
+                          ? "creative"
+                          : flow.id.includes("eshop")
+                            ? "shop"
+                            : flow.id === "saas"
+                              ? "software"
+                              : flow.id === "importation"
+                                ? "import"
+                                : flow.id === "consultancy"
+                                  ? "consultancy"
+                                  : "idea"
               }
             />
           </span>

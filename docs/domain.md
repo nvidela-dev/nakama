@@ -99,7 +99,7 @@ Use **Task** for work, qualified as **Project task** (hierarchical) or **Artifac
 
 ## Experiment lab — 2026-10-26
 
-An **Experiment** belongs to one project, independently of its selected flow. Its short plan records a claim, method and success criteria. Optional scope, metric/unit, baseline, responsible person, action/budget limits, milestone label and one related question add detail progressively. A milestone is currently a label, not a task container or scheduler. Creative experiments need no commercial criteria.
+An **Experiment** belongs to one project, independently of its selected flow. Its short plan records a claim, method and success criteria. The optional plan inputs are responsible person and action/budget limits. Earlier plans can retain scope, metric/unit, baseline, milestone label and related question metadata when revised. A milestone is currently a label, not a task container or scheduler. Creative experiments need no commercial criteria.
 
 **Plan versions** are retained. Starting a **Run** freezes the selected plan and related question's answer revision/content. Repeating creates another run. Execution is running, completed or cancelled; completion never means that the claim is supported. Human effort in minutes and actual cost/currency are optional; missing means unknown, including when the actual value is zero. Deviations remain attached to that execution. Completed/cancelled execution records cannot be rewritten through the service.
 

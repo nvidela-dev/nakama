@@ -22,7 +22,7 @@ test("Daylight is the default and malformed preferences cannot inject styles", (
   for (const theme of ["day", "night"] as const)
     for (const [name, value] of Object.entries(palettes[theme]))
       assert.equal(styleThemeProperties(theme)[`--color-${name}`], value);
-  assert.equal(styleThemeProperties("night")["--theme-surface"], "#112545");
+  assert.equal(styleThemeProperties("night")["--theme-surface"], "#2b2f32");
 });
 test("both palettes retain readable text and primary buttons", () => {
   for (const [name, palette] of Object.entries(palettes)) {

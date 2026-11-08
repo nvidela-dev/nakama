@@ -2,6 +2,7 @@ import { required } from "@/shared/lib/required";
 import { businessFlows } from "@/features/guidance/model/business-flows";
 import { investigationFlow } from "@/features/guidance/model/investigation-flow";
 import { platformFlow } from "@/features/guidance/model/platform-flow";
+import { videoGameFlow } from "./video-game-flow";
 import { selfImprovementFlow } from "./self-improvement-flow";
 export type { FlowId, NodeStatus } from "@/shared/contracts/database.generated";
 import type { FlowId } from "@/shared/contracts/database.generated";
@@ -38,6 +39,7 @@ const node = (
 ): FlowNode => ({ id, label, question, example, after, kind, ...(choices ? { choices } : {}) });
 export type FlowRegistry = { readonly [Id in FlowId]: Flow & { readonly id: Id } };
 export const flows: FlowRegistry = {
+  "video-game": videoGameFlow,
   investigation: investigationFlow,
   platform: platformFlow,
   "self-improvement": selfImprovementFlow,

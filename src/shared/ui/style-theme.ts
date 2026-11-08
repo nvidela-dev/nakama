@@ -16,7 +16,7 @@ export const palettes = {
     bg: "#f5f5f5",
     panel: "#ffffff",
     line: "#d9d9d9",
-    lime: "#0958d9",
+    lime: "#405869",
     dark: "#ffffff",
     pink: "#a8071a",
   },
@@ -26,7 +26,7 @@ export const palettes = {
     bg: "#141414",
     panel: "#1f1f1f",
     line: "#424242",
-    lime: "#69b1ff",
+    lime: "#acc1cd",
     dark: "#141414",
     pink: "#ff7875",
   },
@@ -34,7 +34,7 @@ export const palettes = {
 const surfaces = {
   day: {
     control: "#8c8c8c",
-    soft: "#e6f4ff",
+    soft: "#e3e5e6",
     hover: "#141414",
     warning: "#fffbe6",
     danger: "#fff1f0",
@@ -42,7 +42,7 @@ const surfaces = {
   },
   night: {
     control: "#595959",
-    soft: "#112545",
+    soft: "#2b2f32",
     hover: "#91caff",
     warning: "#2b2111",
     danger: "#2a1215",
@@ -67,6 +67,7 @@ export function styleThemeProperties(theme: StyleTheme): ThemeStyle {
     "--theme-surface": surface.soft,
     "--theme-surface-low": palette.panel,
     "--theme-selected": surface.soft,
+    "--theme-board-column": theme === "day" ? "#d6dadd" : "#303539",
     "--theme-chat": palette.panel,
     "--theme-chat-own": surface.soft,
     "--theme-accent-hover": surface.hover,

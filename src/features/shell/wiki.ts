@@ -34,7 +34,7 @@ export const wikiChapters = [
     cards: [
       {
         title: "Plan and run",
-        body: "Open Tests. Enter the claim, method and success criteria. Record a baseline if you have one. Start a run with the person carrying it out. Nakama saves the plan version used for that run.",
+        body: "Open the Tests tab and enter the claim, method and success criteria. Add an owner and a budget or action limit if useful. Start a run to record which plan you used.",
       },
       {
         title: "Measure and retain evidence",
@@ -92,7 +92,7 @@ export const wikiChapters = [
       },
       {
         title: "Progress · Linked projects · Members",
-        body: "Check progress, follow related projects, and see who belongs here. Sidebar panels can be collapsed when you need more space.",
+        body: "On desktop the discussion sits below the project flow. Progress, linked projects and members open in the right column. Collapse a panel to hide its details.",
       },
     ],
   },
@@ -103,6 +103,14 @@ export const wikiChapters = [
       "A flow is a guide for thinking, not a form you must finish in one sitting. Open a stage to see its questions, then open a question to write and save an answer.",
     kind: "hierarchy",
     cards: [
+      {
+        title: "Read stage progress",
+        body: "All questions answered means every question in the stage has a saved answer. Reviewed means the stage review is current. Open a stage to review the answers together.",
+      },
+      {
+        title: "Build a video game",
+        body: "Choose Video game in New project. Define the player’s goal and core loop, then build a playable prototype. Use To-do for the build sprint, an artifact for build notes, and Tests to observe players without hints. Record what happened before choosing the next release.",
+      },
       {
         title: "Project → Flow",
         body: "Our demo project uses a Creative/fun flow. Business ideas can use Venture or a more specific business flow; Investigation explores a question; Platform guides internal systems and automation.",

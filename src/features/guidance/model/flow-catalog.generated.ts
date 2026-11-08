@@ -2,6 +2,11 @@
 import type { FlowId } from "@/shared/contracts/database.generated";
 export const flowCatalog = [
   {
+    "id": "video-game",
+    "name": "Video game",
+    "description": "Build a playable loop, watch players try it, and decide what to ship."
+  },
+  {
     "id": "investigation",
     "name": "Investigation",
     "description": "Investigate a topic, weigh evidence, and develop a conclusion, actionables, or an artifact."
