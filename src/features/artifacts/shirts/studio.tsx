@@ -268,7 +268,7 @@ export function ShirtStudio({
                       max={50}
                       value={brush.size}
                       aria-label={t("Brush size")}
-                      className="w-18"
+                      className="w-18 accent-lime"
                       onChange={(e) => brush.setSize(+e.target.value)}
                     />
                     {brush.size}%
@@ -444,6 +444,7 @@ export function ShirtStudio({
                           </span>
                           <Input
                             type="range"
+                            className="accent-lime"
                             min={angle ? -180 : key === "width" ? max * 0.05 : 0}
                             max={max}
                             step={angle ? 1 : 0.1}

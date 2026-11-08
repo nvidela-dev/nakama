@@ -93,7 +93,8 @@ export function ShirtPreview({
         setOver(hit?.zone ?? null);
       }}
       onDragLeave={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(null);
+        if (!(e.relatedTarget instanceof Node) || !e.currentTarget.contains(e.relatedTarget))
+          setOver(null);
       }}
       onDrop={(e) => {
         e.preventDefault();
