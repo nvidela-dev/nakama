@@ -454,3 +454,5 @@ Add Video game as a guided project type. Show answer coverage separately from th
 - **2026-11-08 — Shirt production and project overview.** Use each Shirt E-shop as a store, organize design artifacts by collection, and export a printer handoff from saved placements. Group the project overview by flow and show compact counts for milestones, tasks, experiments and shirt collections. See [the domain model](domain.md#shirts-and-collections).
 
 - **2026-11-08 — Shirt texture editing.** Place artwork directly on the garment, paint or erase each placement, and keep the source files intact for the printer. Show compact artifact cards with a still from the 3D model for shirts. See [shirts and collections](domain.md#shirts-and-collections).
+
+- **2026-11-08 — Continuous shirt brushes.** Paint directly on printable fabric, including across uploaded images. Erasing removes applied artwork and ink while preserving the garment colour.

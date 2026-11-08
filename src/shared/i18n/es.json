@@ -1577,5 +1577,10 @@
   "This layer has reached its stroke limit.": "Esta capa alcanzó su límite de trazos.",
   "This design has reached its brush detail limit.": "Este diseño alcanzó su límite de detalle.",
   "A design supports six artwork files.": "Un diseño admite hasta seis archivos de imagen.",
-  "The shirt preview could not be saved.": "No se pudo guardar la vista previa de la remera."
+  "The shirt preview could not be saved.": "No se pudo guardar la vista previa de la remera.",
+  "Drag to erase print and reveal the fabric": "Arrastrá para borrar la impresión y revelar la tela",
+  "Drag to paint inside the print area": "Arrastrá para pintar en el área de impresión",
+  "A ready shirt needs artwork or paint.": "Una remera lista necesita una imagen o pintura.",
+  "Add artwork or paint before marking this shirt ready.": "Agregá una imagen o pintá antes de marcar la remera como lista.",
+  "This print area has reached its stroke limit.": "Esta área de impresión alcanzó el límite de trazos."
 }

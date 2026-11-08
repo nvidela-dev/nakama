@@ -1,27 +1,36 @@
-import { panels, type ShirtLayer, type Zone } from "./design";
+import type { ShirtDesign, Zone } from "./design";
+export type { PanelStroke } from "../server/shirt-schema";
 export type Point = [number, number];
-export type Stroke = NonNullable<ShirtLayer["strokes"]>[number];
 export type TextureTool = "move" | "paint" | "erase";
 export type SurfaceHit = { zone: Zone; x: number; y: number };
 export const maxStrokes = 96,
   maxPoints = 256,
   maxDesignPoints = 16000;
+export type Artwork = Pick<ShirtDesign["layout"], "layers" | "ink">;
 
-export function layerPoint(hit: SurfaceHit, layer: ShirtLayer, image: HTMLImageElement): Point {
-  const panel = panels[hit.zone],
-    a = (-layer.rotation * Math.PI) / 180;
-  const dx = hit.x - layer.x,
-    dy = ((hit.y - layer.y) * panel.height) / panel.width;
-  const x = 0.5 + (dx * Math.cos(a) - dy * Math.sin(a)) / layer.width;
-  const y =
-    0.5 +
-    ((dx * Math.sin(a) + dy * Math.cos(a)) * image.naturalWidth) /
-      (layer.width * image.naturalHeight);
-  return [Math.round(x * 10000) / 10000, Math.round(y * 10000) / 10000];
+export function printStack(layout: Artwork, zone: Zone) {
+  // Older designs use array order for images. Stable sorting keeps those layers together.
+  return [
+    ...layout.layers.filter((l) => l.zone === zone),
+    ...(layout.ink ?? []).filter((s) => s.zone === zone),
+  ].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+export function nextPrintOrder(layout: Artwork) {
+  return (
+    Math.max(
+      0,
+      ...layout.layers.map((l) => l.order ?? 0),
+      ...(layout.ink ?? []).map((s) => s.order),
+    ) + 1
+  );
+}
+export function hasPrint(layout: Artwork, zone?: Zone) {
+  return (
+    layout.layers.some((l) => !zone || l.zone === zone) ||
+    !!layout.ink?.some((s) => s.tool === "paint" && (!zone || s.zone === zone))
+  );
 }
 export const inside = ([x, y]: Point) => x >= 0 && x <= 1 && y >= 0 && y <= 1;
-
-// Both ray picking and texture painting use this rectangle in top-left atlas coordinates.
 export function printRect(zone: Zone) {
   const sleeve = zone.endsWith("sleeve"),
     w = sleeve ? 10 / 64 : 30 / 54,

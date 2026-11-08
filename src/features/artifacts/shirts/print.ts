@@ -1,5 +1,6 @@
 import { artifactFileUrl, type ArtifactDetail } from "../model";
-import { panels, zones, type ShirtDesign, type Zone } from "./design";
+import { hasPrint, printStack, type Artwork, type Point } from "./texture";
+import { panels, zones, type Zone } from "./design";
 
 export function loadArt(url: string) {
   const image = new Image();
@@ -7,9 +8,21 @@ export function loadArt(url: string) {
   return image.decode().then(() => image);
 }
 export type ArtImages = Map<string, HTMLImageElement>;
+function drawPath(target: CanvasRenderingContext2D, points: Point[], w: number, h: number) {
+  const [x, y] = points[0]!;
+  target.beginPath();
+  if (points.length === 1) {
+    target.arc(x * w, y * h, target.lineWidth / 2, 0, 2 * Math.PI);
+    target.fill();
+    return;
+  }
+  target.moveTo(x * w, y * h);
+  for (const [u, v] of points.slice(1)) target.lineTo(u * w, v * h);
+  target.stroke();
+}
 export function drawPanel(
   canvas: HTMLCanvasElement,
-  layout: Pick<ShirtDesign["layout"], "layers">,
+  layout: Artwork,
   zone: Zone,
   images: ArtImages,
   width: number,
@@ -20,7 +33,18 @@ export function drawPanel(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is unavailable.");
   let overlay: HTMLCanvasElement | undefined;
-  for (const layer of layout.layers.filter((l) => l.zone === zone)) {
+  for (const layer of printStack(layout, zone)) {
+    if ("paths" in layer) {
+      // Keep fabric out of this transparent canvas. Erasing removes only previously printed pixels.
+      ctx.save();
+      ctx.globalCompositeOperation = layer.tool === "erase" ? "destination-out" : "source-over";
+      ctx.strokeStyle = ctx.fillStyle = layer.color;
+      ctx.lineWidth = width * layer.size;
+      ctx.lineCap = ctx.lineJoin = "round";
+      for (const path of layer.paths) drawPath(ctx, path, width, canvas.height);
+      ctx.restore();
+      continue;
+    }
     const image = images.get(layer.fileId);
     if (!image) continue;
     const w = width * layer.width,
@@ -46,16 +70,7 @@ export function drawPanel(
       target.strokeStyle = target.fillStyle = stroke.color;
       target.lineWidth = w * stroke.size;
       target.lineCap = target.lineJoin = "round";
-      const [x, y] = stroke.points[0]!;
-      target.beginPath();
-      if (stroke.points.length === 1) {
-        target.arc(x * w, y * h, target.lineWidth / 2, 0, 2 * Math.PI);
-        target.fill();
-      } else {
-        target.moveTo(x * w, y * h);
-        for (const [u, v] of stroke.points.slice(1)) target.lineTo(u * w, v * h);
-        target.stroke();
-      }
+      drawPath(target, stroke.points, w, h);
     }
     target.restore();
     if (target !== ctx && overlay) ctx.drawImage(overlay, 0, 0);
@@ -96,7 +111,7 @@ export async function pngWithDpi(canvas: HTMLCanvasElement, dpi: number): Promis
 }
 export async function downloadPrintPack(artifact: ArtifactDetail) {
   const design = artifact.shirt;
-  if (!design?.layout.layers.length) throw new Error("Place artwork before exporting.");
+  if (!design || !hasPrint(design.layout)) throw new Error("Place artwork before exporting.");
   const { zipSync, strToU8 } = await import("fflate");
   const entries: Record<string, Uint8Array> = {};
   const images: ArtImages = new Map();
@@ -140,7 +155,7 @@ export async function downloadPrintPack(artifact: ArtifactDetail) {
       "Confirm blank measurements, ink and colour matching with the printer before the production run.",
       "",
     ];
-    for (const zone of zones.filter((z) => design.layout.layers.some((l) => l.zone === z))) {
+    for (const zone of zones.filter((z) => hasPrint(design.layout, z))) {
       const { width, height, label } = panels[zone],
         canvas = document.createElement("canvas");
       drawPanel(canvas, design.layout, zone, images, Math.round((width * 300) / 2.54));
@@ -159,7 +174,7 @@ export async function downloadPrintPack(artifact: ArtifactDetail) {
     entries["job.json"] = strToU8(
       JSON.stringify(
         {
-          version: 2,
+          version: 3,
           store: artifact.project_name,
           design: artifact.name,
           revision: artifact.revision,
@@ -167,7 +182,7 @@ export async function downloadPrintPack(artifact: ArtifactDetail) {
           panels,
           files,
           coordinates:
-            "x/y are centre fractions from the upper left of the print area; width is a fraction of area width; rotation is clockwise degrees; array order is back to front. Stroke points are fractions of the unrotated source image, with origin at top left. Brush diameter is a fraction of layer width. Erasing reveals lower layers.",
+            "x/y are centre fractions from the upper left of the print area; width is a fraction of area width; rotation is clockwise degrees; print order is back to front (absent order is zero, with image array order breaking ties). Panel ink paths use panel fractions from the top left and diameter as a fraction of panel width. Erasing panel ink clears earlier print only. Legacy placement stroke points are fractions of the unrotated source image, with origin at top left. Brush diameter is a fraction of layer width. Erasing reveals lower layers.",
         },
         null,
         2,

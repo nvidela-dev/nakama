@@ -56,10 +56,11 @@ export function ShirtPreview({
         if (!design.layout.layers.every((l) => images.has(l.fileId))) return;
         scene.current?.paint(design, images);
         const url = scene.current?.snapshot();
+        if (brush.tool !== "move") scene.current?.paint(design, images, true);
         return url?.startsWith("data:image/webp;base64,") ? url : undefined;
       },
     }),
-    [design, images],
+    [design, images, brush.tool],
   );
   useEffect(() => {
     scene.current?.view(zone);
@@ -68,9 +69,10 @@ export function ShirtPreview({
     scene.current?.rotate(brush.tool === "move" && !disabled);
   }, [brush.tool, state, disabled]);
   useEffect(() => {
-    scene.current?.paint(design, images);
-    if (fallback.current) flatShirt(fallback.current, design, images, back);
-  }, [design, back, images, state]);
+    scene.current?.paint(design, images, brush.tool !== "move");
+    if (fallback.current)
+      flatShirt(fallback.current, design, images, back, brush.tool !== "move" ? zone : undefined);
+  }, [design, back, images, state, brush.tool, zone]);
   function pick(x: number, y: number) {
     return (
       scene.current?.pick(x, y) ?? (fallback.current ? flatHit(fallback.current, x, y, back) : null)
@@ -102,22 +104,30 @@ export function ShirtPreview({
         const hit = pick(e.clientX, e.clientY);
         if (!disabled && hit) onDrop(e, hit);
       }}
-      onPointerDown={(e) => {
+      onPointerDownCapture={(e) => {
         if (disabled || brush.tool === "move" || e.button !== 0 || !e.isPrimary) return;
+        e.preventDefault();
+        e.stopPropagation();
         e.currentTarget.focus({ preventScroll: true });
         const hit = pick(e.clientX, e.clientY);
-        if (hit && brush.begin(hit)) e.currentTarget.setPointerCapture(e.pointerId);
+        if (brush.begin(hit)) e.currentTarget.setPointerCapture(e.pointerId);
       }}
       onPointerMove={(e) => {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) brush.move(pick(e.clientX, e.clientY));
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          for (const sample of e.nativeEvent.getCoalescedEvents?.() ?? [])
+            brush.move(pick(sample.clientX, sample.clientY));
+          brush.move(pick(e.clientX, e.clientY));
+        }
       }}
       onPointerUp={(e) => {
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          brush.move(pick(e.clientX, e.clientY));
           brush.finish();
           e.currentTarget.releasePointerCapture(e.pointerId);
         }
       }}
       onPointerCancel={() => brush.finish(true)}
+      onLostPointerCapture={() => brush.finish()}
     >
       <div
         ref={host}
@@ -146,7 +156,9 @@ export function ShirtPreview({
               ? "Loading preview…"
               : brush.tool === "move"
                 ? "Drop artwork on the shirt · drag to rotate"
-                : "Draw on placed artwork",
+                : brush.tool === "erase"
+                  ? "Drag to erase print and reveal the fabric"
+                  : "Drag to paint inside the print area",
         )}
       </small>
     </div>

@@ -1,133 +1,151 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { ShirtDesign, ShirtLayer } from "./design";
-import type { ArtImages } from "./print";
+import type { ShirtDesign, ShirtLayer, Zone } from "./design";
 import {
   inside,
-  layerPoint,
+  nextPrintOrder,
+  hasPrint,
   maxDesignPoints,
   maxPoints,
   maxStrokes,
-  type TextureTool,
-  type Stroke,
+  type PanelStroke,
+  type Point,
   type SurfaceHit,
+  type TextureTool,
 } from "./texture";
 
+type LegacyStroke = NonNullable<ShirtLayer["strokes"]>[number];
+type UndoEntry =
+  | { kind: "panel"; mark: PanelStroke }
+  | { kind: "image"; id: string; zone: Zone; mark: LegacyStroke };
+type Gesture = { mark: PanelStroke | null; gap: boolean; budget: number };
 export function useTextureBrush(
   design: ShirtDesign,
-  images: ArtImages,
+  zone: Zone,
   selected: string,
   onChange: (design: ShirtDesign) => void,
-  onSelect: (l: ShirtLayer) => void,
+  onZone: (zone: Zone) => void,
   onError: (s: string) => void,
 ) {
   const [tool, setTool] = useState<TextureTool>("move"),
     [color, setColor] = useState("#df5638"),
     [size, setSize] = useState(8);
-  type Mark = { layer: ShirtLayer; stroke: Stroke };
-  const drag = useRef<Mark | null>(null),
+  const gesture = useRef<Gesture | null>(null),
     frame = useRef(0),
-    [preview, setPreview] = useState<Mark | null>(null);
-  const [undone, setUndone] = useState<{ id: string; strokes: Stroke[] } | null>(null);
+    [preview, setPreview] = useState<PanelStroke | null>(null);
+  const [undone, setUndone] = useState<UndoEntry[]>([]);
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
-  function withStrokes(layer: ShirtLayer, strokes: Stroke[]): ShirtDesign {
-    return {
-      ...design,
-      layout: {
-        ...design.layout,
-        layers: design.layout.layers.map((l) => (l.id === layer.id ? { ...l, strokes } : l)),
-      },
-    };
-  }
-  function begin(hit: SurfaceHit) {
-    if (tool === "move" || drag.current) return false;
-    if (!inside([hit.x, hit.y])) {
-      onError("Start the stroke on placed artwork.");
-      return false;
-    }
-    const layers = design.layout.layers.filter((l) => l.zone === hit.zone).reverse();
-    const preferred = layers.find((l) => l.id === selected);
-    const layer = [...(preferred ? [preferred] : []), ...layers].find((l) => {
-      const img = images.get(l.fileId);
-      return img && inside(layerPoint(hit, l, img));
-    });
-    if (!layer) {
-      onError("Start the stroke on placed artwork.");
-      return false;
-    }
-    if ((layer.strokes?.length ?? 0) >= maxStrokes) {
-      onError("This layer has reached its stroke limit.");
-      return false;
-    }
-    const pointCount = design.layout.layers.reduce(
-      (total, l) => total + (l.strokes ?? []).reduce((n, s) => n + s.points.length, 0),
-      0,
-    );
-    if (pointCount + maxPoints > maxDesignPoints) {
+  const layout = design.layout,
+    ink = layout.ink ?? [];
+  const withInk = (marks: PanelStroke[]): ShirtDesign => ({
+    ...design,
+    layout: { ...layout, ink: marks },
+  });
+  function begin(hit: SurfaceHit | null) {
+    if (tool === "move" || gesture.current) return false;
+    const used =
+      layout.layers.reduce(
+        (n, l) => n + (l.strokes ?? []).reduce((m, s) => m + s.points.length, 0),
+        0,
+      ) + ink.reduce((n, s) => n + s.paths.reduce((m, p) => m + p.length, 0), 0);
+    const budget = Math.min(maxDesignPoints - used, maxPoints);
+    if (budget < 1) {
       onError("This design has reached its brush detail limit.");
       return false;
     }
     onError("");
-    drag.current = {
-      layer,
-      stroke: {
-        tool,
-        color,
-        size: size / 100,
-        points: [layerPoint(hit, layer, images.get(layer.fileId)!)],
-      },
-    };
-    setPreview(drag.current);
+    gesture.current = { mark: null, gap: true, budget };
+    move(hit);
     return true;
   }
   function move(hit: SurfaceHit | null) {
-    const current = drag.current;
-    if (!current) return;
-    if (!hit || hit.zone !== current.layer.zone || !inside([hit.x, hit.y])) {
-      finish();
+    const g = gesture.current;
+    if (!g || tool === "move") return;
+    if (!hit || !inside([hit.x, hit.y]) || (g.mark && hit.zone !== g.mark.zone)) {
+      g.gap = true;
       return;
     }
-    const point = layerPoint(hit, current.layer, images.get(current.layer.fileId)!);
-    const previous = current.stroke.points.at(-1)!;
-    if (!inside(point)) {
-      finish();
-      return;
+    const point: Point = [Math.round(hit.x * 10000) / 10000, Math.round(hit.y * 10000) / 10000];
+    if (!g.mark) {
+      if (tool === "erase" && !hasPrint(layout, hit.zone)) return;
+      if (ink.filter((s) => s.zone === hit.zone).length >= maxStrokes) {
+        onError("This print area has reached its stroke limit.");
+        return;
+      }
+      g.mark = {
+        zone: hit.zone,
+        order: nextPrintOrder(layout),
+        tool,
+        color,
+        size: size / 100,
+        paths: [[point]],
+      };
+    } else {
+      const lastPath = g.mark.paths.at(-1)!,
+        last = lastPath.at(-1)!;
+      if (!g.gap && Math.hypot(point[0] - last[0], point[1] - last[1]) < 0.001) return;
+      let paths = g.mark.paths;
+      if (paths.reduce((n, p) => n + p.length, 0) >= g.budget) {
+        // Preserve endpoints and separate excursions outside the panel on long drags.
+        paths = paths.map((path) => path.filter((_, i) => i === path.length - 1 || i % 2 === 0));
+        if (paths.reduce((n, p) => n + p.length, 0) >= g.budget) return;
+      }
+      g.mark = {
+        ...g.mark,
+        paths: g.gap ? [...paths, [point]] : [...paths.slice(0, -1), [...paths.at(-1)!, point]],
+      };
     }
-    if (Math.hypot(point[0] - previous[0], point[1] - previous[1]) < 0.002) return;
-    let points = current.stroke.points;
-    if (points.length === maxPoints) points = points.filter((_, index) => index % 2 === 0);
-    drag.current = { ...current, stroke: { ...current.stroke, points: [...points, point] } };
+    g.gap = false;
     if (!frame.current)
       frame.current = requestAnimationFrame(() => {
         frame.current = 0;
-        setPreview(drag.current);
+        setPreview(gesture.current?.mark ?? null);
       });
   }
   function finish(cancel = false) {
-    const current = drag.current;
-    if (!current) return;
+    const g = gesture.current;
+    if (!g) return;
     cancelAnimationFrame(frame.current);
     frame.current = 0;
-    drag.current = null;
+    gesture.current = null;
     setPreview(null);
-    if (cancel) return;
-    onChange(withStrokes(current.layer, [...(current.layer.strokes ?? []), current.stroke]));
-    onSelect(current.layer);
-    setUndone(null);
+    if (!cancel && g.mark) {
+      onChange(withInk([...ink, g.mark]));
+      onZone(g.mark.zone);
+      setUndone([]);
+    }
   }
-  const layer = design.layout.layers.find((l) => l.id === selected);
+  const lastMark = ink.filter((mark) => mark.zone === zone).at(-1);
+  const layer = layout.layers.find((l) => l.id === selected && l.zone === zone);
+  const legacy = layer?.strokes ?? [];
+  const next = undone.at(-1);
+  const canRedo =
+    !!next &&
+    (next.kind === "panel" ? next.mark.zone === zone : next.id === selected && next.zone === zone);
+  function changeLegacy(marks: LegacyStroke[]) {
+    if (layer)
+      onChange({
+        ...design,
+        layout: {
+          ...layout,
+          layers: layout.layers.map((l) => (l.id === layer.id ? { ...l, strokes: marks } : l)),
+        },
+      });
+  }
   function undo() {
-    if (!layer?.strokes?.length) return;
-    setUndone({
-      id: layer.id,
-      strokes: [...(undone?.id === layer.id ? undone.strokes : []), layer.strokes.at(-1)!],
-    });
-    onChange(withStrokes(layer, layer.strokes.slice(0, -1)));
+    if (lastMark) {
+      onChange(withInk(ink.filter((mark) => mark !== lastMark)));
+      setUndone([...undone, { kind: "panel", mark: lastMark }]);
+    } else if (layer && legacy.length) {
+      changeLegacy(legacy.slice(0, -1));
+      setUndone([...undone, { kind: "image", id: layer.id, zone, mark: legacy.at(-1)! }]);
+    }
   }
   function redo() {
-    if (!layer || !undone || undone.id !== layer.id || !undone.strokes.length) return;
-    onChange(withStrokes(layer, [...(layer.strokes ?? []), undone.strokes.at(-1)!]));
-    setUndone({ ...undone, strokes: undone.strokes.slice(0, -1) });
+    if (!canRedo || !next) return;
+    if (next.kind === "panel") onChange(withInk([...ink, next.mark]));
+    else changeLegacy([...legacy, next.mark]);
+    setUndone(undone.slice(0, -1));
   }
   return {
     tool,
@@ -141,12 +159,10 @@ export function useTextureBrush(
     finish,
     undo,
     redo,
-    canUndo: !!layer?.strokes?.length,
-    canRedo: !!undone && undone.id === selected && !!undone.strokes.length,
+    canUndo: !!lastMark || legacy.length > 0,
+    canRedo,
     drawing: !!preview,
-    display: preview
-      ? withStrokes(preview.layer, [...(preview.layer.strokes ?? []), preview.stroke])
-      : design,
+    display: preview ? withInk([...ink, preview]) : design,
   };
 }
 export type TextureBrush = ReturnType<typeof useTextureBrush>;
