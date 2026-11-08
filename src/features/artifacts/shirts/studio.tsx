@@ -374,11 +374,15 @@ export function ShirtStudio({
                   style={{ height: 100, padding: 5 }}
                   aria-label={t("Place artwork") + " " + file.name}
                   draggable
-                  onDragStart={(e) => e.dataTransfer.setData(assetType, file.id)}
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = "copy";
+                    e.dataTransfer.setData(assetType, file.id);
+                  }}
                   onClick={() => place(file.id, zone)}
                 >
                   <span className="grid min-w-0 place-items-center gap-1">
                     <Image
+                      draggable={false}
                       unoptimized
                       width={64}
                       height={56}

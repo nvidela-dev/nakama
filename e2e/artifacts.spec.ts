@@ -304,6 +304,7 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
     .setInputFiles({ name: "field.png", mimeType: "image/png", buffer: art });
   const tile = studio.getByRole("button", { name: "Place artwork field.png", exact: true });
   await expect(tile).toBeVisible();
+  await expect(tile).toBeEnabled();
   await tile.dragTo(studio.getByLabel("Print area preview"), { targetPosition: { x: 60, y: 60 } });
   await expect(studio.getByRole("button", { name: "Chest · 1" })).toBeVisible();
   for (const area of ["Back panel", "Left sleeve", "Right sleeve"]) {
