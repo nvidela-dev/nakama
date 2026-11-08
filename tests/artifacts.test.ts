@@ -320,7 +320,28 @@ test("shirt artwork, collections and project counts follow membership, revisions
       layout: { ...design.layout, layers: [{ ...layer, fileId: randomUUID() }] },
     }),
   );
-  const saved = await artifacts.shirt(owner, shop, id, item.revision, design);
+  const invalid = { tool: "erase", color: "#ffffff", size: 0.1, points: [[8, 0.5]] };
+  await assert.rejects(
+    artifacts.shirt(owner, shop, id, item.revision, {
+      ...design,
+      layout: { ...design.layout, layers: [{ ...layer, strokes: [invalid] }] },
+    }),
+  );
+  await assert.rejects(
+    artifacts.shirt(owner, shop, id, item.revision, {
+      ...design,
+      poster: "data:image/webp;base64,YWJj",
+    }),
+  );
+  const poster =
+    "data:image/webp;base64," +
+    (await sharp(image).resize(224, 224).webp().toBuffer()).toString("base64");
+  const saved = await artifacts.shirt(owner, shop, id, item.revision, { ...design, poster });
+  const card = (await artifacts.list(owner, shop)).find((c) => c.id === id);
+  assert.ok(card);
+  assert.ok(card.shirt_poster?.startsWith("data:image/webp;base64,"));
+  assert.equal(card.shirt_cover, null);
+  assert.ok(!(await artifacts.list(outsider)).some((c) => c.id === id));
   assert.deepEqual(saved.shirt, design);
   assert.equal((await artifacts.list(owner, shop))[0]?.collection, "Winter");
   await assert.rejects(

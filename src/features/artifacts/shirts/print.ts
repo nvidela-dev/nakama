@@ -19,16 +19,46 @@ export function drawPanel(
   canvas.height = Math.round((width * panel.height) / panel.width);
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is unavailable.");
+  let overlay: HTMLCanvasElement | undefined;
   for (const layer of layout.layers.filter((l) => l.zone === zone)) {
     const image = images.get(layer.fileId);
     if (!image) continue;
     const w = width * layer.width,
       h = (w * image.naturalHeight) / image.naturalWidth;
-    ctx.save();
-    ctx.translate(layer.x * width, layer.y * canvas.height);
-    ctx.rotate((layer.rotation * Math.PI) / 180);
-    ctx.drawImage(image, -w / 2, -h / 2, w, h);
-    ctx.restore();
+    // Isolate this placement so an eraser reveals lower artwork, including on the printer PNG.
+    let target: CanvasRenderingContext2D = ctx;
+    if (layer.strokes?.length) {
+      overlay ??= document.createElement("canvas");
+      overlay.width = canvas.width;
+      overlay.height = canvas.height;
+      target = overlay.getContext("2d")!;
+    }
+    target.save();
+    target.translate(layer.x * width, layer.y * canvas.height);
+    target.rotate((layer.rotation * Math.PI) / 180);
+    target.translate(-w / 2, -h / 2);
+    target.beginPath();
+    target.rect(0, 0, w, h);
+    target.clip();
+    target.drawImage(image, 0, 0, w, h);
+    for (const stroke of layer.strokes ?? []) {
+      target.globalCompositeOperation = stroke.tool === "erase" ? "destination-out" : "source-over";
+      target.strokeStyle = target.fillStyle = stroke.color;
+      target.lineWidth = w * stroke.size;
+      target.lineCap = target.lineJoin = "round";
+      const [x, y] = stroke.points[0]!;
+      target.beginPath();
+      if (stroke.points.length === 1) {
+        target.arc(x * w, y * h, target.lineWidth / 2, 0, 2 * Math.PI);
+        target.fill();
+      } else {
+        target.moveTo(x * w, y * h);
+        for (const [u, v] of stroke.points.slice(1)) target.lineTo(u * w, v * h);
+        target.stroke();
+      }
+    }
+    target.restore();
+    if (target !== ctx && overlay) ctx.drawImage(overlay, 0, 0);
   }
 }
 function crc32(bytes: Uint8Array) {
@@ -129,7 +159,7 @@ export async function downloadPrintPack(artifact: ArtifactDetail) {
     entries["job.json"] = strToU8(
       JSON.stringify(
         {
-          version: 1,
+          version: 2,
           store: artifact.project_name,
           design: artifact.name,
           revision: artifact.revision,
@@ -137,7 +167,7 @@ export async function downloadPrintPack(artifact: ArtifactDetail) {
           panels,
           files,
           coordinates:
-            "x/y are centre fractions from the upper left of the print area; width is a fraction of area width; rotation is clockwise degrees; array order is back to front.",
+            "x/y are centre fractions from the upper left of the print area; width is a fraction of area width; rotation is clockwise degrees; array order is back to front. Stroke points are fractions of the unrotated source image, with origin at top left. Brush diameter is a fraction of layer width. Erasing reveals lower layers.",
         },
         null,
         2,

@@ -149,7 +149,7 @@ export const wikiChapters = [
       },
       {
         title: "How do I send a shirt to a printer?",
-        body: "Open Artifacts in a Shirt E-shop. Create a Shirt design and name its collection. Drop artwork into the tray, choose a print area and click an asset, or drag it onto the flat print area. Set its position, width and angle. Rotate the shirt to inspect it. Save the design and download the print pack. The ZIP includes the original artwork, transparent 300 PPI panels at their specified sizes, and instructions for the printer.",
+        body: "Create a Shirt design in Artifacts and choose its collection. Drop an image onto the chest, back or either sleeve of the rotating model. You can also pick a print area and tap an image in the tray. Use Brush or Eraser on the artwork, adjust the brush size and undo a stroke as needed. Save to update the gallery photo. Download the print pack for the original artwork, edited transparent panels at 300 PPI and printer instructions.",
       },
       {
         title: "Reading the project cards",

@@ -224,7 +224,8 @@ test("private artifact library, typed outputs, image lightbox, Markdown reader, 
         cover = img.parentElement!.getBoundingClientRect();
       return (
         Math.abs(image.height - cover.height) <= 1 &&
-        cover.height === 180 &&
+        cover.height === 64 &&
+        cover.width === 64 &&
         image.bottom <= cover.bottom &&
         image.top >= cover.top
       );
@@ -298,20 +299,72 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
   ).toBeVisible();
   const art = await sharp(
     Buffer.from(
-      '<svg width="640" height="480"><rect x="30" y="40" width="180" height="380" fill="#e44024"/><circle cx="387" cy="220" r="140" fill="#18584c"/></svg>',
+      '<svg width="640" height="480"><rect width="640" height="480" fill="#eadfc4"/><rect x="30" y="40" width="180" height="380" fill="#e44024"/><circle cx="387" cy="220" r="140" fill="#18584c"/></svg>',
     ),
   )
     .png()
     .toBuffer();
-  await studio
-    .getByLabel("Upload artwork")
-    .setInputFiles({ name: "field.png", mimeType: "image/png", buffer: art });
+  const mesh = studio.getByRole("img", { name: "Rotatable shirt preview" }).locator("canvas");
+  await mesh.scrollIntoViewIfNeeded();
+  await mesh.evaluate((el, data) => {
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([new Uint8Array(data)], "field.png", { type: "image/png" }));
+    const rect = el.getBoundingClientRect();
+    el.dispatchEvent(
+      new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: transfer,
+        clientX: rect.x + rect.width / 2,
+        clientY: rect.y + rect.height / 2,
+      }),
+    );
+  }, Array.from(art));
   const tile = studio.getByRole("button", { name: "Place artwork field.png", exact: true });
-  await expect(tile).toBeVisible();
-  await expect(tile).toBeEnabled();
-  await tile.dragTo(studio.getByLabel("Print area preview"), { targetPosition: { x: 60, y: 60 } });
   await expect(studio.getByRole("button", { name: "Chest · 1" })).toBeVisible();
-  for (const area of ["Back panel", "Left sleeve", "Right sleeve"]) {
+  await expect(tile).toBeEnabled();
+  await tile.dragTo(mesh, { targetPosition: { x: 3, y: 3 } });
+  await expect(studio.getByRole("button", { name: "Chest · 1" })).toBeVisible();
+  await studio.getByRole("button", { name: "Brush", exact: true }).click();
+  await mesh.scrollIntoViewIfNeeded();
+  const working = await mesh.boundingBox();
+  const startX = working!.x + working!.width / 2,
+    startY = working!.y + working!.height / 2;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + 9, startY + 4, { steps: 5 });
+  await page.mouse.up();
+  await expect(studio.getByRole("button", { name: "Undo stroke" })).toBeEnabled();
+  const sheet = studio.getByLabel("Print area preview");
+  const px = Number(await studio.getByRole("slider", { name: /Centre X/ }).inputValue()) / 30,
+    py = Number(await studio.getByRole("slider", { name: /Centre Y/ }).inputValue()) / 40;
+  const sample = (x: number, y: number) =>
+    sheet.evaluate(
+      (el, p) => {
+        const canvas = el as HTMLCanvasElement;
+        return Array.from(
+          canvas
+            .getContext("2d")!
+            .getImageData(Math.floor(p.x * canvas.width), Math.floor(p.y * canvas.height), 1, 1)
+            .data,
+        );
+      },
+      { x, y },
+    );
+  await expect.poll(() => sample(px, py)).toEqual([223, 86, 56, 255]);
+  await studio.getByRole("button", { name: "Undo stroke" }).click();
+  await expect.poll(() => sample(px, py)).not.toEqual([223, 86, 56, 255]);
+  await studio.getByRole("button", { name: "Redo stroke" }).click();
+  await expect.poll(() => sample(px, py)).toEqual([223, 86, 56, 255]);
+  await studio.getByRole("button", { name: "Eraser", exact: true }).click();
+  const rect = await sheet.boundingBox();
+  await sheet.click({ position: { x: (px + 0.09) * rect!.width, y: py * rect!.height } });
+  await expect.poll(async () => (await sample(px + 0.09, py))[3]).toBe(0);
+  await studio.getByRole("button", { name: "Move and rotate" }).click();
+  await studio.getByRole("button", { name: "Back panel · 0" }).click();
+  await tile.dragTo(mesh);
+  await expect(studio.getByRole("button", { name: "Back panel · 1" })).toBeVisible();
+  for (const area of ["Left sleeve", "Right sleeve"]) {
     await studio.getByRole("button", { name: area + " · 0", exact: true }).click();
     await tile.click();
   }
@@ -322,7 +375,6 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
   await page.reload();
   await expect(studio.getByRole("button", { name: "Left sleeve · 1", exact: true })).toBeVisible();
   await expect(studio.getByLabel("Blank and sample size")).toHaveValue("Cotton crew, M");
-  const mesh = studio.getByRole("img", { name: "Rotatable shirt preview" }).locator("canvas");
   const box = await mesh.boundingBox();
   expect(box).toBeTruthy();
   const before = await mesh.screenshot();
@@ -348,10 +400,31 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
     expect(info.density).toBe(300);
     expect(info.hasAlpha).toBe(true);
     expect(info.width).toBe(zone.endsWith("sleeve") ? 1181 : 3543);
+    if (zone === "chest") {
+      const point = async (x: number) =>
+        Array.from(
+          await png
+            .clone()
+            .extract({
+              left: Math.floor(x * info.width!),
+              top: Math.floor(py * info.height!),
+              width: 1,
+              height: 1,
+            })
+            .raw()
+            .toBuffer(),
+        );
+      expect(await point(px)).toEqual([223, 86, 56, 255]);
+      expect((await point(px + 0.09))[3]).toBe(0);
+      expect(
+        job.layout.layers.find((l: { zone: string }) => l.zone === "chest").strokes,
+      ).toHaveLength(2);
+    }
     const stats = await png.stats();
     expect(stats.channels[3]!.min).toBe(0);
     expect(stats.channels[3]!.max).toBe(255);
   }
+  const designUrl = page.url();
   await studio.screenshot({ path: test.info().outputPath("shirt-studio.png") });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
@@ -359,6 +432,34 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
   );
   await page.goto("/projects/" + fixtureId + "?view=artifacts");
   await expect(page.getByRole("heading", { name: /Fieldwork/ })).toBeVisible();
+  const cover = page.locator(".artifact-card").filter({ hasText: "Field tee" });
+  await expect(cover.locator("img")).toHaveAttribute("src", /^data:image\/webp;base64,/);
+  expect((await cover.boundingBox())!.height).toBeLessThan(100);
+  expect(await cover.locator("img").evaluate((el) => (el as HTMLImageElement).naturalWidth)).toBe(
+    224,
+  );
+  // A save without a GPU has the same shape as an older design without a stored photo.
+  const flat = await page.context().newPage();
+  await flat.setViewportSize({ width: 390, height: 844 });
+  try {
+    await flat.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+        value: function (this: HTMLCanvasElement, kind: string, ...args: unknown[]) {
+          return kind.includes("webgl") ? null : Reflect.apply(original, this, [kind, ...args]);
+        },
+      });
+    });
+    await flat.goto(designUrl);
+    await expect(flat.getByLabel("Flat shirt preview")).toBeVisible();
+    await flat.getByLabel("Printer notes").fill("Sample reviewed on mobile");
+    await flat.getByRole("button", { name: "Save design", exact: true }).click();
+    await expect(flat.getByRole("button", { name: "Download print pack" })).toBeEnabled();
+  } finally {
+    await flat.close();
+  }
+  await page.reload();
+  await expect(cover.locator("img")).toHaveAttribute("src", /^data:image\/webp;base64,/);
   await page.goto("/projects");
   const card = page
     .getByRole("region", { name: "Shirt E-shop", exact: true })

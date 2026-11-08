@@ -211,43 +211,36 @@ export function ArtifactLibrary({
               )}
               <div
                 className={
-                  "artifact-grid grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_260px),_1fr))] gap-4"
+                  "artifact-grid grid grid-cols-[repeat(auto-fill,minmax(min(100%,244px),1fr))] gap-2"
                 }
               >
                 {group.items.map((a) => (
                   <Link
                     key={a.id}
-                    className={
-                      "artifact-card panel bg-panel rounded-[16px] max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] flex flex-col min-w-0 overflow-hidden border border-line hover:border-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:4px] p-0"
-                    }
                     href={artifactUrl(a.project_id, a.id)}
+                    className="artifact-card flex items-center gap-3 min-w-0 p-2 border border-line rounded-md bg-panel hover:border-lime focus-visible:outline-2 focus-visible:outline-lime"
                   >
-                    <div
-                      className={[
-                        `artifact-cover artifact-cover-${a.kind}`,
-                        a.kind === "markdown" &&
-                          "[background:linear-gradient(135deg,var(--theme-surface,#313b2c),#17231c)]!",
-                        a.kind === "software" &&
-                          "[background:linear-gradient(135deg,var(--theme-surface,#243736),var(--theme-surface-low,#142327))]!",
-                        "h-45 [background:linear-gradient(135deg,_var(--theme-surface,#243b32),_#101c1b)] grid place-items-center border-b border-b-line relative overflow-hidden [flex:0_0_180px] [&_>_span]:text-[48px] [&_>_span]:text-lime [&_>_span]:opacity-80",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
-                      {a.shirt_cover ? (
-                        <ShirtCover card={a} />
+                    <div className="artifact-cover grid size-16 shrink-0 place-items-center overflow-hidden rounded bg-bg text-muted">
+                      {a.shirt_poster ? (
+                        <img
+                          loading="lazy"
+                          decoding="async"
+                          src={a.shirt_poster}
+                          alt={a.name}
+                          className="size-full object-contain"
+                        />
+                      ) : a.shirt_cover ? (
+                        <ShirtCover key={a.id + ":" + a.revision} card={a} />
                       ) : a.cover_id ? (
                         <img
-                          decoding="async"
                           loading="lazy"
+                          decoding="async"
                           src={artifactFileUrl(a.project_id, a.id, a.cover_id)}
                           alt={a.name}
-                          className={
-                            "w-full h-full [object-fit:cover] absolute inset-0 block min-h-0"
-                          }
+                          className="size-full object-contain"
                         />
                       ) : (
-                        <span aria-hidden="true">
+                        <span title={t("No preview")}>
                           <Icon
                             name={
                               a.kind === "markdown"
@@ -256,54 +249,27 @@ export function ArtifactLibrary({
                                   ? "code"
                                   : "image"
                             }
-                            size={32}
+                            size={21}
                           />
                         </span>
                       )}
                     </div>
-                    <div className={"artifact-card-body p-4"}>
-                      <div
-                        className={
-                          "artifact-card-meta flex justify-between items-center gap-2 text-[11px] text-muted"
-                        }
-                      >
-                        <span>{t(a.collection ? "Shirt design" : artifactKinds[a.kind])}</span>
-                        <span
-                          className={[
-                            `artifact-status ${a.status}`,
-                            "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[var(--theme-surface,#304630)] [&.ready]:text-lime [&.ready]:[border-color:var(--theme-border,#5c7544)]",
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
-                        >
-                          {t(a.status === "ready" ? "Ready to use" : "In progress")}
-                        </span>
-                      </div>
+                    <div className="min-w-0 flex-1">
                       <h3
-                        className={
-                          "font-sans tracking-[-0.045em] font-semibold lg:compact:text-[15px] lg:compact:mb-2 lg:compact:mt-4.5 mt-3 mx-0 mb-1 text-[18px] wrap-anywhere"
-                        }
+                        className="font-semibold text-sm leading-tight line-clamp-2 wrap-anywhere"
+                        title={a.name}
                       >
                         {a.name}
                       </h3>
-                      <p className={"muted text-muted my-1.25 mx-0 text-[12px]"}>
-                        {a.project_name}
-                        {a.stage_id
-                          ? ` · ${t(a.stage_name ?? stages.find((s) => s.id === a.stage_id)?.name ?? a.stage_id)}`
-                          : ""}
-                      </p>
-                      {a.description && (
-                        <p
-                          className={
-                            "artifact-excerpt [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] overflow-hidden text-muted my-1.25 mx-0 text-[12px]"
-                          }
-                        >
-                          {a.description}
-                        </p>
-                      )}
-                      <small className={"block mt-3.75 text-muted text-[11px]"}>
-                        {a.done_task_count}/{a.task_count} {t("tasks done")}
-                        {a.file_count ? ` · ${a.file_count} ${t("files")}` : ""}
+                      <div className="text-xs text-muted truncate">
+                        {!projectId && a.project_name + " · "}
+                        {t(a.collection ? "Shirt design" : artifactKinds[a.kind])}
+                      </div>
+                      <small className="artifact-status block truncate text-xs text-muted">
+                        {t(a.status === "ready" ? "Ready to use" : "In progress")}
+                        {a.task_count > 0 &&
+                          ` · ${a.done_task_count}/${a.task_count} ${t("tasks done")}`}
+                        {a.file_count > 0 && ` · ${a.file_count} ${t("files")}`}
                       </small>
                     </div>
                   </Link>

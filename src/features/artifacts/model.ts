@@ -12,6 +12,7 @@ export type Artifact = Omit<
 > & { project_name: string; tasks: ArtifactTask[] };
 export type ArtifactCard = Omit<Artifact, "tasks"> & {
   collection: string | null;
+  shirt_poster: string | null;
   shirt_cover: Pick<ShirtDesign["layout"], "color" | "layers"> | null;
   task_count: number;
   done_task_count: number;
