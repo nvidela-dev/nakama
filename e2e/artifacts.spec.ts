@@ -305,6 +305,14 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
     .png()
     .toBuffer();
   const mesh = studio.getByRole("img", { name: "Rotatable shirt preview" }).locator("canvas");
+  let releaseImage!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    releaseImage = resolve;
+  });
+  await page.route("**/artifacts/*/files/*", async (route) => {
+    await gate;
+    await route.continue();
+  });
   await mesh.scrollIntoViewIfNeeded();
   await mesh.evaluate((el, data) => {
     const transfer = new DataTransfer();
@@ -321,7 +329,15 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
     );
   }, Array.from(art));
   const tile = studio.getByRole("button", { name: "Place artwork field.png", exact: true });
-  await expect(studio.getByRole("button", { name: "Chest · 1" })).toBeVisible();
+  const paintTool = studio.getByRole("button", { name: "Brush", exact: true });
+  try {
+    await expect(studio.getByRole("button", { name: "Chest · 1" })).toBeVisible();
+    await expect(paintTool).toBeDisabled();
+  } finally {
+    releaseImage();
+  }
+  await expect(paintTool).toBeEnabled({ timeout: 15000 });
+
   await expect(tile).toBeEnabled();
   await tile.dragTo(mesh, { targetPosition: { x: 3, y: 3 } });
   await expect(studio.getByRole("button", { name: "Chest · 1" })).toBeVisible();
