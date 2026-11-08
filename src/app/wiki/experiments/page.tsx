@@ -35,10 +35,10 @@ export default async function ExperimentGuide() {
         title: t("Criterion"),
         heading: t("Decide what would count."),
         body: t(
-          "Choose the success criterion before collecting results. Set a small sample, a time limit, and an observable completion condition. Leave an unknown baseline blank.",
+          "Choose the success criterion before collecting results. Set a small sample, a time limit and an observable completion condition.",
         ),
         action: t(
-          "Fill Claim, Method, and Success criteria. Expand Scope, question, metrics and limits if useful.",
+          "Open Tests and enter the claim, method and success criteria. Owner and budget or action limits are optional.",
         ),
         note: t(
           "If you change the criterion later, save a new plan version. Earlier runs keep their original plan.",

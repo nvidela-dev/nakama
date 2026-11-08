@@ -421,8 +421,8 @@ test("experiment lab starts with three required fields and exposes optional deta
   await expect(page.getByLabel("Claim · what do you want to learn?", { exact: true })).toHaveValue(
     "A shorter form helps",
   );
-  await page.getByText("Scope, question, metrics and limits", { exact: true }).click();
-  await expect(page.getByLabel("Baseline (if known)", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("Owner / responsible person", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Baseline (if known)", { exact: true })).toHaveCount(0);
 });
 test("experiment lab flags changed context and previews an explicitly scoped brief", async ({
   page,

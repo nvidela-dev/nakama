@@ -135,7 +135,7 @@ test("bell preserves unread state until explicit read or visible discussion, wit
     const discussionPosition = positions.find((e) => e.className.includes("discussion"))!;
     const workingPosition = positions.find((e) => e.className.includes("working"))!;
     expect(discussionPosition.x).toBe(workingPosition.x);
-    expect(discussionPosition.width).toBeGreaterThan(workingPosition.width);
+    expect(Math.abs(discussionPosition.width - workingPosition.width)).toBeLessThan(1);
     expect(discussionPosition.y).toBeGreaterThanOrEqual(workingPosition.bottom);
     const taskComment = await comments.post(
       friend,

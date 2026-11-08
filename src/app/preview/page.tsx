@@ -1,4 +1,3 @@
-import { ExperimentCycle } from "@/features/experiments/components/experiment-cycle";
 import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { Journey } from "@/features/guidance/components/journey";
@@ -91,7 +90,6 @@ export default async function Preview({
           preview
         />
       </div>
-      <ExperimentCycle projectId="example" flowId="creative" preview />
     </main>
   );
 }

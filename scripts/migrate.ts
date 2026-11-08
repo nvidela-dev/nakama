@@ -15,8 +15,8 @@ const pool = new Pool({
 });
 const client = await pool.connect();
 try {
-  await client.query("BEGIN");
-  await client.query("SELECT pg_advisory_xact_lock(734921)");
+  // Keep one session lock across commits. A new enum value must commit before a later migration can use it.
+  await client.query("SELECT pg_advisory_lock(734921)");
   await client.query(
     "CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())",
   );
@@ -40,14 +40,15 @@ try {
       continue;
     }
     applying = name;
+    await client.query("BEGIN");
     await client.query(sql);
     await client.query("INSERT INTO schema_migrations (name, checksum) VALUES ($1, $2)", [
       name,
       checksum,
     ]);
+    await client.query("COMMIT");
     applied.push(name);
   }
-  await client.query("COMMIT");
   for (const name of applied) console.log(`Applied ${name}`);
 } catch (error) {
   await client.query("ROLLBACK");
@@ -65,6 +66,6 @@ try {
     `Migration ${applying ?? "setup"} failed (SQLSTATE ${code}); transaction rolled back.`,
   );
 } finally {
-  client.release();
+  client.release(true);
   await pool.end();
 }

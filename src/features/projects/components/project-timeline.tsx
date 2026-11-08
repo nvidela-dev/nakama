@@ -1,3 +1,4 @@
+import { stageLabel } from "@/features/guidance/model/stage-progress";
 import { ProgressMarker } from "@/shared/ui/progress-marker";
 import type { StageProgress } from "@/features/projects/model";
 import type { translator } from "@/shared/i18n/index";
@@ -64,11 +65,7 @@ export function ProjectTimeline({
       aria-label={t("Stage progress")}
     >
       {stages.map((stage, index) => {
-        const state = stage.reviewed
-          ? t("✓ Reviewed")
-          : stage.started
-            ? t("In progress")
-            : t("Not started");
+        const state = t(stageLabel(stage));
         const label = `${t(stage.name)} · ${state} · ${stage.answered}/${stage.total} ${t("questions answered")}${stage.revisit ? t(" · revisit") : ""} · ${stage.blocked} ${t("blocked")} · ${stage.skipped} ${t("skipped")}`;
         return (
           <li

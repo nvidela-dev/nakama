@@ -1,7 +1,7 @@
 import { ProjectTests } from "@/features/experiments/components/project-tests";
 import { experimentPrompts } from "@/features/experiments/flow-prompts";
 import { productionStages } from "@/features/tasks/milestone-catalog";
-import { ExperimentCycle } from "@/features/experiments/components/experiment-cycle";
+
 import { ProjectRelations } from "@/features/projects/components/project-relations";
 import { projectLinksService } from "@/features/projects/server/project-links";
 import { ArtifactLibrary } from "@/features/artifacts/components/artifact-library";
@@ -187,6 +187,7 @@ export default async function ProjectPage({
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
       />
       <details
+        open
         className={
           "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:w-full pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
         }
@@ -387,14 +388,14 @@ export default async function ProjectPage({
             <>
               <div
                 className={
-                  "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2"
+                  "project-discussion-column min-w-0 max-w-full col-span-full col-start-1 row-start-2 min-[701px]:col-span-8 min-[1280px]:col-span-10"
                 }
               >
                 {discussion}
               </div>
               <div
                 className={
-                  "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11"
+                  "project-sidebar grid gap-2 min-w-0 max-w-full overflow-hidden content-start [&_.project-settings]:mb-0 col-span-1 col-start-1 row-start-3 min-[701px]:row-span-2 min-[701px]:col-span-4 min-[701px]:col-start-9 min-[701px]:row-start-1 min-[1280px]:col-span-2 min-[1280px]:col-start-11"
                 }
               >
                 {sidebar}
@@ -402,13 +403,6 @@ export default async function ProjectPage({
             </>
           )}
         </div>
-      )}
-      {!focusedWork && (
-        <ExperimentCycle
-          projectId={projectId}
-          flowId={guidance?.flow.id}
-          nodeId={selectedNode?.kind === "question" ? selectedNode.id : undefined}
-        />
       )}
     </main>
   );

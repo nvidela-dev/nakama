@@ -188,7 +188,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
     const discussion = await page.locator(".project-discussion-column").boundingBox();
     const work = await page.locator(".project-working-column").boundingBox();
     expect(Math.abs(discussion!.x - workspace!.x)).toBeLessThan(1);
-    expect(Math.abs(discussion!.width - workspace!.width)).toBeLessThan(1);
+    expect(Math.abs(discussion!.width - work!.width)).toBeLessThan(1);
     expect(discussion!.y).toBeGreaterThanOrEqual(work!.y + work!.height);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
       false,

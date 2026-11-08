@@ -8,7 +8,7 @@ export function DesignProvider({ mode, children }: { mode: StyleTheme; children:
       theme={{
         algorithm: mode === "night" ? theme.darkAlgorithm : theme.defaultAlgorithm,
         components: { Empty: { colorTextDescription: mode === "night" ? "#bfbfbf" : "#595959" } },
-        token: { motion: false, colorPrimary: mode === "night" ? "#1668dc" : "#0958d9" },
+        token: { motion: false, colorPrimary: mode === "night" ? "#486374" : "#405869" },
       }}
     >
       {children}

@@ -184,9 +184,14 @@ export function ExperimentLab({
       create ? "Create experiment" : "Save new plan version",
       (d) => ({
         kind: create ? "create" : "plan",
-        plan: Object.fromEntries(
-          Object.keys(empty).map((key) => [key, String(d.get(key) ?? "")]),
-        ) as Plan,
+        plan: {
+          ...current,
+          claim: String(d.get("claim") ?? ""),
+          method: String(d.get("method") ?? ""),
+          criteria: String(d.get("criteria") ?? ""),
+          owner: String(d.get("owner") ?? ""),
+          limits: String(d.get("limits") ?? ""),
+        },
       }),
       <>
         <div className="grid gap-3 lg:grid-cols-3 sm:col-span-2">
@@ -215,43 +220,8 @@ export function ExperimentLab({
             required
           />
         </div>
-        <details className="sm:col-span-2">
-          <summary className="cursor-pointer text-lime">
-            {t("Scope, question, metrics and limits")}
-          </summary>
-          <div className="grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_240px),_1fr))] gap-3 mt-3">
-            {(["scope", "metric", "baseline", "owner", "limits", "milestone"] as const).map(
-              (key) => (
-                <Field
-                  key={key}
-                  name={key}
-                  label={t(
-                    {
-                      scope: "Claim scope",
-                      metric: "Metric and unit",
-                      baseline: "Baseline (if known)",
-                      owner: "Owner / responsible person",
-                      limits: "Budget and action limits",
-                      milestone: "Milestone (optional label)",
-                    }[key],
-                  )}
-                  value={current[key]}
-                />
-              ),
-            )}
-            <label className="grid gap-1 text-[14px]">
-              {t("Related question")}
-              <Select className={fieldClass} name="nodeId" defaultValue={current.nodeId}>
-                <option value="">{t("No question selected")}</option>
-                {questions.map((q) => (
-                  <option key={q.id} value={q.id}>
-                    {q.label}
-                  </option>
-                ))}
-              </Select>
-            </label>
-          </div>
-        </details>
+        <Field name="owner" label={t("Owner / responsible person")} value={current.owner} />
+        <Field name="limits" label={t("Budget and action limits")} value={current.limits} />
       </>,
       false,
     );

@@ -9,7 +9,7 @@ const columns = (values: [string, string][]): BoardColumn[] =>
 export const milestoneTemplates = {
   build_sprint: {
     name: "Build sprint",
-    flows: ["venture", "saas", "platform"],
+    flows: ["venture", "saas", "platform", "video-game"],
     columns: columns([
       ["backlog", "Backlog"],
       ["in_progress", "In progress"],
@@ -19,7 +19,7 @@ export const milestoneTemplates = {
   },
   release_rollout: {
     name: "Launch and rollout",
-    flows: ["venture", "saas", "eshop", "platform"],
+    flows: ["venture", "saas", "eshop", "platform", "video-game"],
     columns: columns([
       ["prep", "Preparation"],
       ["staging", "Staging"],
@@ -95,6 +95,7 @@ export function allowedTemplates(flow: FlowId | null) {
     .map(([id, template]) => ({ id: id as MilestoneTemplateId, ...template }));
 }
 export const productionStages: Record<FlowId, string[]> = {
+  "video-game": ["prototype", "release"],
   venture: ["building"],
   creative: ["create"],
   investigation: ["deliver"],
