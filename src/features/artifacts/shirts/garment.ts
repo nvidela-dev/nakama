@@ -118,7 +118,8 @@ export function mountGarment(host: HTMLElement) {
   for (const zone of ["left_sleeve", "right_sleeve"] as const) {
     const sign = zone === "left_sleeve" ? 1 : -1;
     function sleeve(u: number, v: number): [number, number, number] {
-      const a = (u - 0.5) * 2 * Math.PI * sign,
+      // Viewed from the wearer's left, screen-right points toward the back of the garment.
+      const a = (0.5 - u) * 2 * Math.PI * sign,
         axis = 23 * v,
         r = 11.7 - 1.6 * v;
       return [
@@ -147,7 +148,11 @@ export function mountGarment(host: HTMLElement) {
       right_sleeve: -Math.PI / 2,
     }[zone];
     const distance = Math.max(132, 126 / camera.aspect);
-    camera.position.set(Math.sin(angle) * distance, 40, Math.cos(angle) * distance);
+    camera.position.set(
+      Math.sin(angle) * distance,
+      zone.endsWith("sleeve") ? 34 + distance * 0.42 : 40,
+      Math.cos(angle) * distance,
+    );
     orbit.target.set(0, 34, 0);
     orbit.update();
     render();
