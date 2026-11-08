@@ -48,6 +48,7 @@ function failure(error: unknown): ArtifactFailure {
   };
 }
 function refresh(projectId: string) {
+  revalidatePath("/projects");
   revalidatePath("/artifacts");
   revalidatePath(`/projects/${projectId}`, "layout");
 }
@@ -71,7 +72,7 @@ export async function changeArtifact(
   projectId: string,
   id: string,
   revision: number,
-  operation: "metadata" | "tasks" | "remove-file" | "delete",
+  operation: "shirt" | "metadata" | "tasks" | "remove-file" | "delete",
   input: unknown,
 ): Promise<ArtifactResult> {
   return observeAction("artifact.change", async () => {
@@ -79,7 +80,9 @@ export async function changeArtifact(
       service = artifactService(database());
     try {
       let artifact: ArtifactDetail;
-      if (operation === "metadata")
+      if (operation === "shirt")
+        artifact = await service.shirt(person, projectId, id, revision, input);
+      else if (operation === "metadata")
         artifact = await service.save(person, projectId, id, revision, input);
       else if (operation === "tasks")
         artifact = await service.tasks(person, projectId, id, revision, input);

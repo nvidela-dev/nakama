@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { groupProjectsByType } from "../group-by-type";
 import { navigationProjects } from "@/features/projects/navigation-actions";
 import { LoadingState } from "@/shared/ui/loading-state";
 import { useT } from "@/shared/i18n/provider";
@@ -99,22 +100,27 @@ function ProjectNavigationMenu() {
           ) : !projects ? (
             <LoadingState label={t("Loading…")} variant="compact" lines={3} />
           ) : projects.length ? (
-            <ul className={"list-none m-0 p-0"}>
-              {projects.map((project) => (
-                <li key={project.id}>
-                  <Link
-                    href={`/projects/${project.id}`}
-                    aria-current={path === `/projects/${project.id}` ? "page" : undefined}
-                    onClick={() => setOpen(false)}
-                    className={
-                      'hover:bg-[var(--theme-selected,#2b4030)] hover:text-lime [&[aria-current="page"]]:bg-[var(--theme-selected,#2b4030)] [&[aria-current="page"]]:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:-2px]'
-                    }
-                  >
-                    {project.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            groupProjectsByType(projects, t).map((group) => (
+              <section key={group.id ?? "unset"} className="mb-2">
+                <h3 className="text-xs text-muted font-medium">{t(group.name)}</h3>
+                <ul className="list-none m-0 p-0">
+                  {group.projects.map((project) => (
+                    <li key={project.id}>
+                      <Link
+                        href={`/projects/${project.id}`}
+                        aria-current={path === `/projects/${project.id}` ? "page" : undefined}
+                        onClick={() => setOpen(false)}
+                        className={
+                          'hover:bg-[var(--theme-selected,#2b4030)] hover:text-lime [&[aria-current="page"]]:bg-[var(--theme-selected,#2b4030)] [&[aria-current="page"]]:text-lime focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:-2px]'
+                        }
+                      >
+                        {project.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))
           ) : (
             <p className={"m-3"}>{t("No projects yet.")}</p>
           )}

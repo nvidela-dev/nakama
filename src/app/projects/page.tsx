@@ -4,17 +4,23 @@ import { ProjectCard } from "@/features/projects/components/project-card";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { projectService } from "@/features/projects/server/projects";
-import { projectProgress } from "@/features/projects/server/project-progress";
+import { groupProjectsByType } from "@/features/projects/group-by-type";
+import {
+  projectActivityCounts,
+  projectProgress,
+} from "@/features/projects/server/project-progress";
 import { ProjectTimeline } from "@/features/projects/components/project-timeline";
 
 export const dynamic = "force-dynamic";
 export default async function ProjectsPage() {
   const t = await getT();
   const person = await actor(true);
-  const [projects, progress] = await Promise.all([
+  const [projects, progress, counts] = await Promise.all([
     projectService(database()).list(person),
     projectProgress(database(), person),
+    projectActivityCounts(database(), person),
   ]);
+  const groups = groupProjectsByType(projects, t);
   return (
     <main id="main" className="workspace w-full p-4 lg:p-6 min-h-[70vh]">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -34,19 +40,50 @@ export default async function ProjectsPage() {
           </span>
         </h1>
       </div>
-      <section className="project-list grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3 items-stretch [&_.project-card]:mb-0">
-        <h2
-          className={
-            "sr-only font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 absolute w-0.25 h-0.25 p-0 -m-0.25 overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0 lg:compact:[grid-column:1_/_-1] lg:compact:mb-0"
-          }
-        >
-          {t("Your projects")}
-        </h2>
+      <section aria-label={t("Your projects")} className="grid gap-6">
         {projects.length ? (
-          projects.map((p) => (
-            <ProjectCard key={p.id} project={p}>
-              <ProjectTimeline stages={progress.get(p.id)} t={t} />
-            </ProjectCard>
+          groups.map((group) => (
+            <section key={group.id ?? "unset"} aria-label={t(group.name)}>
+              <h2 className="flex items-baseline gap-2 mb-2 font-semibold text-base">
+                {t(group.name)}{" "}
+                <small className="text-muted font-normal">{group.projects.length}</small>
+              </h2>
+              <div className="project-list grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-2">
+                {group.projects.map((p) => {
+                  const c = counts.get(p.id);
+                  return (
+                    <ProjectCard key={p.id} project={p}>
+                      <ProjectTimeline stages={progress.get(p.id)} t={t} />
+                      {c && (
+                        <dl className="mt-3 border-t border-line pt-2 grid gap-0.5 text-xs text-muted tabular-nums">
+                          {[
+                            [t("Milestones"), `${c.covered}/${c.milestones} ${t("completed")}`],
+                            [t("Tasks"), `${c.open_tasks} ${t("open")} · ${c.tasks} ${t("total")}`],
+                            [
+                              t("Experiments"),
+                              `${c.active} ${t("active")} · ${c.completed} ${t("completed")} · ${c.experiments} ${t("total")}`,
+                            ],
+                            ...(group.id === "shirt-eshop"
+                              ? [
+                                  [
+                                    t("Shirt designs"),
+                                    `${c.shirts} ${t(c.shirts === 1 ? "design" : "designs")} · ${c.collections} ${t(c.collections === 1 ? "collection" : "collections")}`,
+                                  ],
+                                ]
+                              : []),
+                          ].map(([label, value]) => (
+                            <div key={label} className="flex justify-between gap-2">
+                              <dt>{label}</dt>
+                              <dd className="m-0">{value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                    </ProjectCard>
+                  );
+                })}
+              </div>
+            </section>
           ))
         ) : (
           <div

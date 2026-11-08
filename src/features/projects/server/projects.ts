@@ -5,6 +5,7 @@ import {
   memberSchema,
   invitationSchema,
 } from "@/server/database/row-schemas";
+import { flowIdSchema } from "@/shared/contracts/domain-schemas";
 import { queryRows, required } from "@/server/database/query";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { recordActivity } from "@/server/database/activity-log";
@@ -99,8 +100,11 @@ export function projectService(db: Database) {
       requireActor(actor);
       return queryRows(
         db,
-        projectSchema.extend({ content_revision: z.number().int().nonnegative() }),
-        "SELECT p.*, m.role, COALESCE(f.content_revision, 0) AS content_revision FROM projects p JOIN project_memberships m ON m.project_id = p.id LEFT JOIN project_flows f ON f.project_id = p.id WHERE m.user_id = $1 ORDER BY p.created_at DESC, p.id",
+        projectSchema.extend({
+          flow_id: flowIdSchema.nullable(),
+          content_revision: z.number().int().nonnegative(),
+        }),
+        "SELECT p.*, m.role, f.flow_id, COALESCE(f.content_revision, 0) AS content_revision FROM projects p JOIN project_memberships m ON m.project_id = p.id LEFT JOIN project_flows f ON f.project_id = p.id WHERE m.user_id = $1 ORDER BY p.created_at DESC, p.id",
         [actor.userId],
       );
     },

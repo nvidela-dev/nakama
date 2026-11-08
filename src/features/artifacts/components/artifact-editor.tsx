@@ -33,6 +33,9 @@ const MarkdownReader = dynamic(
   { loading: MarkdownLoading },
 );
 
+const ShirtStudio = dynamic(() => import("../shirts/studio").then((m) => m.ShirtStudio), {
+  loading: MarkdownLoading,
+});
 const draftOf = (a: ArtifactDetail) => ({
   name: a.name,
   description: a.description,
@@ -50,6 +53,7 @@ export function ArtifactEditor({
   const t = useT(),
     router = useRouter();
   const [artifact, setArtifact] = useState(initial),
+    [shirtDraft, setShirtDraft] = useState(initial.shirt),
     [draft, setDraft] = useState(draftOf(initial)),
     [tasks, setTasks] = useState<ArtifactTask[]>(initial.tasks);
   const [pending, startTransition] = useTransition(),
@@ -61,7 +65,9 @@ export function ArtifactEditor({
     [confirmation, setConfirmation] = useState("");
   const imageOpener = useRef<HTMLElement | null>(null),
     upload = useRef<HTMLInputElement>(null);
+  const shirtDirty = JSON.stringify(shirtDraft) !== JSON.stringify(artifact.shirt);
   const dirty =
+    shirtDirty ||
     JSON.stringify(draft) !== JSON.stringify(draftOf(artifact)) ||
     JSON.stringify(tasks) !== JSON.stringify(artifact.tasks);
   useEffect(() => {
@@ -113,7 +119,10 @@ export function ArtifactEditor({
     setNotice("Artifact saved.");
     return !!result.artifact;
   }
-  function run(operation: "metadata" | "tasks" | "remove-file" | "delete", input: unknown) {
+  function run(
+    operation: "shirt" | "metadata" | "tasks" | "remove-file" | "delete",
+    input: unknown,
+  ) {
     setNotice("");
     startTransition(async () => {
       try {
@@ -128,15 +137,16 @@ export function ArtifactEditor({
           router.push(`/projects/${artifact.project_id}?view=artifacts`);
           return;
         }
-        if (apply(result, operation === "metadata", operation === "tasks"))
+        if (apply(result, operation === "metadata", operation === "tasks")) {
+          if (operation === "shirt") setShirtDraft(result.artifact.shirt);
           setRemoveFile(undefined);
+        }
       } catch {
         setError("Could not save the artifact. Your draft is still here.");
       }
     });
   }
-  function uploadFiles(event: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []);
+  function uploadFiles(files: File[], placed?: (id: string) => void) {
     if (!files.length) return;
     setNotice("");
     startTransition(async () => {
@@ -151,6 +161,10 @@ export function ArtifactEditor({
           data.set("file", file);
           const result = await uploadArtifactFile(artifact.project_id, artifact.id, revision, data);
           if (!apply(result)) return;
+          const added = result.artifact.files.find(
+            (f) => !artifact.files.some((existing) => existing.id === f.id),
+          );
+          if (added) placed?.(added.id);
           revision = result.artifact.revision;
         }
       } catch {
@@ -171,238 +185,258 @@ export function ArtifactEditor({
         "artifact-detail grid grid-cols-[minmax(0,_1fr)_340px] gap-6 items-start max-[1000px]:grid-cols-[minmax(0,_1fr)]"
       }
     >
-      <Panel className={"artifact-output min-w-0"} aria-label={t("Artifact output")}>
-        <div
-          className={
-            "artifact-library-heading flex items-center justify-between flex-wrap gap-3.5 mb-4.5 [&_p]:mt-1.5 [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-[12px] [&_p]:max-w-[60ch] max-[700px]:items-start max-[700px]:[&_>_button]:w-full"
-          }
-        >
-          <div>
-            <span
-              className={
-                "eyebrow text-[11px] tracking-[2px] text-lime font-bold block [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mb-2"
-              }
-            >
-              {t(artifactKinds[artifact.kind])}
-            </span>
-            <h2
-              className={
-                "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 wrap-anywhere m-0"
-              }
-            >
-              {artifact.name}
-            </h2>
-          </div>
-          <span
-            className={[
-              `artifact-status ${artifact.status}`,
-              "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[var(--theme-surface,#304630)] [&.ready]:text-lime [&.ready]:[border-color:var(--theme-border,#5c7544)]",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {t(artifact.status === "ready" ? "Ready to use" : "In progress")}
-          </span>
-        </div>
-        {artifact.kind === "software" ? (
+      {shirtDraft && artifact.shirt ? (
+        <ShirtStudio
+          artifact={artifact}
+          design={shirtDraft}
+          onChange={setShirtDraft}
+          pending={pending}
+          dirty={shirtDirty}
+          onSave={() => run("shirt", shirtDraft)}
+          onUpload={uploadFiles}
+          onRemove={(file) => run("remove-file", file)}
+        />
+      ) : (
+        <Panel className={"artifact-output min-w-0"} aria-label={t("Artifact output")}>
           <div
             className={
-              "software-output text-center py-11.25 px-5 bg-[var(--theme-overlay,#101c1b80)] [border:1px_dashed_var(--color-line)] rounded-[8px]"
+              "artifact-library-heading flex items-center justify-between flex-wrap gap-3.5 mb-4.5 [&_p]:mt-1.5 [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-[12px] [&_p]:max-w-[60ch] max-[700px]:items-start max-[700px]:[&_>_button]:w-full"
             }
           >
-            <span className={"software-symbol block text-lime text-[48px]"} aria-hidden="true">
-              <Icon name="code" size={32} />
-            </span>
-            {artifact.github_url ? (
-              <>
-                <h3
-                  className={
-                    "mb-[1em] mt-0 font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2"
-                  }
-                >
-                  {t("GitHub repository / release")}
-                </h3>
-                <a
-                  className={
-                    "button text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:var(--theme-accent-hover,#e9ffc1)] hover:[transform:translateY(-1px)]"
-                  }
-                  href={artifact.github_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("Open on GitHub")} <Icon name="arrowUpRight" />
-                </a>
-                <p
-                  className={
-                    "preserve-lines mb-[1em] mt-0 whitespace-pre-wrap text-[13px] text-muted wrap-anywhere"
-                  }
-                >
-                  {artifact.github_url}
-                </p>
-              </>
-            ) : (
-              <p className={"mb-[1em] mt-0 text-[13px] text-muted wrap-anywhere"}>
-                {t("Add a GitHub link in Details to connect this software artifact.")}
-              </p>
-            )}
-          </div>
-        ) : (
-          <>
-            {artifact.kind === "image" && (
-              <div
+            <div>
+              <span
                 className={
-                  "artifact-images grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_240px),_1fr))] gap-4 max-[700px]:grid-cols-[1fr]"
+                  "eyebrow text-[11px] tracking-[2px] text-lime font-bold block [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mb-2"
                 }
               >
-                {images.map((file, index) => (
-                  <figure key={file.id} className={"min-w-0 m-0"}>
-                    <Button
-                      type="submit"
-                      className={"artifact-image-button w-full flex flex-col gap-0 overflow-hidden"}
-                      aria-label={`${t("Expand image")}: ${file.name}`}
-                      onClick={(event) => {
-                        imageOpener.current = event.currentTarget;
-                        setImage(index);
-                      }}
-                    >
-                      <img
-                        decoding="async"
-                        src={artifactFileUrl(artifact.project_id, artifact.id, file.id)}
-                        alt={file.name}
-                        className={"block w-full h-65 [object-fit:contain]"}
-                      />
-                      <span className={"p-2 text-[11px]"}>
-                        {t("Expand image")} <Icon name="arrowUpRight" />
-                      </span>
-                    </Button>
-                    <figcaption className={"flex flex-wrap items-center gap-3 py-2 text-[11px]"}>
-                      <span className={"[flex:1_1_100%] wrap-anywhere text-muted"}>
-                        {file.name}
-                      </span>
-                      <a
-                        href={
-                          artifactFileUrl(artifact.project_id, artifact.id, file.id) + "?download=1"
-                        }
-                        download
-                        className={
-                          "text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-lime"
-                        }
-                      >
-                        {t("Download")}
-                      </a>
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"}
-                        disabled={pending}
-                        onClick={() => setRemoveFile(file.id)}
-                      >
-                        {t("Remove")}
-                      </Button>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            )}
-            {artifact.kind === "markdown" && artifact.markdown && artifact.files[0] && (
-              <>
-                <div
-                  className={
-                    "artifact-file-heading flex items-center justify-between gap-3 flex-wrap mb-5.5 text-[12px] wrap-anywhere"
-                  }
-                >
-                  <span>{artifact.files[0]?.name}</span>
+                {t(artifactKinds[artifact.kind])}
+              </span>
+              <h2
+                className={
+                  "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 wrap-anywhere m-0"
+                }
+              >
+                {artifact.name}
+              </h2>
+            </div>
+            <span
+              className={[
+                `artifact-status ${artifact.status}`,
+                "inline-block shrink-0 py-1 px-2 border border-line rounded-[20px] text-[11px] text-muted [&.ready]:bg-[var(--theme-surface,#304630)] [&.ready]:text-lime [&.ready]:[border-color:var(--theme-border,#5c7544)]",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {t(artifact.status === "ready" ? "Ready to use" : "In progress")}
+            </span>
+          </div>
+          {artifact.kind === "software" ? (
+            <div
+              className={
+                "software-output text-center py-11.25 px-5 bg-[var(--theme-overlay,#101c1b80)] [border:1px_dashed_var(--color-line)] rounded-[8px]"
+              }
+            >
+              <span className={"software-symbol block text-lime text-[48px]"} aria-hidden="true">
+                <Icon name="code" size={32} />
+              </span>
+              {artifact.github_url ? (
+                <>
+                  <h3
+                    className={
+                      "mb-[1em] mt-0 font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2"
+                    }
+                  >
+                    {t("GitHub repository / release")}
+                  </h3>
                   <a
                     className={
-                      "button secondary text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)]"
+                      "button text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 border-0 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 bg-lime text-dark font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[background:var(--theme-accent-hover,#e9ffc1)] hover:[transform:translateY(-1px)]"
                     }
-                    href={
-                      artifactFileUrl(artifact.project_id, artifact.id, artifact.files[0].id) +
-                      "?download=1"
-                    }
-                    download
+                    href={artifact.github_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    {t("Download Markdown")}
+                    {t("Open on GitHub")} <Icon name="arrowUpRight" />
                   </a>
-                </div>
-                <MarkdownReader
-                  content={artifact.markdown}
-                  label={t("Markdown reader")}
-                  externalImageLabel={t("External image")}
-                  completedLabel={t("Completed item")}
-                  incompleteLabel={t("Incomplete item")}
-                />
-              </>
-            )}
-            {!artifact.files.length && (
-              <div
-                className={
-                  "artifact-empty-output text-center py-11.25 px-5 bg-[var(--theme-overlay,#101c1b80)] [border:1px_dashed_var(--color-line)] rounded-[8px]"
-                }
-              >
-                <span aria-hidden="true" className={"block text-lime text-[48px]"}>
-                  <Icon name={artifact.kind === "image" ? "image" : "markdown"} />
-                </span>
+                  <p
+                    className={
+                      "preserve-lines mb-[1em] mt-0 whitespace-pre-wrap text-[13px] text-muted wrap-anywhere"
+                    }
+                  >
+                    {artifact.github_url}
+                  </p>
+                </>
+              ) : (
                 <p className={"mb-[1em] mt-0 text-[13px] text-muted wrap-anywhere"}>
-                  {t("No output attached yet. Keep working and upload a draft when you have one.")}
+                  {t("Add a GitHub link in Details to connect this software artifact.")}
                 </p>
-              </div>
-            )}
-            <div className={"artifact-upload mt-6 grid gap-2 p-4 border border-line rounded-[8px]"}>
-              <label htmlFor="artifact-upload">
-                {t(artifact.kind === "image" ? "Upload images" : "Upload / replace Markdown")}
-              </label>
-              <Input
-                ref={upload}
-                id="artifact-upload"
-                type="file"
-                disabled={pending}
-                multiple={artifact.kind === "image"}
-                accept={
-                  artifact.kind === "image"
-                    ? "image/png,image/jpeg,image/webp,image/gif"
-                    : ".md,.markdown,text/markdown"
-                }
-                onChange={uploadFiles}
-                className={"max-w-full"}
-              />
-              <small className={"text-[11px] text-muted"}>
-                {t(
-                  artifact.kind === "image"
-                    ? "Up to six PNG, JPEG, WebP, or GIF images, 2 MB each."
-                    : "UTF-8 .md or .markdown, up to 500 KB. A new upload replaces the previous document.",
-                )}
-              </small>
+              )}
             </div>
-            {removeFile && (
-              <div className={"artifact-remove-confirm border border-pink p-3 mt-3 text-[12px]"}>
-                <p className={"mb-[1em] mt-0"}>
+          ) : (
+            <>
+              {artifact.kind === "image" && (
+                <div
+                  className={
+                    "artifact-images grid grid-cols-[repeat(auto-fit,_minmax(min(100%,_240px),_1fr))] gap-4 max-[700px]:grid-cols-[1fr]"
+                  }
+                >
+                  {images.map((file, index) => (
+                    <figure key={file.id} className={"min-w-0 m-0"}>
+                      <Button
+                        type="submit"
+                        className={
+                          "artifact-image-button w-full flex flex-col gap-0 overflow-hidden"
+                        }
+                        aria-label={`${t("Expand image")}: ${file.name}`}
+                        onClick={(event) => {
+                          imageOpener.current = event.currentTarget;
+                          setImage(index);
+                        }}
+                      >
+                        <img
+                          decoding="async"
+                          src={artifactFileUrl(artifact.project_id, artifact.id, file.id)}
+                          alt={file.name}
+                          className={"block w-full h-65 [object-fit:contain]"}
+                        />
+                        <span className={"p-2 text-[11px]"}>
+                          {t("Expand image")} <Icon name="arrowUpRight" />
+                        </span>
+                      </Button>
+                      <figcaption className={"flex flex-wrap items-center gap-3 py-2 text-[11px]"}>
+                        <span className={"[flex:1_1_100%] wrap-anywhere text-muted"}>
+                          {file.name}
+                        </span>
+                        <a
+                          href={
+                            artifactFileUrl(artifact.project_id, artifact.id, file.id) +
+                            "?download=1"
+                          }
+                          download
+                          className={
+                            "text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-lime"
+                          }
+                        >
+                          {t("Download")}
+                        </a>
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"}
+                          disabled={pending}
+                          onClick={() => setRemoveFile(file.id)}
+                        >
+                          {t("Remove")}
+                        </Button>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
+              {artifact.kind === "markdown" && artifact.markdown && artifact.files[0] && (
+                <>
+                  <div
+                    className={
+                      "artifact-file-heading flex items-center justify-between gap-3 flex-wrap mb-5.5 text-[12px] wrap-anywhere"
+                    }
+                  >
+                    <span>{artifact.files[0]?.name}</span>
+                    <a
+                      className={
+                        "button secondary text-inherit no-underline focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)]"
+                      }
+                      href={
+                        artifactFileUrl(artifact.project_id, artifact.id, artifact.files[0].id) +
+                        "?download=1"
+                      }
+                      download
+                    >
+                      {t("Download Markdown")}
+                    </a>
+                  </div>
+                  <MarkdownReader
+                    content={artifact.markdown}
+                    label={t("Markdown reader")}
+                    externalImageLabel={t("External image")}
+                    completedLabel={t("Completed item")}
+                    incompleteLabel={t("Incomplete item")}
+                  />
+                </>
+              )}
+              {!artifact.files.length && (
+                <div
+                  className={
+                    "artifact-empty-output text-center py-11.25 px-5 bg-[var(--theme-overlay,#101c1b80)] [border:1px_dashed_var(--color-line)] rounded-[8px]"
+                  }
+                >
+                  <span aria-hidden="true" className={"block text-lime text-[48px]"}>
+                    <Icon name={artifact.kind === "image" ? "image" : "markdown"} />
+                  </span>
+                  <p className={"mb-[1em] mt-0 text-[13px] text-muted wrap-anywhere"}>
+                    {t(
+                      "No output attached yet. Keep working and upload a draft when you have one.",
+                    )}
+                  </p>
+                </div>
+              )}
+              <div
+                className={"artifact-upload mt-6 grid gap-2 p-4 border border-line rounded-[8px]"}
+              >
+                <label htmlFor="artifact-upload">
+                  {t(artifact.kind === "image" ? "Upload images" : "Upload / replace Markdown")}
+                </label>
+                <Input
+                  ref={upload}
+                  id="artifact-upload"
+                  type="file"
+                  disabled={pending}
+                  multiple={artifact.kind === "image"}
+                  accept={
+                    artifact.kind === "image"
+                      ? "image/png,image/jpeg,image/webp,image/gif"
+                      : ".md,.markdown,text/markdown"
+                  }
+                  onChange={(event) => uploadFiles(Array.from(event.target.files ?? []))}
+                  className={"max-w-full"}
+                />
+                <small className={"text-[11px] text-muted"}>
                   {t(
-                    "Remove this file? Set the artifact to In progress before removing its final output.",
+                    artifact.kind === "image"
+                      ? "Up to six PNG, JPEG, WebP, or GIF images, 2 MB each."
+                      : "UTF-8 .md or .markdown, up to 500 KB. A new upload replaces the previous document.",
                   )}
-                </p>
-                <Button
-                  type="submit"
-                  disabled={pending}
-                  onClick={() => run("remove-file", removeFile)}
-                  className={"m-1"}
-                >
-                  {t("Confirm removal")}
-                </Button>
-                <Button
-                  type="submit"
-                  className={"button secondary m-1"}
-                  disabled={pending}
-                  onClick={() => setRemoveFile(undefined)}
-                  variant="secondary"
-                >
-                  {t("Cancel")}
-                </Button>
+                </small>
               </div>
-            )}
-          </>
-        )}
-      </Panel>
+              {removeFile && (
+                <div className={"artifact-remove-confirm border border-pink p-3 mt-3 text-[12px]"}>
+                  <p className={"mb-[1em] mt-0"}>
+                    {t(
+                      "Remove this file? Set the artifact to In progress before removing its final output.",
+                    )}
+                  </p>
+                  <Button
+                    type="submit"
+                    disabled={pending}
+                    onClick={() => run("remove-file", removeFile)}
+                    className={"m-1"}
+                  >
+                    {t("Confirm removal")}
+                  </Button>
+                  <Button
+                    type="submit"
+                    className={"button secondary m-1"}
+                    disabled={pending}
+                    onClick={() => setRemoveFile(undefined)}
+                    variant="secondary"
+                  >
+                    {t("Cancel")}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </Panel>
+      )}
       <aside
         className={
           "artifact-details-column min-w-0 grid gap-4.5 max-[1000px]:grid-cols-[repeat(auto-fit,_minmax(min(100%,_280px),_1fr))]"

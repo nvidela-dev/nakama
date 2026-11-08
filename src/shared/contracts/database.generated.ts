@@ -287,6 +287,12 @@ export interface DatabaseRows {
     description: string;
     created_at: Date;
   };
+  shirt_designs: {
+    project_id: string;
+    artifact_id: string;
+    collection: string;
+    layout: unknown;
+  };
   stage_review_history: {
     id: string;
     project_id: string;

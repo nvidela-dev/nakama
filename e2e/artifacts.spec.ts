@@ -164,9 +164,11 @@ test("private artifact library, typed outputs, image lightbox, Markdown reader, 
   await second.getByLabel("Artifact name", { exact: true }).fill("Other tab draft");
   await page.getByLabel("Artifact name", { exact: true }).fill("Revised research plan");
   await page.getByRole("button", { name: "Save details", exact: true }).click();
-  await expect(page.locator(".artifact-output > .artifact-library-heading h2")).toHaveText(
-    "Revised research plan",
-  );
+  await expect(
+    page
+      .getByRole("region", { name: "Artifact output" })
+      .getByRole("heading", { name: "Revised research plan", exact: true }),
+  ).toBeVisible();
   await second.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(second.locator(".artifact-feedback [role=alert]")).toContainText(
     "This artifact changed",
@@ -176,9 +178,11 @@ test("private artifact library, typed outputs, image lightbox, Markdown reader, 
     .getByRole("button", { name: "Use latest version and keep my drafts", exact: true })
     .click();
   await second.getByRole("button", { name: "Save details", exact: true }).click();
-  await expect(second.locator(".artifact-output > .artifact-library-heading h2")).toHaveText(
-    "Other tab draft",
-  );
+  await expect(
+    second
+      .getByRole("region", { name: "Artifact output" })
+      .getByRole("heading", { name: "Other tab draft", exact: true }),
+  ).toBeVisible();
   await second.close();
   await page.goto("/artifacts");
   await page.getByRole("button", { name: "New artifact", exact: true }).click();
@@ -259,4 +263,106 @@ test("private artifact library, typed outputs, image lightbox, Markdown reader, 
     .getByRole("button", { name: "Eliminar artefacto permanentemente", exact: true })
     .click();
   await expect(page).toHaveURL(new RegExp(`/projects/${fixtureId}\\?view=artifacts`));
+});
+
+test("shirt shop groups, four print areas, rotatable preview and physical printer handoff", async ({
+  page,
+}) => {
+  test.setTimeout(210000);
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.goto("/");
+  await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
+  await page.goto("/projects");
+  await page.getByRole("button", { name: "New project", exact: true }).click();
+  let dialog = page.getByRole("dialog");
+  await dialog.locator('button[value="shirt-eshop"]').click();
+  await dialog.getByRole("button", { name: /Continue/ }).click();
+  await dialog.getByLabel("Project name", { exact: true }).fill(fixtureName);
+  await dialog
+    .getByLabel("Description", { exact: true })
+    .fill("Disposable shirt studio verification.");
+  await dialog.getByRole("button", { name: "Create project", exact: true }).click();
+  await expect(page.getByRole("heading", { name: fixtureName, exact: true })).toBeVisible();
+  fixtureId = new URL(page.url()).pathname.split("/").at(-1);
+  await page.getByRole("tab", { name: "Artifacts", exact: true }).click();
+  await page.getByRole("button", { name: "New artifact", exact: true }).click();
+  dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Artifact type")).toHaveValue("shirt");
+  await dialog.getByLabel("Artifact name").fill("Field tee");
+  await dialog.getByLabel("Collection").fill("Fieldwork");
+  await dialog.getByRole("button", { name: "Create artifact", exact: true }).click();
+  const studio = page.getByRole("region", { name: "Shirt studio", exact: true });
+  await expect(studio).toBeVisible();
+  await expect(
+    studio.getByRole("img", { name: "Rotatable shirt preview" }).locator("canvas"),
+  ).toBeVisible();
+  const art = await sharp(
+    Buffer.from(
+      '<svg width="640" height="480"><rect x="30" y="40" width="180" height="380" fill="#e44024"/><circle cx="387" cy="220" r="140" fill="#18584c"/></svg>',
+    ),
+  )
+    .png()
+    .toBuffer();
+  await studio
+    .getByLabel("Upload artwork")
+    .setInputFiles({ name: "field.png", mimeType: "image/png", buffer: art });
+  const tile = studio.getByRole("button", { name: "Place artwork field.png", exact: true });
+  await expect(tile).toBeVisible();
+  await expect(tile).toBeEnabled();
+  await tile.dragTo(studio.getByLabel("Print area preview"), { targetPosition: { x: 60, y: 60 } });
+  await expect(studio.getByRole("button", { name: "Chest · 1" })).toBeVisible();
+  for (const area of ["Back panel", "Left sleeve", "Right sleeve"]) {
+    await studio.getByRole("button", { name: area + " · 0", exact: true }).click();
+    await tile.click();
+  }
+  await studio.getByLabel("Blank and sample size").fill("Cotton crew, M");
+  await studio.getByLabel("Printer notes").fill("Water-based print. Check sample before run.");
+  await studio.getByRole("button", { name: "Save design", exact: true }).click();
+  await expect(studio.getByRole("button", { name: "Download print pack" })).toBeEnabled();
+  await page.reload();
+  await expect(studio.getByRole("button", { name: "Left sleeve · 1", exact: true })).toBeVisible();
+  await expect(studio.getByLabel("Blank and sample size")).toHaveValue("Cotton crew, M");
+  const mesh = studio.getByRole("img", { name: "Rotatable shirt preview" }).locator("canvas");
+  const box = await mesh.boundingBox();
+  expect(box).toBeTruthy();
+  const before = await mesh.screenshot();
+  const x = box!.x + box!.width * 0.5,
+    y = box!.y + box!.height * 0.5;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 100, y + 10, { steps: 10 });
+  await page.mouse.up();
+  expect(before.equals(await mesh.screenshot())).toBe(false);
+  const downloaded = page.waitForEvent("download");
+  await studio.getByRole("button", { name: "Download print pack" }).click();
+  const { unzipSync } = await import("fflate"),
+    { readFile } = await import("node:fs/promises");
+  const packed = unzipSync(await readFile((await (await downloaded).path())!));
+  const job = JSON.parse(Buffer.from(packed["job.json"]!).toString());
+  expect(job.collection).toBe("Fieldwork");
+  expect(job.layout.layers).toHaveLength(4);
+  expect(Buffer.from(packed[job.files[0].path]!)).toEqual(art);
+  for (const zone of ["chest", "back", "left_sleeve", "right_sleeve"]) {
+    const png = sharp(packed["print/" + zone + ".png"]!);
+    const info = await png.metadata();
+    expect(info.density).toBe(300);
+    expect(info.hasAlpha).toBe(true);
+    expect(info.width).toBe(zone.endsWith("sleeve") ? 1181 : 3543);
+    const stats = await png.stats();
+    expect(stats.channels[3]!.min).toBe(0);
+    expect(stats.channels[3]!.max).toBe(255);
+  }
+  await studio.screenshot({ path: test.info().outputPath("shirt-studio.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await page.goto("/projects/" + fixtureId + "?view=artifacts");
+  await expect(page.getByRole("heading", { name: /Fieldwork/ })).toBeVisible();
+  await page.goto("/projects");
+  const card = page
+    .getByRole("region", { name: "Shirt E-shop", exact: true })
+    .getByRole("article")
+    .filter({ has: page.getByRole("heading", { name: fixtureName, exact: true }) });
+  await expect(card).toContainText("1 design · 1 collection");
 });
