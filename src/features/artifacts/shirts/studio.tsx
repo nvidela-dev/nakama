@@ -9,7 +9,10 @@ import { useT } from "@/shared/i18n/provider";
 import { artifactFileUrl, type ArtifactDetail } from "../model";
 import { zones, panels, type Zone, type ShirtLayer, type ShirtDesign } from "./design";
 import { drawPanel, loadArt, downloadPrintPack, type ArtImages } from "./print";
-import { ShirtPreview } from "./preview";
+import { flatShirt, flatHit } from "./flat-shirt";
+import { useTextureBrush } from "./use-texture-brush";
+import type { SurfaceHit, TextureTool } from "./texture";
+import { ShirtPreview, type PreviewHandle } from "./preview";
 
 const colors = ["#e8e4da", "#f8f8f4", "#282a2b", "#6b765e", "#4b6473", "#884d44"];
 const assetType = "application/x-nakama-artwork";
@@ -28,15 +31,18 @@ export function ShirtStudio({
   onChange: (d: ShirtDesign) => void;
   pending: boolean;
   dirty: boolean;
-  onSave: () => void;
-  onUpload: (files: File[], placed?: (id: string) => void) => void;
+  onSave: (poster?: string) => void;
+  onUpload: (files: File[], placed?: (ids: string[]) => void) => void;
   onRemove: (id: string) => void;
 }) {
   const t = useT(),
+    preview = useRef<PreviewHandle>(null),
     canvas = useRef<HTMLCanvasElement>(null),
     picker = useRef<HTMLInputElement>(null);
   const [zone, setZone] = useState<Zone>("chest"),
-    [selected, setSelected] = useState(""),
+    [selected, setSelected] = useState(
+      design.layout.layers.filter((l) => l.zone === "chest").at(-1)?.id ?? "",
+    ),
     [drag, setDrag] = useState(false);
   const [images, setImages] = useState<ArtImages>(new Map()),
     [error, setError] = useState(""),
@@ -65,44 +71,84 @@ export function ShirtStudio({
       active = false;
     };
   }, [fileKeys, artifact.project_id, artifact.id]);
+  const brush = useTextureBrush(
+    design,
+    images,
+    selected,
+    onChange,
+    (l) => {
+      setZone(l.zone);
+      setSelected(l.id);
+    },
+    setError,
+  );
   useEffect(() => {
-    if (canvas.current) drawPanel(canvas.current, design.layout, zone, images, 480);
-  }, [design, zone, images]);
+    if (!canvas.current) return;
+    if (brush.tool === "move")
+      flatShirt(canvas.current, brush.display, images, zone === "back", zone);
+    else drawPanel(canvas.current, brush.display.layout, zone, images, 480);
+  }, [brush.display, brush.tool, zone, images]);
   const patch = (data: Partial<ShirtDesign["layout"]>) =>
     onChange({ ...design, layout: { ...design.layout, ...data } });
   const replace = (id: string, data: Partial<ShirtLayer>) =>
     patch({ layers: design.layout.layers.map((l) => (l.id === id ? { ...l, ...data } : l)) });
-  function place(fileId: string, target: Zone, x = 0.5, y = 0.5) {
-    if (design.layout.layers.length >= 32) {
+  function place(fileIds: string[], target: Zone, x = 0.5, y = 0.5) {
+    if (design.layout.layers.length + fileIds.length > 32) {
       setError("A design supports 32 placements.");
       return;
     }
-    const item = { id: crypto.randomUUID(), fileId, zone: target, x, y, width: 0.58, rotation: 0 };
-    patch({ layers: [...design.layout.layers, item] });
+    const items = fileIds.map((fileId) => ({
+      id: crypto.randomUUID(),
+      fileId,
+      zone: target,
+      x,
+      y,
+      width: 0.58,
+      rotation: 0,
+    }));
+    patch({ layers: [...design.layout.layers, ...items] });
+    brush.setTool("move");
     setZone(target);
-    setSelected(item.id);
+    setSelected(items.at(-1)!.id);
     setError("");
   }
-  function drop(event: DragEvent<HTMLElement>, target: Zone, position = false) {
+  function point(
+    event: { currentTarget: HTMLElement; clientX: number; clientY: number },
+    target: Zone,
+  ): SurfaceHit {
+    const r = event.currentTarget.getBoundingClientRect();
+    return {
+      zone: target,
+      x: (event.clientX - r.left) / r.width,
+      y: (event.clientY - r.top) / r.height,
+    };
+  }
+  function drop(event: DragEvent<HTMLElement>, hit: SurfaceHit) {
     event.preventDefault();
+    if (pending) return;
+    const target = hit.zone,
+      x = Math.max(0, Math.min(1, hit.x)),
+      y = Math.max(0, Math.min(1, hit.y));
     const file = event.dataTransfer.getData(assetType);
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = position ? (event.clientX - rect.left) / rect.width : 0.5,
-      y = position ? (event.clientY - rect.top) / rect.height : 0.5;
-    if (artifact.files.some((f) => f.id === file)) place(file, target, x, y);
+    if (artifact.files.some((f) => f.id === file)) place([file], target, x, y);
     else if (event.dataTransfer.files.length) {
-      // A panel drop places the first file; batch uploads belong in the artwork tray.
-      onUpload([event.dataTransfer.files[0]!], (id) => place(id, target, x, y));
+      const files = Array.from(event.dataTransfer.files);
+      if (files.length + artifact.files.length > 6) {
+        setError("A design supports six artwork files.");
+        return;
+      }
+      if (files.length + design.layout.layers.length > 32) {
+        setError("A design supports 32 placements.");
+        return;
+      }
+      onUpload(files, (ids) => place(ids, target, x, y));
     }
   }
   function position(event: PointerEvent<HTMLCanvasElement>) {
     if (!layer || !event.currentTarget.hasPointerCapture(event.pointerId)) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const clamp = (n: number) => Math.max(0, Math.min(1, n));
-    replace(layer.id, {
-      x: clamp((event.clientX - rect.left) / rect.width),
-      y: clamp((event.clientY - rect.top) / rect.height),
-    });
+    const hit = flatHit(event.currentTarget, event.clientX, event.clientY, zone === "back");
+    if (hit?.zone === zone)
+      replace(layer.id, { x: Math.max(0, Math.min(1, hit.x)), y: Math.max(0, Math.min(1, hit.y)) });
   }
   async function exportPack() {
     setExporting(true);
@@ -117,7 +163,30 @@ export function ShirtStudio({
   }
   const currentImage = layer && images.get(layer.fileId);
   return (
-    <section aria-label={t("Shirt studio")} className="min-w-0 grid gap-3">
+    <section
+      aria-label={t("Shirt studio")}
+      className="min-w-0 grid gap-3"
+      onKeyDown={(e) => {
+        if (
+          !(e.metaKey || e.ctrlKey) ||
+          pending ||
+          brush.drawing ||
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          e.target instanceof HTMLSelectElement
+        )
+          return;
+        const key = e.key.toLowerCase();
+        if (key === "z" && !e.shiftKey && brush.canUndo) {
+          e.preventDefault();
+          brush.undo();
+        }
+        if (((key === "z" && e.shiftKey) || key === "y") && brush.canRedo) {
+          e.preventDefault();
+          brush.redo();
+        }
+      }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-xl font-semibold">{t("Shirt studio")}</h2>
@@ -127,7 +196,10 @@ export function ShirtStudio({
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <small aria-live="polite">{t(dirty ? "Unsaved placements" : "Saved design")}</small>
-          <Button disabled={!dirty || !design.collection.trim() || pending} onClick={onSave}>
+          <Button
+            disabled={!dirty || !design.collection.trim() || pending || brush.drawing}
+            onClick={() => onSave(preview.current?.snapshot())}
+          >
             {t("Save design")}
           </Button>
           <Button
@@ -143,7 +215,90 @@ export function ShirtStudio({
       <fieldset disabled={pending} className="min-w-0 grid gap-3 border-0 p-0 m-0">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(240px,1fr)] items-start">
           <div className="min-w-0 grid gap-2">
-            <ShirtPreview design={design} zone={zone} images={images} />
+            <div
+              className="flex items-center flex-wrap gap-1"
+              role="group"
+              aria-label={t("Texture tools")}
+            >
+              {(["move", "paint", "erase"] as const).map((tool) => {
+                const label = t(
+                  (
+                    { move: "Move and rotate", paint: "Brush", erase: "Eraser" } satisfies Record<
+                      TextureTool,
+                      string
+                    >
+                  )[tool],
+                );
+                return (
+                  <Button
+                    key={tool}
+                    size="small"
+                    aria-pressed={brush.tool === tool}
+                    title={label}
+                    aria-label={label}
+                    variant={brush.tool === tool ? "primary" : "secondary"}
+                    disabled={tool !== "move" && !design.layout.layers.length}
+                    onClick={() => {
+                      setError("");
+                      brush.setTool(tool);
+                    }}
+                    icon={
+                      <Icon
+                        name={tool === "move" ? "move" : tool === "paint" ? "brush" : "eraser"}
+                      />
+                    }
+                  />
+                );
+              })}
+              {brush.tool !== "move" && (
+                <>
+                  {brush.tool === "paint" && (
+                    <Input
+                      type="color"
+                      aria-label={t("Brush colour")}
+                      value={brush.color}
+                      onChange={(e) => brush.setColor(e.target.value)}
+                    />
+                  )}
+                  <label className="flex items-center gap-1 text-xs">
+                    {t("Brush size")}
+                    <Input
+                      type="range"
+                      min={1}
+                      max={50}
+                      value={brush.size}
+                      aria-label={t("Brush size")}
+                      className="w-18"
+                      onChange={(e) => brush.setSize(+e.target.value)}
+                    />
+                    {brush.size}%
+                  </label>
+                </>
+              )}
+              <ToolbarAction
+                label={t("Undo stroke")}
+                disabled={!brush.canUndo}
+                onClick={brush.undo}
+              >
+                <Icon name="rotateLeft" />
+              </ToolbarAction>
+              <ToolbarAction
+                label={t("Redo stroke")}
+                disabled={!brush.canRedo}
+                onClick={brush.redo}
+              >
+                <Icon name="rotateRight" />
+              </ToolbarAction>
+            </div>
+            <ShirtPreview
+              ref={preview}
+              design={brush.display}
+              zone={zone}
+              images={images}
+              brush={brush}
+              disabled={pending}
+              onDrop={drop}
+            />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1" aria-label={t("Print areas")}>
               {zones.map((z) => (
                 <Button
@@ -156,7 +311,7 @@ export function ShirtStudio({
                     setSelected(design.layout.layers.filter((l) => l.zone === z).at(-1)?.id ?? "");
                   }}
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => drop(e, z)}
+                  onDrop={(e) => drop(e, { zone: z, x: 0.5, y: 0.5 })}
                 >
                   {t(panels[z].label)} · {design.layout.layers.filter((l) => l.zone === z).length}
                 </Button>
@@ -197,24 +352,50 @@ export function ShirtStudio({
               <canvas
                 ref={canvas}
                 aria-label={t("Print area preview")}
-                style={{
-                  background: design.layout.color,
-                  aspectRatio: panel.width / panel.height,
-                  height: "clamp(140px,22vh,230px)",
-                  maxWidth: "100%",
-                  touchAction: "none",
-                }}
-                className="border border-dashed border-slate-500 cursor-crosshair"
+                tabIndex={0}
+                style={
+                  brush.tool === "move"
+                    ? { width: "min(100%, 390px)", height: "auto", touchAction: "none" }
+                    : {
+                        background: design.layout.color,
+                        aspectRatio: panel.width / panel.height,
+                        height: "clamp(140px,22vh,230px)",
+                        maxWidth: "100%",
+                        touchAction: "none",
+                      }
+                }
+                className={
+                  brush.tool === "move"
+                    ? "cursor-move"
+                    : "border border-dashed border-slate-500 cursor-crosshair"
+                }
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => drop(e, zone, true)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const hit =
+                    brush.tool === "move"
+                      ? flatHit(e.currentTarget, e.clientX, e.clientY, zone === "back")
+                      : point(e, zone);
+                  if (hit) drop(e, hit);
+                }}
                 onPointerDown={(e) => {
-                  if (layer) {
+                  if (!e.isPrimary || e.button !== 0) return;
+                  e.currentTarget.focus({ preventScroll: true });
+                  if (brush.tool !== "move") {
+                    if (brush.begin(point(e, zone))) e.currentTarget.setPointerCapture(e.pointerId);
+                  } else if (layer) {
                     e.currentTarget.setPointerCapture(e.pointerId);
                     position(e);
                   }
                 }}
-                onPointerMove={position}
+                onPointerMove={(e) => {
+                  if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                  if (brush.tool === "move") position(e);
+                  else brush.move(point(e, zone));
+                }}
+                onPointerCancel={() => brush.finish(true)}
                 onPointerUp={(e) => {
+                  if (e.currentTarget.hasPointerCapture(e.pointerId)) brush.finish();
                   if (e.currentTarget.hasPointerCapture(e.pointerId))
                     e.currentTarget.releasePointerCapture(e.pointerId);
                 }}
@@ -222,7 +403,7 @@ export function ShirtStudio({
             </div>
             {!layers.length && (
               <p className="text-xs text-muted mt-2">
-                {t("Drop artwork here or select it from the tray.")}
+                {t("Drop artwork onto the shirt or choose it from the tray.")}
               </p>
             )}
             {!!layers.length && (
@@ -322,91 +503,89 @@ export function ShirtStudio({
           </Panel>
         </div>
         <Panel aria-label={t("Artwork tray")}>
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-semibold">{t("Artwork tray")}</h3>
-            <small>
-              {artifact.files.length}/6 · 2 MB {t("per file")}
-            </small>
-          </div>
-          <div className="grid gap-2 grid-cols-[repeat(auto-fill,minmax(min(100%,130px),1fr))]">
-            <Button
-              variant="secondary"
-              style={{
-                height: 100,
-                borderStyle: "dashed",
-                background: drag ? "#e1e8e3" : undefined,
-              }}
-              onClick={() => picker.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDrag(true);
-              }}
-              onDragLeave={() => setDrag(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDrag(false);
-                onUpload(Array.from(e.dataTransfer.files));
-              }}
-              disabled={artifact.files.length >= 6}
-            >
-              <span className="grid place-items-center gap-2">
-                <Icon name="plus" />
-                {t("Drop artwork")}
-              </span>
-            </Button>
-            <Input
-              ref={picker}
-              type="file"
-              multiple
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              aria-label={t("Upload artwork")}
-              hidden
-              onChange={(e) => {
-                onUpload(Array.from(e.target.files ?? []));
-                e.target.value = "";
-              }}
-            />
-            {artifact.files.map((file) => (
-              <div key={file.id} className="relative min-w-0">
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  style={{ height: 100, padding: 5 }}
-                  aria-label={t("Place artwork") + " " + file.name}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.effectAllowed = "copy";
-                    e.dataTransfer.setData(assetType, file.id);
-                  }}
-                  onClick={() => place(file.id, zone)}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDrag(true);
+            }}
+            onDragLeave={() => setDrag(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDrag(false);
+              if (!pending) onUpload(Array.from(e.dataTransfer.files));
+            }}
+            className={drag ? "rounded border border-dashed border-lime" : "rounded"}
+          >
+            <div className="flex justify-between items-center gap-2">
+              <h3 className="font-semibold">{t("Artwork tray")}</h3>
+              <div className="flex items-center gap-2">
+                <small>
+                  {artifact.files.length}/6 · 2 MB {t("per file")}
+                </small>
+                <ToolbarAction
+                  label={t("Add artwork")}
+                  disabled={artifact.files.length >= 6}
+                  onClick={() => picker.current?.click()}
                 >
-                  <span className="grid min-w-0 place-items-center gap-1">
-                    <Image
-                      draggable={false}
-                      unoptimized
-                      width={64}
-                      height={56}
-                      alt=""
-                      src={artifactFileUrl(artifact.project_id, artifact.id, file.id)}
-                      className="max-w-full h-14 object-contain"
-                    />
-                    <small className="truncate max-w-full">{file.name}</small>
-                  </span>
-                </Button>
-                {!design.layout.layers.some((l) => l.fileId === file.id) && (
-                  <div className="absolute right-0 top-0">
-                    <ToolbarAction
-                      label={t("Delete artwork") + " " + file.name}
-                      onClick={() => {
-                        if (window.confirm(t("Delete unused artwork?"))) onRemove(file.id);
-                      }}
-                    >
-                      <Icon name="delete" size={13} />
-                    </ToolbarAction>
-                  </div>
-                )}
+                  <Icon name="plus" />
+                </ToolbarAction>
               </div>
-            ))}
+            </div>
+            <div className="flex flex-wrap gap-2 [&>div]:w-24">
+              <Input
+                ref={picker}
+                type="file"
+                multiple
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                aria-label={t("Upload artwork")}
+                hidden
+                onChange={(e) => {
+                  onUpload(Array.from(e.target.files ?? []));
+                  e.target.value = "";
+                }}
+              />
+              {artifact.files.map((file) => (
+                <div key={file.id} className="relative min-w-0">
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    style={{ height: 72, padding: 5 }}
+                    aria-label={t("Place artwork") + " " + file.name}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = "copy";
+                      e.dataTransfer.setData(assetType, file.id);
+                    }}
+                    onClick={() => place([file.id], zone)}
+                  >
+                    <span className="grid min-w-0 place-items-center gap-1">
+                      <Image
+                        draggable={false}
+                        unoptimized
+                        width={64}
+                        height={56}
+                        alt=""
+                        src={artifactFileUrl(artifact.project_id, artifact.id, file.id)}
+                        className="max-w-full h-9 object-contain"
+                      />
+                      <small className="truncate max-w-full">{file.name}</small>
+                    </span>
+                  </Button>
+                  {!design.layout.layers.some((l) => l.fileId === file.id) && (
+                    <div className="absolute right-0 top-0">
+                      <ToolbarAction
+                        label={t("Delete artwork") + " " + file.name}
+                        onClick={() => {
+                          if (window.confirm(t("Delete unused artwork?"))) onRemove(file.id);
+                        }}
+                      >
+                        <Icon name="delete" size={13} />
+                      </ToolbarAction>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </Panel>
         <Panel>

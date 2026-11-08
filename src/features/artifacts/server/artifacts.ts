@@ -172,13 +172,14 @@ export function artifactService(db: Database) {
             tx,
             artifactRowSchema.extend({
               collection: z.string().nullable(),
+              shirt_poster: z.string().nullable(),
               shirt_cover: shirtSchema.shape.layout.pick({ color: true, layers: true }).nullable(),
               task_count: z.number().int().nonnegative(),
               done_task_count: z.number().int().nonnegative(),
               cover_id: z.uuid().nullable(),
               file_count: z.number().int().nonnegative(),
             }),
-            `SELECT ${columns}, s.collection, CASE WHEN s.artifact_id IS NOT NULL THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers') END AS shirt_cover,
+            `SELECT ${columns}, s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers') END AS shirt_cover,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id) AS task_count,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id AND t.status='done') AS done_task_count,
         (SELECT f.id FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id AND f.media_type::text LIKE 'image/%' ORDER BY f.created_at,f.id LIMIT 1) AS cover_id,
@@ -315,7 +316,15 @@ export function artifactService(db: Database) {
     ) =>
       db.transaction(async (tx) => {
         const current = await lock(tx, person, projectId, artifactId, revision);
-        const parsed = shirtSchema.safeParse(input);
+        const parsed = shirtSchema
+          .extend({
+            poster: z
+              .string()
+              .max(90000)
+              .regex(/^data:image\/webp;base64,[a-zA-Z0-9+/]+=*$/)
+              .optional(),
+          })
+          .safeParse(input);
         if (!current.shirt || !parsed.success)
           throw new ProjectError("Check the shirt design and collection.");
         const { collection, layout } = parsed.data;
@@ -323,9 +332,30 @@ export function artifactService(db: Database) {
           throw new ProjectError("Choose artwork from this design.");
         if (current.status === "ready" && !layout.layers.length)
           throw new ProjectError("A ready shirt needs placed artwork.");
+        let poster: string | undefined;
+        if (parsed.data.poster) {
+          try {
+            const source = Buffer.from(parsed.data.poster.split(",")[1]!, "base64");
+            const sharp = (await import("sharp")).default;
+            const image = sharp(source, { limitInputPixels: 256 * 256 });
+            const meta = await image.metadata();
+            if (
+              meta.format !== "webp" ||
+              meta.width !== 224 ||
+              meta.height !== 224 ||
+              (meta.pages ?? 1) !== 1
+            )
+              throw new Error();
+            poster =
+              "data:image/webp;base64," +
+              (await image.webp({ quality: 80 }).toBuffer()).toString("base64");
+          } catch {
+            throw new ProjectError("The shirt preview could not be saved.");
+          }
+        }
         await tx.query(
           "UPDATE shirt_designs SET collection=$3,layout=$4 WHERE project_id=$1 AND artifact_id=$2",
-          [projectId, artifactId, collection, JSON.stringify(layout)],
+          [projectId, artifactId, collection, JSON.stringify({ ...layout, poster })],
         );
         return updated(tx, person, projectId, artifactId);
       }),

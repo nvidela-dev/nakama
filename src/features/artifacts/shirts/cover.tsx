@@ -1,81 +1,83 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { Icon } from "@/shared/ui/icon";
+import { useT } from "@/shared/i18n/provider";
 import { artifactFileUrl, type ArtifactCard } from "../model";
-import { drawPanel, loadArt } from "./print";
+import { loadArt, type ArtImages } from "./print";
+import type { mountGarment } from "./garment";
+import { emptyLayout } from "./design";
 
-// A flat garment proof in the collection gallery, with private images loaded only as a card approaches the viewport.
-export function ShirtCover({ card }: { card: ArtifactCard }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = ref.current,
-      preview = card.shirt_cover;
-    if (!canvas || !preview) return;
-    let disposed = false;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        const back =
-          !preview.layers.some((l) => l.zone === "chest") &&
-          preview.layers.some((l) => l.zone === "back");
-        const side = back ? "back" : "chest";
-        ctx.fillStyle = preview.color;
-        ctx.strokeStyle = "#62645b";
-        ctx.lineWidth = 1;
-        const shirt = new Path2D(
-          "M 83 19 L 118 7 Q 141 23 162 7 L 198 19 L 238 48 L 217 83 L 192 68 L 193 159 Q 140 166 86 159 L 88 68 L 64 83 L 43 48 Z",
-        );
-        ctx.fill(shirt);
-        ctx.stroke(shirt);
-        ctx.beginPath();
-        ctx.moveTo(118, 7);
-        ctx.bezierCurveTo(124, back ? 16 : 32, 157, back ? 16 : 32, 162, 7);
-        ctx.stroke();
-        const layers = preview.layers.filter((l) => l.zone === side || l.zone.endsWith("sleeve"));
-        Promise.allSettled(
-          [...new Set(layers.map((l) => l.fileId))].map(
-            async (id) =>
-              [id, await loadArt(artifactFileUrl(card.project_id, card.id, id))] as const,
-          ),
-        ).then((results) => {
-          if (disposed) return;
-          const images = new Map(
-            results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : [])),
-          );
-          const panel = document.createElement("canvas");
-          for (const zone of [side, "left_sleeve", "right_sleeve"] as const) {
-            drawPanel(panel, { layers }, zone, images, 240);
-            ctx.save();
-            ctx.clip(shirt);
-            if (zone === side) ctx.drawImage(panel, 107, 40, 66, 88);
-            else {
-              const right = (zone === "left_sleeve") !== back;
-              ctx.translate(right ? 207 : 73, 49);
-              ctx.rotate(right ? -0.52 : 0.52);
-              ctx.drawImage(panel, -10, -10, 20, 20);
-            }
-            ctx.restore();
-          }
-        });
-      },
-      { rootMargin: "150px" },
+let camera: ReturnType<typeof mountGarment> | null = null,
+  release: ReturnType<typeof setTimeout> | undefined;
+// Previously saved designs have no stored photo. Photograph visible cards with one temporary context.
+async function photograph(card: ArtifactCard, images: ArtImages, active: () => boolean) {
+  const { mountGarment } = await import("./garment");
+  const cover = card.shirt_cover;
+  if (!active() || !cover) return;
+  clearTimeout(release);
+  camera ??= mountGarment(document.createElement("div"));
+  try {
+    camera.paint(
+      { collection: card.collection ?? "", layout: { ...emptyLayout, ...cover } },
+      images,
     );
-    observer.observe(canvas);
+    camera.view(
+      cover.layers.find((l) => l.zone === "chest")?.zone ?? cover.layers[0]?.zone ?? "chest",
+    );
+    return camera.snapshot();
+  } finally {
+    release = setTimeout(() => {
+      camera?.dispose();
+      camera = null;
+    }, 500);
+  }
+}
+export function ShirtCover({ card }: { card: ArtifactCard }) {
+  const t = useT(),
+    host = useRef<HTMLDivElement>(null),
+    [photo, setPhoto] = useState<string>();
+  useEffect(() => {
+    let active = true;
+    if (!host.current || !card.shirt_cover?.layers.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      observer.disconnect();
+      const ids = new Set(card.shirt_cover!.layers.map((l) => l.fileId));
+      Promise.all(
+        Array.from(
+          ids,
+          async (id) => [id, await loadArt(artifactFileUrl(card.project_id, card.id, id))] as const,
+        ),
+      )
+        .then((files) => photograph(card, new Map(files), () => active))
+        .then((url) => {
+          if (active && url) setPhoto(url);
+        })
+        .catch(() => {});
+    });
+    observer.observe(host.current);
     return () => {
-      disposed = true;
+      active = false;
       observer.disconnect();
     };
   }, [card]);
   return (
-    <canvas
-      ref={ref}
-      aria-label={card.name}
-      role="img"
-      width={280}
-      height={170}
-      className="w-full h-full object-contain bg-[#e9eae5] py-2"
-    />
+    <div ref={host} className="w-full h-full grid place-items-center">
+      {photo ? (
+        <Image
+          src={photo}
+          unoptimized
+          alt={card.name}
+          width={80}
+          height={80}
+          className="size-full object-contain"
+        />
+      ) : (
+        <span title={t("No preview")}>
+          <Icon name="shirt" size={22} />
+        </span>
+      )}
+    </div>
   );
 }

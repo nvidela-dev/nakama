@@ -146,11 +146,13 @@ export function ArtifactEditor({
       }
     });
   }
-  function uploadFiles(files: File[], placed?: (id: string) => void) {
+  function uploadFiles(files: File[], placed?: (ids: string[]) => void) {
     if (!files.length) return;
     setNotice("");
     startTransition(async () => {
       let revision = artifact.revision;
+      const known = new Set(artifact.files.map((f) => f.id)),
+        added: string[] = [];
       try {
         for (const file of files) {
           if (file.size > 2 * 1024 * 1024) {
@@ -161,15 +163,17 @@ export function ArtifactEditor({
           data.set("file", file);
           const result = await uploadArtifactFile(artifact.project_id, artifact.id, revision, data);
           if (!apply(result)) return;
-          const added = result.artifact.files.find(
-            (f) => !artifact.files.some((existing) => existing.id === f.id),
-          );
-          if (added) placed?.(added.id);
+          for (const f of result.artifact.files)
+            if (!known.has(f.id)) {
+              known.add(f.id);
+              added.push(f.id);
+            }
           revision = result.artifact.revision;
         }
       } catch {
         setError("Could not save the artifact. Your draft is still here.");
       } finally {
+        if (added.length) placed?.(added);
         if (upload.current) upload.current.value = "";
       }
     });
@@ -192,7 +196,7 @@ export function ArtifactEditor({
           onChange={setShirtDraft}
           pending={pending}
           dirty={shirtDirty}
-          onSave={() => run("shirt", shirtDraft)}
+          onSave={(poster) => run("shirt", { ...shirtDraft, poster })}
           onUpload={uploadFiles}
           onRemove={(file) => run("remove-file", file)}
         />

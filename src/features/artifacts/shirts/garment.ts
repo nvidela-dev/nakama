@@ -3,6 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { zones, type Zone, type ShirtDesign } from "./design";
 import { drawPanel, type ArtImages } from "./print";
 
+import { printRect, type SurfaceHit } from "./texture";
 type Sample = (u: number, v: number) => [number, number, number, number, number];
 function fabric(columns: number, rows: number, sample: Sample) {
   const vertices = [],
@@ -194,12 +195,14 @@ export function mountGarment(host: HTMLElement) {
       ctx.fillRect(0, 0, atlas.width, atlas.height);
       const print = document.createElement("canvas");
       drawPanel(print, design.layout, zone, images, sleeve ? 256 : 512);
-      const width = atlas.width * (sleeve ? 10 / 64 : 30 / 54),
-        height = atlas.height * (sleeve ? 10 / 23 : 40 / 72);
-      const y = sleeve
-        ? atlas.height * (1 - 12 / 23)
-        : atlas.height * (zone === "chest" ? 16 / 72 : 12 / 72);
-      ctx.drawImage(print, (atlas.width - width) / 2, y, width, height);
+      const rect = printRect(zone);
+      ctx.drawImage(
+        print,
+        rect.x * atlas.width,
+        rect.y * atlas.height,
+        rect.w * atlas.width,
+        rect.h * atlas.height,
+      );
       mat.map ??= new THREE.CanvasTexture(atlas);
       mat.map.needsUpdate = true;
       mat.map.colorSpace = THREE.SRGBColorSpace;
@@ -208,7 +211,52 @@ export function mountGarment(host: HTMLElement) {
     stitch.color.set(design.layout.color).multiplyScalar(0.77);
     render();
   }
+  const ray = new THREE.Raycaster();
+  function pick(clientX: number, clientY: number): SurfaceHit | null {
+    const rect = renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    ray.setFromCamera(
+      new THREE.Vector2(
+        (2 * (clientX - rect.left)) / rect.width - 1,
+        1 - (2 * (clientY - rect.top)) / rect.height,
+      ),
+      camera,
+    );
+    const hit = ray
+      .intersectObjects(meshes, false)
+      .find((hit) => hit.uv && hit.object instanceof THREE.Mesh && hit.object.material !== stitch);
+    if (!hit?.uv) return null;
+    const zone = zones.find((z) => mats[z] === (hit.object as THREE.Mesh).material);
+    if (!zone) return null;
+    const panel = printRect(zone);
+    return { zone, x: (hit.uv.x - panel.x) / panel.w, y: (1 - hit.uv.y - panel.y) / panel.h };
+  }
+  function snapshot() {
+    // Frame the whole garment at a fixed size while preserving the user's viewing angle.
+    const shot = camera.clone(),
+      size = renderer.getSize(new THREE.Vector2()),
+      ratio = renderer.getPixelRatio();
+    shot.aspect = 1;
+    shot.updateProjectionMatrix();
+    shot.position.sub(orbit.target).normalize().multiplyScalar(147).add(orbit.target);
+    shot.lookAt(orbit.target);
+    try {
+      renderer.setPixelRatio(1);
+      renderer.setSize(224, 224, false);
+      renderer.render(scene, shot);
+      return renderer.domElement.toDataURL("image/webp", 0.82);
+    } finally {
+      renderer.setPixelRatio(ratio);
+      renderer.setSize(size.x, size.y, false);
+      render();
+    }
+  }
   return {
+    pick,
+    snapshot,
+    rotate: (enabled: boolean) => {
+      orbit.enabled = enabled;
+    },
     view,
     paint,
     dispose() {
@@ -221,6 +269,7 @@ export function mountGarment(host: HTMLElement) {
       });
       stitch.dispose();
       renderer.dispose();
+      renderer.forceContextLoss();
       renderer.domElement.remove();
     },
   };
