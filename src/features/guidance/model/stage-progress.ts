@@ -27,6 +27,6 @@ export function stageCoverage(
     total: questions.length,
     started: saved.some((answer) => answer.status !== "unanswered") || !!review,
     reviewed: !!review?.reviewed,
-    revisit: saved.some((answer) => answer.needs_review),
+    revisit: saved.some((answer) => answer.needs_review) || (!!review && !review.reviewed),
   };
 }
