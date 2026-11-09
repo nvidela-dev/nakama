@@ -474,3 +474,139 @@ test("workspace sidebar supports keyboard disclosure and retains form input", as
   await expect(input).toHaveValue("crew@example.com");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test("milestone edits cannot be dismissed or changed while saving and failures retain the draft", async ({
+  page,
+}) => {
+  await story(page, "features-tasks-milestone-board--failed-save");
+  await page.getByRole("button", { name: "New milestone", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New milestone", exact: true });
+  await dialog.getByLabel("Milestone title", { exact: true }).fill("Keep this draft");
+  await dialog.getByRole("button", { name: "Save milestone", exact: true }).click();
+  await expect(dialog.getByLabel("Milestone title", { exact: true })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("alert")).toContainText("Your draft is still here.");
+  await expect(dialog.getByLabel("Milestone title", { exact: true })).toHaveValue(
+    "Keep this draft",
+  );
+  await expect(page.getByTestId("operation-count")).toHaveText("1");
+  await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeEnabled();
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("button", { name: "New milestone", exact: true })).toBeFocused();
+});
+
+for (const action of [
+  "Complete milestone",
+  "Archive milestone",
+  "Delete milestone and keep tasks",
+]) {
+  test(`failed ${action} preserves the management dialog and reports the error`, async ({
+    page,
+  }) => {
+    await story(page, "features-tasks-milestone-board--failed-save");
+    await page
+      .getByRole("combobox", { name: "Milestone board", exact: true })
+      .selectOption("sprint");
+    await page.getByRole("button", { name: "Manage milestone", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Manage milestone", exact: true });
+    await dialog.getByRole("button", { name: action, exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("alert")).toContainText("Your draft is still here.");
+    await expect(page.getByTestId("operation-count")).toHaveText("1");
+    await expect(page.getByTestId("last-operation")).toHaveText(
+      action.startsWith("Delete") ? "milestone-delete:7" : "milestone-edit:7",
+    );
+  });
+}
+
+test("card moves support keyboard access and keep failed destinations available", async ({
+  page,
+}) => {
+  await story(page, "features-tasks-milestone-board--failed-save");
+  await page.getByRole("button", { name: "Card actions", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  const move = page.getByRole("menuitem", { name: "Move card", exact: true });
+  await expect(move).toBeVisible();
+  await move.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Move card", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByTestId("operation-count")).toHaveText("0");
+  await dialog
+    .getByRole("combobox", { name: "Destination board", exact: true })
+    .selectOption("sprint");
+  await dialog
+    .getByRole("combobox", { name: "Destination column", exact: true })
+    .selectOption("review");
+  await dialog.getByRole("button", { name: "Confirm move", exact: true }).click();
+  await expect(
+    dialog.getByRole("combobox", { name: "Destination board", exact: true }),
+  ).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("alert")).toContainText("Your draft is still here.");
+  await expect(
+    dialog.getByRole("combobox", { name: "Destination board", exact: true }),
+  ).toHaveValue("sprint");
+  await expect(
+    dialog.getByRole("combobox", { name: "Destination column", exact: true }),
+  ).toHaveValue("review");
+  await expect(page.getByTestId("operation-count")).toHaveText("1");
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Card actions", exact: true })).toBeFocused();
+});
+
+test("inline card saving locks the draft and board until the result is known", async ({ page }) => {
+  await story(page, "features-tasks-milestone-board--failed-save");
+  const ready = page.getByRole("region", { name: "Ready", exact: true });
+  await ready.getByRole("button", { name: "Add card", exact: true }).click();
+  const title = ready.getByRole("textbox", { name: "New card Ready", exact: true });
+  await title.fill("Keep this card draft");
+  await title.press("Enter");
+  await expect(title).toBeDisabled();
+  await expect(page.getByRole("combobox", { name: "Milestone board", exact: true })).toBeDisabled();
+  await expect(title).toBeEnabled();
+  await expect(title).toHaveValue("Keep this card draft");
+  await expect(page.getByTestId("operation-count")).toHaveText("1");
+});
+
+test("successful milestone creation closes once and restores focus", async ({ page }) => {
+  await story(page, "features-tasks-milestone-board--successful-save");
+  const trigger = page.getByRole("button", { name: "New milestone", exact: true });
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: "New milestone", exact: true });
+  await dialog.getByLabel("Milestone title", { exact: true }).fill("Saved milestone");
+  await dialog.getByRole("button", { name: "Save milestone", exact: true }).click();
+  await expect(dialog.getByRole("button", { name: "Save milestone", exact: true })).toBeDisabled();
+  await page.keyboard.press("Enter");
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await expect(page.getByTestId("operation-count")).toHaveText("1");
+});
+
+for (const theme of ["day", "night"]) {
+  test(`milestone board and editor fit narrow ${theme} layouts`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 });
+    await page.goto(
+      `/iframe.html?id=features-tasks-milestone-board--failed-save&viewMode=story&globals=theme:${theme}`,
+    );
+    await expect(page.getByRole("button", { name: "New milestone", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.getByRole("button", { name: "New milestone", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "New milestone", exact: true });
+    await expect(dialog).toBeVisible();
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+      true,
+    );
+    const results = await new AxeBuilder({ page }).include("dialog").analyze();
+    expect(
+      results.violations.filter((v) => ["serious", "critical"].includes(v.impact ?? "")),
+    ).toEqual([]);
+    await page.screenshot({ path: test.info().outputPath(`milestone-${theme}-320.png`) });
+  });
+}

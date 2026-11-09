@@ -193,3 +193,11 @@ The task workspace spans all project columns, with discussion and project contex
 ## Compact complete project workspace — 2026-10-26
 
 Project headings use a smaller title and tighter gutters. The experiment cycle is a short wrapping text strip instead of six padded cards, retaining its explanation and both lab entry links. At desktop widths of 1280px and above, the guided workspace allocates eight of twelve columns to the main work and two each to discussion and project context. Stage rows, discussion padding and sidebar panels use tighter spacing; labels wrap instead of clipping. The full-width To-do override remains. Coarse-pointer controls retain 44px minimum targets, and mobile fields retain their existing readable sizing.
+
+## Task board save interruptions — 2026-11-09
+
+Milestone creation, management and card-move dialogs remain open while a save is pending. Their inputs, Cancel controls and Escape/backdrop dismissal are locked until the result is known. The board selector, inline card composer and board/list toggle also stay stable during a task mutation, preventing a late result from clearing newer input or an unrelated dialog.
+
+Complete, Archive and Delete milestone actions close the management dialog only after success. A rejected action keeps its error and draft visible. These operations use the revision captured when management opened; adopting a newer list remains explicit. These are local UI safeguards, not a change to task identity, membership, milestone-completion rules or database storage.
+
+Keyboard activation of a card menu consumes the opening Enter key before opening a dialog; opening Move card never confirms a move. Dialog dismissal returns focus to the card-action trigger. Shared dialog focus restoration waits for the closing render to re-enable a previously pending trigger and does not override a new focused control or modal.

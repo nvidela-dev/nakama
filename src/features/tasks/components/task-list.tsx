@@ -296,6 +296,7 @@ export function TaskList({
         <Switch
           label={t("Nested list")}
           checked={view === "list"}
+          disabled={pending}
           onCheckedChange={(checked) => setView(checked ? "list" : "board")}
         />
         <span title={t("Nested list")} className={view === "list" ? "text-lime" : "text-muted"}>

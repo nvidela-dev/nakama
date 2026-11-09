@@ -3,6 +3,7 @@
 import Card from "antd/es/card";
 import Dropdown from "antd/es/dropdown";
 import type { MenuProps } from "antd";
+import { useRef, type ComponentRef } from "react";
 import { Button, IconButton } from "@/shared/ui/button";
 import { Icon } from "@/shared/ui/icon";
 
@@ -36,11 +37,26 @@ export function BoardCard({
   status,
 }: Props) {
   const t = useT();
+  const actionsTrigger = useRef<ComponentRef<typeof IconButton>>(null);
 
+  // Opening a dialog moves focus during the keydown. Consume menu activation so
+  // that the same Enter key cannot submit the newly focused dialog form.
+  const activate =
+    (action: () => void): NonNullable<MenuProps["onClick"]> =>
+    ({ domEvent }) => {
+      domEvent.preventDefault();
+      actionsTrigger.current?.focus();
+      action();
+    };
   const menu: MenuProps = {
     items: [
-      { key: "edit", label: t("Edit task"), icon: <Icon name="edit" />, onClick: edit },
-      { key: "move", label: t("Move card"), icon: <Icon name="arrowRight" />, onClick: move },
+      { key: "edit", label: t("Edit task"), icon: <Icon name="edit" />, onClick: activate(edit) },
+      {
+        key: "move",
+        label: t("Move card"),
+        icon: <Icon name="arrowRight" />,
+        onClick: activate(move),
+      },
       {
         key: "status",
         label: t("Task status"),
@@ -48,15 +64,20 @@ export function BoardCard({
           key: value,
           label: t(label),
           disabled: node.status === value,
-          onClick: () => status(value as TaskStatus),
+          onClick: activate(() => status(value as TaskStatus)),
         })),
       },
-      { key: "sub", label: t("Add subtask"), icon: <Icon name="plus" />, onClick: addChild },
+      {
+        key: "sub",
+        label: t("Add subtask"),
+        icon: <Icon name="plus" />,
+        onClick: activate(addChild),
+      },
       {
         key: "files",
         label: t("Artifacts"),
         icon: <Icon name="box" />,
-        onClick: showAttachments,
+        onClick: activate(showAttachments),
       },
       { type: "divider" },
       {
@@ -64,7 +85,7 @@ export function BoardCard({
         label: t("Delete task"),
         danger: true,
         icon: <Icon name="delete" />,
-        onClick: remove,
+        onClick: activate(remove),
       },
     ],
   };
@@ -94,7 +115,7 @@ export function BoardCard({
                 {node.title}
               </Button>
               <Dropdown trigger={["click"]} menu={menu} disabled={pending}>
-                <IconButton variant="ghost" label={t("Card actions")}>
+                <IconButton ref={actionsTrigger} variant="ghost" label={t("Card actions")}>
                   <Icon name="more" />
                 </IconButton>
               </Dropdown>

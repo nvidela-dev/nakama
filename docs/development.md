@@ -522,3 +522,16 @@ Apply migrations 025 and 026 to the Nakama database before the first operational
 An isolated rehearsal of the published catalogue compared every stored index row and dossier with its source, verified every image association and content hash, and restored the exact uploaded package. This release contains the data distributed by the catalogue. Historical data exclusive to a separate research database requires its own current export.
 
 Tests exercise interrupted uploads, checksum mismatch, owner-only recovery, actual byte recovery, stable identity, source freshness, field conflicts, preserved outreach and private evidence access. Production migration and import of private data use the configured Nakama database and the selected complete source release.
+
+## Task-board interruption verification — 2026-11-09
+
+Local work on `codex/linear-overnight-qa`, based on `5e31cd1`, addresses the current task-board portions of AHA-59 and AHA-62. Milestone forms and card moves now retain their context while saves are pending; failed Complete/Archive/Delete operations keep the management dialog and error visible. Card-menu Enter activation cannot accidentally submit the dialog it opens. Successful saves and cancellation restore keyboard focus after controls are re-enabled.
+
+Verification used synthetic Storybook fixtures, with no hosted account or database access. Four initial milestone-save regressions failed on the baseline and passed after the patch. The expanded checks also reproduced and fixed accidental keyboard submission and successful-save focus loss.
+
+- `make verify`: passed, including schema/TypeScript, all 116 unit/integration tests, production build, and operational/frontend bundle exclusions.
+- `make frontend`: passed, including repository-wide lint and formatting, architecture/generated-flow checks, and Storybook build.
+- `STORYBOOK_PORT=6028 npm run test:components`: all 48 passed, including nine new task-board checks for pending, failed and successful saves, keyboard moves, focus restoration, and 320px day/night layouts with no serious/critical dialog accessibility violations. Both narrow-layout screenshots were inspected.
+- `git diff --check`: passed.
+
+These results verify the current baseline and this bounded patch, not the separate November 6 iteration/catalogue work referenced in Linear. Those changes were not present in the available Mac checkouts. Authenticated end-to-end journeys, hosted migrations, production behavior, and full iteration/catalogue acceptance were not run. Nothing was pushed, published, deployed or marked Done in Linear.

@@ -35,7 +35,17 @@ export function Dialog({
     return () => {
       element.close();
       document.body.style.overflow = previousOverflow;
-      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+      // React may still be enabling the trigger in this commit (for example,
+      // when an async save settles). Restore after those DOM updates, without
+      // stealing focus from a newly opened dialog or another focused control.
+      queueMicrotask(() => {
+        if (!(previousFocus instanceof HTMLElement) || !previousFocus.isConnected) return;
+        const active = document.activeElement;
+        const modal = document.querySelector("dialog:modal");
+        if (modal && !modal.contains(previousFocus)) return;
+        if (active === document.body || active === previousFocus || !active?.isConnected)
+          previousFocus.focus();
+      });
     };
   }, [open]);
   return (

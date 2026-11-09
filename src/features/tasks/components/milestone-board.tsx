@@ -109,6 +109,7 @@ export function MilestoneBoard({
           <Select
             className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
             value={milestone?.id ?? ""}
+            disabled={pending}
             onChange={(event) => {
               setSelected(event.target.value);
               setComposing(null);
@@ -233,6 +234,7 @@ export function MilestoneBoard({
                     variant="ghost"
                     className="w-full mt-2"
                     label={t("Add card")}
+                    disabled={pending}
                     onClick={() => setComposing(column.id)}
                   >
                     <Icon name="plus" />
@@ -242,6 +244,7 @@ export function MilestoneBoard({
                     className="flex gap-1 mt-2"
                     onSubmit={async (event) => {
                       event.preventDefault();
+                      if (pending) return;
                       const saved = await run({
                         kind: "add",
                         title: newCards[column.id] ?? "",
@@ -258,8 +261,9 @@ export function MilestoneBoard({
                     <Input
                       className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                       autoFocus
+                      disabled={pending}
                       onKeyDown={(event) => {
-                        if (event.key === "Escape") setComposing(null);
+                        if (event.key === "Escape" && !pending) setComposing(null);
                       }}
                       aria-label={`${t("New card")} ${t(column.name)}`}
                       value={newCards[column.id] ?? ""}
@@ -286,6 +290,7 @@ export function MilestoneBoard({
       {editing && (
         <Dialog
           open
+          dismissible={!pending}
           onClose={() => setEditing(false)}
           labelledBy="milestone-title"
           className="p-4 bg-bg text-ink border border-line rounded-lg w-[min(520px,calc(100vw-32px))]"
@@ -294,6 +299,7 @@ export function MilestoneBoard({
             className="grid gap-3"
             onSubmit={async (event) => {
               event.preventDefault();
+              if (pending) return;
               let saved = false;
               if (template)
                 saved = await run(
@@ -317,7 +323,11 @@ export function MilestoneBoard({
             {error && (
               <div role="alert">
                 {t(error)}
-                <Button variant="secondary" onClick={() => setDraftRevision(list.revision)}>
+                <Button
+                  variant="secondary"
+                  disabled={pending}
+                  onClick={() => setDraftRevision(list.revision)}
+                >
                   {t("Use latest list and keep my draft")}
                 </Button>
               </div>
@@ -328,6 +338,7 @@ export function MilestoneBoard({
               <Input
                 className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
                 required
+                disabled={pending}
                 maxLength={160}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
@@ -337,6 +348,7 @@ export function MilestoneBoard({
               {t("Description")}
               <Input
                 className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                disabled={pending}
                 maxLength={2000}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -347,6 +359,7 @@ export function MilestoneBoard({
                 {t("Board template")}
                 <Select
                   className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                  disabled={pending}
                   value={template}
                   onChange={(event) => setTemplate(event.target.value)}
                 >
@@ -362,7 +375,7 @@ export function MilestoneBoard({
               <Button type="submit" disabled={pending}>
                 {t("Save milestone")}
               </Button>
-              <Button variant="secondary" onClick={() => setEditing(false)}>
+              <Button variant="secondary" disabled={pending} onClick={() => setEditing(false)}>
                 {t("Cancel")}
               </Button>
             </div>
@@ -375,15 +388,18 @@ export function MilestoneBoard({
                       key={status}
                       variant="secondary"
                       disabled={pending}
-                      onClick={() => {
-                        run({
-                          kind: "milestone-edit",
-                          id: milestone.id,
-                          title: milestone.title,
-                          description: milestone.description,
-                          status,
-                        });
-                        setEditing(false);
+                      onClick={async () => {
+                        const saved = await run(
+                          {
+                            kind: "milestone-edit",
+                            id: milestone.id,
+                            title: milestone.title,
+                            description: milestone.description,
+                            status,
+                          },
+                          draftRevision,
+                        );
+                        if (saved) setEditing(false);
                       }}
                     >
                       {t(
@@ -403,9 +419,12 @@ export function MilestoneBoard({
                 <Button
                   variant="secondary"
                   disabled={pending}
-                  onClick={() => {
-                    run({ kind: "milestone-delete", id: milestone.id, confirmed: true });
-                    setEditing(false);
+                  onClick={async () => {
+                    const saved = await run(
+                      { kind: "milestone-delete", id: milestone.id, confirmed: true },
+                      draftRevision,
+                    );
+                    if (saved) setEditing(false);
                   }}
                 >
                   {t("Delete milestone and keep tasks")}
@@ -418,6 +437,7 @@ export function MilestoneBoard({
       {move && (
         <Dialog
           open
+          dismissible={!pending}
           onClose={() => setMove(null)}
           labelledBy="move-card-title"
           className="p-4 bg-bg text-ink border border-line rounded-lg w-[min(520px,calc(100vw-32px))]"
@@ -426,6 +446,7 @@ export function MilestoneBoard({
             className="grid gap-3"
             onSubmit={async (event) => {
               event.preventDefault();
+              if (pending) return;
               const saved = await run({
                 kind: "move",
                 id: move.id,
@@ -443,6 +464,7 @@ export function MilestoneBoard({
               {t("Destination board")}
               <Select
                 className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                disabled={pending}
                 value={move.milestoneId}
                 onChange={(event) => {
                   const m = list.milestones.find((m) => m.id === event.target.value);
@@ -470,6 +492,7 @@ export function MilestoneBoard({
               {t("Destination column")}
               <Select
                 className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                disabled={pending}
                 value={move.columnId}
                 onChange={(event) =>
                   setMove({ ...move, columnId: event.target.value, beforeId: "" })
@@ -486,6 +509,7 @@ export function MilestoneBoard({
               {t("Place before")}
               <Select
                 className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                disabled={pending}
                 value={move.beforeId}
                 onChange={(event) => setMove({ ...move, beforeId: event.target.value })}
               >
@@ -514,7 +538,7 @@ export function MilestoneBoard({
               <Button type="submit" disabled={pending}>
                 {t("Confirm move")}
               </Button>
-              <Button variant="secondary" onClick={() => setMove(null)}>
+              <Button variant="secondary" disabled={pending} onClick={() => setMove(null)}>
                 {t("Cancel")}
               </Button>
             </div>
