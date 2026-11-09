@@ -201,3 +201,9 @@ Milestone creation, management and card-move dialogs remain open while a save is
 Complete, Archive and Delete milestone actions close the management dialog only after success. A rejected action keeps its error and draft visible. These operations use the revision captured when management opened; adopting a newer list remains explicit. These are local UI safeguards, not a change to task identity, membership, milestone-completion rules or database storage.
 
 Keyboard activation of a card menu consumes the opening Enter key before opening a dialog; opening Move card never confirms a move. Dialog dismissal returns focus to the card-action trigger. Shared dialog focus restoration waits for the closing render to re-enable a previously pending trigger and does not override a new focused control or modal.
+
+## Touch controls and narrow translated layouts — 2026-11-09
+
+On coarse-pointer devices, shared buttons (including small and icon buttons) have a minimum 44×44px target. Shared text inputs and selects have a minimum 44px height. Fine-pointer desktop sizing remains compact. This does not change saved density preferences or underlying form values.
+
+Task-card move actions and Experiment Lab heading actions wrap onto additional rows when needed, including Spanish at 320px. Experiment Lab milestone tiles fit the available container width so translated labels remain separate from their counts. Dialog contents remain vertically scrollable on short landscape screens; cancellation remains reachable without submitting an operation.

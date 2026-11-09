@@ -535,3 +535,14 @@ Verification used synthetic Storybook fixtures, with no hosted account or databa
 - `git diff --check`: passed.
 
 These results verify the current baseline and this bounded patch, not the separate November 6 iteration/catalogue work referenced in Linear. Those changes were not present in the available Mac checkouts. Authenticated end-to-end journeys, hosted migrations, production behavior, and full iteration/catalogue acceptance were not run. Nothing was pushed, published, deployed or marked Done in Linear.
+
+## Touch and narrow-layout verification — 2026-11-09
+
+The AHA-61 pass on `codex/linear-overnight-qa` reproduced 32px coarse-pointer controls, clipping in the Spanish task-card move dialog, Experiment Lab header overflow, and milestone labels overlapping counts at 320px and 640px. Shared buttons now provide at least 44×44px targets on coarse-pointer devices; text inputs and selects have at least 44px height. Fine-pointer controls retain their compact sizes. Translated action groups wrap, and lab milestone tiles adapt to their available width.
+
+- `make verify`: passed, including all 116 unit/integration tests, schema/TypeScript checks, production build and bundle exclusions.
+- `make frontend`: passed, including lint/formatting, architecture/generated-flow checks and Storybook build.
+- `STORYBOOK_PORT=6028 npm run test:components`: all 60 passed, including 12 additional checks for coarse/fine-pointer sizes, English/Spanish Daylight/Evening layouts at 320px, milestone label/count separation at 320px/640px/1024px, short-landscape scrolling, cancellation without mutation, and serious/critical accessibility violations in the affected fixtures. Representative screenshots were inspected.
+- `git diff --check`: passed.
+
+These are local synthetic-fixture results on the available current baseline, not authenticated end-to-end or hosted-release verification. The separate November 6 iteration/catalogue changes remain unavailable in the inspected checkouts. No production data, schema, deployment or existing checkout was changed; AHA-61 remains open.

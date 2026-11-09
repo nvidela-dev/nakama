@@ -534,7 +534,7 @@ export function MilestoneBoard({
             <p className="text-xs text-muted">
               {t("Only this card moves. Its subtasks keep their own status and board.")}
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={pending}>
                 {t("Confirm move")}
               </Button>

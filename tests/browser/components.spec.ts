@@ -610,3 +610,206 @@ for (const theme of ["day", "night"]) {
     await page.screenshot({ path: test.info().outputPath(`milestone-${theme}-320.png`) });
   });
 }
+
+test.describe("touch layout checks", () => {
+  test.use({ hasTouch: true, viewport: { width: 320, height: 640 } });
+
+  test("shared buttons and fields provide 44px touch targets", async ({ page }) => {
+    await story(page, "ui-button--primary");
+    expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
+    const primary = await page
+      .getByRole("button", { name: "Save changes", exact: true })
+      .boundingBox();
+    expect.soft(primary!.height).toBeGreaterThanOrEqual(44);
+    await story(page, "ui-button--small");
+    const small = await page.getByRole("button", { name: "Go", exact: true }).boundingBox();
+    expect.soft(small!.width).toBeGreaterThanOrEqual(44);
+    expect.soft(small!.height).toBeGreaterThanOrEqual(44);
+    await story(page, "ui-button--icon");
+    const icon = await page
+      .getByRole("button", { name: "Unread comments", exact: true })
+      .boundingBox();
+    expect.soft(icon!.width).toBeGreaterThanOrEqual(44);
+    expect.soft(icon!.height).toBeGreaterThanOrEqual(44);
+    await story(page, "ui-form-controls--fields");
+    const input = await page
+      .getByRole("textbox", { name: "Project name", exact: true })
+      .boundingBox();
+    const select = await page.getByRole("combobox", { name: "Status", exact: true }).boundingBox();
+    expect.soft(input!.height).toBeGreaterThanOrEqual(44);
+    expect.soft(select!.height).toBeGreaterThanOrEqual(44);
+  });
+
+  for (const [theme, locale] of [
+    ["day", "en"],
+    ["night", "en"],
+    ["day", "es"],
+    ["night", "es"],
+  ]) {
+    test(`task controls remain touchable and accessible in ${theme}/${locale}`, async ({
+      page,
+    }) => {
+      await page.goto(
+        `/iframe.html?id=features-tasks-milestone-board--failed-save&viewMode=story&globals=theme:${theme};locale:${locale}`,
+      );
+      const actions = page.getByRole("button", {
+        name: locale === "es" ? "Acciones de la tarjeta" : "Card actions",
+        exact: true,
+      });
+      await expect(actions).toBeVisible();
+      const box = await actions.boundingBox();
+      expect(box!.width).toBeGreaterThanOrEqual(44);
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+      await actions.tap();
+      await expect(
+        page.getByRole("menuitem", {
+          name: locale === "es" ? "Mover tarjeta" : "Move card",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await page
+        .getByRole("menuitem", {
+          name: locale === "es" ? "Mover tarjeta" : "Move card",
+          exact: true,
+        })
+        .tap();
+      const dialog = page.getByRole("dialog", {
+        name: locale === "es" ? "Mover tarjeta" : "Move card",
+        exact: true,
+      });
+      await expect(dialog).toBeVisible();
+      const cancel = dialog.getByRole("button", {
+        name: locale === "es" ? "Cancelar" : "Cancel",
+        exact: true,
+      });
+      expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+        true,
+      );
+      expect((await cancel.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      const results = await new AxeBuilder({ page }).include("dialog").analyze();
+      expect(
+        results.violations.filter((v) => ["serious", "critical"].includes(v.impact ?? "")),
+      ).toEqual([]);
+      await page.screenshot({
+        path: test.info().outputPath(`touch-move-${theme}-${locale}-320.png`),
+      });
+      await cancel.tap();
+      await expect(dialog).not.toBeVisible();
+      await expect(page.getByTestId("operation-count")).toHaveText("0");
+    });
+  }
+
+  for (const [theme, locale] of [
+    ["day", "en"],
+    ["night", "en"],
+    ["day", "es"],
+    ["night", "es"],
+  ]) {
+    test(`workspace stories fit touch screens in ${theme}/${locale}`, async ({ page }) => {
+      for (const id of [
+        "features-guided-flows-type-picker--selectable",
+        "features-projects-project-timeline--compact-cards",
+        "features-experiments-lab--empty",
+        "features-experiments-lab--changed-context",
+      ]) {
+        await page.goto(
+          `/iframe.html?id=${id}&viewMode=story&globals=theme:${theme};locale:${locale}`,
+        );
+        await page.locator("#storybook-root > *").first().waitFor();
+        if (id.includes("experiments-lab"))
+          await page.screenshot({ path: test.info().outputPath(`${id}-${theme}-${locale}.png`) });
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          id,
+        ).toBe(true);
+        const results = await new AxeBuilder({ page }).include("#storybook-root").analyze();
+        expect(
+          results.violations.filter((v) => ["serious", "critical"].includes(v.impact ?? "")),
+          id,
+        ).toEqual([]);
+      }
+    });
+  }
+
+  test("lab milestone labels remain separate from their counts at narrow widths", async ({
+    page,
+  }) => {
+    for (const width of [320, 640, 1024]) {
+      await page.setViewportSize({ width, height: 700 });
+      await page.goto(
+        "/iframe.html?id=features-experiments-lab--changed-context&viewMode=story&globals=locale:es",
+      );
+      const milestones = page.getByRole("list", { name: "Hitos registrados", exact: true });
+      await expect(milestones).toBeVisible();
+      const labels = await milestones.locator("li").evaluateAll((items) =>
+        items.map((item) => {
+          const label = item.querySelector("strong")!;
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          return {
+            label: label.textContent,
+            labelRight: range.getBoundingClientRect().right,
+            countLeft: item.lastElementChild!.getBoundingClientRect().left,
+          };
+        }),
+      );
+      await milestones.screenshot({ path: test.info().outputPath(`lab-milestones-${width}.png`) });
+      for (const label of labels)
+        expect
+          .soft(label.labelRight, `${label.label} at ${width}px`)
+          .toBeLessThanOrEqual(label.countLeft);
+    }
+  });
+
+  test("milestone management stays scrollable on short landscape screens", async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 320 });
+    await story(page, "features-tasks-milestone-board--failed-save");
+    await page
+      .getByRole("combobox", { name: "Milestone board", exact: true })
+      .selectOption("sprint");
+    await page.getByRole("button", { name: "Manage milestone", exact: true }).tap();
+    const dialog = page.getByRole("dialog", { name: "Manage milestone", exact: true });
+    await expect(dialog).toBeVisible();
+    const box = await dialog.boundingBox();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(320);
+    await dialog
+      .getByRole("button", { name: "Delete milestone and keep tasks", exact: true })
+      .scrollIntoViewIfNeeded();
+    await expect(
+      dialog.getByRole("button", { name: "Delete milestone and keep tasks", exact: true }),
+    ).toBeInViewport();
+    await page.screenshot({ path: test.info().outputPath("touch-management-landscape.png") });
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).tap();
+    await expect(dialog).not.toBeVisible();
+    await expect(page.getByTestId("operation-count")).toHaveText("0");
+  });
+});
+
+test("fine-pointer shared controls retain their compact sizing", async ({ page }) => {
+  await story(page, "ui-button--primary");
+  expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(false);
+  expect(
+    (await page.getByRole("button", { name: "Save changes", exact: true }).boundingBox())!.height,
+  ).toBe(32);
+  await story(page, "ui-button--small");
+  const small = await page.getByRole("button", { name: "Go", exact: true }).boundingBox();
+  expect(small!.width).toBeLessThan(44);
+  expect(small!.height).toBe(24);
+  await story(page, "ui-button--icon");
+  const icon = await page
+    .getByRole("button", { name: "Unread comments", exact: true })
+    .boundingBox();
+  expect(icon!.width).toBe(32);
+  expect(icon!.height).toBe(32);
+  await story(page, "ui-form-controls--fields");
+  expect(
+    (await page.getByRole("textbox", { name: "Project name", exact: true }).boundingBox())!.height,
+  ).toBe(32);
+  expect(
+    (await page.getByRole("combobox", { name: "Status", exact: true }).boundingBox())!.height,
+  ).toBe(32);
+});

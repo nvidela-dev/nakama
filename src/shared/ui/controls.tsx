@@ -19,6 +19,7 @@ export function Input({
   return (
     <AntInput
       {...(props as Omit<ComponentProps<typeof AntInput>, "ref">)}
+      className={`pointer-coarse:min-h-11! ${props.className ?? ""}`}
       {...(size ? { htmlSize: size } : {})}
       prefix={prefix}
       type={type}
@@ -50,7 +51,7 @@ export function Select({ disabled, className, ...props }: ComponentProps<"select
   return (
     <select
       {...props}
-      className={`rounded-md border border-line bg-panel px-2 min-h-8 ${className ?? ""}`}
+      className={`rounded-md border border-line bg-panel px-2 min-h-8 pointer-coarse:min-h-11! ${className ?? ""}`}
       disabled={disabled || (!hydrated && !!props.onChange && props.value !== undefined)}
     />
   );

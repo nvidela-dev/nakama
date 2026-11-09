@@ -22,6 +22,7 @@ export function Button({
   return (
     <AntButton
       {...props}
+      className={`pointer-coarse:min-h-11! pointer-coarse:min-w-11! ${props.className ?? ""}`}
       htmlType={type}
       loading={pending}
       disabled={disabled || pending || (!!props.onClick && !hydrated)}

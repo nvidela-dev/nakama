@@ -235,7 +235,7 @@ export function ExperimentLab({
             {t("Ideas, analysis, evidence and reviewed conclusions stay distinct.")}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={() => setCreating(!creating)}>
             {t(creating ? "Close new experiment" : "New experiment")}
           </Button>

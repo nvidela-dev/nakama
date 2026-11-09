@@ -9,6 +9,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Primary: Story = {};
+export const Small: Story = { args: { size: "small", children: "Go" } };
 export const Secondary: Story = { args: { variant: "secondary" } };
 export const Ghost: Story = { args: { variant: "ghost" } };
 export const Pending: Story = { args: { pending: true, children: "Saving…" } };

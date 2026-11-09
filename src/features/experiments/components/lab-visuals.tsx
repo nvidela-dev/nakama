@@ -13,7 +13,10 @@ export function LabPath({ experiment }: { experiment?: Experiment }) {
     ["Review", "answered", experiment?.reviews.length ?? 0],
   ];
   return (
-    <ol aria-label={t("Recorded milestones")} className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+    <ol
+      aria-label={t("Recorded milestones")}
+      className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] gap-2"
+    >
       {steps.map(([label, icon, count], index) => (
         <li
           key={label}
