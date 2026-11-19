@@ -84,3 +84,7 @@ Icons inherit text color, default to 16px with a consistent stroke, and are deco
 `src/shared/ui/style-theme.ts` owns the typed style catalog. Hacker is the default; Zen uses cream paper, indigo, weathered blue, and rust. The root layout reads the `nakama-theme` cookie and renders the palette before first paint. The footer selector saves a validated, year-long, HTTP-only preference without touching project data. Invalid or absent preferences fall back to Hacker. Storybook's Style toolbar uses the same catalog.
 
 Use the `--color-*` Tailwind tokens for text, surfaces, borders, and accents, including gradient stops. The style catalog also sets the legacy core aliases for compatibility. Supplemental semantic `--theme-*` variables have existing Hacker colors as fallbacks; Zen overrides those roles. This preserves the default palette while allowing a complete light style. Add a style through the catalog and test text/button contrast, reload persistence, narrow-screen overflow, and component states. Canvas renderers subscribe to the root style so their colors follow changes too.
+
+## Workspace layout
+
+Use `Workspace` for route and loading shells. Its width variants cover project work, previews, dashboards, artifact libraries and narrow forms. `PageHeading` provides heading spacing, `FormStack` forwards native form props and actions, and `SidebarSection` provides a native disclosure with a heading and optional count. The Workspace layout story composes all four.

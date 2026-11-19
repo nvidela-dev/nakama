@@ -1,4 +1,6 @@
 "use client";
+import { FormStack, SidebarSection } from "@/shared/ui/workspace-layout";
+
 import { Icon } from "@/shared/ui/icon";
 import { Input, Select } from "@/shared/ui/controls";
 
@@ -54,24 +56,12 @@ export function ProjectRelations({
   const t = useT(),
     [state, action, pending] = useActionState(changeProjectLink.bind(null, projectId), {});
   return (
-    <details
+    <SidebarSection
       open
-      className={
-        "panel project-relations bg-panel border border-line max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] grid gap-2.5 min-w-0 max-w-full p-3 rounded-[8px] [&_>_div_>_h3]:mt-0 [&_>_div_>_h3]:mx-0 [&_>_div_>_h3]:mb-0.75 [&_>_div_>_h3]:text-[11px] [&_>_div_>_h3]:leading-[1.4] [&_>_div_>_p]:m-0 [&_>_div_>_p]:text-[11px] [&_>_div_>_p]:leading-[1.4] [&_>_.new-project-trigger]:m-0 [&_>_.new-project-trigger]:min-h-7 [&_>_.new-project-trigger]:py-1.25 [&_>_.new-project-trigger]:px-2 [&_>_.new-project-trigger]:text-[11px] [&_>_.new-project-trigger]:leading-[1.4] [&_>_.new-project-trigger_>_span]:text-[16px] [&_.project-link-list_.text-button]:m-0 [&_.project-link-list_.text-button]:min-h-7 [&_.project-link-list_.text-button]:p-1 [&_.project-link-list_.text-button]:text-[11px] pointer-coarse:[&_>_.new-project-trigger]:min-h-11 pointer-coarse:[&_.project-link-list_.text-button]:min-h-11"
-      }
+      heading={t("Linked projects")}
+      count={links.sources.length + links.children.length}
+      className="project-relations grid gap-2.5 [&_>_div_>_h3]:mt-0 [&_>_div_>_h3]:mx-0 [&_>_div_>_h3]:mb-0.75 [&_>_div_>_h3]:text-[11px] [&_>_div_>_h3]:leading-[1.4] [&_>_div_>_p]:m-0 [&_>_div_>_p]:text-[11px] [&_>_div_>_p]:leading-[1.4] [&_>_.new-project-trigger]:m-0 [&_>_.new-project-trigger]:min-h-7 [&_>_.new-project-trigger]:py-1.25 [&_>_.new-project-trigger]:px-2 [&_>_.new-project-trigger]:text-[11px] [&_>_.new-project-trigger]:leading-[1.4] [&_>_.new-project-trigger_>_span]:text-[16px] [&_.project-link-list_.text-button]:m-0 [&_.project-link-list_.text-button]:min-h-7 [&_.project-link-list_.text-button]:p-1 [&_.project-link-list_.text-button]:text-[11px] pointer-coarse:[&_>_.new-project-trigger]:min-h-11 pointer-coarse:[&_.project-link-list_.text-button]:min-h-11"
     >
-      <summary className="cursor-pointer select-none [[open]>&]:mb-2">
-        <h2
-          className={
-            "font-sans tracking-[-0.045em] font-medium inline-flex items-center m-0 text-[14px] leading-[1.3]"
-          }
-        >
-          {t("Linked projects")}{" "}
-          <span className="count text-[11px] border border-line rounded-full px-1.5 py-0.5 ml-1.25">
-            {links.sources.length + links.children.length}
-          </span>
-        </h2>
-      </summary>
       {(
         [
           ["source", "Spawned from", links.sources],
@@ -125,12 +115,7 @@ export function ProjectRelations({
         >
           {t("Link an existing project")}
         </summary>
-        <form
-          action={action}
-          className={
-            "form-stack flex flex-col min-w-0 max-w-full [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75 [&_input]:w-full gap-1.5 mt-2"
-          }
-        >
+        <FormStack action={action} dense className="min-w-0 max-w-full [&_input]:w-full mt-2">
           <div className="flex items-center justify-between gap-2 min-w-0">
             <label
               htmlFor={`link-direction-${projectId}`}
@@ -200,8 +185,8 @@ export function ProjectRelations({
             {pending ? t("Saving…") : t("Link project")}
           </Button>
           <Feedback state={state} />
-        </form>
+        </FormStack>
       </details>
-    </details>
+    </SidebarSection>
   );
 }

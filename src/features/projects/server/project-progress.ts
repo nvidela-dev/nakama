@@ -9,7 +9,7 @@ import type { StageProgress } from "@/features/projects/model";
 export type { StageProgress } from "@/features/projects/model";
 // Only status metadata is needed for the cards, never answer text or review rationale.
 // The membership join scopes the entire read, including its correlated subqueries.
-export async function projectProgress(db: Database, actor: Actor) {
+export async function projectProgress(db: Database, actor: Actor, projectIds?: string[]) {
   if (!actor.userId) throw new ProjectError("Please sign in to continue.");
   const rows = await queryRows(
     db,
@@ -37,8 +37,8 @@ export async function projectProgress(db: Database, actor: Actor) {
       FROM stage_reviews r WHERE r.project_id = f.project_id), '[]'::jsonb) AS reviews
     FROM project_flows f
     JOIN project_memberships m ON m.project_id = f.project_id
-    WHERE m.user_id = $1`,
-    [actor.userId],
+    WHERE m.user_id = $1 AND ($2::uuid[] IS NULL OR m.project_id=ANY($2))`,
+    [actor.userId, projectIds ?? null],
   );
   return new Map(
     rows.map((row) => {
@@ -69,7 +69,7 @@ export async function projectProgress(db: Database, actor: Actor) {
 }
 
 // Aggregate each child relation independently. Joining task rows to run rows would inflate both counts.
-export async function projectActivityCounts(db: Database, actor: Actor) {
+export async function projectActivityCounts(db: Database, actor: Actor, projectIds?: string[]) {
   if (!actor.userId) throw new ProjectError("Please sign in to continue.");
   const count = z.number().int().nonnegative();
   const rows = await queryRows(
@@ -103,8 +103,8 @@ export async function projectActivityCounts(db: Database, actor: Actor) {
         ) run ON TRUE WHERE x.project_id=m.project_id) e
       CROSS JOIN LATERAL (SELECT count(*)::int AS shirts,count(DISTINCT lower(collection))::int AS collections
         FROM shirt_designs WHERE project_id=m.project_id) s
-      WHERE m.user_id=$1`,
-    [actor.userId],
+      WHERE m.user_id=$1 AND ($2::uuid[] IS NULL OR m.project_id=ANY($2))`,
+    [actor.userId, projectIds ?? null],
   );
   return new Map(rows.map((row) => [row.id, row]));
 }

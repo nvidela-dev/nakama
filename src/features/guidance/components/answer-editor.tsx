@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Button } from "@/shared/ui/button";
 import { useT } from "@/shared/i18n/provider";
 import { Feedback } from "@/shared/ui/feedback";
@@ -132,11 +134,9 @@ export function AnswerEditor({
           {t("Something earlier changed. Revisit this answer with what you know now.")}{" "}
         </p>
       )}
-      <form
+      <FormStack
         action={action}
-        className={
-          "form-stack answer-form flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:w-full [&_select]:max-w-full lg:compact:gap-1.75 lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
-        }
+        className="answer-form [&_label]:text-[13px] [&_label]:text-ink lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
       >
         <Input
           type="hidden"
@@ -237,7 +237,7 @@ export function AnswerEditor({
             {pending ? t("Saving") : dirty ? t("Unsaved changes") : t("Up to date")}
           </span>
         </div>
-      </form>
+      </FormStack>
       {history.length > 0 && (
         <details
           className={

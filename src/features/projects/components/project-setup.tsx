@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Icon } from "@/shared/ui/icon";
 import { Input, Textarea } from "@/shared/ui/controls";
 
@@ -105,10 +107,7 @@ export function ProjectSetup({
               </div>
             </>
           ) : (
-            <form
-              action={action}
-              className={"form-stack flex flex-col gap-3 [&_select]:max-w-full lg:compact:gap-1.75"}
-            >
+            <FormStack action={action}>
               <Input
                 type="hidden"
                 name="flow"
@@ -184,7 +183,7 @@ export function ProjectSetup({
                   {pending ? t("Creating project…") : t("Create project")}
                 </Button>
               </div>
-            </form>
+            </FormStack>
           )}
         </>
       )}

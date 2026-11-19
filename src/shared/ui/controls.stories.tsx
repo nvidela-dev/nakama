@@ -1,3 +1,4 @@
+import { FormStack } from "@/shared/ui/workspace-layout";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Input, Select, Textarea } from "./controls";
 const meta = { title: "UI/Form controls", component: Input } satisfies Meta<typeof Input>;
@@ -5,12 +6,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Fields: Story = {
   render: () => (
-    <form
-      className={
-        "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_button]:mt-2 lg:compact:gap-1.75"
-      }
-      style={{ maxWidth: 400 }}
-    >
+    <FormStack className="[&_button]:mt-2" style={{ maxWidth: 400 }}>
       <label htmlFor="story-name" className={"text-[13px] text-ink"}>
         Project name
       </label>
@@ -35,7 +31,7 @@ export const Fields: Story = {
         <option>In progress</option>
         <option>Ready</option>
       </Select>
-    </form>
+    </FormStack>
   ),
 };
 export const Invalid: Story = {

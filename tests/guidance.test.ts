@@ -328,10 +328,11 @@ test("owner deletion confirms the name and removes only the selected project ato
     transaction: (work) =>
       db.transaction((tx) =>
         work({
-          query: (q, values) => {
-            if (q.startsWith("DELETE FROM project_flows"))
-              throw new Error("simulated delete failure");
-            return tx.query(q, values);
+          query: async (q, values) => {
+            const result = await tx.query(q, values);
+            if (q.startsWith("DELETE FROM projects "))
+              throw new Error("simulated failure after cascade");
+            return result;
           },
         }),
       ),

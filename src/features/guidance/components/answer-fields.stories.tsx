@@ -1,3 +1,4 @@
+import { FormStack, Workspace } from "@/shared/ui/workspace-layout";
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { AnswerFields } from "./answer-fields";
@@ -7,21 +8,13 @@ function Example({ choices = false }: { choices?: boolean }) {
   const [status, setStatus] = useState<NodeStatus>("answered");
   const [choice, setChoice] = useState("");
   return (
-    <div
-      className={
-        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0"
-      }
-    >
+    <Workspace>
       <div className="has-discussion">
         <section
           className="answer-panel panel p-7.5 bg-panel border border-line rounded-[16px] min-w-0 max-[1000px]:p-5.5 lg:compact:p-4 lg:compact:rounded-[10px] max-[700px]:p-5"
           style={{ width: "100%", maxWidth: 600 }}
         >
-          <form
-            className={
-              "form-stack answer-form flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_button]:mt-2 [&_select]:max-w-full lg:compact:gap-1.75 [&_input]:w-full lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
-            }
-          >
+          <FormStack className="answer-form [&_label]:text-[13px] [&_label]:text-ink [&_button]:mt-2 [&_input]:w-full lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full">
             <AnswerFields
               node={choices ? { choices: ["Continue", "Revisit"] } : {}}
               content={content}
@@ -32,10 +25,10 @@ function Example({ choices = false }: { choices?: boolean }) {
               onChoiceChange={setChoice}
               onStatusChange={setStatus}
             />
-          </form>
+          </FormStack>
         </section>
       </div>
-    </div>
+    </Workspace>
   );
 }
 const meta = { title: "Features/Guided flows/Answer fields", component: Example } satisfies Meta<

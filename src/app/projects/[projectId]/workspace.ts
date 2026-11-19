@@ -13,7 +13,7 @@ import {
   type CommentTarget,
 } from "@/features/collaboration/server/collaboration";
 import { readTasks } from "@/features/tasks/server/tasks";
-import { readProjectArtifacts } from "@/features/artifacts/server/artifacts";
+import { readProjectArtifacts, readArtifactChoices } from "@/features/artifacts/server/artifacts";
 import type { Database } from "@/server/database/database";
 
 export function loadWorkspace(
@@ -23,6 +23,7 @@ export function loadWorkspace(
   options: {
     target: CommentTarget;
     node?: string;
+    view?: string;
     focusedWork: boolean;
     activityView: boolean;
     commentsBefore?: string;
@@ -41,8 +42,9 @@ export function loadWorkspace(
     const activity = options.activityView
       ? await readActivity(scope, options.activityBefore)
       : { items: [], next: undefined };
-    const tasks = await readTasks(scope);
-    const artifacts = await readProjectArtifacts(scope);
+    const tasks = options.view === "tasks" ? await readTasks(scope) : null;
+    const artifactChoices = tasks ? await readArtifactChoices(scope) : [];
+    const artifacts = options.view === "artifacts" ? await readProjectArtifacts(scope) : null;
     const links = options.focusedWork ? { sources: [], children: [] } : await readLinks(scope);
     const accessibleProjects = options.focusedWork ? [] : await readProjectChoices(scope);
     return {
@@ -53,6 +55,7 @@ export function loadWorkspace(
       comments,
       activity,
       tasks,
+      artifactChoices,
       artifacts,
       links,
       accessibleProjects,

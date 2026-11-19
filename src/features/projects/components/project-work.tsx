@@ -1,10 +1,16 @@
 "use client";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useT } from "@/shared/i18n/provider";
 import dynamic from "next/dynamic";
 const Tabs = dynamic(() => import("@/shared/ui/tabs").then((module) => module.Tabs<View>));
 type View = "steps" | "tasks" | "artifacts" | "tests" | "activity";
+// Inactive tabs receive no new server data. Retain their last mounted editor and draft.
+function VisitedPanel({ children }: { children: ReactNode }) {
+  const [last, setLast] = useState(children);
+  if (children != null && children !== last) setLast(children);
+  return children ?? last;
+}
 export function ProjectWork({
   children,
   tasks,
@@ -27,7 +33,7 @@ export function ProjectWork({
       ? "activity"
       : query.get("view") === "tests" && tests
         ? "tests"
-        : query.get("view") === "artifacts" && artifacts
+        : query.get("view") === "artifacts" && artifacts !== undefined
           ? "artifacts"
           : query.get("view") === "tasks"
             ? "tasks"
@@ -45,12 +51,17 @@ export function ProjectWork({
     params.delete("activityBefore");
     router.replace(`${path}${params.size ? `?${params}` : ""}`, { scroll: false });
   }
-  if (!tasks) return <>{children}</>;
+  if (tasks === undefined) return <>{children}</>;
   const items: { value: View; label: string; content: ReactNode }[] = [
     { value: "steps", label: t("Project flow"), content: children },
-    { value: "tasks", label: t("To-do"), content: tasks },
+    { value: "tasks", label: t("To-do"), content: <VisitedPanel>{tasks}</VisitedPanel> },
   ];
-  if (artifacts) items.push({ value: "artifacts", label: t("Artifacts"), content: artifacts });
+  if (artifacts !== undefined)
+    items.push({
+      value: "artifacts",
+      label: t("Artifacts"),
+      content: <VisitedPanel>{artifacts}</VisitedPanel>,
+    });
   if (tests) items.push({ value: "tests", label: t("Tests"), content: tests });
   if (activity) items.push({ value: "activity", label: t("Activity"), content: activity });
   return <Tabs items={items} value={active} onChange={select} label={t("Project workspace")} />;

@@ -1,3 +1,4 @@
+import { PageHeading, Workspace } from "@/shared/ui/workspace-layout";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { actor } from "@/features/access/server/auth";
@@ -28,17 +29,8 @@ export default async function ArtifactPage({
     }
   })();
   return (
-    <main
-      id="main"
-      className={
-        "workspace artifact-workspace pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0 max-w-390"
-      }
-    >
-      <div
-        className={
-          "page-heading mt-7.5 mx-0 mb-10.5 [&_p]:text-muted [&_p]:max-w-175 max-[700px]:mt-6 lg:compact:mt-3.5 lg:compact:mb-5 lg:compact:[&_p]:max-w-none lg:compact:[&_p]:mt-2 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-0 lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:leading-[1.5]"
-        }
-      >
+    <Workspace id="main" variant="artifacts">
+      <PageHeading className="[&_p]:text-muted [&_p]:max-w-175 lg:compact:[&_p]:max-w-none lg:compact:[&_p]:mt-2 lg:compact:[&_p]:mx-0 lg:compact:[&_p]:mb-0 lg:compact:[&_p]:text-[13px] lg:compact:[&_p]:leading-[1.5]">
         <div className={"artifact-breadcrumb text-[12px] mb-3 wrap-anywhere"}>
           <Link href="/artifacts" className={"text-lime"}>
             {t("Artifact library")}
@@ -69,11 +61,11 @@ export default async function ArtifactPage({
         >
           {artifact.shirt ? artifact.name : t("Artifact workspace")}
         </h1>
-      </div>
+      </PageHeading>
       <ArtifactEditor
         initial={artifact}
         stages={guidance?.flow.stages.map(({ id, name }) => ({ id, name })) ?? []}
       />
-    </main>
+    </Workspace>
   );
 }

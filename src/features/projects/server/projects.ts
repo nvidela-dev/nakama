@@ -1,3 +1,4 @@
+import { listPage, listPageSize, readListCursor } from "@/server/database/list-page";
 import {
   invitationAcceptanceSchema,
   projectSchema,
@@ -90,14 +91,26 @@ export async function readPeople({ tx, projectId, role }: ProjectRead) {
       : [];
   return { members, invitations };
 }
-export function readProjectChoices({ tx, actor }: ProjectRead) {
+function projectChoices(tx: Queryable, actor: Actor) {
+  requireActor(actor);
   return queryRows(
     tx,
-    projectSchema.pick({ id: true, name: true }),
-    "SELECT p.id,p.name FROM projects p JOIN project_memberships m ON m.project_id=p.id WHERE m.user_id=$1 ORDER BY p.created_at DESC,p.id",
+    projectSchema.pick({ id: true, name: true }).extend({ flow_id: flowIdSchema.nullable() }),
+    "SELECT p.id,p.name,f.flow_id FROM projects p JOIN project_memberships m ON m.project_id=p.id LEFT JOIN project_flows f ON f.project_id=p.id WHERE m.user_id=$1 ORDER BY p.created_at DESC,p.id",
     [actor.userId],
   );
 }
+export function readProjectChoices({ tx, actor }: ProjectRead) {
+  return projectChoices(tx, actor);
+}
+const projectSummary = projectSchema.extend({
+  flow_id: flowIdSchema.nullable(),
+  content_revision: z.number().int().nonnegative(),
+});
+const projectListSql = `SELECT p.*,m.role,f.flow_id,COALESCE(f.content_revision,0) AS content_revision,
+  to_char(p.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
+  FROM projects p JOIN project_memberships m ON m.project_id=p.id
+  LEFT JOIN project_flows f ON f.project_id=p.id WHERE m.user_id=$1`;
 export function projectService(db: Database) {
   return {
     async create(actor: Actor, input: unknown) {
@@ -135,30 +148,36 @@ export function projectService(db: Database) {
         )[0];
         if (!project || confirmation !== project.name)
           throw new ProjectError("Type the project name exactly to confirm deletion.");
-        // Delete dependent records first. All removals are scoped to this project and atomic.
-        for (const table of [
-          "project_artifacts",
-          "answer_revisions",
-          "node_answers",
-          "stage_review_history",
-          "stage_reviews",
-          "project_flows",
-          "project_invitations",
-          "project_memberships",
-        ])
-          await tx.query(`DELETE FROM ${table} WHERE project_id = $1`, [projectId]);
         await tx.query("DELETE FROM projects WHERE id = $1", [projectId]);
       });
     },
     async list(actor: Actor) {
       requireActor(actor);
+      return queryRows(db, projectSummary, projectListSql + " ORDER BY p.created_at DESC,p.id", [
+        actor.userId,
+      ]);
+    },
+    choices: (actor: Actor) => projectChoices(db, actor),
+    async page(actor: Actor, after?: string) {
+      requireActor(actor);
+      const [time, id] = readListCursor(after);
+      const rows = await queryRows(
+        db,
+        projectSummary.extend({ cursor_time: z.string() }),
+        projectListSql +
+          `
+        AND ($2::timestamptz IS NULL OR p.created_at < $2 OR (p.created_at=$2 AND p.id>$3::uuid))
+        ORDER BY p.created_at DESC,p.id LIMIT $4`,
+        [actor.userId, time, id, listPageSize + 1],
+      );
+      return listPage(rows);
+    },
+    async groupCounts(actor: Actor) {
+      requireActor(actor);
       return queryRows(
         db,
-        projectSchema.extend({
-          flow_id: flowIdSchema.nullable(),
-          content_revision: z.number().int().nonnegative(),
-        }),
-        "SELECT p.*, m.role, f.flow_id, COALESCE(f.content_revision, 0) AS content_revision FROM projects p JOIN project_memberships m ON m.project_id = p.id LEFT JOIN project_flows f ON f.project_id = p.id WHERE m.user_id = $1 ORDER BY p.created_at DESC, p.id",
+        z.object({ flow_id: flowIdSchema.nullable(), total: z.number().int() }),
+        "SELECT f.flow_id,count(*)::int AS total FROM project_memberships m LEFT JOIN project_flows f ON f.project_id=m.project_id WHERE m.user_id=$1 GROUP BY f.flow_id",
         [actor.userId],
       );
     },

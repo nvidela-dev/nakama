@@ -1,3 +1,7 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ProjectError } from "@/shared/contracts/errors";
+import { Workspace } from "@/shared/ui/workspace-layout";
 import { WaveMark } from "@/shared/ui/wave-mark";
 import { getT } from "@/shared/i18n/server";
 import { ProjectCard } from "@/features/projects/components/project-card";
@@ -12,17 +16,32 @@ import {
 import { ProjectTimeline } from "@/features/projects/components/project-timeline";
 
 export const dynamic = "force-dynamic";
-export default async function ProjectsPage() {
+export default async function ProjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ after?: string }>;
+}) {
   const t = await getT();
   const person = await actor(true);
-  const [projects, progress, counts] = await Promise.all([
-    projectService(database()).list(person),
-    projectProgress(database(), person),
-    projectActivityCounts(database(), person),
+  const { after } = await searchParams;
+  const db = database(),
+    service = projectService(db);
+  const [page, totals] = await Promise.all([
+    service.page(person, after).catch((error) => {
+      if (error instanceof ProjectError) notFound();
+      throw error;
+    }),
+    service.groupCounts(person),
+  ]);
+  const projects = page.items;
+  const ids = projects.map((p) => p.id);
+  const [progress, counts] = await Promise.all([
+    projectProgress(db, person, ids),
+    projectActivityCounts(db, person, ids),
   ]);
   const groups = groupProjectsByType(projects, t);
   return (
-    <main id="main" className="workspace w-full p-4 lg:p-6 min-h-[70vh]">
+    <Workspace id="main" variant="dashboard">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <h1
           aria-label={t("Projects")}
@@ -36,7 +55,7 @@ export default async function ProjectsPage() {
               "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
             }
           >
-            {projects.length}
+            {totals.reduce((sum, row) => sum + row.total, 0)}
           </span>
         </h1>
       </div>
@@ -46,7 +65,9 @@ export default async function ProjectsPage() {
             <section key={group.id ?? "unset"} aria-label={t(group.name)}>
               <h2 className="flex items-baseline gap-2 mb-2 font-semibold text-base">
                 {t(group.name)}{" "}
-                <small className="text-muted font-normal">{group.projects.length}</small>
+                <small className="text-muted font-normal">
+                  {totals.find((row) => row.flow_id === group.id)?.total ?? group.projects.length}
+                </small>
               </h2>
               <div className="project-list grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-2">
                 {group.projects.map((p) => {
@@ -99,12 +120,20 @@ export default async function ProjectsPage() {
                 "mb-[1em] font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 text-ink mt-5"
               }
             >
-              {t("No projects yet")}
+              {t(after ? "No more projects" : "No projects yet")}
             </h3>
-            <p className={"mb-[1em] mt-0 text-[14px]"}>{t("Create a project to get started.")}</p>
+            {!after && (
+              <p className={"mb-[1em] mt-0 text-[14px]"}>{t("Create a project to get started.")}</p>
+            )}
           </div>
         )}
       </section>
-    </main>
+      {(after || page.next) && (
+        <nav className="flex gap-4 mt-4" aria-label={t("Project pages")}>
+          {after && <Link href="/projects">{t("First page")}</Link>}
+          {page.next && <Link href={`/projects?after=${page.next}`}>{t("More projects")}</Link>}
+        </nav>
+      )}
+    </Workspace>
   );
 }

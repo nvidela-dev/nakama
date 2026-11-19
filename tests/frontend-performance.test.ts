@@ -6,6 +6,7 @@ import {
   compareFrontendReports,
   evaluateFrontendBudgets,
   frontendBudgets,
+  loadSourceMap,
 } from "../scripts/frontend-metrics";
 
 test("classifyChunkContent identifies heavy frontend runtime libraries and dictionaries", () => {
@@ -62,6 +63,25 @@ test("analyzeClientImportHotspots flags static client paths to es.json and zod w
     "src/shared/i18n/index.ts",
     "src/shared/i18n/es.json",
   ]);
+});
+
+test("server actions terminate client imports while ordinary runtime imports still count", () => {
+  const graph = new Map([
+    ["src/client.tsx", '"use client"; import "./action";'],
+    ["src/action.ts", '"use server"; import "zod/v4"; import "./shared/i18n/es.json";'],
+    ["src/shared/i18n/es.json", "{}"],
+  ]);
+  assert.deepEqual(analyzeClientImportHotspots(graph).hotspots, []);
+  graph.set("src/action.ts", 'import "zod/v4"; import "./shared/i18n/es.json";');
+  assert.equal(analyzeClientImportHotspots(graph).hotspots.length, 2);
+});
+
+test("application client entrypoints keep Zod and the inactive dictionary off static import paths", async () => {
+  const { hotspots } = analyzeClientImportHotspots(await loadSourceMap());
+  assert.deepEqual(
+    hotspots.filter(({ id }) => id === "client-es-dictionary" || id === "client-zod-runtime"),
+    [],
+  );
 });
 
 test("evaluateFrontendBudgets distinguishes pass, warn, and fail thresholds", () => {

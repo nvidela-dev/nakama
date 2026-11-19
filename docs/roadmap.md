@@ -464,3 +464,15 @@ Resolve the admitted actor once per server render. Overlapping private requests 
 ## Project workspace reads — 2026-11-18
 
 Compose workspace readers in one transaction scoped to the actor and project. Membership and its lock are shared for the duration of the read. Keep the existing tab panels and their drafts. Fetch sidebar link choices only where the sidebar appears. Owner invitation-directory lookups use a separate short authorization step so Clerk latency never ties up the workspace connection.
+
+## Project deletion ownership — 2026-11-18
+
+After locking the owner's membership and confirming the exact current project name, delete the project row once. The foreign keys in the applied schema own dependent deletion, including both directions of project lineage. The migration test checks the cascade policy for every direct project reference.
+
+## Shared workspace layout — 2026-11-18
+
+Route content and loading states use the same workspace widths. Shared native form, heading and disclosure components own common spacing and keyboard semantics. Feature-specific controls and layout stay with their feature.
+
+## Browsing project and artifact collections — 2026-11-18
+
+The dashboard and cross-project artifact library fetch 24 cards at a time. Artifact search and filters apply to all current memberships before paging. Keep PostgreSQL file bytes behind the membership-checked private file route. Managed milestones continue to belong to Tasks. A board needs its complete tree and list revision for safe subtree edits, so fetch that bounded snapshot only when opening To-do. The artifact tab loads its bounded project collection when opened. Previously visited panels retain their drafts while navigating within the project.

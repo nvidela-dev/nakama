@@ -1,3 +1,4 @@
+import { PageHeading, Workspace } from "@/shared/ui/workspace-layout";
 import { Panel } from "@/shared/ui/panel";
 import { requestPolicy } from "@/features/access/server/request-store";
 import { AccessRequestList } from "@/features/access/components/access-request-list";
@@ -16,17 +17,8 @@ export default async function AdminPage() {
   ]);
   const t = await getT();
   return (
-    <main
-      id="main"
-      className={
-        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0"
-      }
-    >
-      <div
-        className={
-          "page-heading mt-7.5 mx-0 mb-10.5 max-[700px]:mt-6 lg:compact:mt-3.5 lg:compact:mb-5"
-        }
-      >
+    <Workspace id="main">
+      <PageHeading>
         <h1
           className={
             "mb-[0.67em] mt-0 font-sans tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px]"
@@ -41,7 +33,7 @@ export default async function AdminPage() {
         >
           {t("Only whitelisted emails can sign up and access private workspaces.")}
         </p>
-      </div>
+      </PageHeading>
       <div
         className={
           "workspace-columns grid grid-cols-[1.3fr_1fr] gap-8 items-start max-[1000px]:grid-cols-[1fr_1fr] max-[700px]:grid-cols-[1fr] lg:compact:grid-cols-[minmax(0,_1fr)_300px] lg:compact:gap-5 lg:compact:[&_>_*]:min-w-0 min-[2000px]:compact:grid-cols-[minmax(0,_1fr)_340px] min-[2000px]:compact:gap-7"
@@ -83,6 +75,6 @@ export default async function AdminPage() {
           <AddAllowedEmail />
         </aside>
       </div>
-    </main>
+    </Workspace>
   );
 }

@@ -60,6 +60,14 @@ test("populated migration preserves artifact tasks, ordering, file bytes, revisi
       (await sql.query("SELECT id,name,description,created_at FROM projects ORDER BY id")).rows,
       before,
     );
+    const directReferences = await sql.query<{ name: string; action: string }>(
+      "SELECT conname AS name, confdeltype AS action FROM pg_constraint WHERE contype='f' AND confrelid='projects'::regclass",
+    );
+    assert.ok(directReferences.rows.length > 0);
+    assert.deepEqual(
+      directReferences.rows.filter((row) => row.action !== "c"),
+      [],
+    );
     const detail = await artifactService(db).get(actor, project, artifact);
     assert.deepEqual(detail.tasks, tasks);
     assert.equal(detail.revision, 7);

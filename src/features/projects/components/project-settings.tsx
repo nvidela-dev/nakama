@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Input, Textarea } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
@@ -58,11 +60,9 @@ export function ProjectSettings({
           </Button>
         </ActionMenu>
       )}
-      <form
+      <FormStack
         id={`${prefix}-edit-project-form`}
-        className={
-          "form-stack panel p-7.5 bg-panel border border-line rounded-[16px] min-w-0 [&_p]:text-muted [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 flex flex-col gap-3 [&_select]:max-w-full lg:compact:gap-1.75 max-w-160 mt-3"
-        }
+        className="panel p-7.5 bg-panel border border-line rounded-[16px] min-w-0 [&_p]:text-muted [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 max-w-160 mt-3"
         action={save}
         hidden={!editing}
       >
@@ -105,12 +105,10 @@ export function ProjectSettings({
         <Button type="submit" disabled={saving} className={"mt-2 lg:compact:mt-1"}>
           {saving ? t("Saving…") : t("Save changes")}
         </Button>
-      </form>
-      <form
+      </FormStack>
+      <FormStack
         id={`${prefix}-delete-project-form`}
-        className={
-          "form-stack panel p-7.5 bg-panel border border-line rounded-[16px] min-w-0 [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 flex flex-col gap-3 [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75 max-w-160 mt-3"
-        }
+        className="panel p-7.5 bg-panel border border-line rounded-[16px] min-w-0 [&_h3]:mt-7 max-[1000px]:p-5.5 max-[700px]:p-6 lg:compact:p-4 lg:compact:rounded-[10px] lg:compact:[&_h3]:mt-4.5 max-w-160 mt-3"
         action={remove}
         hidden={!confirming}
       >
@@ -146,7 +144,7 @@ export function ProjectSettings({
         >
           {deleting ? t("Deleting…") : t("Permanently delete project")}
         </Button>
-      </form>
+      </FormStack>
     </section>
   );
 }

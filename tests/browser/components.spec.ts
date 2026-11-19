@@ -461,3 +461,16 @@ test("testing an existing idea opens an editable claim without inventing a metho
   await expect(page.getByRole("status")).toContainText("Draft retained");
   await expect(capture.locator('textarea[name="claim"]')).toHaveValue("Edited claim");
 });
+
+test("workspace sidebar supports keyboard disclosure and retains form input", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await story(page, "ui-workspace-layout--project");
+  const input = page.getByLabel("Email address");
+  await input.fill("crew@example.com");
+  await page.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(input).toBeHidden();
+  await page.keyboard.press("Space");
+  await expect(input).toHaveValue("crew@example.com");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

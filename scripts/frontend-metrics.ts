@@ -461,6 +461,8 @@ export function analyzeClientImportHotspots(
       first && ts.isExpressionStatement(first) && ts.isStringLiteral(first.expression)
         ? first.expression.text
         : undefined;
+    // A client import of a Server Action is compiled to a remote call.
+    if (directive === "use server") continue;
     if (directive === "use client") clientEntrypoints.push(file);
 
     const edges: string[] = [];
@@ -541,15 +543,15 @@ export function analyzeClientImportHotspots(
       severity: "opportunity",
       predicate: (node) => node === "src/shared/i18n/es.json",
       recommendation:
-        "Split formatDate/locale helpers from static dictionary catalogs so client components do not bundle inactive locale JSON (~26 KB gzip).",
+        "Import date formatting from shared/i18n/date and supply the selected dictionary through the locale provider.",
     },
     {
       id: "client-zod-runtime",
       target: "zod",
       severity: "opportunity",
-      predicate: (node) => node === "zod",
+      predicate: (node) => node === "zod" || node.startsWith("zod/"),
       recommendation:
-        "Dynamically import client-side file parsers (such as parseLockInFile) on user interaction so Zod (~40 KB gzip) stays out of initial route hydration.",
+        "Use a type-only import for server contracts or load optional browser validation on interaction.",
     },
     {
       id: "client-three-direct",

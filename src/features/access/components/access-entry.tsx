@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Panel } from "@/shared/ui/panel";
 
 import { Input } from "@/shared/ui/controls";
@@ -41,12 +43,7 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
           "Enter your email. If it is not allowed yet, a request will be saved for the administrator to review.",
         )}
       </p>
-      <form
-        className={
-          "form-stack flex flex-col gap-3 [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
-        }
-        action={action}
-      >
+      <FormStack action={action}>
         <label htmlFor="request-email" className={"text-[13px] text-ink"}>
           {t("Email address")}
         </label>
@@ -84,7 +81,7 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
             {t("Access requested. You can sign up after the administrator allows your email.")}
           </p>
         )}
-      </form>
+      </FormStack>
     </Panel>
   );
 }

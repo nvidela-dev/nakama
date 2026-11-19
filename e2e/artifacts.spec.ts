@@ -541,3 +541,41 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
     .filter({ has: page.getByRole("heading", { name: fixtureName, exact: true }) });
   await expect(card).toContainText("1 design · 1 collection");
 });
+
+test("global artifact paging preserves filters and searches beyond the first page", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
+  await page.goto("/projects");
+  await openProjectSetup(page);
+  await page.getByLabel("Project name", { exact: true }).fill(fixtureName);
+  await page.getByLabel("Description", { exact: true }).fill("Synthetic pagination check.");
+  await page.getByRole("button", { name: "Create project", exact: true }).click();
+  await expect(page.getByRole("heading", { name: fixtureName, exact: true })).toBeVisible();
+  fixtureId = new URL(page.url()).pathname.split("/").at(-1);
+  const { pool } = connection();
+  try {
+    await pool.query(
+      `INSERT INTO project_artifacts(id,project_id,name,kind,created_by,updated_by,updated_at)
+      SELECT gen_random_uuid(),m.project_id,'Page fixture '||n,'markdown',m.user_id,m.user_id,
+        now()-n*interval '1 minute' FROM project_memberships m CROSS JOIN generate_series(1,26) n
+      WHERE m.project_id=$1 AND m.role='owner'`,
+      [fixtureId],
+    );
+  } finally {
+    await pool.end();
+  }
+  await page.goto("/artifacts");
+  await page.getByLabel("Project", { exact: true }).selectOption(fixtureId!);
+  const cards = page.locator(".artifact-card");
+  await expect(cards).toHaveCount(24);
+  await page.getByRole("button", { name: "More artifacts" }).click();
+  await expect(cards).toHaveCount(2);
+  await expect(cards.last()).toContainText("Page fixture 26");
+  await page.getByRole("button", { name: "Previous page" }).click();
+  await expect(cards).toHaveCount(24);
+  await page.getByLabel("Find an artifact").fill("Page fixture 26");
+  await expect(cards).toHaveCount(1);
+  await expect(cards.first()).toContainText("Page fixture 26");
+});

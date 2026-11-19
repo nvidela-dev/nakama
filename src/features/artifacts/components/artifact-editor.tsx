@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Icon } from "@/shared/ui/icon";
 import { Panel } from "@/shared/ui/panel";
 
@@ -454,10 +456,7 @@ export function ArtifactEditor({
           >
             {t("Details")}
           </h2>
-          <form
-            className={
-              "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75"
-            }
+          <FormStack
             onSubmit={(event) => {
               event.preventDefault();
               run("metadata", { ...draft, stageId: draft.stageId || null });
@@ -534,7 +533,7 @@ export function ArtifactEditor({
             <Button type="submit" disabled={pending} className={"mt-2 lg:compact:mt-1"}>
               {pending ? t("Saving…") : t("Save details")}
             </Button>
-          </form>
+          </FormStack>
         </Panel>
         <Panel className={"artifact-tasks"} aria-label={t("Artifact to-do list")}>
           <div
@@ -554,10 +553,8 @@ export function ArtifactEditor({
               {artifact.tasks.length}
             </small>
           </div>
-          <form
-            className={
-              "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75"
-            }
+          <FormStack
+            className="[&_label]:text-[13px] [&_label]:text-ink"
             onSubmit={(e) => {
               e.preventDefault();
               run("tasks", tasks);
@@ -623,7 +620,7 @@ export function ArtifactEditor({
             <Button type="submit" disabled={pending} className={"mt-2 lg:compact:mt-1"}>
               {t("Save tasks")}
             </Button>
-          </form>
+          </FormStack>
         </Panel>
         <div
           className={"artifact-feedback min-w-0 max-[1000px]:[grid-column:1/-1]"}
@@ -686,10 +683,8 @@ export function ArtifactEditor({
           >
             {t("Delete artifact")}
           </summary>
-          <form
-            className={
-              "form-stack flex flex-col gap-3 [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75 pt-3"
-            }
+          <FormStack
+            className="pt-3"
             onSubmit={(e) => {
               e.preventDefault();
               run("delete", confirmation);
@@ -716,7 +711,7 @@ export function ArtifactEditor({
             >
               {t("Permanently delete artifact")}
             </Button>
-          </form>
+          </FormStack>
         </details>
       </aside>
       <Dialog
