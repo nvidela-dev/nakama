@@ -17,6 +17,8 @@ Lightweight visual prototypes may inform M2 without delaying functional access/e
 
 ## Confirmed decisions
 
+Owners can archive and restore projects for the whole crew from either project actions menu. Archiving moves a project out of the active dashboard and navigation list. Its direct link, membership, and saved work stay available. This applies before a flow is chosen and preserves any flow decisions when the project is restored.
+
 | ID | Decision | Why / consequence |
 | --- | --- | --- |
 | D1 | Simple Vercel app, Clerk identity, Neon Postgres | Keeps an agreed platform direction without selecting every library now. |

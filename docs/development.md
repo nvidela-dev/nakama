@@ -502,3 +502,5 @@ The project heading, experiment cycle and surrounding panels now use tighter spa
 ## Project deletion migration — 2026-11-18
 
 Apply migration 023 before releasing the single-statement project deletion. It replaces seven foreign keys from migrations 001 and 002. Existing rows keep their identifiers and content. The previous application code can still delete projects after this migration. The schema suite exercises the upgrade on populated disposable data.
+
+Apply migration 024 before releasing project archiving. Existing projects start in the active list. The authenticated browser check in `e2e/project-archive.spec.ts` exercises both project menus and removes its own disposable project afterward.

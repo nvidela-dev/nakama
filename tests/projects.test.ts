@@ -215,6 +215,38 @@ test("workspace uses one checkout and one membership lock across its readers", a
   assert.ok(focused.activity.items.length > 0);
 });
 
+test("owners can archive and restore a project without losing access, content, or history", async () => {
+  const owner = { userId: "archive-owner", verifiedEmails: [] };
+  const member = { userId: "archive-member", verifiedEmails: ["archive@example.com"] };
+  const id = await service.create(owner, { name: "Keep for later", description: "Original work" });
+  const invite = await service.invite(owner, id, "archive@example.com");
+  await service.accept(member, invite.token);
+  await assert.rejects(service.setArchived(member, id, true), /access/);
+  await assert.rejects(service.setArchived(cara, id, true), /access/);
+  await service.setArchived(owner, id, true);
+  await service.setArchived(owner, id, true);
+  assert.equal((await service.get(member, id)).description, "Original work");
+  assert.equal((await service.get(member, id)).archived, true);
+  assert.deepEqual((await service.page(member)).items, []);
+  assert.deepEqual(await service.groupCounts(member), []);
+  assert.deepEqual(await service.choices(member, { activeOnly: true }), []);
+  assert.equal((await service.choices(member))[0]?.id, id);
+  assert.equal((await service.page(member, undefined, true)).items[0]?.id, id);
+  assert.deepEqual(await service.groupCounts(member, true), [{ flow_id: null, total: 1 }]);
+  assert.ok(!(await service.page(cara, undefined, true)).items.some((p) => p.id === id));
+  await assert.rejects(service.setArchived(member, id, false), /access/);
+  await service.setArchived(owner, id, false);
+  await service.setArchived(owner, id, false);
+  assert.equal((await service.page(member)).items[0]?.id, id);
+  assert.deepEqual((await service.page(member, undefined, true)).items, []);
+  assert.equal((await service.choices(member, { activeOnly: true }))[0]?.id, id);
+  const events = await sql.query(
+    "SELECT kind FROM project_activity WHERE project_id=$1 AND kind IN ('project_archived','project_restored') ORDER BY kind",
+    [id],
+  );
+  assert.deepEqual(events.rows, [{ kind: "project_archived" }, { kind: "project_restored" }]);
+});
+
 test("dashboard pagination handles timestamp ties and scopes totals and card queries", async () => {
   const { projectProgress, projectActivityCounts } =
     await import("../src/features/projects/server/project-progress");

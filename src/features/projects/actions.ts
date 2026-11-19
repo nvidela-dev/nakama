@@ -62,6 +62,24 @@ export async function editProject(
     return { success: "Project updated." };
   });
 }
+export async function setProjectArchived(
+  projectId: string,
+  archived: boolean,
+): Promise<ActionState> {
+  return observeAction("project.archive", async () => {
+    const person = await actor();
+    try {
+      if (typeof archived !== "boolean") throw new ProjectError("Invalid archive action.");
+      await projectService(database()).setArchived(person, projectId, archived);
+    } catch (error) {
+      telemetry.reportError(error);
+      return { error: message(error) };
+    }
+    revalidatePath("/projects", "layout");
+    return { success: archived ? "Project archived." : "Project restored." };
+  });
+}
+
 export async function deleteProject(
   projectId: string,
   _state: ActionState,

@@ -18,6 +18,7 @@ export const projectSchema = z.object({
   id,
   name: z.string(),
   description: z.string(),
+  archived: z.boolean(),
   created_at: z.date(),
   role: membershipRoleSchema,
 }) satisfies z.ZodType<

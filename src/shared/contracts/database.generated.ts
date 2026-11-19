@@ -1,6 +1,6 @@
 // Generated from all SQL migrations by npm run db:types. Do not edit.
 // Database timestamps are Date; int8/numeric remain strings with node-postgres defaults.
-export const ActivityKindValues = ["project_created","project_edited","flow_selected","invitation_created","invitation_revoked","member_joined","member_removed","comment_created","comment_edited","comment_deleted","comment_moderated","task_created","task_edited","task_status_changed","task_deleted","tasks_imported","artifact_created","artifact_updated","artifact_deleted"] as const;
+export const ActivityKindValues = ["project_created","project_edited","flow_selected","invitation_created","invitation_revoked","member_joined","member_removed","comment_created","comment_edited","comment_deleted","comment_moderated","task_created","task_edited","task_status_changed","task_deleted","tasks_imported","artifact_created","artifact_updated","artifact_deleted","project_archived","project_restored"] as const;
 export type ActivityKind = (typeof ActivityKindValues)[number];
 export const ArtifactKindValues = ["image","markdown","software"] as const;
 export type ArtifactKind = (typeof ArtifactKindValues)[number];
@@ -286,6 +286,7 @@ export interface DatabaseRows {
     name: string;
     description: string;
     created_at: Date;
+    archived: boolean;
   };
   shirt_designs: {
     project_id: string;

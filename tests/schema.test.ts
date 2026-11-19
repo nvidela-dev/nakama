@@ -60,6 +60,8 @@ test("populated migration preserves artifact tasks, ordering, file bytes, revisi
       (await sql.query("SELECT id,name,description,created_at FROM projects ORDER BY id")).rows,
       before,
     );
+    assert.equal((await projectService(db).get(actor, project)).archived, false);
+    await projectService(db).setArchived(actor, project, true);
     const directReferences = await sql.query<{ name: string; action: string }>(
       "SELECT conname AS name, confdeltype AS action FROM pg_constraint WHERE contype='f' AND confrelid='projects'::regclass",
     );

@@ -252,6 +252,7 @@ export default async function ProjectPage({
 
       {project.role === "owner" && (
         <ProjectSettings
+          archived={project.archived}
           projectId={projectId}
           name={project.name}
           description={project.description}
@@ -277,8 +278,11 @@ export default async function ProjectPage({
     <Workspace id="main" variant="project">
       <PageHeading compact>
         <div className={"project-heading-line flex items-center gap-3 flex-wrap"}>
-          <Link className={"back-link text-[13px] text-muted m-0 shrink-0"} href="/projects">
-            {t("← Your projects")}
+          <Link
+            className={"back-link text-[13px] text-muted m-0 shrink-0"}
+            href={project.archived ? "/projects?view=archived" : "/projects"}
+          >
+            {project.archived ? `← ${t("Archived projects")}` : t("← Your projects")}
           </Link>
           <h1
             className={
@@ -287,6 +291,7 @@ export default async function ProjectPage({
           >
             {project.name}
           </h1>
+          {project.archived && <span className="text-sm text-muted">{t("Archived")}</span>}
         </div>
         <p
           className={

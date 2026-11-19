@@ -91,13 +91,13 @@ export async function readPeople({ tx, projectId, role }: ProjectRead) {
       : [];
   return { members, invitations };
 }
-function projectChoices(tx: Queryable, actor: Actor) {
+function projectChoices(tx: Queryable, actor: Actor, activeOnly = false) {
   requireActor(actor);
   return queryRows(
     tx,
     projectSchema.pick({ id: true, name: true }).extend({ flow_id: flowIdSchema.nullable() }),
-    "SELECT p.id,p.name,f.flow_id FROM projects p JOIN project_memberships m ON m.project_id=p.id LEFT JOIN project_flows f ON f.project_id=p.id WHERE m.user_id=$1 ORDER BY p.created_at DESC,p.id",
-    [actor.userId],
+    "SELECT p.id,p.name,f.flow_id FROM projects p JOIN project_memberships m ON m.project_id=p.id LEFT JOIN project_flows f ON f.project_id=p.id WHERE m.user_id=$1 AND (NOT $2::boolean OR NOT p.archived) ORDER BY p.created_at DESC,p.id",
+    [actor.userId, activeOnly],
   );
 }
 export function readProjectChoices({ tx, actor }: ProjectRead) {
@@ -135,6 +135,24 @@ export function projectService(db: Database) {
       });
       return id;
     },
+    async setArchived(actor: Actor, projectId: string, archived: boolean) {
+      await db.transaction(async (tx) => {
+        await membership(tx, actor, projectId, true);
+        const changed = await queryRows(
+          tx,
+          projectSchema.pick({ id: true }),
+          "UPDATE projects SET archived=$2 WHERE id=$1 AND archived<>$2 RETURNING id",
+          [projectId, archived],
+        );
+        if (changed.length)
+          await recordActivity(
+            tx,
+            actor,
+            projectId,
+            archived ? "project_archived" : "project_restored",
+          );
+      });
+    },
     async deleteProject(actor: Actor, projectId: string, confirmation: string) {
       await db.transaction(async (tx) => {
         await membership(tx, actor, projectId, true);
@@ -157,8 +175,9 @@ export function projectService(db: Database) {
         actor.userId,
       ]);
     },
-    choices: (actor: Actor) => projectChoices(db, actor),
-    async page(actor: Actor, after?: string) {
+    choices: (actor: Actor, options?: { activeOnly: boolean }) =>
+      projectChoices(db, actor, options?.activeOnly),
+    async page(actor: Actor, after?: string, archived = false) {
       requireActor(actor);
       const [time, id] = readListCursor(after);
       const rows = await queryRows(
@@ -166,19 +185,19 @@ export function projectService(db: Database) {
         projectSummary.extend({ cursor_time: z.string() }),
         projectListSql +
           `
-        AND ($2::timestamptz IS NULL OR p.created_at < $2 OR (p.created_at=$2 AND p.id>$3::uuid))
+        AND p.archived=$5 AND ($2::timestamptz IS NULL OR p.created_at < $2 OR (p.created_at=$2 AND p.id>$3::uuid))
         ORDER BY p.created_at DESC,p.id LIMIT $4`,
-        [actor.userId, time, id, listPageSize + 1],
+        [actor.userId, time, id, listPageSize + 1, archived],
       );
       return listPage(rows);
     },
-    async groupCounts(actor: Actor) {
+    async groupCounts(actor: Actor, archived = false) {
       requireActor(actor);
       return queryRows(
         db,
         z.object({ flow_id: flowIdSchema.nullable(), total: z.number().int() }),
-        "SELECT f.flow_id,count(*)::int AS total FROM project_memberships m LEFT JOIN project_flows f ON f.project_id=m.project_id WHERE m.user_id=$1 GROUP BY f.flow_id",
-        [actor.userId],
+        "SELECT f.flow_id,count(*)::int AS total FROM project_memberships m JOIN projects p ON p.id=m.project_id LEFT JOIN project_flows f ON f.project_id=m.project_id WHERE m.user_id=$1 AND p.archived=$2 GROUP BY f.flow_id",
+        [actor.userId, archived],
       );
     },
     async get(actor: Actor, projectId: string) {

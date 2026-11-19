@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { useActionState, useState } from "react";
 import { editProject, deleteProject } from "@/features/projects/actions";
 import { useT } from "@/shared/i18n/provider";
-import { ActionMenu } from "@/shared/ui/action-menu";
+import { ProjectActions } from "./project-actions";
 import { Feedback } from "@/shared/ui/feedback";
 
 export function ProjectSettings({
@@ -16,12 +16,14 @@ export function ProjectSettings({
   name,
   description,
   contentRevision,
+  archived,
   initialMode,
 }: {
   projectId: string;
   name: string;
   description: string;
   contentRevision: number;
+  archived: boolean;
   initialMode?: "edit" | "delete";
 }) {
   const t = useT();
@@ -37,28 +39,14 @@ export function ProjectSettings({
   return (
     <section data-action-scope className={"project-settings mb-4.5 [&_[hidden]]:hidden"}>
       {!initialMode && (
-        <ActionMenu label={t("Project actions")}>
-          <Button
-            type="button"
-            className={"button secondary"}
-            aria-expanded={editing}
-            aria-controls={`${prefix}-edit-project-form`}
-            onClick={() => setEditing(!editing)}
-            variant="secondary"
-          >
-            {t("Edit project")}
-          </Button>
-          <Button
-            type="button"
-            className={"button secondary"}
-            aria-expanded={confirming}
-            aria-controls={`${prefix}-delete-project-form`}
-            onClick={() => setConfirming(!confirming)}
-            variant="secondary"
-          >
-            {t("Delete project")}
-          </Button>
-        </ActionMenu>
+        <ProjectActions
+          projectId={projectId}
+          archived={archived}
+          editing={editing}
+          confirming={confirming}
+          onEdit={() => setEditing(!editing)}
+          onDelete={() => setConfirming(!confirming)}
+        />
       )}
       <FormStack
         id={`${prefix}-edit-project-form`}
