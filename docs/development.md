@@ -498,3 +498,7 @@ The accompanying dense-register/Kanban UI passed `make verify` (112 tests, type/
 ## Compact project workspace — 2026-10-26
 
 The project heading, experiment cycle and surrounding panels now use tighter spacing. The desktop guided grid gives eight of twelve columns to the main work, with two each for discussion and context. Local verification passed 112 tests, type/schema checks, the production build/bundle exclusions, lint/format and Storybook build, all 39 component checks and ten public-browser checks. An authenticated read-only browser check inspected the real project overview and expanded stage, verified the main/sidebar boundary did not overlap, and checked phone overflow. No project contents were modified by that check. Hosted release status is separate from these local results.
+
+## Project deletion migration — 2026-11-18
+
+Apply migration 023 before releasing the single-statement project deletion. It replaces seven foreign keys from migrations 001 and 002. Existing rows keep their identifiers and content. The previous application code can still delete projects after this migration. The schema suite exercises the upgrade on populated disposable data.

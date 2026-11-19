@@ -464,3 +464,7 @@ Resolve the admitted actor once per server render. Overlapping private requests 
 ## Project workspace reads — 2026-11-18
 
 Compose workspace readers in one transaction scoped to the actor and project. Membership and its lock are shared for the duration of the read. Keep the existing tab panels and their drafts. Fetch sidebar link choices only where the sidebar appears. Owner invitation-directory lookups use a separate short authorization step so Clerk latency never ties up the workspace connection.
+
+## Project deletion ownership — 2026-11-18
+
+After locking the owner's membership and confirming the exact current project name, delete the project row once. The foreign keys in the applied schema own dependent deletion, including both directions of project lineage. The migration test checks the cascade policy for every direct project reference.
