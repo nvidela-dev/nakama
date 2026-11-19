@@ -1,3 +1,4 @@
+import { Workspace } from "@/shared/ui/workspace-layout";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useT } from "@/shared/i18n/provider";
 import { Icon } from "@/shared/ui/icon";
@@ -78,11 +79,7 @@ function ProjectCardsPreview() {
     { name: "Social Media Multibox", stages: undefined },
   ];
   return (
-    <div
-      className={
-        "workspace max-w-300 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:max-w-none lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[2000px]:compact:px-10 min-[1280px]:[&:has(>_.has-discussion)]:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0"
-      }
-    >
+    <Workspace>
       <div
         className={
           "project-list lg:compact:grid lg:compact:grid-cols-[repeat(auto-fill,_minmax(360px,_1fr))] lg:compact:gap-2.5 lg:compact:items-stretch lg:compact:[&_>_h2]:[grid-column:1_/_-1] lg:compact:[&_>_h2]:mb-0 lg:compact:[&_>_.empty-state]:[grid-column:1_/_-1] lg:compact:[&_>_.empty-state]:mb-0"
@@ -123,7 +120,7 @@ function ProjectCardsPreview() {
           </article>
         ))}
       </div>
-    </div>
+    </Workspace>
   );
 }
 

@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Button } from "@/shared/ui/button";
 import { useT } from "@/shared/i18n/provider";
 import { Feedback } from "@/shared/ui/feedback";
@@ -35,12 +37,7 @@ export function StageReviewForm({
           "Not every question needs an answer. Record what you've decided and what remains unknown.",
         )}{" "}
       </p>
-      <form
-        action={action}
-        className={
-          "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
-        }
-      >
+      <FormStack action={action}>
         <Input
           type="hidden"
           name="revision"
@@ -68,7 +65,7 @@ export function StageReviewForm({
         >
           {pending ? t("Saving review…") : t("Mark stage reviewed")}
         </Button>
-      </form>
+      </FormStack>
     </details>
   );
 }

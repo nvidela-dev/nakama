@@ -1,3 +1,4 @@
+import { Workspace } from "@/shared/ui/workspace-layout";
 import { WaveMark } from "@/shared/ui/wave-mark";
 import { getT } from "@/shared/i18n/server";
 import { ProjectCard } from "@/features/projects/components/project-card";
@@ -22,7 +23,7 @@ export default async function ProjectsPage() {
   ]);
   const groups = groupProjectsByType(projects, t);
   return (
-    <main id="main" className="workspace w-full p-4 lg:p-6 min-h-[70vh]">
+    <Workspace id="main" variant="dashboard">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <h1
           aria-label={t("Projects")}
@@ -105,6 +106,6 @@ export default async function ProjectsPage() {
           </div>
         )}
       </section>
-    </main>
+    </Workspace>
   );
 }

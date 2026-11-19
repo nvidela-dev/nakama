@@ -1,3 +1,4 @@
+import { PageHeading, Workspace } from "@/shared/ui/workspace-layout";
 import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { Journey } from "@/features/guidance/components/journey";
@@ -41,20 +42,11 @@ export default async function Preview({
     ],
   };
   return (
-    <main
-      id="main"
-      className={
-        "workspace w-full max-w-300 lg:max-w-360 lg:compact:max-w-360 min-[1280px]:[&:has(>_.has-discussion)]:max-w-360 pt-12 px-[6%] pb-22.5 m-auto min-h-[70vh] max-[700px]:pt-6 lg:compact:pt-5 lg:compact:px-7 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 min-[1280px]:[&:has(>_.has-discussion)]:px-6 [&_.project-heading]:mt-0"
-      }
-    >
+    <Workspace id="main" variant="preview">
       <Link href="/" className={"back-link text-[13px] text-muted"}>
         {t("← Home")}{" "}
       </Link>
-      <div
-        className={
-          "page-heading mt-7.5 mx-0 mb-10.5 max-[700px]:mt-6 lg:compact:mt-3.5 lg:compact:mb-5"
-        }
-      >
+      <PageHeading>
         <span
           className={
             "eyebrow text-[11px] tracking-[2px] text-lime font-bold block mb-5.5 [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] lg:compact:mb-1.5"
@@ -78,7 +70,7 @@ export default async function Preview({
             "Try opening a stage, then a question. This sample shows the path; sign in and create your own project to save answers.",
           )}{" "}
         </p>
-      </div>
+      </PageHeading>
       <div
         className={"preview-journey max-w-185 my-0 mx-auto lg:compact:max-w-none lg:compact:m-0"}
       >
@@ -90,6 +82,6 @@ export default async function Preview({
           preview
         />
       </div>
-    </main>
+    </Workspace>
   );
 }

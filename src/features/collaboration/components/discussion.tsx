@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Icon } from "@/shared/ui/icon";
 import { ActionMenu } from "@/shared/ui/action-menu";
 import { CommentBubble } from "./comment-bubble";
@@ -170,12 +172,7 @@ function CommentItem({
           <>
             {!editing && <CommentText content={comment.content} />}
             {editing && (
-              <form
-                action={action}
-                className={
-                  "form-stack comment-edit flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
-                }
-              >
+              <FormStack action={action} className="comment-edit">
                 <Input
                   type="hidden"
                   name="operation"
@@ -222,7 +219,7 @@ function CommentItem({
                     {t("Cancel")}
                   </Button>
                 </div>
-              </form>
+              </FormStack>
             )}
             {confirming && (
               <form action={action} className="comment-confirm">

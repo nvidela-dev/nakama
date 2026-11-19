@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Switch } from "@/shared/ui/switch";
 import { BoardCard } from "./board-card";
 import { TaskArtifacts } from "./task-artifacts";
@@ -432,10 +434,7 @@ export function TaskList({
           }
           labelledBy="task-editor-heading"
         >
-          <form
-            className={
-              "form-stack flex flex-col gap-3 [&_textarea]:w-full [&_select]:max-w-full lg:compact:gap-1.75"
-            }
+          <FormStack
             onSubmit={(event) => {
               event.preventDefault();
               if (editor.kind === "add")
@@ -572,7 +571,7 @@ export function TaskList({
                 {t("Cancel")}
               </Button>
             </div>
-          </form>
+          </FormStack>
         </Dialog>
       )}
     </Panel>

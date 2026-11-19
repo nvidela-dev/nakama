@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Input, Select } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
@@ -31,11 +33,10 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
   );
 
   return (
-    <form
+    <FormStack
       action={action}
-      className={
-        "form-stack flex flex-col gap-1.5 pt-2 border-t border-t-line min-w-0 max-w-full [&_textarea]:w-full lg:compact:gap-1.5"
-      }
+      dense
+      className="pt-2 border-t border-t-line min-w-0 max-w-full lg:compact:gap-1.5"
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
         <label htmlFor="email" className={"text-[11px] text-muted leading-[1.4]"}>
@@ -122,7 +123,7 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
           </Button>
         </div>
       )}
-    </form>
+    </FormStack>
   );
 }
 export function AccessButton({
@@ -170,12 +171,7 @@ export function AcceptForm() {
     window.history.replaceState(null, "", window.location.pathname);
   }, []);
   return (
-    <form
-      action={action}
-      className={
-        "form-stack flex flex-col gap-3 [&_label]:text-[13px] [&_label]:text-ink [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
-      }
-    >
+    <FormStack action={action} className="[&_label]:text-[13px] [&_label]:text-ink">
       <Input type="hidden" name="token" value={token} className={"w-full [resize:vertical]"} />
       <Feedback state={state} />
       <Button type="submit" disabled={pending || !token} className={"mt-2 lg:compact:mt-1"}>
@@ -184,6 +180,6 @@ export function AcceptForm() {
       {!token && (
         <p className={"mb-[1em] mt-0"}>{t("Open the original invitation link to join.")}</p>
       )}
-    </form>
+    </FormStack>
   );
 }

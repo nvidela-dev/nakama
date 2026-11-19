@@ -468,3 +468,7 @@ Compose workspace readers in one transaction scoped to the actor and project. Me
 ## Project deletion ownership — 2026-11-18
 
 After locking the owner's membership and confirming the exact current project name, delete the project row once. The foreign keys in the applied schema own dependent deletion, including both directions of project lineage. The migration test checks the cascade policy for every direct project reference.
+
+## Shared workspace layout — 2026-11-18
+
+Route content and loading states use the same workspace widths. Shared native form, heading and disclosure components own common spacing and keyboard semantics. Feature-specific controls and layout stay with their feature.

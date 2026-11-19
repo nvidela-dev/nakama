@@ -1,3 +1,4 @@
+import { PageHeading, SidebarSection, Workspace } from "@/shared/ui/workspace-layout";
 import { loadWorkspace } from "./workspace";
 import { ProjectTests } from "@/features/experiments/components/project-tests";
 import { experimentPrompts } from "@/features/experiments/flow-prompts";
@@ -164,28 +165,12 @@ export default async function ProjectPage({
         links={links}
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
       />
-      <details
+      <SidebarSection
         open
-        className={
-          "panel project-people-panel bg-panel border border-line min-w-0 max-w-full max-[1000px]:p-3 max-[700px]:p-3 lg:compact:p-2.5 lg:compact:rounded-[10px] p-3 rounded-[8px] [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:w-full pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
-        }
+        heading={t("Members")}
+        count={people.members.length}
+        className="project-people-panel [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:w-full pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
       >
-        <summary className="cursor-pointer select-none [[open]>&]:mb-3">
-          <h2
-            className={
-              "font-sans tracking-[-0.045em] font-medium m-0 text-[14px] leading-[1.3] inline-flex items-center"
-            }
-          >
-            {t("Members")}{" "}
-            <span
-              className={
-                "count align-middle text-muted border border-line rounded-[100px] text-[11px] py-0.5 px-1.5 ml-1.25"
-              }
-            >
-              {people.members.length}
-            </span>
-          </h2>
-        </summary>
         <div className="project-members grid gap-2.5 min-w-0 max-w-full">
           <ul className={"people-list list-none p-0 m-0 min-w-0"}>
             {people.members.map((m) => (
@@ -254,7 +239,7 @@ export default async function ProjectPage({
             </>
           )}
         </div>
-      </details>
+      </SidebarSection>
 
       {project.role === "owner" && (
         <ProjectSettings
@@ -280,15 +265,8 @@ export default async function ProjectPage({
     />
   );
   return (
-    <main
-      id="main"
-      className={
-        "workspace w-full max-w-none lg:max-w-none lg:compact:max-w-none min-[1280px]:[&:has(>_.has-discussion)]:max-w-none pt-4 px-4 pb-6 m-auto min-h-[70vh] max-[700px]:pt-3 lg:compact:pt-3 lg:compact:px-4 lg:compact:pb-9 lg:compact:min-h-[calc(100vh_-_126px)] lg:compact:[&.narrow]:max-w-190 lg:compact:[&_.eyebrow]:mb-1.5 min-[1280px]:[&:has(>_.has-discussion)]:px-4"
-      }
-    >
-      <div
-        className={"page-heading project-heading mx-0 mb-3 max-[700px]:mt-0 lg:compact:mb-3 mt-0"}
-      >
+    <Workspace id="main" variant="project">
+      <PageHeading compact>
         <div className={"project-heading-line flex items-center gap-3 flex-wrap"}>
           <Link className={"back-link text-[13px] text-muted m-0 shrink-0"} href="/projects">
             {t("← Your projects")}
@@ -308,7 +286,7 @@ export default async function ProjectPage({
         >
           {project.description}
         </p>
-      </div>
+      </PageHeading>
       {guidance ? (
         <Journey
           productionStages={productionStages[guidance.flow.id]}
@@ -382,6 +360,6 @@ export default async function ProjectPage({
           )}
         </div>
       )}
-    </main>
+    </Workspace>
   );
 }

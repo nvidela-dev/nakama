@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import dynamic from "next/dynamic";
 import { Icon } from "@/shared/ui/icon";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
@@ -289,12 +291,7 @@ export function ArtifactLibrary({
         labelledBy="new-artifact-heading"
       >
         {editing && (
-          <form
-            className={
-              "form-stack flex flex-col gap-3 [&_small]:text-[11px] [&_small]:text-muted lg:compact:gap-1.75"
-            }
-            onSubmit={create}
-          >
+          <FormStack onSubmit={create}>
             <div
               className={
                 "artifact-library-heading flex items-center justify-between flex-wrap gap-3.5 mb-4.5 [&_p]:mt-1.5 [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-[12px] [&_p]:max-w-[60ch] max-[700px]:items-start"
@@ -452,7 +449,7 @@ export function ArtifactLibrary({
             <Button type="submit" disabled={pending} className={"mt-2 lg:compact:mt-1"}>
               {pending ? t("Saving…") : t("Create artifact")}
             </Button>
-          </form>
+          </FormStack>
         )}
       </Dialog>
     </section>

@@ -1,4 +1,6 @@
 "use client";
+import { FormStack } from "@/shared/ui/workspace-layout";
+
 import { Input } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
@@ -12,12 +14,7 @@ export function AddAllowedEmail() {
   const t = useT();
   const [state, action, pending] = useActionState(manageWhitelist, {});
   return (
-    <form
-      action={action}
-      className={
-        "form-stack flex flex-col gap-3 [&_textarea]:w-full [&_small]:text-[11px] [&_small]:text-muted [&_select]:max-w-full lg:compact:gap-1.75"
-      }
-    >
+    <FormStack action={action}>
       <Input type="hidden" name="operation" value="add" className={"w-full [resize:vertical]"} />
       <label htmlFor="allowed-email" className={"text-[13px] text-ink"}>
         {t("Email address")}
@@ -35,7 +32,7 @@ export function AddAllowedEmail() {
         {pending ? t("Saving…") : t("Allow email")}
       </Button>
       <Feedback state={state} />
-    </form>
+    </FormStack>
   );
 }
 export function RemoveAllowedEmail({ id }: { id: string }) {
