@@ -190,6 +190,19 @@ test("workspace uses one checkout and one membership lock across its readers", a
     1,
   );
   assert.ok(!result.accessibleProjects.some((p) => p.id === privateId));
+  assert.equal(result.tasks, null);
+  assert.equal(result.artifacts, null);
+  assert.ok(!statements.some((q) => /FROM project_tasks|FROM project_artifacts/.test(q)));
+  const board = await loadWorkspace(counted, alice, id, {
+    ...options,
+    view: "tasks",
+    focusedWork: true,
+  });
+  assert.ok(board.tasks);
+  assert.equal(board.artifacts, null);
+  const library = await loadWorkspace(counted, alice, id, { ...options, view: "artifacts" });
+  assert.ok(library.artifacts);
+  assert.equal(library.tasks, null);
   statements.length = 0;
   await assert.rejects(loadWorkspace(counted, bob, id, options));
   assert.equal(statements.length, 1);
@@ -200,4 +213,33 @@ test("workspace uses one checkout and one membership lock across its readers", a
   });
   assert.deepEqual(focused.accessibleProjects, []);
   assert.ok(focused.activity.items.length > 0);
+});
+
+test("dashboard pagination handles timestamp ties and scopes totals and card queries", async () => {
+  const { projectProgress, projectActivityCounts } =
+    await import("../src/features/projects/server/project-progress");
+  const viewer = { userId: "dashboard-fixture", verifiedEmails: [] };
+  const ids = [];
+  for (let i = 0; i < 26; i++)
+    ids.push(await service.create(viewer, { name: "Card " + i, description: "Synthetic" }));
+  await db.query(
+    "UPDATE projects SET created_at='2026-01-01 00:00:00.123456+00' WHERE id=ANY($1::uuid[])",
+    [ids],
+  );
+  const first = await service.page(viewer);
+  assert.equal(first.items.length, 24);
+  const second = await service.page(viewer, required(first.next ?? undefined));
+  assert.equal(second.next, null);
+  assert.deepEqual(
+    [...first.items, ...second.items].map((p) => p.id),
+    ids.sort(),
+  );
+  assert.deepEqual(await service.groupCounts(viewer), [{ flow_id: null, total: 26 }]);
+  const other = await service.create(cara, { name: "Hidden card", description: "Synthetic" });
+  assert.equal((await projectProgress(db, viewer, [other])).size, 0);
+  assert.deepEqual(
+    [...(await projectActivityCounts(db, viewer, [ids[0]!, other])).keys()],
+    [ids[0]],
+  );
+  await assert.rejects(service.page(viewer, "broken"), /Invalid page link/);
 });

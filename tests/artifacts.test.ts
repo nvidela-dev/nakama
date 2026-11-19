@@ -440,3 +440,36 @@ test("shirt artwork, collections and project counts follow membership, revisions
   });
   assert.equal((await projectActivityCounts(db, outsider)).has(shop), false);
 });
+
+test("global library filters before paging and rechecks membership on every continuation", async () => {
+  const { emptyArtifactFilters } = await import("../src/features/artifacts/model");
+  const project = await fixture();
+  const ids: string[] = [];
+  for (let i = 0; i < 26; i++)
+    ids.push(await artifacts.create(owner, project, { name: "Volume " + i, kind: "markdown" }));
+  await db.query(
+    "UPDATE project_artifacts SET updated_at='2026-01-01 00:00:00.123456+00' WHERE project_id=$1",
+    [project],
+  );
+  const filters = { ...emptyArtifactFilters, project };
+  const first = await artifacts.page(member, filters);
+  const next = required(first.next ?? undefined);
+  const second = await artifacts.page(member, filters, next);
+  assert.equal(first.items.length, 24);
+  assert.equal(second.next, null);
+  assert.deepEqual(
+    [...first.items, ...second.items].map((item) => item.id),
+    ids.sort(),
+  );
+  const last = second.items[1]!;
+  assert.ok(
+    (await artifacts.page(member, { ...filters, search: last.name, kind: "markdown" })).items.some(
+      (a) => a.id === last.id,
+    ),
+  );
+  assert.deepEqual((await artifacts.page(member, { ...filters, search: "%_" })).items, []);
+  assert.deepEqual((await artifacts.page(member, { ...filters, status: "ready" })).items, []);
+  await projects.remove(owner, project, member.userId);
+  assert.deepEqual((await artifacts.page(member, filters, next)).items, []);
+  await assert.rejects(artifacts.page(owner, filters, "broken"));
+});

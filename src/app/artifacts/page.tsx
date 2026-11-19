@@ -3,15 +3,15 @@ import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { artifactService } from "@/features/artifacts/server/artifacts";
 import { projectService } from "@/features/projects/server/projects";
-import { ArtifactLibrary } from "@/features/artifacts/components/artifact-library";
+import { GlobalArtifactLibrary } from "@/features/artifacts/components/global-artifact-library";
 import { getT } from "@/shared/i18n/server";
 export const dynamic = "force-dynamic";
 export default async function ArtifactsPage() {
   const person = await actor(),
     t = await getT();
-  const [items, projects] = await Promise.all([
-    artifactService(database()).list(person),
-    projectService(database()).list(person),
+  const [initial, projects] = await Promise.all([
+    artifactService(database()).page(person),
+    projectService(database()).choices(person),
   ]);
   return (
     <Workspace id="main" variant="artifacts">
@@ -31,10 +31,7 @@ export default async function ArtifactsPage() {
           {t("Browse the outputs of projects you belong to.")}
         </p>
       </PageHeading>
-      <ArtifactLibrary
-        items={items}
-        projects={projects.map(({ id, name, flow_id }) => ({ id, name, flow_id }))}
-      />
+      <GlobalArtifactLibrary initial={initial} projects={projects} />
     </Workspace>
   );
 }

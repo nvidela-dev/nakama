@@ -472,3 +472,7 @@ After locking the owner's membership and confirming the exact current project na
 ## Shared workspace layout — 2026-11-18
 
 Route content and loading states use the same workspace widths. Shared native form, heading and disclosure components own common spacing and keyboard semantics. Feature-specific controls and layout stay with their feature.
+
+## Browsing project and artifact collections — 2026-11-18
+
+The dashboard and cross-project artifact library fetch 24 cards at a time. Artifact search and filters apply to all current memberships before paging. Keep PostgreSQL file bytes behind the membership-checked private file route. Managed milestones continue to belong to Tasks. A board needs its complete tree and list revision for safe subtree edits, so fetch that bounded snapshot only when opening To-do. The artifact tab loads its bounded project collection when opened. Previously visited panels retain their drafts while navigating within the project.

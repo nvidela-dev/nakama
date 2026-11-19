@@ -1,3 +1,5 @@
+import { listPage, listPageSize, readListCursor } from "@/server/database/list-page";
+import { emptyArtifactFilters, type ArtifactPage } from "../model";
 import {
   selectedFlowSchema,
   artifactBytesSchema,
@@ -174,11 +176,25 @@ async function updated(tx: Queryable, person: Actor, projectId: string, artifact
   await recordActivity(tx, person, projectId, "artifact_updated");
   return detail(tx, projectId, artifactId);
 }
-async function artifactCards(tx: Queryable, person: Actor, projectId?: string) {
-  return (
+const artifactFilters = z.object({
+  search: z.string().trim().max(200),
+  kind: z.enum(["all", "shirt", "image", "markdown", "software"]),
+  project: z.union([z.literal("all"), z.uuid()]),
+  status: z.enum(["all", "in_progress", "ready"]),
+});
+async function artifactCards(
+  tx: Queryable,
+  person: Actor,
+  projectId?: string,
+  page?: { filters: z.infer<typeof artifactFilters>; after?: string | undefined },
+) {
+  const [time, id] = readListCursor(page?.after);
+
+  const rows = (
     await queryRows(
       tx,
       artifactRowSchema.extend({
+        cursor_time: z.string(),
         collection: z.string().nullable(),
         shirt_poster: z.string().nullable(),
         shirt_cover: shirtCoverSchema.nullable(),
@@ -187,7 +203,7 @@ async function artifactCards(tx: Queryable, person: Actor, projectId?: string) {
         cover_id: z.uuid().nullable(),
         file_count: z.number().int().nonnegative(),
       }),
-      `SELECT ${columns}, s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers','ink',COALESCE(s.layout->'ink','[]'::jsonb)) END AS shirt_cover,
+      `SELECT ${columns}, to_char(a.updated_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time,s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers','ink',COALESCE(s.layout->'ink','[]'::jsonb)) END AS shirt_cover,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id) AS task_count,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id AND t.status='done') AS done_task_count,
         (SELECT f.id FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id AND f.media_type::text LIKE 'image/%' ORDER BY f.created_at,f.id LIMIT 1) AS cover_id,
@@ -195,8 +211,29 @@ async function artifactCards(tx: Queryable, person: Actor, projectId?: string) {
         FROM project_artifacts a JOIN projects p ON p.id=a.project_id
         LEFT JOIN shirt_designs s ON (s.project_id,s.artifact_id)=(a.project_id,a.id)
         JOIN project_memberships m ON m.project_id=a.project_id AND m.user_id=$1
-        WHERE ($2::uuid IS NULL OR a.project_id=$2) ORDER BY a.updated_at DESC,a.id`,
-      [person.userId, projectId ?? null],
+        WHERE ($2::uuid IS NULL OR a.project_id=$2) ${
+          page
+            ? `AND ($3='all' OR (CASE WHEN s.artifact_id IS NULL THEN a.kind::text ELSE 'shirt' END)=$3)
+          AND ($4='all' OR a.status::text=$4)
+          AND strpos(lower(concat_ws(' ',a.name,p.name,coalesce(s.collection,''),a.description)),lower($5))>0
+          AND ($6::timestamptz IS NULL OR a.updated_at<$6 OR (a.updated_at=$6 AND a.id>$7::uuid))`
+            : ""
+        }
+        ORDER BY a.updated_at DESC,a.id ${page ? "LIMIT $8" : ""}`,
+      [
+        person.userId,
+        projectId ?? null,
+        ...(page
+          ? [
+              page.filters.kind,
+              page.filters.status,
+              page.filters.search,
+              time,
+              id,
+              listPageSize + 1,
+            ]
+          : []),
+      ],
     )
   ).map((item) => ({
     ...item,
@@ -204,17 +241,37 @@ async function artifactCards(tx: Queryable, person: Actor, projectId?: string) {
       ? (flows[item.flow_id]?.stages.find((stage) => stage.id === item.stage_id)?.name ?? null)
       : null,
   }));
+  return listPage(rows, page ? listPageSize : rows.length);
 }
-export function readProjectArtifacts({ tx, actor, projectId }: ProjectRead) {
-  return artifactCards(tx, actor, projectId);
+export function readArtifactChoices({ tx, projectId }: ProjectRead) {
+  return queryRows(
+    tx,
+    artifactRowSchema.pick({ id: true, name: true }),
+    "SELECT id,name FROM project_artifacts WHERE project_id=$1 ORDER BY updated_at DESC,id",
+    [projectId],
+  );
+}
+export async function readProjectArtifacts({ tx, actor, projectId }: ProjectRead) {
+  return (await artifactCards(tx, actor, projectId)).items;
 }
 export function artifactService(db: Database) {
   return {
+    async page(
+      person: Actor,
+      input: unknown = emptyArtifactFilters,
+      after?: string,
+    ): Promise<ArtifactPage> {
+      if (!person.userId) throw new ProjectError("Sign in first.");
+      const parsed = artifactFilters.safeParse(input);
+      if (!parsed.success) throw new ProjectError("Invalid artifact filters.");
+      const projectId = parsed.data.project === "all" ? undefined : parsed.data.project;
+      return artifactCards(db, person, projectId, { filters: parsed.data, after });
+    },
     async list(person: Actor, projectId?: string) {
       if (!person.userId) throw new ProjectError("Sign in first.");
       return projectId !== undefined
         ? withProjectRead(db, person, projectId, readProjectArtifacts)
-        : db.transaction((tx) => artifactCards(tx, person));
+        : db.transaction(async (tx) => (await artifactCards(tx, person)).items);
     },
     get: (person: Actor, projectId: string, artifactId: string) =>
       db.transaction(async (tx) => {

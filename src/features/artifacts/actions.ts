@@ -139,3 +139,9 @@ export async function readArtifact(
     }
   });
 }
+
+export async function browseArtifacts(filters: unknown, after?: string) {
+  return observeAction("artifact.read", async () =>
+    artifactService(database()).page(await actor(), filters, after),
+  );
+}

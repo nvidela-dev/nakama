@@ -7,7 +7,6 @@ import { projectService } from "@/features/projects/server/projects";
 export async function navigationProjects() {
   return observeAction("project.navigation", async () => {
     const person = await actor();
-    const projects = await projectService(database()).list(person);
-    return projects.map(({ id, name, flow_id }) => ({ id, name, flow_id }));
+    return projectService(database()).choices(person);
   });
 }

@@ -7,7 +7,7 @@ import { Input, Select, Textarea } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
 
-import { useDeferredValue, useMemo, useRef, useState, useTransition } from "react";
+import { type ReactNode, useDeferredValue, useMemo, useRef, useState, useTransition } from "react";
 import { Dialog } from "@/shared/ui/dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,8 @@ import {
   artifactUrl,
   artifactFileUrl,
   type ArtifactCard,
+  type ArtifactFilters,
+  emptyArtifactFilters,
 } from "@/features/artifacts/model";
 import { useT } from "@/shared/i18n/provider";
 
@@ -28,7 +30,15 @@ export function ArtifactLibrary({
   projectId,
   stages = [],
   stageId,
+  filterControls,
+  pageStatus,
+  searching = false,
+  hasFilters = false,
 }: {
+  filterControls?: ReactNode;
+  pageStatus?: ReactNode;
+  searching?: boolean;
+  hasFilters?: boolean;
   items: ArtifactCard[];
   projects: { id: string; name: string; flow_id?: string | null }[];
   projectId?: string;
@@ -39,11 +49,9 @@ export function ArtifactLibrary({
     router = useRouter(),
     opener = useRef<HTMLButtonElement>(null);
   const [pending, startTransition] = useTransition(),
-    [error, setError] = useState(""),
-    [search, setSearch] = useState(""),
-    [kind, setKind] = useState("all"),
-    [status, setStatus] = useState("all"),
-    [project, setProject] = useState("all");
+    [error, setError] = useState("");
+  const [filters, setFilters] = useState(emptyArtifactFilters);
+  const { search, kind, status, project } = filters;
   const [editing, setEditing] = useState(false);
   const [createProject, setCreateProject] = useState(projectId ?? projects[0]?.id);
   const shirtShop = projects.find((p) => p.id === createProject)?.flow_id === "shirt-eshop";
@@ -136,55 +144,16 @@ export function ArtifactLibrary({
           {t("New artifact")}
         </Button>
       </div>
-      <div className={"artifact-filters flex flex-wrap gap-2.5 mb-5"}>
-        <Input
-          aria-label={t("Find an artifact")}
-          placeholder={t("Find an artifact")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={"min-w-0 [flex:1_1_140px] [flex-basis:220px]"}
+      {filterControls ?? (
+        <ArtifactFilterControls
+          filters={filters}
+          onChange={setFilters}
+          projects={projects}
+          scoped={!!projectId}
         />
-        {!projectId && (
-          <Select
-            aria-label={t("Project")}
-            value={project}
-            onChange={(e) => setProject(e.target.value)}
-            className={"min-w-0 [flex:1_1_140px]"}
-          >
-            <option value="all">{t("All projects")}</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
-        )}
-        <Select
-          aria-label={t("Artifact type")}
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-          className={"min-w-0 [flex:1_1_140px]"}
-        >
-          <option value="all">{t("All types")}</option>
-          <option value="shirt">{t("Shirt design")}</option>
-          {Object.entries(artifactKinds).map(([key, label]) => (
-            <option key={key} value={key}>
-              {t(label)}
-            </option>
-          ))}
-        </Select>
-        <Select
-          aria-label={t("Artifact status")}
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className={"min-w-0 [flex:1_1_140px]"}
-        >
-          <option value="all">{t("All statuses")}</option>
-          <option value="in_progress">{t("In progress")}</option>
-          <option value="ready">{t("Ready to use")}</option>
-        </Select>
-      </div>
-      {!visible.length ? (
+      )}
+      {pageStatus}
+      {searching ? null : !visible.length ? (
         <div
           className={
             "empty-state text-center py-15 px-5 [border:1px_dashed_var(--color-line)] rounded-[12px] text-muted [&_>_span]:text-[52px] [&_>_span]:text-lime lg:compact:py-6 lg:compact:px-4 lg:compact:[&_>_span]:text-[30px]"
@@ -195,7 +164,7 @@ export function ArtifactLibrary({
               "mb-[1em] font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 text-ink mt-5"
             }
           >
-            {t(items.length ? "No matching artifacts." : "No artifacts yet.")}
+            {t(items.length || hasFilters ? "No matching artifacts." : "No artifacts yet.")}
           </h3>
           <p className={"mb-[1em] mt-0 text-[14px]"}>
             {t("Start with a work in progress, attach its output when ready.")}
@@ -453,5 +422,71 @@ export function ArtifactLibrary({
         )}
       </Dialog>
     </section>
+  );
+}
+
+export function ArtifactFilterControls({
+  filters,
+  onChange,
+  projects,
+  scoped = false,
+}: {
+  filters: ArtifactFilters;
+  onChange: (value: ArtifactFilters) => void;
+  projects: { id: string; name: string }[];
+  scoped?: boolean;
+}) {
+  const t = useT(),
+    { search, project, kind, status } = filters;
+  return (
+    <div className={"artifact-filters flex flex-wrap gap-2.5 mb-5"}>
+      <Input
+        aria-label={t("Find an artifact")}
+        placeholder={t("Find an artifact")}
+        maxLength={200}
+        value={search}
+        onChange={(e) => onChange({ ...filters, search: e.target.value })}
+        className={"min-w-0 [flex:1_1_140px] [flex-basis:220px]"}
+      />
+      {!scoped && (
+        <Select
+          aria-label={t("Project")}
+          value={project}
+          onChange={(e) => onChange({ ...filters, project: e.target.value })}
+          className={"min-w-0 [flex:1_1_140px]"}
+        >
+          <option value="all">{t("All projects")}</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </Select>
+      )}
+      <Select
+        aria-label={t("Artifact type")}
+        value={kind}
+        onChange={(e) => onChange({ ...filters, kind: e.target.value })}
+        className={"min-w-0 [flex:1_1_140px]"}
+      >
+        <option value="all">{t("All types")}</option>
+        <option value="shirt">{t("Shirt design")}</option>
+        {Object.entries(artifactKinds).map(([key, label]) => (
+          <option key={key} value={key}>
+            {t(label)}
+          </option>
+        ))}
+      </Select>
+      <Select
+        aria-label={t("Artifact status")}
+        value={status}
+        onChange={(e) => onChange({ ...filters, status: e.target.value })}
+        className={"min-w-0 [flex:1_1_140px]"}
+      >
+        <option value="all">{t("All statuses")}</option>
+        <option value="in_progress">{t("In progress")}</option>
+        <option value="ready">{t("Ready to use")}</option>
+      </Select>
+    </div>
   );
 }

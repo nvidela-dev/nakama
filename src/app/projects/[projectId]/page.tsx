@@ -84,10 +84,19 @@ export default async function ProjectPage({
     activity,
     tasks,
     artifacts,
+    artifactChoices,
     links,
     accessibleProjects,
   } = workspace;
-  const artifactLibrary = (
+  const taskPanel = tasks && (
+    <ProjectTasks
+      projectId={projectId}
+      initial={tasks}
+      artifacts={artifactChoices}
+      flowId={guidance?.flow.id ?? null}
+    />
+  );
+  const artifactLibrary = artifacts && (
     <ArtifactLibrary
       items={artifacts}
       projects={[{ id: projectId, name: project.name, flow_id: guidance?.flow.id ?? null }]}
@@ -299,14 +308,7 @@ export default async function ProjectPage({
           names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
           sidebar={sidebar}
           discussion={discussion}
-          tasks={
-            <ProjectTasks
-              projectId={projectId}
-              initial={tasks}
-              artifacts={artifacts.map(({ id, name }) => ({ id, name }))}
-              flowId={guidance?.flow.id ?? null}
-            />
-          }
+          tasks={taskPanel}
           artifacts={artifactLibrary}
           tests={tests}
           activity={activityPanel}
@@ -326,13 +328,8 @@ export default async function ProjectPage({
             }
           >
             <ProjectWork
-              tasks={
-                <ProjectTasks
-                  projectId={projectId}
-                  initial={tasks}
-                  artifacts={artifacts.map(({ id, name }) => ({ id, name }))}
-                />
-              }
+              key={projectId}
+              tasks={taskPanel}
               artifacts={artifactLibrary}
               tests={tests}
               activity={activityPanel}

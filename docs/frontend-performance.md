@@ -67,7 +67,7 @@ The pre-refactor production-build sample at 1440px loaded 786,317 raw bytes / 23
 
 ## Limits and next measurements
 
-This local tracking suite combines static build/AST analysis with synthetic loopback browser measurements; it is not a field RUM study across real user networks or devices. Membership-scoped project/library reads still retain their existing complete-list behavior; large-list cursor pagination requires a separate product/service change. Keep private images on their authenticated noncached route rather than sending them through an unauthenticated optimization service.
+This local tracking suite combines static build/AST analysis with synthetic loopback browser measurements; it is not a field RUM study across real user networks or devices. The dashboard and global artifact library use timestamp and ID cursors with a 24-card page size. Dashboard progress and activity queries receive only the visible project IDs. Selectors still list all accessible projects using a small ID/name/flow projection. Keep private images on their authenticated noncached route rather than sending them through an unauthenticated optimization service.
 
 For a later production audit, compare the same real task across representative devices/networks, collect consented content-free timings with the matching release, and distinguish server/database time from client rendering and network transfer. Do not claim an improvement from package size alone.
 

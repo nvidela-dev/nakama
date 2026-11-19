@@ -34,3 +34,7 @@ export const artifactUrl = (projectId: string, id: string) =>
   `/projects/${projectId}/artifacts/${id}`;
 export const artifactFileUrl = (projectId: string, artifactId: string, fileId: string) =>
   `${artifactUrl(projectId, artifactId)}/files/${fileId}`;
+
+export const emptyArtifactFilters = { search: "", project: "all", kind: "all", status: "all" };
+export type ArtifactFilters = typeof emptyArtifactFilters;
+export type ArtifactPage = { items: ArtifactCard[]; next: string | null };

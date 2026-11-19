@@ -177,7 +177,13 @@ export function Journey({
           .filter(Boolean)
           .join(" ")}
       >
-        <ProjectWork tasks={tasks} artifacts={artifacts} tests={tests} activity={activity}>
+        <ProjectWork
+          key={projectId}
+          tasks={tasks}
+          artifacts={artifacts}
+          tests={tests}
+          activity={activity}
+        >
           <section
             className={[
               `journey${activeStage ? " has-stage-rail" : ""}`,

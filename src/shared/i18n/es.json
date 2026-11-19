@@ -1582,5 +1582,15 @@
   "Drag to paint inside the print area": "Arrastrá para pintar en el área de impresión",
   "A ready shirt needs artwork or paint.": "Una remera lista necesita una imagen o pintura.",
   "Add artwork or paint before marking this shirt ready.": "Agregá una imagen o pintá antes de marcar la remera como lista.",
-  "This print area has reached its stroke limit.": "Esta área de impresión alcanzó el límite de trazos."
+  "This print area has reached its stroke limit.": "Esta área de impresión alcanzó el límite de trazos.",
+  "Artifact pages": "Páginas de artefactos",
+  "Project pages": "Páginas de proyectos",
+  "First page": "Primera página",
+  "More projects": "Más proyectos",
+  "More artifacts": "Más artefactos",
+  "Previous page": "Página anterior",
+  "Could not load artifacts.": "No se pudieron cargar los artefactos.",
+  "No more projects": "No hay más proyectos",
+  "Invalid artifact filters.": "Los filtros de artefactos no son válidos.",
+  "Invalid page link.": "El enlace de página no es válido."
 }
