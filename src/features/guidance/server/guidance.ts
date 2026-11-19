@@ -11,7 +11,13 @@ import { queryRows } from "@/server/database/query";
 import { recordActivity } from "@/server/database/activity-log";
 import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
-import { membership, ProjectError, type Actor } from "@/features/projects/server/projects";
+import {
+  withProjectRead,
+  type ProjectRead,
+  membership,
+  ProjectError,
+  type Actor,
+} from "@/features/projects/server/projects";
 import {
   captureNodes,
   descendants,
@@ -52,6 +58,46 @@ const answerInput = z.object({
   status: nodeStatusSchema,
   choice: z.string().max(100).nullable(),
 });
+export async function readGuidance({ tx, projectId }: ProjectRead): Promise<Guidance | null> {
+  await tx.query("SELECT id FROM projects WHERE id = $1 FOR SHARE", [projectId]);
+  if (
+    !(
+      await queryRows(
+        tx,
+        z.object({ project_id: z.uuid() }),
+        "SELECT project_id FROM project_flows WHERE project_id = $1",
+        [projectId],
+      )
+    ).length
+  )
+    return null;
+  const selected = await selectedFlow(tx, projectId);
+  return {
+    ...selected,
+    answers: await queryRows(
+      tx,
+      answerSchema,
+      "SELECT * FROM node_answers WHERE project_id = $1 ORDER BY node_id",
+      [projectId],
+    ),
+    reviews: await queryRows(
+      tx,
+      stageReviewSchema,
+      "SELECT * FROM stage_reviews WHERE project_id = $1 ORDER BY stage_id",
+      [projectId],
+    ),
+  };
+}
+export async function readHistory({ tx, projectId }: ProjectRead, nodeId: string) {
+  const { flow } = await selectedFlow(tx, projectId);
+  if (!findNode(flow, nodeId)) throw new ProjectError("Question not found.");
+  return await queryRows(
+    tx,
+    revisionSchema,
+    "SELECT revision,content,status,choice,author_id,origin,created_at FROM answer_revisions WHERE project_id = $1 AND node_id = $2 ORDER BY revision DESC",
+    [projectId, nodeId],
+  );
+}
 export function guidanceService(db: Database) {
   return {
     async select(actor: Actor, projectId: string, flowId: string) {
@@ -110,37 +156,7 @@ export function guidanceService(db: Database) {
       });
     },
     async get(actor: Actor, projectId: string): Promise<Guidance | null> {
-      return db.transaction(async (tx) => {
-        await membership(tx, actor, projectId);
-        await tx.query("SELECT id FROM projects WHERE id = $1 FOR SHARE", [projectId]);
-        if (
-          !(
-            await queryRows(
-              tx,
-              z.object({ project_id: z.uuid() }),
-              "SELECT project_id FROM project_flows WHERE project_id = $1",
-              [projectId],
-            )
-          ).length
-        )
-          return null;
-        const selected = await selectedFlow(tx, projectId);
-        return {
-          ...selected,
-          answers: await queryRows(
-            tx,
-            answerSchema,
-            "SELECT * FROM node_answers WHERE project_id = $1 ORDER BY node_id",
-            [projectId],
-          ),
-          reviews: await queryRows(
-            tx,
-            stageReviewSchema,
-            "SELECT * FROM stage_reviews WHERE project_id = $1 ORDER BY stage_id",
-            [projectId],
-          ),
-        };
-      });
+      return withProjectRead(db, actor, projectId, readGuidance);
     },
     async editProject(
       actor: Actor,
@@ -329,17 +345,7 @@ export function guidanceService(db: Database) {
       });
     },
     async history(actor: Actor, projectId: string, nodeId: string) {
-      return db.transaction(async (tx) => {
-        await membership(tx, actor, projectId);
-        const { flow } = await selectedFlow(tx, projectId);
-        if (!findNode(flow, nodeId)) throw new ProjectError("Question not found.");
-        return await queryRows(
-          tx,
-          revisionSchema,
-          "SELECT revision,content,status,choice,author_id,origin,created_at FROM answer_revisions WHERE project_id = $1 AND node_id = $2 ORDER BY revision DESC",
-          [projectId, nodeId],
-        );
-      });
+      return withProjectRead(db, actor, projectId, (scope) => readHistory(scope, nodeId));
     },
     async reviewStage(
       actor: Actor,

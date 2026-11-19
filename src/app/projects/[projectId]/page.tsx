@@ -1,12 +1,10 @@
+import { loadWorkspace } from "./workspace";
 import { ProjectTests } from "@/features/experiments/components/project-tests";
 import { experimentPrompts } from "@/features/experiments/flow-prompts";
 import { productionStages } from "@/features/tasks/milestone-catalog";
 
 import { ProjectRelations } from "@/features/projects/components/project-relations";
-import { projectLinksService } from "@/features/projects/server/project-links";
 import { ArtifactLibrary } from "@/features/artifacts/components/artifact-library";
-import { artifactService } from "@/features/artifacts/server/artifacts";
-import { taskService } from "@/features/tasks/server/tasks";
 import { ProjectTasks } from "@/features/tasks/components/project-tasks";
 import { ProjectWork } from "@/features/projects/components/project-work";
 import { invitationCandidates } from "@/features/collaboration/server/invitation-candidates";
@@ -15,14 +13,13 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
-import { ProjectError, projectService } from "@/features/projects/server/projects";
+import { ProjectError } from "@/features/projects/server/projects";
 import { AccessButton, InviteForm } from "@/features/collaboration/components/forms";
-import { guidanceService } from "@/features/guidance/server/guidance";
 import { FlowChooser } from "@/features/guidance/components/flow-chooser";
 import { ProjectSettings } from "@/features/projects/components/project-settings";
 import { Discussion } from "@/features/collaboration/components/discussion";
 import { ActivityFeed } from "@/features/collaboration/components/activity-feed";
-import { collaborationService, commentTarget } from "@/features/collaboration/server/collaboration";
+import { commentTarget } from "@/features/collaboration/server/collaboration";
 import { Journey } from "@/features/guidance/components/journey";
 export const dynamic = "force-dynamic";
 export default async function ProjectPage({
@@ -42,7 +39,6 @@ export default async function ProjectPage({
   const t = await getT();
   const person = await actor();
   const { projectId } = await params;
-  const service = projectService(database());
   const query = await searchParams;
   if (query.view === "tasks" && query.comment)
     redirect(
@@ -66,48 +62,30 @@ export default async function ProjectPage({
         : query.stage;
   const targetNodeId = focusedWork || isArtifactsView ? undefined : query.node;
   const target = commentTarget(targetStageId, targetNodeId);
-  let project, people, guidance, comments, activity, tasks, artifacts, links, accessibleProjects;
-  let history: Awaited<ReturnType<ReturnType<typeof guidanceService>["history"]>> = [];
+  let workspace;
   try {
-    [
-      project,
-      people,
-      guidance,
-      history,
-      comments,
-      activity,
-      tasks,
-      artifacts,
-      links,
-      accessibleProjects,
-    ] = await Promise.all([
-      service.get(person, projectId),
-      service.people(person, projectId),
-      guidanceService(database()).get(person, projectId),
-      query.node
-        ? guidanceService(database()).history(person, projectId, query.node)
-        : Promise.resolve([]),
-      focusedWork
-        ? Promise.resolve({ items: [], next: undefined })
-        : collaborationService(database()).comments(
-            person,
-            projectId,
-            target,
-            query.commentsBefore,
-            query.comment,
-          ),
-      !isActivityView
-        ? Promise.resolve({ items: [], next: undefined })
-        : collaborationService(database()).activity(person, projectId, query.activityBefore),
-      taskService(database()).list(person, projectId),
-      artifactService(database()).list(person, projectId),
-      projectLinksService(database()).list(person, projectId),
-      service.list(person),
-    ]);
+    workspace = await loadWorkspace(database(), person, projectId, {
+      ...query,
+      target,
+      focusedWork,
+      activityView: isActivityView,
+    });
   } catch (error) {
     if (error instanceof ProjectError) notFound();
     throw error;
   }
+  const {
+    project,
+    people,
+    guidance,
+    history,
+    comments,
+    activity,
+    tasks,
+    artifacts,
+    links,
+    accessibleProjects,
+  } = workspace;
   const artifactLibrary = (
     <ArtifactLibrary
       items={artifacts}

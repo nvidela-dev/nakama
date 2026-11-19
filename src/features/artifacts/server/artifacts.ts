@@ -15,7 +15,13 @@ import type { ArtifactMediaType } from "@/shared/contracts/database.generated";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
-import { membership, ProjectError, type Actor } from "@/features/projects/server/projects";
+import {
+  withProjectRead,
+  type ProjectRead,
+  membership,
+  ProjectError,
+  type Actor,
+} from "@/features/projects/server/projects";
 import { flows } from "@/features/guidance/model/flows";
 import { recordActivity } from "@/server/database/activity-log";
 import type { ArtifactDetail, ArtifactKind } from "@/features/artifacts/model";
@@ -168,25 +174,20 @@ async function updated(tx: Queryable, person: Actor, projectId: string, artifact
   await recordActivity(tx, person, projectId, "artifact_updated");
   return detail(tx, projectId, artifactId);
 }
-export function artifactService(db: Database) {
-  return {
-    async list(person: Actor, projectId?: string) {
-      if (!person.userId) throw new ProjectError("Sign in first.");
-      return db.transaction(async (tx) => {
-        if (projectId) await membership(tx, person, projectId);
-        return (
-          await queryRows(
-            tx,
-            artifactRowSchema.extend({
-              collection: z.string().nullable(),
-              shirt_poster: z.string().nullable(),
-              shirt_cover: shirtCoverSchema.nullable(),
-              task_count: z.number().int().nonnegative(),
-              done_task_count: z.number().int().nonnegative(),
-              cover_id: z.uuid().nullable(),
-              file_count: z.number().int().nonnegative(),
-            }),
-            `SELECT ${columns}, s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers','ink',COALESCE(s.layout->'ink','[]'::jsonb)) END AS shirt_cover,
+async function artifactCards(tx: Queryable, person: Actor, projectId?: string) {
+  return (
+    await queryRows(
+      tx,
+      artifactRowSchema.extend({
+        collection: z.string().nullable(),
+        shirt_poster: z.string().nullable(),
+        shirt_cover: shirtCoverSchema.nullable(),
+        task_count: z.number().int().nonnegative(),
+        done_task_count: z.number().int().nonnegative(),
+        cover_id: z.uuid().nullable(),
+        file_count: z.number().int().nonnegative(),
+      }),
+      `SELECT ${columns}, s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers','ink',COALESCE(s.layout->'ink','[]'::jsonb)) END AS shirt_cover,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id) AS task_count,
         (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id AND t.status='done') AS done_task_count,
         (SELECT f.id FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id AND f.media_type::text LIKE 'image/%' ORDER BY f.created_at,f.id LIMIT 1) AS cover_id,
@@ -195,16 +196,25 @@ export function artifactService(db: Database) {
         LEFT JOIN shirt_designs s ON (s.project_id,s.artifact_id)=(a.project_id,a.id)
         JOIN project_memberships m ON m.project_id=a.project_id AND m.user_id=$1
         WHERE ($2::uuid IS NULL OR a.project_id=$2) ORDER BY a.updated_at DESC,a.id`,
-            [person.userId, projectId ?? null],
-          )
-        ).map((item) => ({
-          ...item,
-          stage_name: item.flow_id
-            ? (flows[item.flow_id]?.stages.find((stage) => stage.id === item.stage_id)?.name ??
-              null)
-            : null,
-        }));
-      });
+      [person.userId, projectId ?? null],
+    )
+  ).map((item) => ({
+    ...item,
+    stage_name: item.flow_id
+      ? (flows[item.flow_id]?.stages.find((stage) => stage.id === item.stage_id)?.name ?? null)
+      : null,
+  }));
+}
+export function readProjectArtifacts({ tx, actor, projectId }: ProjectRead) {
+  return artifactCards(tx, actor, projectId);
+}
+export function artifactService(db: Database) {
+  return {
+    async list(person: Actor, projectId?: string) {
+      if (!person.userId) throw new ProjectError("Sign in first.");
+      return projectId !== undefined
+        ? withProjectRead(db, person, projectId, readProjectArtifacts)
+        : db.transaction((tx) => artifactCards(tx, person));
     },
     get: (person: Actor, projectId: string, artifactId: string) =>
       db.transaction(async (tx) => {

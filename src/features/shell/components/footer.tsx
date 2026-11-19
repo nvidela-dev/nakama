@@ -1,14 +1,8 @@
 import { ThemeSwitcher } from "@/features/preferences/components/theme-switcher";
 import type { StyleTheme } from "@/shared/ui/style-theme";
-import {
-  callClerk,
-  clerkResponse,
-  currentIdentityWithId,
-} from "@/server/observability/provider-diagnostics";
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { Show } from "@clerk/nextjs";
-import { authConfigured } from "@/features/access/server/auth";
+import { authConfigured, currentProfile } from "@/features/access/server/auth";
 import { isAppAdmin } from "@/features/access/server/app-access";
 import { adminEmail } from "@/features/access/server/whitelist";
 import { getT } from "@/shared/i18n/server";
@@ -23,13 +17,7 @@ export async function Footer({
   theme: StyleTheme;
 }) {
   const t = await getT();
-  const user = authConfigured()
-    ? clerkResponse(
-        "user.current",
-        currentIdentityWithId,
-        await callClerk("user.current", () => currentUser()),
-      )
-    : null;
+  const user = authConfigured() ? await currentProfile() : null;
   const admin =
     !!user &&
     isAppAdmin(

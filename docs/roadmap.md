@@ -456,3 +456,11 @@ Add Video game as a guided project type. Show answer coverage separately from th
 - **2026-11-08 — Shirt texture editing.** Place artwork directly on the garment, paint or erase each placement, and keep the source files intact for the printer. Show compact artifact cards with a still from the 3D model for shirts. See [shirts and collections](domain.md#shirts-and-collections).
 
 - **2026-11-08 — Continuous shirt brushes.** Paint directly on printable fabric, including across uploaded images. Erasing removes applied artwork and ink while preserving the garment colour.
+
+## Admission reads under concurrent load — 2026-11-18
+
+Resolve the admitted actor once per server render. Overlapping private requests in the same runtime may share an in-flight Clerk profile lookup for the same protected user ID or a single allowlist scan. Discard settled results. This preserves the existing revocation policy without a time window in which completed reads could admit a removed address.
+
+## Project workspace reads — 2026-11-18
+
+Compose workspace readers in one transaction scoped to the actor and project. Membership and its lock are shared for the duration of the read. Keep the existing tab panels and their drafts. Fetch sidebar link choices only where the sidebar appears. Owner invitation-directory lookups use a separate short authorization step so Clerk latency never ties up the workspace connection.
