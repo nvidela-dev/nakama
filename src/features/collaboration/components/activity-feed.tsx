@@ -14,6 +14,8 @@ const labels: Record<FeedKind, string> = {
   task_deleted: "deleted a task",
   tasks_imported: "imported Lock-In tasks",
   project_created: "created the project",
+  project_archived: "archived the project",
+  project_restored: "restored the project",
   project_edited: "updated project details",
   flow_selected: "selected a flow",
   invitation_created: "created an invitation",

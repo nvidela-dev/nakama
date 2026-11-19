@@ -19,19 +19,22 @@ export const dynamic = "force-dynamic";
 export default async function ProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ after?: string }>;
+  searchParams: Promise<{ after?: string; view?: string }>;
 }) {
   const t = await getT();
   const person = await actor(true);
-  const { after } = await searchParams;
+  const { after, view } = await searchParams;
+  const archived = view === "archived";
+  const firstPage = archived ? "/projects?view=archived" : "/projects";
+  const title = t(archived ? "Archived projects" : "Projects");
   const db = database(),
     service = projectService(db);
   const [page, totals] = await Promise.all([
-    service.page(person, after).catch((error) => {
+    service.page(person, after, archived).catch((error) => {
       if (error instanceof ProjectError) notFound();
       throw error;
     }),
-    service.groupCounts(person),
+    service.groupCounts(person, archived),
   ]);
   const projects = page.items;
   const ids = projects.map((p) => p.id);
@@ -44,12 +47,12 @@ export default async function ProjectsPage({
     <Workspace id="main" variant="dashboard">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <h1
-          aria-label={t("Projects")}
+          aria-label={title}
           className={
             "mb-[0.67em] mt-0 font-sans tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px]"
           }
         >
-          {t("Projects")}{" "}
+          {title}{" "}
           <span
             className={
               "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
@@ -58,6 +61,12 @@ export default async function ProjectsPage({
             {totals.reduce((sum, row) => sum + row.total, 0)}
           </span>
         </h1>
+        <Link
+          href={archived ? "/projects" : "/projects?view=archived"}
+          className="text-sm underline"
+        >
+          {t(archived ? "Active projects" : "Archived projects")}
+        </Link>
       </div>
       <section aria-label={t("Your projects")} className="grid gap-6">
         {projects.length ? (
@@ -120,9 +129,11 @@ export default async function ProjectsPage({
                 "mb-[1em] font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 text-ink mt-5"
               }
             >
-              {t(after ? "No more projects" : "No projects yet")}
+              {t(
+                after ? "No more projects" : archived ? "No archived projects" : "No projects yet",
+              )}
             </h3>
-            {!after && (
+            {!after && !archived && (
               <p className={"mb-[1em] mt-0 text-[14px]"}>{t("Create a project to get started.")}</p>
             )}
           </div>
@@ -130,8 +141,12 @@ export default async function ProjectsPage({
       </section>
       {(after || page.next) && (
         <nav className="flex gap-4 mt-4" aria-label={t("Project pages")}>
-          {after && <Link href="/projects">{t("First page")}</Link>}
-          {page.next && <Link href={`/projects?after=${page.next}`}>{t("More projects")}</Link>}
+          {after && <Link href={firstPage}>{t("First page")}</Link>}
+          {page.next && (
+            <Link href={`${firstPage}${archived ? "&" : "?"}after=${page.next}`}>
+              {t("More projects")}
+            </Link>
+          )}
         </nav>
       )}
     </Workspace>

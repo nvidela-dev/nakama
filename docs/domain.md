@@ -40,6 +40,7 @@ This summarizes ownership, not every foreign key. Comments additionally target o
 - Node: `unanswered`, `draft`, `answered`, `skipped`, or `blocked`. An answer can explicitly record an unknown; empty text alone is not answered. Skips have reasons; blocked nodes retain drafts and explain blockers.
 - Stage: `not_started`, `in_progress`, or `reviewed`. A human marks reviewed after considering the outcome. Reopening preserves history.
 - Project: `active`, `parked`, or `finished_enough`. Decisions record changes and rationale; resuming preserves work.
+- Archiving controls where a project is listed. Members can open archived projects from the Projects screen. Archiving and restoring preserve the project's flow state.
 
 Show “answered X of Y question nodes” with separate skipped/blocked counts. Activity/outcome nodes are excluded from the denominator. Percentage is not validity or viability. A negative finding can be answered; parking can be a reviewed outcome.
 

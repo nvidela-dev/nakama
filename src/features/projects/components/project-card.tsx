@@ -1,7 +1,7 @@
 "use client";
 import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
-import { ActionMenu } from "@/shared/ui/action-menu";
+import { ProjectActions } from "./project-actions";
 
 import { useState, type ReactNode } from "react";
 import { Dialog } from "@/shared/ui/dialog";
@@ -17,6 +17,7 @@ export function ProjectCard({
     id: string;
     name: string;
     description: string;
+    archived: boolean;
     role: string;
     content_revision: number;
   };
@@ -57,14 +58,12 @@ export function ProjectCard({
       {project.role === "owner" && (
         <>
           <div className="project-card-actions absolute top-1.5 right-1.5 [&_.ui-action-menu-items]:z-20">
-            <ActionMenu id={`project-actions-${project.id}`} label={t("Project actions")}>
-              <Button type="button" variant="ghost" onClick={() => open("edit")}>
-                <Icon name="edit" /> {t("Edit project")}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => open("delete")}>
-                <Icon name="delete" /> {t("Delete project")}
-              </Button>
-            </ActionMenu>
+            <ProjectActions
+              projectId={project.id}
+              archived={project.archived}
+              onEdit={() => open("edit")}
+              onDelete={() => open("delete")}
+            />
           </div>
           <Dialog
             open={isOpen}
@@ -89,6 +88,7 @@ export function ProjectCard({
               <ProjectSettings
                 key={opening}
                 projectId={project.id}
+                archived={project.archived}
                 name={project.name}
                 description={project.description}
                 contentRevision={project.content_revision}
