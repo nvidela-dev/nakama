@@ -75,3 +75,32 @@ test("provider failures never grant access to an ordinary account", async () => 
   await assert.rejects(policy.admitted(friend));
   assert.ok(await policy.admitted(admin));
 });
+
+test("overlapping reads share work only within a key and invalidation survives late completion", async () => {
+  const { pendingReads } = await import("../src/features/access/server/pending-reads");
+  const completions: ((value: number) => void)[] = [];
+  const reads = pendingReads(
+    (_: string) => new Promise<number>((resolve) => completions.push(resolve)),
+  );
+  const old = reads.get("a");
+  assert.equal(reads.get("a"), old);
+  const other = reads.get("b");
+  reads.invalidate("a");
+  const fresh = reads.get("a");
+  completions[0]!(1);
+  assert.equal(await old, 1);
+  assert.equal(reads.get("a"), fresh);
+  completions[1]!(2);
+  completions[2]!(3);
+  assert.deepEqual(await Promise.all([other, fresh]), [2, 3]);
+  assert.notEqual(reads.get("a"), fresh);
+  completions[3]!(4);
+  const failures = pendingReads(async () => {
+    throw new Error("unavailable");
+  });
+  const first = failures.get(undefined);
+  await assert.rejects(first);
+  const retry = failures.get(undefined);
+  assert.notEqual(first, retry);
+  await assert.rejects(retry);
+});
