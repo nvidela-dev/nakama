@@ -44,6 +44,60 @@ export async function membership(
     throw new ProjectError("Project not found or access is no longer available.");
   return rows[0];
 }
+const verifiedProject = Symbol("verified project membership");
+export type ProjectRead = {
+  readonly [verifiedProject]: true;
+  readonly tx: Queryable;
+  readonly actor: Actor;
+  readonly projectId: string;
+  readonly role: Awaited<ReturnType<typeof membership>>["role"];
+};
+export function withProjectRead<T>(
+  db: Database,
+  actor: Actor,
+  projectId: string,
+  read: (scope: ProjectRead) => Promise<T>,
+) {
+  return db.transaction(async (tx) => {
+    const { role } = await membership(tx, actor, projectId);
+    return read({ [verifiedProject]: true, tx, actor, projectId, role });
+  });
+}
+export async function readProject({ tx, projectId, role }: ProjectRead) {
+  const rows = await queryRows(
+    tx,
+    projectSchema.omit({ role: true }),
+    "SELECT * FROM projects WHERE id = $1",
+    [projectId],
+  );
+  return { ...required(rows[0]), role: role };
+}
+export async function readPeople({ tx, projectId, role }: ProjectRead) {
+  const members = await queryRows(
+    tx,
+    memberSchema,
+    "SELECT user_id, display_name, role, joined_at FROM project_memberships WHERE project_id = $1 ORDER BY joined_at",
+    [projectId],
+  );
+  const invitations =
+    role === "owner"
+      ? await queryRows(
+          tx,
+          invitationSchema,
+          "SELECT id, email, expires_at, accepted_at, revoked_at FROM project_invitations WHERE project_id = $1 ORDER BY created_at DESC",
+          [projectId],
+        )
+      : [];
+  return { members, invitations };
+}
+export function readProjectChoices({ tx, actor }: ProjectRead) {
+  return queryRows(
+    tx,
+    projectSchema.pick({ id: true, name: true }),
+    "SELECT p.id,p.name FROM projects p JOIN project_memberships m ON m.project_id=p.id WHERE m.user_id=$1 ORDER BY p.created_at DESC,p.id",
+    [actor.userId],
+  );
+}
 export function projectService(db: Database) {
   return {
     async create(actor: Actor, input: unknown) {
@@ -109,37 +163,10 @@ export function projectService(db: Database) {
       );
     },
     async get(actor: Actor, projectId: string) {
-      return db.transaction(async (tx) => {
-        const member = await membership(tx, actor, projectId);
-        const rows = await queryRows(
-          tx,
-          projectSchema.omit({ role: true }),
-          "SELECT * FROM projects WHERE id = $1",
-          [projectId],
-        );
-        return { ...required(rows[0]), role: member.role };
-      });
+      return withProjectRead(db, actor, projectId, readProject);
     },
     async people(actor: Actor, projectId: string) {
-      return db.transaction(async (tx) => {
-        const member = await membership(tx, actor, projectId);
-        const members = await queryRows(
-          tx,
-          memberSchema,
-          "SELECT user_id, display_name, role, joined_at FROM project_memberships WHERE project_id = $1 ORDER BY joined_at",
-          [projectId],
-        );
-        const invitations =
-          member.role === "owner"
-            ? await queryRows(
-                tx,
-                invitationSchema,
-                "SELECT id, email, expires_at, accepted_at, revoked_at FROM project_invitations WHERE project_id = $1 ORDER BY created_at DESC",
-                [projectId],
-              )
-            : [];
-        return { members, invitations };
-      });
+      return withProjectRead(db, actor, projectId, readPeople);
     },
     async invite(actor: Actor, projectId: string, input: unknown) {
       const parsed = z.email().trim().toLowerCase().max(254).safeParse(input);

@@ -1,7 +1,13 @@
 import { queryRows } from "@/server/database/query";
 import { z } from "zod";
 import type { Database } from "@/server/database/database";
-import { membership, ProjectError, type Actor } from "@/features/projects/server/projects";
+import {
+  withProjectRead,
+  type ProjectRead,
+  membership,
+  ProjectError,
+  type Actor,
+} from "@/features/projects/server/projects";
 import type { ProjectLinks } from "@/features/projects/model";
 export type { LinkedProject, ProjectLinks } from "@/features/projects/model";
 export function sourceProjectIds(input: unknown): string[] {
@@ -12,30 +18,30 @@ export function sourceProjectIds(input: unknown): string[] {
   if (!parsed.success) throw new ProjectError("Choose up to 25 source projects.");
   return [...new Set(parsed.data)];
 }
+export async function readLinks({
+  tx,
+  projectId,
+  actor: person,
+}: ProjectRead): Promise<ProjectLinks> {
+  const rows = await queryRows(
+    tx,
+    z.object({ id: z.uuid(), name: z.string(), direction: z.enum(["source", "child"]) }),
+    `
+      SELECT p.id,p.name,CASE WHEN l.child_id=$1 THEN 'source' ELSE 'child' END AS direction
+      FROM project_links l JOIN projects p ON p.id=CASE WHEN l.child_id=$1 THEN l.source_id ELSE l.child_id END
+      JOIN project_memberships m ON m.project_id=p.id AND m.user_id=$2
+      WHERE l.source_id=$1 OR l.child_id=$1 ORDER BY lower(p.name),p.id`,
+    [projectId, person.userId],
+  );
+  return {
+    sources: rows.filter((p) => p.direction === "source").map(({ id, name }) => ({ id, name })),
+    children: rows.filter((p) => p.direction === "child").map(({ id, name }) => ({ id, name })),
+  };
+}
 export function projectLinksService(db: Database) {
   return {
     async list(person: Actor, projectId: string): Promise<ProjectLinks> {
-      return db.transaction(async (tx) => {
-        await membership(tx, person, projectId);
-        const rows = await queryRows(
-          tx,
-          z.object({ id: z.uuid(), name: z.string(), direction: z.enum(["source", "child"]) }),
-          `
-          SELECT p.id,p.name,CASE WHEN l.child_id=$1 THEN 'source' ELSE 'child' END AS direction
-          FROM project_links l JOIN projects p ON p.id=CASE WHEN l.child_id=$1 THEN l.source_id ELSE l.child_id END
-          JOIN project_memberships m ON m.project_id=p.id AND m.user_id=$2
-          WHERE l.source_id=$1 OR l.child_id=$1 ORDER BY lower(p.name),p.id`,
-          [projectId, person.userId],
-        );
-        return {
-          sources: rows
-            .filter((p) => p.direction === "source")
-            .map(({ id, name }) => ({ id, name })),
-          children: rows
-            .filter((p) => p.direction === "child")
-            .map(({ id, name }) => ({ id, name })),
-        };
-      });
+      return withProjectRead(db, person, projectId, readLinks);
     },
     async change(person: Actor, sourceId: string, childId: string, remove = false) {
       await db.transaction(async (tx) => {

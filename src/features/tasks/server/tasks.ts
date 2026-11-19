@@ -5,7 +5,13 @@ import { queryRows } from "@/server/database/query";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
-import { membership, ProjectError, type Actor } from "@/features/projects/server/projects";
+import {
+  withProjectRead,
+  type ProjectRead,
+  membership,
+  ProjectError,
+  type Actor,
+} from "@/features/projects/server/projects";
 import { recordActivity } from "@/server/database/activity-log";
 import type { TaskSnapshot } from "@/features/tasks/model";
 import { operation } from "@/features/tasks/input";
@@ -74,14 +80,13 @@ async function changed(tx: Queryable, projectId: string) {
   );
   return snapshot(tx, projectId);
 }
+export async function readTasks({ tx, projectId }: ProjectRead) {
+  await tx.query("SELECT id FROM projects WHERE id=$1 FOR SHARE", [projectId]);
+  return snapshot(tx, projectId);
+}
 export function taskService(db: Database) {
   return {
-    list: (actor: Actor, projectId: string) =>
-      db.transaction(async (tx) => {
-        await membership(tx, actor, projectId);
-        await tx.query("SELECT id FROM projects WHERE id=$1 FOR SHARE", [projectId]);
-        return snapshot(tx, projectId);
-      }),
+    list: (actor: Actor, projectId: string) => withProjectRead(db, actor, projectId, readTasks),
     change: (actor: Actor, projectId: string, revision: number, input: unknown) =>
       db.transaction(async (tx) => {
         const current = await lock(tx, actor, projectId, revision);

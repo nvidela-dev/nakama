@@ -158,3 +158,46 @@ test("removing a member revokes older unused invitations for their joining email
   const invitedAgain = await service.invite(alice, id, "bob@example.com");
   assert.equal(await service.accept(bob, invitedAgain.token), id);
 });
+
+test("workspace uses one checkout and one membership lock across its readers", async () => {
+  const { loadWorkspace } = await import("../src/app/projects/[projectId]/workspace");
+  const id = await service.create(alice, { name: "Workspace fixture", description: "Synthetic" });
+  const privateId = await service.create(cara, { name: "Unrelated", description: "Synthetic" });
+  let transactions = 0;
+  const statements: string[] = [];
+  const counted: Database = {
+    query: () => {
+      throw new Error("workspace used a second connection");
+    },
+    transaction: (read) => {
+      transactions++;
+      return db.transaction((tx) =>
+        read({
+          query: (q, v) => {
+            statements.push(q);
+            return tx.query(q, v);
+          },
+        }),
+      );
+    },
+  };
+  const options = { target: {}, focusedWork: false, activityView: false };
+  const result = await loadWorkspace(counted, alice, id, options);
+  assert.equal(result.project.role, "owner");
+  assert.equal(transactions, 1);
+  assert.equal(
+    statements.filter((q) => q.includes("SELECT role FROM project_memberships")).length,
+    1,
+  );
+  assert.ok(!result.accessibleProjects.some((p) => p.id === privateId));
+  statements.length = 0;
+  await assert.rejects(loadWorkspace(counted, bob, id, options));
+  assert.equal(statements.length, 1);
+  const focused = await loadWorkspace(counted, alice, id, {
+    ...options,
+    focusedWork: true,
+    activityView: true,
+  });
+  assert.deepEqual(focused.accessibleProjects, []);
+  assert.ok(focused.activity.items.length > 0);
+});

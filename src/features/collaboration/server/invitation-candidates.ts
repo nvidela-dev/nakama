@@ -9,17 +9,17 @@ import "server-only";
 import { clerkClient } from "@clerk/nextjs/server";
 import type { Actor } from "@/features/projects/server/projects";
 import { database } from "@/server/database/db";
-import { ProjectError, projectService } from "@/features/projects/server/projects";
+import { ProjectError, withProjectRead, readPeople } from "@/features/projects/server/projects";
 import { whitelistStore } from "@/features/access/server/whitelist";
 
 /** Owners may discover approved invitees, not administer the allowlist. */
 export async function invitationCandidates(person: Actor, projectId: string) {
   return observeAction("identity.candidates", async () => {
-    const service = projectService(database());
-    const project = await service.get(person, projectId);
-    if (project.role !== "owner")
-      throw new ProjectError("Only the project owner can invite members.");
-    const { members } = await service.people(person, projectId);
+    const { members } = await withProjectRead(database(), person, projectId, async (scope) => {
+      if (scope.role !== "owner")
+        throw new ProjectError("Only the project owner can invite members.");
+      return readPeople(scope);
+    });
     const memberEmails = new Set(person.verifiedEmails.map((email) => email.toLowerCase()));
     const client = await callClerk("client", () => clerkClient());
     for (let start = 0; start < members.length; start += 100) {
