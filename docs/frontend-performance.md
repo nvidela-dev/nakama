@@ -49,12 +49,9 @@ The static analyzer decomposes First-Load JS across four layers (measured on bui
    - `answer-editor`: `2,423` B gzip (`6,176` B raw).
    - `stage-review-form`: `857` B gzip (`1,566` B raw).
 
-## Actionable optimization opportunities detected
+## Client import regression checks
 
-`analyzeClientImportHotspots` automatically traces static imports from `"use client"` components to heavy modules and currently highlights two high-impact opportunities responsible for `/projects/[projectId]`'s `+77.6 KB` gzip route-only payload:
-
-- **`[client-es-dictionary]` (`~26.3 KB` gzip in chunk `1x6qh7a7k7epi.js`)**: `src/features/collaboration/components/activity-feed.tsx`, `src/features/collaboration/components/discussion.tsx`, and `src/features/guidance/components/answer-editor.tsx` import `formatDate` from `src/shared/i18n/index.ts`, which statically imports `src/shared/i18n/es.json`. Moving `formatDate` (and `Locale` / `resolveLocale`) into a dictionary-free module keeps `es.json` server-supplied only when `locale === "es"`.
-- **`[client-zod-runtime]` (`~40.0 KB` gzip in chunk `44pyx18cenrd9.js`)**: `src/features/tasks/components/task-list.tsx` statically imports `parseLockInFile` from `src/features/tasks/lockin-format.ts` (which imports `zod`), even though Lock-In parsing only runs when a user selects a local JSON file to import. Loading `lockin-format` via dynamic `import()` inside `readFile()` removes `zod` from initial `/projects/[projectId]` hydration.
+Client date consumers import the dictionary-free date helper. The selected dictionary is supplied by the server layout. Lock-In file import was retired when managed task boards replaced that workflow. The source-graph test walks current client entry points and rejects static application imports of Zod or the Spanish catalog. A Server Action ends a browser import path because Next compiles it to a remote reference. Optional dynamic imports are separate from static paths. Production build budgets continue to check emitted route sizes, including third-party dependencies.
 
 ## Earlier refactor baseline
 
