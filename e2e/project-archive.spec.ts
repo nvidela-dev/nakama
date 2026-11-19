@@ -17,7 +17,8 @@ test("an owner can archive from the dashboard and restore from either project me
   await dialog.getByLabel("Project name", { exact: true }).fill(name);
   await dialog.getByLabel("Description", { exact: true }).fill("Disposable archive verification.");
   await dialog.getByRole("button", { name: "Create project", exact: true }).click();
-  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  const projectHeading = page.getByRole("heading", { level: 1, name, exact: true });
+  await expect(projectHeading).toBeVisible();
   const path = new URL(page.url()).pathname;
   const card = page
     .locator(".project-card")
@@ -35,6 +36,7 @@ test("an owner can archive from the dashboard and restore from either project me
     await expect(card).toHaveCount(0);
     await page.getByRole("link", { name: "Active projects", exact: true }).click();
     await card.getByRole("link").click();
+    await expect(projectHeading).toBeVisible();
     const actions = page.getByRole("button", { name: "Project actions", exact: true });
     await actions.click();
     await page.getByRole("button", { name: "Archive project", exact: true }).click();
@@ -51,7 +53,7 @@ test("an owner can archive from the dashboard and restore from either project me
   } finally {
     // Clean up only the project created by this run.
     await page.goto(path);
-    await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+    await expect(projectHeading).toBeVisible();
     await page.getByRole("button", { name: "Project actions", exact: true }).click();
     await page.getByRole("button", { name: "Delete project", exact: true }).click();
     const deletion = page.locator("form[id$='-delete-project-form']");
