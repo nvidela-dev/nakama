@@ -19,14 +19,16 @@ export function TaskArtifacts({
   attached,
   run,
   pending,
+  operationError,
   onClose,
 }: {
   projectId: string;
   taskId: string;
   items: { id: string; name: string }[];
   attached: string[];
-  run: (op: TaskOperation) => void;
+  run: (op: TaskOperation) => Promise<boolean>;
   pending: boolean;
+  operationError: string;
   onClose: () => void;
 }) {
   const t = useT();
@@ -41,7 +43,11 @@ export function TaskArtifacts({
       width={preview ? 960 : 520}
       title={t(preview ? "Task artifact" : "Artifacts")}
       footer={null}
+      closable={!pending}
+      keyboard={!pending}
+      mask={{ closable: !pending }}
       onCancel={() => {
+        if (pending) return;
         if (preview) setPreview(null);
         else onClose();
       }}
@@ -82,7 +88,7 @@ export function TaskArtifacts({
             <div key={id} className="flex flex-wrap gap-1">
               <Button
                 variant="secondary"
-                disabled={loading}
+                disabled={loading || pending}
                 onClick={() =>
                   startTransition(async () => {
                     try {
@@ -113,6 +119,7 @@ export function TaskArtifacts({
             <div className="grid gap-2 mt-2">
               <Input
                 className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                disabled={pending}
                 aria-label={t("Artifact name")}
                 value={name}
                 maxLength={160}
@@ -120,6 +127,7 @@ export function TaskArtifacts({
               />
               <Select
                 className={"w-full min-w-0 min-h-8 pointer-coarse:min-h-11"}
+                disabled={pending}
                 aria-label={t("Artifact type")}
                 value={kind}
                 onChange={(event) => setKind(event.target.value as ArtifactKind)}
@@ -130,15 +138,16 @@ export function TaskArtifacts({
               </Select>
               <Button
                 disabled={pending || !name.trim()}
-                onClick={() =>
-                  run({ kind: "create-artifact", id: taskId, name, artifactKind: kind })
-                }
+                onClick={async () => {
+                  if (await run({ kind: "create-artifact", id: taskId, name, artifactKind: kind }))
+                    setName("");
+                }}
               >
                 {t("Create and attach")}
               </Button>
             </div>
           </details>
-          {error && <p role="alert">{t(error)}</p>}
+          {(operationError || error) && <p role="alert">{t(operationError || error)}</p>}
         </div>
       )}
     </Modal>

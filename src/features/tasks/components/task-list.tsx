@@ -329,7 +329,7 @@ export function TaskList({
   );
   const feedback = (
     <>
-      {!editor && errorBox}
+      {!editor && !attachmentTask && errorBox}
       {notice && (
         <p className="text-xs text-muted py-1" role="status">
           {t(notice)}
@@ -369,7 +369,10 @@ export function TaskList({
                 }
                 status={(value) => mark(node, value)}
                 attachmentCount={attached.length}
-                showAttachments={() => setAttachmentTask(node.id)}
+                showAttachments={() => {
+                  setError("");
+                  setAttachmentTask(node.id);
+                }}
               />
             );
           }}
@@ -422,7 +425,11 @@ export function TaskList({
             .map((a) => a.artifact_id)}
           run={run}
           pending={pending}
-          onClose={() => setAttachmentTask(null)}
+          operationError={error}
+          onClose={() => {
+            setError("");
+            setAttachmentTask(null);
+          }}
         />
       )}
       {editor && (
