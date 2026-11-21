@@ -88,6 +88,16 @@ test("live lab database target and availability", async ({ page }) => {
     await input.fill("");
     await page.getByRole("button", { name: "Save Linear link" }).click();
     await expect(link).toHaveCount(0);
+    const projectUrl = page.url();
+    await page.getByRole("link", { name: "Project context", exact: true }).click();
+    await expect(page.locator("pre")).toContainText(fixtureName);
+    const download = page.getByRole("link", { name: "Download Markdown" });
+    const url = await download.getAttribute("href");
+    const response = await page.request.get(url!);
+    expect(response.headers()["cache-control"]).toContain("no-store");
+    expect(response.headers()["content-type"]).toContain("text/markdown");
+    expect(await response.text()).toContain(fixtureName);
+    await page.goto(projectUrl);
   }
   await page.goto(
     process.env.LAB_PREFLIGHT ? `/projects/${fixtureId}/lab` : `/projects/${fixtureId}?view=tests`,
@@ -126,15 +136,16 @@ test("live lab database target and availability", async ({ page }) => {
       .getByLabel("Success criteria · what would count?", { exact: true })
       .fill("All three identify the next step");
     await page.getByRole("button", { name: "Create iteration", exact: true }).click();
-    await page.getByLabel("Iteration stage", { exact: true }).selectOption("run");
+    await page.getByRole("combobox", { name: "Iteration stage", exact: true }).selectOption("run");
     await page.getByRole("button", { name: "Move iteration" }).click();
     await expect(
       page.getByRole("region", { name: "Trying it", exact: true }).getByRole("button"),
     ).toBeVisible();
     await page.getByText("Reflection questions", { exact: true }).click();
-    const reflection = page.getByLabel("What did you learn?", { exact: true });
-    const save = reflection
-      .locator("xpath=ancestor::form")
+    const reflection = page.getByRole("textbox", { name: "What did you learn?", exact: true });
+    const save = page
+      .locator("fieldset")
+      .filter({ has: reflection })
       .getByRole("button", { name: "Save reflection" });
     await reflection.fill("The first trial was inconclusive.");
     await save.click();
@@ -149,7 +160,9 @@ test("live lab database target and availability", async ({ page }) => {
     await page.reload();
     await expect(page.locator("#revision-1")).toContainText("The first trial was inconclusive.");
     await page.getByRole("link", { name: "Iterations", exact: true }).click();
-    await expect(page.getByLabel("Iteration stage", { exact: true })).toHaveValue("run");
+    await expect(page.getByRole("combobox", { name: "Iteration stage", exact: true })).toHaveValue(
+      "run",
+    );
     await page.getByLabel("Executor · person or external agent").fill("Synthetic browser verifier");
     await page.getByRole("button", { name: "Start run", exact: true }).click();
     await page.getByText("Add evidence or measurement", { exact: true }).click();

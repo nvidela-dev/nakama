@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
@@ -430,9 +431,37 @@ test("unmigrated databases fail safely after membership checks and become ready 
     await assert.rejects(service.create(owner, id, plan), /awaiting its database update/);
     await old.exec(await readFile("migrations/016_experiment_lab.sql", "utf8"));
     assert.equal(await service.available(owner, id), false);
+    const experiment = randomUUID(),
+      planId = randomUUID(),
+      runId = randomUUID();
+    await old.query("INSERT INTO experiments(id,project_id,created_by) VALUES($1,$2,$3)", [
+      experiment,
+      id,
+      owner.userId,
+    ]);
+    await old.query(
+      "INSERT INTO experiment_plans(id,project_id,experiment_id,version,definition,author_id) VALUES($1,$2,$3,1,$4,$5)",
+      [planId, id, experiment, JSON.stringify(plan), owner.userId],
+    );
+    await old.query(
+      "INSERT INTO experiment_runs(id,project_id,experiment_id,plan_id,context,executor,started_by) VALUES($1,$2,$3,$4,$5,'Synthetic tester',$6)",
+      [
+        runId,
+        id,
+        experiment,
+        planId,
+        JSON.stringify({ nodeId: "", revision: 0, content: "", prompt: "" }),
+        owner.userId,
+      ],
+    );
     await old.exec(await readFile("migrations/029_iteration_workflow.sql", "utf8"));
     assert.equal(await service.available(owner, id), true);
-    assert.deepEqual(await service.list(owner, id), []);
+    const migrated = required((await service.list(owner, id))[0]);
+    assert.equal(migrated.id, experiment);
+    assert.equal(migrated.stage, "run");
+    assert.equal(migrated.plans[0]?.id, planId);
+    assert.equal(migrated.runs[0]?.id, runId);
+    assert.deepEqual(migrated.reflections, []);
     assert.equal((await projectService(oldDb).get(owner, id)).name, "Migration fixture");
   } finally {
     await old.close();

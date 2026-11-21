@@ -96,7 +96,7 @@ Use **Flow** for selected guidance, **Stage** for its sections, **Node** for add
 
 Use **Task** for work, qualified as **Project task** (hierarchical) or **Artifact task** (flat) when ambiguous. “To-do” names the task workspace, not another entity. **Artifact readiness** and **Task status** are independent: a ready task is available to start; a ready artifact has usable output. **Discussion** names the conversation; **Comment** names one message. **Activity** names an attributable event, qualified as an activity node or operational log when referring to those different concepts.
 
-**Learning**, **Decision**, and **Outcome** describe domain concepts; they do not imply universal dedicated storage or editors. Outcomes currently use answers and artifacts. Guided-context export remains future work. **Project lineage** records source/spawned relationships and never implies inherited membership or copied content.
+**Learning**, **Decision**, and **Outcome** describe domain concepts; they do not imply universal dedicated storage or editors. Outcomes currently use answers and artifacts. Project context exports include guided learning, discussions and revisions as readable Markdown. **Project lineage** records source/spawned relationships and never implies inherited membership or copied content.
 
 ## Experiment lab — 2026-10-26
 

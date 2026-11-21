@@ -1,6 +1,6 @@
 # Context export and future AI
 
-The first AI-adjacent milestone is **human-triggered readable Markdown export** for use in ChatGPT. It requires no model integration, API key, or automated upload. Embedded project chat and agent execution are later milestones. All behavior here is a specification, not an implemented feature.
+The first AI-adjacent milestone is **human-triggered readable Markdown export** for use in ChatGPT. It requires no model integration, API key, or automated upload. Embedded project chat and agent execution are later milestones. The project context preview and Markdown download implement M4. Provider-backed chat and agent execution remain proposals.
 
 ## M4: authorized context export contract
 
@@ -74,3 +74,7 @@ External writes, purchases, invitations, deployment, or messaging are outside de
 The experiment lab implements a narrower handoff than the complete M4 export above. A member starts a run, previews its scoped JSON brief, and explicitly copies it to an external worker. The brief contains project/experiment/run identifiers, plan version, generation timestamp, the frozen plan and selected question snapshot, scope omissions and current staleness. It excludes other questions, discussions, memberships and linked document contents. It is not a complete project export.
 
 Export rechecks current project membership and scopes nested IDs. A likely-secret check rejects recognizable key/password/token/private-key patterns before delivery; it cannot prove arbitrary content is safe. The member reviews before sharing. No service is called automatically. Returning contributions is manual: record agent attribution, sources and uncertainty; a human accepts/edits/rejects with a rationale. Accepted contributions remain AI analysis and preserve original and accepted text. Changes to the run's question or plan are shown before review. Authenticated ingestion, automatic answer application, dispatch and native agent execution remain unimplemented.
+
+## Project context delivery — 2026-11-21
+
+Open Project context from a project header. The preview covers the selected project and lists counts, omissions, and numbered parts. Each download rebuilds the same authorized snapshot and checks its content fingerprint. A change requires another preview. Likely credential fields are omitted and marked; the requester can also exclude discussion. The text export includes artifact and file references. The files themselves stay behind their existing access controls.

@@ -301,6 +301,13 @@ export default async function ProjectPage({
         >
           {project.description}
         </p>
+        <Link
+          prefetch={false}
+          className="text-sm underline"
+          href={`/projects/${projectId}/context`}
+        >
+          {t("Project context")}
+        </Link>
         <LinearProject
           projectId={projectId}
           url={project.linear_project_url}
