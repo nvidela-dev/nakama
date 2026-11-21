@@ -4,6 +4,7 @@ import { queryRows } from "@/server/database/query";
 import type { Actor } from "@/shared/contracts/actor";
 import { isAppAdmin } from "@/features/access/server/app-access";
 import { ProjectError } from "@/shared/contracts/errors";
+import { resumeMatch, type ResumeMatch } from "../resume-match";
 import { foundRange } from "../discovery-weeks";
 import { availabilityLabels, jobDate } from "../model";
 
@@ -27,6 +28,36 @@ const catalogue = `WITH leads AS (
 export function jobsStore(db: Database, person: Actor, ownerEmail: string | undefined) {
   if (!isAppAdmin(person, ownerEmail)) throw new ProjectError("Jobs are private.");
   const owner = person.userId;
+  async function matchesFor(leads: { id: string; title: string }[]) {
+    const result = new Map<string, ResumeMatch>();
+    if (!leads.length) return result;
+    const ids = leads.map((lead) => lead.id);
+    const [profiles, evidence] = await Promise.all([
+      queryRows(
+        db,
+        z.object({ skills: z.array(z.string()) }),
+        "SELECT skills FROM nakama_jobs.resume_profiles WHERE owner_id=$1",
+        [owner],
+      ),
+      queryRows(
+        db,
+        z.object({ lead_id: z.string(), description: z.string() }),
+        `SELECT lead_id, description FROM nakama_jobs.role_requirements WHERE lead_id=ANY($1::text[])
+         UNION ALL SELECT id,listed_skills FROM nakama_jobs.manual_leads WHERE id=ANY($1::text[])
+         AND owner_id=$2 AND listed_skills IS NOT NULL`,
+        [ids, owner],
+      ),
+    ]);
+    const profile = profiles[0] ? new Set(profiles[0].skills) : null;
+    const byLead = Map.groupBy(evidence, (row) => row.lead_id);
+    for (const lead of leads) {
+      const roleText = [lead.title, ...(byLead.get(lead.id) ?? []).map((r) => r.description)].join(
+        "\n",
+      );
+      result.set(lead.id, resumeMatch(profile, roleText));
+    }
+    return result;
+  }
   async function get(tx: Queryable, key: string) {
     if (!id.safeParse(key).success) throw new ProjectError("Role not found.");
     const [lead] = await queryRows(tx, leadSchema, catalogue + " SELECT * FROM cards WHERE id=$2", [
@@ -86,11 +117,13 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
             : " ORDER BY found_on DESC NULLS LAST,company,title,id LIMIT 40 OFFSET $12"),
         board ? values : [...values, (page - 1) * 40],
       );
-      return { rows, total, page };
+      const matches = await matchesFor(board ? [] : rows);
+      return { rows, total, page, matches };
     },
     async detail(key: string) {
       const lead = await get(db, key);
-      const [observations, events] = await Promise.all([
+      const [matches, observations, events] = await Promise.all([
+        matchesFor([lead]),
         queryRows(
           db,
           observation,
@@ -104,7 +137,7 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
           [owner, key],
         ),
       ]);
-      return { lead, observations, events };
+      return { lead, match: matches.get(lead.id)!, observations, events };
     },
     async change(raw: JobCommand) {
       const result = commands.safeParse(raw);
@@ -114,7 +147,7 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
         if (c.type === "add") {
           const key = "m-" + c.token;
           await tx.query(
-            "INSERT INTO nakama_jobs.manual_leads(id,owner_id,company,title,url,first_observed,relevance) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT DO NOTHING",
+            "INSERT INTO nakama_jobs.manual_leads(id,owner_id,company,title,url,first_observed,relevance,listed_skills) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING",
             [
               key,
               owner,
@@ -123,6 +156,7 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
               c.url || null,
               c.found_on ?? jobDate(),
               c.relevance || null,
+              c.listed_skills || null,
             ],
           );
           await get(tx, key);

@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 import { jobDate } from "../src/features/jobs/model";
+import { Client } from "pg";
 import { randomUUID } from "node:crypto";
 test("owner can pursue a lead, record an interview and send it back to the backlog with history", async ({
   page,
@@ -14,6 +15,19 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   page.setDefaultTimeout(15_000);
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
+  const ownerId = await page.evaluate(
+    () => (window as unknown as { Clerk: { user: { id: string } } }).Clerk.user.id,
+  );
+  const db = new Client({ connectionString: process.env.JOBS_DATABASE_URL });
+  await db.connect();
+  try {
+    await db.query(
+      "INSERT INTO nakama_jobs.resume_profiles(owner_id,skills) VALUES ($1,ARRAY['React']) ON CONFLICT DO NOTHING",
+      [ownerId],
+    );
+  } finally {
+    await db.end();
+  }
   await page.getByRole("link", { name: "Jobs and interviews" }).click();
   await expect(page.getByRole("table", { name: "Leads backlog" })).toBeVisible();
   await page.getByText("Add job lead", { exact: true }).click();
@@ -24,6 +38,7 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   twoWeeksAgo.setUTCDate(twoWeeksAgo.getUTCDate() - 14);
   const foundDate = twoWeeksAgo.toISOString().slice(0, 10);
   await page.getByLabel("Date found", { exact: true }).fill(foundDate);
+  await page.getByLabel("Skills listed for the role").fill("React and Rust");
   await page.getByRole("button", { name: "Save lead" }).click();
   await expect(page.getByRole("heading", { name: role })).toBeVisible();
   await expect(page.getByText(foundDate, { exact: true })).toBeVisible();
@@ -36,6 +51,13 @@ test("owner can pursue a lead, record an interview and send it back to the backl
     .filter({ has: page.getByRole("rowheader", { name: "2 weeks ago" }) });
   await expect(group.getByRole("link", { name: role })).toBeVisible();
   await expect(group.locator("time").filter({ hasText: foundDate }).first()).toBeVisible();
+  const row = group.getByRole("row").filter({ has: page.getByRole("link", { name: role }) });
+  const score = row.getByRole("meter", { name: "Résumé match" });
+  await expect(score).toHaveAttribute("aria-valuenow", "50");
+  await expect(score).toHaveAttribute("aria-valuetext", "1 of 2 listed skills");
+  await row.locator("summary").click();
+  await expect(row.getByText("On your résumé", { exact: true })).toBeVisible();
+  await expect(row.getByText("Rust", { exact: true })).toBeVisible();
   await group.getByRole("link", { name: role }).click();
   await expect(page.getByRole("heading", { name: role })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create private Linear task" })).toHaveCount(0);

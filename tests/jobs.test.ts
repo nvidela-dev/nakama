@@ -11,6 +11,7 @@ import {
   weekColors,
   foundRange,
 } from "../src/features/jobs/discovery-weeks";
+import { listedSkills, resumeMatch } from "../src/features/jobs/resume-match";
 import { jobDate } from "../src/features/jobs/model";
 import type { Database } from "../src/server/database/database";
 const base = {
@@ -31,6 +32,7 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     await pg.exec(await readFile("tests/fixtures/job-evidence.sql", "utf8"));
     await pg.exec(await readFile("integrations/jobs/001_workspace.sql", "utf8"));
     await pg.exec(await readFile("integrations/jobs/002_found_dates.sql", "utf8"));
+    await pg.exec(await readFile("integrations/jobs/003_resume_match.sql", "utf8"));
     const email = "owner@example.invalid",
       owner = { userId: "owner", verifiedEmails: [email] };
     assert.throws(() => jobsStore(db, { userId: "friend", verifiedEmails: [] }, email), /private/);
@@ -50,9 +52,49 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
       })
     ).rows;
     assert.ok(role);
+    assert.equal((await store.detail(role.id)).match.status, "no-profile");
+    await pg.query(
+      "INSERT INTO nakama_jobs.resume_profiles(owner_id,skills) VALUES ('owner',ARRAY['TypeScript','React'])",
+    );
+    await pg.query(
+      "UPDATE job_manager.observations SET payload = payload || $1::jsonb WHERE observation_key='a'",
+      [
+        JSON.stringify({
+          stack: ["TS", "React", "Python"],
+          requirements: "Python and React",
+          fit: "TypeScript experience, Java is on the candidate resume",
+        }),
+      ],
+    );
+    const assessed = (await store.browse(base)).matches.get(role.id);
+    assert.deepEqual(assessed, {
+      status: "scored",
+      percent: 67,
+      total: 3,
+      matched: ["React", "TypeScript"],
+      missing: ["Python"],
+    });
+    assert.deepEqual((await store.detail(role.id)).match, assessed);
+    await pg.query(
+      "UPDATE job_manager.observations SET payload = payload || $1::jsonb WHERE observation_key='b'",
+      [
+        JSON.stringify({
+          historical_evidence_text: "Stack: Python and Django Fit / gaps: prior React experience",
+          structured_source: { stack: "Django" },
+        }),
+      ],
+    );
+
     const [archived] = (
       await store.browse({ ...base, employer: "agency", availability: "historical" })
     ).rows;
+    assert.deepEqual((await store.detail(archived!.id)).match, {
+      status: "scored",
+      matched: [],
+      missing: ["Django", "Python"],
+      total: 2,
+      percent: 0,
+    });
     assert.equal(archived?.last_checked, null);
     assert.equal(archived?.found_on, "2020-12-27");
     assert.deepEqual(
@@ -66,6 +108,7 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     const [unknown] = (await store.browse({ ...base, availability: "unknown" })).rows;
     assert.equal(unknown?.first_observed, null);
     assert.equal(unknown?.found_on, null);
+    assert.equal((await store.detail(unknown!.id)).match.status, "no-requirements");
     assert.deepEqual(
       (await store.browse({ ...base, found: "unknown" })).rows.map((r) => r.id),
       [unknown!.id],
@@ -96,12 +139,20 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
       token: randomUUID(),
       company: "Example",
       title: "Manual role",
+      listed_skills: "TypeScript and Rust",
       url: "",
       relevance: "",
     };
     const manualId = await store.change(manual);
     assert.equal(await store.change(manual), manualId);
     assert.equal((await store.detail(manualId)).lead.found_on, jobDate());
+    assert.deepEqual((await store.detail(manualId)).match, {
+      status: "scored",
+      matched: ["TypeScript"],
+      missing: ["Rust"],
+      total: 2,
+      percent: 50,
+    });
     await assert.rejects(
       store.change({ ...manual, token: randomUUID(), found_on: "2099-12-31" }),
       /dates/,
@@ -109,6 +160,7 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     assert.equal((await store.browse(base)).total, 4);
     const different = jobsStore(db, { ...owner, userId: "replacement" }, email);
     await assert.rejects(different.detail(manualId), /not found/);
+    assert.equal((await different.detail(role.id)).match.status, "no-profile");
     const plan = {
       type: "plan" as const,
       id: role.id,
@@ -152,6 +204,10 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     await store.change({ ...plan, revision: 2 });
     await assert.rejects(pg.query("SELECT * FROM job_manager.observations"), /permission denied/);
     await assert.rejects(pg.query("DELETE FROM nakama_jobs.events"), /permission denied/);
+    await assert.rejects(
+      pg.query("UPDATE nakama_jobs.resume_profiles SET skills=ARRAY['Rust']"),
+      /permission denied/,
+    );
     const backdated = await store.change({
       ...manual,
       token: randomUUID(),
@@ -225,4 +281,23 @@ test("discovery weeks use Monday boundaries across years, and each age has a tex
     }
   }
   assert.equal(weeksSinceFound("2020-12-28", "2021-01-03"), 0);
+});
+
+test("résumé skills use word boundaries, aliases and distinct listed skills", () => {
+  assert.deepEqual(listedSkills("Next.js JavaScript JavaScript React Native C++ C# Golang"), [
+    "C#",
+    "C++",
+    "Go",
+    "JavaScript",
+    "Next.js",
+    "React Native",
+  ]);
+  assert.deepEqual(listedSkills("go to the rest of the team, expressiveness and JavaBeans"), []);
+  assert.deepEqual(resumeMatch(new Set(["PostgreSQL"]), "Postgres / PostgreSQL and PHP"), {
+    status: "scored",
+    percent: 50,
+    total: 2,
+    matched: ["PostgreSQL"],
+    missing: ["PHP"],
+  });
 });

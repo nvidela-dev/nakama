@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ownerJobs } from "@/features/jobs/server/connection";
 import { linearJobsConfigured } from "@/features/jobs/server/linear";
+import { ResumeMeter } from "@/features/jobs/components/resume-meter";
 import { JobDetail } from "@/features/jobs/components/job-detail";
 import { JobForm } from "@/features/jobs/components/job-form";
 import {
@@ -76,7 +77,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     );
   }
   const today = jobDate();
-  const { rows, total, page } = await jobs.browse(filters, today);
+  const { rows, total, page, matches } = await jobs.browse(filters, today);
   const last = Math.ceil(total / 40);
   const filtering = [
     filters.query,
@@ -119,6 +120,10 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
               <label>
                 {t("Source URL")}
                 <Input name="url" type="url" maxLength={2000} />
+              </label>
+              <label>
+                {t("Skills listed for the role")}
+                <Textarea name="listed_skills" maxLength={2000} rows={2} />
               </label>
               <label>
                 {t("Relevance")}
@@ -245,6 +250,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                 {[
                   "Date found",
                   "Role",
+                  "Résumé match",
                   "Source",
                   "Last source check",
                   "Availability",
@@ -263,7 +269,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                   <tr>
                     <th
                       scope="rowgroup"
-                      colSpan={6}
+                      colSpan={7}
                       className="border-y border-line bg-panel px-3 py-2"
                     >
                       <span
@@ -301,6 +307,9 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                             {r.company}
                             {r.stage ? " · " + t(jobStages[r.stage]) : ""}
                           </p>
+                        </td>
+                        <td className="min-w-36 px-3 py-2">
+                          <ResumeMeter match={matches.get(r.id)!} t={t} />
                         </td>
                         <td className="max-w-52 px-3 py-2 wrap-anywhere">
                           {href ? (

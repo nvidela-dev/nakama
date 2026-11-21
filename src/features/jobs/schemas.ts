@@ -1,3 +1,4 @@
+import type { ResumeMatch } from "./resume-match";
 import { z } from "zod";
 import { jobStages, jobEvents, sourceLink, jobDate } from "./model";
 export const nullable = z.string().nullable();
@@ -48,6 +49,7 @@ export const commands = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("add"),
     token: z.uuid(),
+    listed_skills: z.string().trim().max(2000).optional(),
     found_on: date.refine((v) => v <= jobDate()).optional(),
     company: z.string().trim().min(1).max(200),
     title: z.string().trim().min(1).max(250),
@@ -89,6 +91,7 @@ export type JobFilters = {
 };
 export type JobDetailData = {
   lead: JobLead;
+  match: ResumeMatch;
   observations: z.infer<typeof observation>[];
   events: z.infer<typeof event>[];
 };

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/shared/i18n/server";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
+import { ResumeMeter } from "./resume-meter";
 import { JobForm } from "./job-form";
 import { availabilityLabels, jobStages, jobEvents, jobDate, sourceLink } from "../model";
 import type { JobDetailData } from "../schemas";
@@ -32,6 +33,10 @@ export async function JobDetail({
               {t("Open source listing")} ↗
             </a>
           )}
+        </div>
+        <div className="mt-2 max-w-sm">
+          <h2 className="mb-1 text-sm font-semibold">{t("Résumé match")}</h2>
+          <ResumeMeter match={data.match} t={t} />
         </div>
       </header>
       <div className="grid items-start gap-4 lg:grid-cols-2">
