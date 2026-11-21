@@ -28,7 +28,7 @@ export const NodeStatusValues = ["unanswered","draft","answered","skipped","bloc
 export type NodeStatus = (typeof NodeStatusValues)[number];
 export const ProjectStateValues = ["active","parked","finished_enough"] as const;
 export type ProjectState = (typeof ProjectStateValues)[number];
-export const ProspectEventKindValues = ["assignment","call","message","reply","note","membership_ended","profile"] as const;
+export const ProspectEventKindValues = ["assignment","call","message","reply","note","membership_ended","profile","stage"] as const;
 export type ProspectEventKind = (typeof ProspectEventKindValues)[number];
 export const ProspectStatusValues = ["ready","in_progress","deal","rejected"] as const;
 export type ProspectStatus = (typeof ProspectStatusValues)[number];
@@ -316,6 +316,16 @@ export interface DatabaseRows {
     created_at: Date;
     profile_changes: unknown | null;
   };
+  prospect_facets: {
+    catalogue_id: string;
+    prospect_id: string;
+    region: string;
+    city: string;
+    industry: string;
+    identity_state: string;
+    services: string[];
+    search_text: string;
+  };
   prospect_image_files: {
     catalogue_id: string;
     sha256: string;
@@ -367,6 +377,14 @@ export interface DatabaseRows {
     source_time: Date | null;
     payload: unknown;
   };
+  prospect_todos: {
+    catalogue_id: string;
+    prospect_id: string;
+    id: string;
+    title: string;
+    done: boolean;
+    created_at: Date;
+  };
   prospects: {
     catalogue_id: string;
     id: string;
@@ -378,6 +396,7 @@ export interface DatabaseRows {
     edited_name: boolean;
     edited_details: boolean;
     research: unknown;
+    linear_url: string | null;
   };
   shirt_designs: {
     project_id: string;

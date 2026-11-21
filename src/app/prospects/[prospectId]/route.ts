@@ -18,10 +18,13 @@ function failure(error: unknown) {
 export async function GET(_request: Request, { params }: Context) {
   const { prospectId } = await params;
   try {
-    const { prospect, research, sources, timeline, images } = await prospectService(
+    const { prospect, research, sources, timeline, images, todos, linear } = await prospectService(
       database(),
     ).read(await actor(true), prospectId);
-    return Response.json({ prospect, research, sources, timeline, images }, { headers });
+    return Response.json(
+      { prospect, research, sources, timeline, images, todos, linear },
+      { headers },
+    );
   } catch (e) {
     return failure(e);
   }

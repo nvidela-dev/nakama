@@ -1,3 +1,4 @@
+import { browse } from "./browse";
 import { z } from "zod";
 import type { Actor } from "@/shared/contracts/actor";
 import { ProjectError } from "@/shared/contracts/errors";
@@ -51,7 +52,7 @@ const summary = `SELECT p.id,p.name,p.details,p.status,p.revision,p.assignee_id,
 
 export function prospectService(db: Database) {
   return {
-    read(person: Actor, selected?: string, page = 1, search = "") {
+    read(person: Actor, selected?: string, page = 1, search = "", filters?: URLSearchParams) {
       return withCatalogueRead(db, person, async (scope) => {
         const { tx, role } = scope;
         const all = await canBrowseAll(scope);
@@ -66,15 +67,17 @@ export function prospectService(db: Database) {
               summary + " WHERE " + visible + " AND p.id=$4 FOR SHARE OF p",
               [...values, selected],
             )
-          : await queryRows(
-              tx,
-              prospectSchema,
-              summary +
-                " WHERE " +
-                visible +
-                " AND position(lower($6) in lower(p.name))>0 ORDER BY lower(p.name),p.id LIMIT $4 OFFSET $5",
-              [...values, pageSize + 1, (currentPage - 1) * pageSize, search.slice(0, 300)],
-            );
+          : filters
+            ? []
+            : await queryRows(
+                tx,
+                prospectSchema,
+                summary +
+                  " WHERE " +
+                  visible +
+                  " AND position(lower($6) in lower(p.name))>0 ORDER BY lower(p.name),p.id LIMIT $4 OFFSET $5",
+                [...values, pageSize + 1, (currentPage - 1) * pageSize, search.slice(0, 300)],
+              );
         const prospects = selected ? [] : result.slice(0, pageSize);
         const prospect = selected ? result[0] : undefined;
         if (selected && !prospect) throw unavailable();
@@ -154,7 +157,30 @@ export function prospectService(db: Database) {
                 [catalogueId, selected ?? null],
               )
             : [];
+        const listing =
+          filters && !selected ? await browse(scope, all, filters, currentPage, visible) : null;
+        const todos = prospect
+          ? await queryRows(
+              tx,
+              z.object({ id: z.uuid(), title: z.string(), done: z.boolean() }),
+              "SELECT id,title,done FROM prospect_todos WHERE catalogue_id=$1 AND prospect_id=$2 ORDER BY created_at,id",
+              [catalogueId, prospect.id],
+            )
+          : [];
+        const linear = prospect
+          ? ((
+              await queryRows(
+                tx,
+                z.object({ linear_url: z.string().nullable() }),
+                "SELECT linear_url FROM prospects WHERE catalogue_id=$1 AND id=$2",
+                [catalogueId, prospect.id],
+              )
+            )[0]?.linear_url ?? null)
+          : null;
         return {
+          listing,
+          todos,
+          linear,
           prospects,
           prospect,
           timeline,
@@ -192,7 +218,11 @@ export function prospectService(db: Database) {
         const parsed = commandSchema.safeParse(input);
         if (!parsed.success) throw new ProjectError("Check the prospect details and try again.");
         const cmd = parsed.data;
-        if (cmd.type !== "log" && role !== "owner") throw unavailable();
+        if (
+          !["log", "stage", "linear", "todo_add", "todo_check"].includes(cmd.type) &&
+          role !== "owner"
+        )
+          throw unavailable();
         if (cmd.type === "add") {
           const { id, name, details } = cmd.record;
           const inserted = await queryRows(
@@ -299,6 +329,57 @@ export function prospectService(db: Database) {
             "This prospect changed. Review the timeline before saving again.",
           );
         const actorName = await memberName(scope, person.userId);
+        if (
+          cmd.type === "stage" ||
+          cmd.type === "linear" ||
+          cmd.type === "todo_add" ||
+          cmd.type === "todo_check"
+        ) {
+          let kind: "stage" | "profile" = "profile";
+          let changes: Record<string, unknown>;
+          if (cmd.type === "stage") {
+            if (cmd.status === current.status) return;
+            await tx.query("UPDATE prospects SET status=$3 WHERE catalogue_id=$1 AND id=$2", [
+              catalogueId,
+              cmd.id,
+              cmd.status,
+            ]);
+            kind = "stage";
+            changes = { from: current.status, to: cmd.status };
+          } else if (cmd.type === "linear") {
+            const result = await tx.query(
+              "UPDATE prospects SET linear_url=$3 WHERE catalogue_id=$1 AND id=$2 AND linear_url IS DISTINCT FROM $3 RETURNING id",
+              [catalogueId, cmd.id, cmd.url],
+            );
+            if (!result.rows.length) return;
+            changes = { linear: cmd.url ? "linked" : "cleared" };
+          } else if (cmd.type === "todo_add") {
+            const result = await tx.query(
+              "INSERT INTO prospect_todos(catalogue_id,prospect_id,id,title) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING RETURNING id",
+              [catalogueId, cmd.id, cmd.todoId, cmd.title],
+            );
+            if (!result.rows.length) return;
+            changes = { todo: cmd.title, done: false };
+          } else {
+            const [item] = await queryRows(
+              tx,
+              z.object({ title: z.string() }),
+              "UPDATE prospect_todos SET done=$4 WHERE catalogue_id=$1 AND prospect_id=$2 AND id=$3 AND done<>$4 RETURNING title",
+              [catalogueId, cmd.id, cmd.todoId, cmd.done],
+            );
+            if (!item) return;
+            changes = { todo: item.title, done: cmd.done };
+          }
+          await tx.query(
+            "UPDATE prospects SET revision=revision+1 WHERE catalogue_id=$1 AND id=$2",
+            [catalogueId, cmd.id],
+          );
+          await tx.query(
+            "INSERT INTO prospect_events(catalogue_id,prospect_id,kind,actor_id,actor_name,profile_changes) VALUES($1,$2,$3,$4,$5,$6)",
+            [catalogueId, cmd.id, kind, person.userId, actorName, JSON.stringify(changes)],
+          );
+          return;
+        }
         if (cmd.type === "profile") {
           const fields = cmd.research ?? {};
           if (

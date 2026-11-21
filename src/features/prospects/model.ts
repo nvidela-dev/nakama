@@ -3,6 +3,7 @@ import type { ProspectEventKind } from "@/shared/contracts/database.generated";
 import type { commandSchema, prospectSchema } from "./schemas";
 export const outreachKinds = ["call", "message", "reply", "note"] as const;
 export const kindLabel: Record<ProspectEventKind, string> = {
+  stage: "Sales stage changed",
   profile: "Business profile updated",
   call: "Called",
   message: "Message sent",

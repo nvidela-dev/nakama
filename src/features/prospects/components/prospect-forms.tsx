@@ -6,11 +6,13 @@ import { Button } from "@/shared/ui/button";
 import { Feedback } from "@/shared/ui/feedback";
 import type { ActionState } from "@/shared/contracts/action-state";
 import { useT } from "@/shared/i18n/provider";
+import { ProspectStatusValues } from "@/shared/contracts/database.generated";
 import { updateProspect, saveProspectImport } from "../actions";
 import {
   importChunkSize,
   maxImportBytes,
   outreachKinds,
+  statusLabel,
   kindLabel,
   type CatalogueMember,
   type ProspectCommand,
@@ -344,5 +346,113 @@ export function ShareProspect({ id, members }: { id: string; members: CatalogueM
         </li>
       ))}
     </ul>
+  );
+}
+
+export function ProspectWork({
+  record,
+  linear,
+  todos,
+}: {
+  record: Prospect;
+  linear: string | null;
+  todos: { id: string; title: string; done: boolean }[];
+}) {
+  const t = useT(),
+    requestId = useRef<string | null>(null);
+  const target = { id: record.id, revision: record.revision };
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <section className="grid content-start gap-2 rounded-xl border border-line bg-panel p-4">
+        <h2 className="font-semibold">{t("To-dos")}</h2>
+        <ul className="divide-y divide-line">
+          {todos.map((todo) => (
+            <li className="flex items-center justify-between py-2 gap-2" key={todo.id}>
+              <span className={todo.done ? "line-through text-muted" : ""}>{todo.title}</span>
+              <ChangeForm
+                label={todo.done ? "Reopen" : "Complete"}
+                submit={() =>
+                  updateProspect({
+                    ...target,
+                    type: "todo_check",
+                    todoId: todo.id,
+                    done: !todo.done,
+                  })
+                }
+              />
+            </li>
+          ))}
+        </ul>
+        <ChangeForm
+          label="Add to-do"
+          reset
+          submit={async (data) => {
+            requestId.current ??= crypto.randomUUID();
+            const r = await updateProspect({
+              ...target,
+              type: "todo_add",
+              todoId: requestId.current,
+              title: value(data, "title"),
+            });
+            if (!r.error) requestId.current = null;
+            return r;
+          }}
+        >
+          <Input
+            name="title"
+            required
+            maxLength={300}
+            placeholder={t("Next action")}
+            aria-label={t("Next action")}
+          />
+        </ChangeForm>
+      </section>
+      <section className="grid content-start gap-3 rounded-xl border border-line bg-panel p-4">
+        <h2 className="font-semibold">Linear</h2>
+        {linear && (
+          <a href={linear} target="_blank" rel="noopener noreferrer" className="underline">
+            {t("Open in Linear")}
+          </a>
+        )}
+        <ChangeForm
+          label="Save Linear link"
+          submit={(data) =>
+            updateProspect({ ...target, type: "linear", url: value(data, "linear").trim() || null })
+          }
+        >
+          <label>
+            {t("Linear issue or project URL")}
+            <Input
+              name="linear"
+              type="url"
+              maxLength={2000}
+              defaultValue={linear ?? ""}
+              placeholder="https://linear.app/…"
+            />
+          </label>
+        </ChangeForm>
+        <ChangeForm
+          label="Move business"
+          submit={(data) =>
+            updateProspect({
+              ...target,
+              type: "stage",
+              status: value(data, "stage") as Prospect["status"],
+            })
+          }
+        >
+          <label>
+            {t("Sales stage")}
+            <Select key={record.status} name="stage" defaultValue={record.status}>
+              {ProspectStatusValues.map((v) => (
+                <option key={v} value={v}>
+                  {t(statusLabel[v])}
+                </option>
+              ))}
+            </Select>
+          </label>
+        </ChangeForm>
+      </section>
+    </div>
   );
 }

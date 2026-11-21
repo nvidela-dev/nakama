@@ -32,6 +32,7 @@ try {
   const primitive: Record<string, string> = {
     uuid: "string",
     text: "string",
+    _text: "string[]",
     varchar: "string",
     int2: "number",
     int4: "number",

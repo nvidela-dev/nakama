@@ -34,6 +34,30 @@ const input = z.object({
 });
 const change = z.object({ id: z.uuid(), revision: z.number().int().nonnegative() });
 export const commandSchema = z.discriminatedUnion("type", [
+  change.extend({ type: z.literal("stage"), status: z.enum(ProspectStatusValues) }),
+  change.extend({
+    type: z.literal("linear"),
+    url: z
+      .url({ protocol: /^https$/, hostname: /^linear\.app$/ })
+      .max(2000)
+      .refine((s) => {
+        if (!URL.canParse(s)) return false;
+        const u = new URL(s);
+        return (
+          !u.username &&
+          !u.password &&
+          !u.port &&
+          /^\/[^/]+\/(issue|project)\/[^/]+/.test(u.pathname)
+        );
+      }, "Use a Linear issue or project link.")
+      .nullable(),
+  }),
+  change.extend({
+    type: z.literal("todo_add"),
+    todoId: z.uuid(),
+    title: z.string().trim().min(1).max(300),
+  }),
+  change.extend({ type: z.literal("todo_check"), todoId: z.uuid(), done: z.boolean() }),
   z.object({ type: z.literal("add"), record: input }),
   change
     .extend({

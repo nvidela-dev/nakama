@@ -143,9 +143,66 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
     await assert.rejects(detail(pedro));
     assert.equal((await detail(owner)).prospect?.assignee_id, null);
     assert.equal((await detail(owner)).timeline[0]?.kind, "membership_ended");
+    const key = randomUUID();
+    const revision = async () => (await detail(owner)).prospect!.revision;
+    await svc.change(owner, {
+      type: "todo_add",
+      id,
+      revision: await revision(),
+      todoId: key,
+      title: "Arrange a call",
+    });
+    await svc.change(owner, {
+      type: "todo_check",
+      id,
+      revision: await revision(),
+      todoId: key,
+      done: true,
+    });
+    assert.equal((await detail(owner)).todos[0]?.done, true);
+    const beforeLinear = await revision();
+    await assert.rejects(
+      svc.change(owner, {
+        type: "linear",
+        id,
+        revision: beforeLinear,
+        url: "https://linear.app.invalid/acme/issue/A-7",
+      }),
+    );
+    await svc.change(owner, {
+      type: "linear",
+      id,
+      revision: beforeLinear,
+      url: "https://linear.app/acme/issue/A-7",
+    });
+    assert.equal((await detail(owner)).linear, "https://linear.app/acme/issue/A-7");
+    await assert.rejects(
+      svc.change(owner, { type: "stage", id, revision: beforeLinear, status: "deal" }),
+    );
+    await svc.change(owner, { type: "stage", id, revision: await revision(), status: "deal" });
+    await assert.rejects(
+      svc.change(pedro, {
+        type: "todo_add",
+        id,
+        revision: await revision(),
+        todoId: randomUUID(),
+        title: "Hidden",
+      }),
+    );
+    const board = await svc.read(
+      owner,
+      undefined,
+      1,
+      "",
+      new URLSearchParams({ view: "board", stage: "deal", q: "A shop" }),
+    );
+    assert.equal(board.listing?.counts.deal, 1);
+    assert.equal(board.listing?.cards[0]?.id, id);
+    const available = await svc.read(ana, undefined, 1, "", new URLSearchParams({ view: "board" }));
+    assert.equal(available.listing?.cards.length, 0);
     await join("Pedro");
     assert.equal((await svc.read(pedro)).prospects.length, 0);
-    await change(owner, { type: "assign", id, revision: 6, assignee: "Owner" });
+    await change(owner, { type: "assign", id, revision: await revision(), assignee: "Owner" });
     await ps.deleteProject(outside, unrelated, "Unrelated");
     assert.ok((await detail(owner)).timeline.length > 0);
   } finally {

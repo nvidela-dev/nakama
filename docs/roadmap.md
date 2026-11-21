@@ -488,3 +488,7 @@ Use the Nakama database as the system of record from the first operational impor
 ## Retire public learning pages — 2026-11-21
 
 Remove the example project, Lab guide and Wiki, including the glossary aliases and links from Home and the project lab. Real project flows and experiments continue in their workspaces.
+
+## Sales work and catalogue browsing — 2026-11-21
+
+Nakama stores a checklist and an optional Linear issue or project link per prospect. Collaborators can update businesses they can see. The list and four-column sales board use the same access rules, search and filters. Users can move a business by dragging a card or selecting a stage on its detail screen. Record each change in its timeline. Opening a Linear link is a user action and does not publish business records to Linear.

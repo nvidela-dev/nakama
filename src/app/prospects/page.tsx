@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Input } from "@/shared/ui/controls";
-import { Button } from "@/shared/ui/button";
+import { CatalogueBrowser } from "@/features/prospects/components/catalogue-browser";
+import { catalogueHref, catalogueParams, type CatalogueQuery } from "@/features/prospects/filters";
 import { notFound } from "next/navigation";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
@@ -13,6 +13,7 @@ import { translator, formatDate } from "@/shared/i18n";
 import { kindLabel, statusLabel } from "@/features/prospects/model";
 import {
   EditProspect,
+  ProspectWork,
   AddProspect,
   ImportProspects,
   AssignProspect,
@@ -21,6 +22,7 @@ import {
   InviteCollaborator,
   LogOutreach,
 } from "@/features/prospects/components/prospect-forms";
+import { Dossier } from "@/features/prospects/components/dossier";
 import { Panel } from "@/shared/ui/panel";
 
 export async function generateMetadata() {
@@ -31,20 +33,20 @@ export const dynamic = "force-dynamic";
 export default async function ProspectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ business?: string; page?: string; q?: string }>;
+  searchParams: Promise<CatalogueQuery>;
 }) {
   const [query, person, locale] = await Promise.all([searchParams, actor(true), getLocale()]);
   const t = translator(locale),
     base = "/prospects";
-  const search = typeof query.q === "string" ? query.q.trim().slice(0, 300) : "";
-  const filter = search ? "&q=" + encodeURIComponent(search) : "";
+  const filters = catalogueParams(query);
   let data;
   try {
     data = await prospectService(database()).read(
       person,
-      query.business,
+      typeof query.business === "string" ? query.business : undefined,
       Number(query.page),
-      search,
+      filters.get("q") ?? "",
+      filters,
     );
   } catch (error) {
     if (error instanceof ProspectMigrationPending)
@@ -57,12 +59,12 @@ export default async function ProspectsPage({
     if (error instanceof ProjectError) notFound();
     throw error;
   }
-  const { prospect, prospects, members, owner, all, page, hasNext, timeline } = data;
+  const { prospect, members, owner, all, page, timeline } = data;
   const title = all ? t("Business catalogue") : t("My prospects");
   const others = members.filter((m) => m.user_id !== person.userId);
-  const back = `${base}?page=${page}${filter}`;
+  const back = catalogueHref(filters, { page });
   return (
-    <main id="main" className="mx-auto grid max-w-5xl gap-5 px-4 py-6 md:px-8">
+    <main id="main" className="mx-auto w-full grid max-w-[1480px] gap-5 px-4 py-6 md:px-8">
       <nav className="flex gap-4 text-sm">{prospect && <Link href={back}>{title}</Link>}</nav>
       <header>
         <h1 className="text-3xl font-semibold tracking-tight wrap-anywhere">
@@ -83,6 +85,10 @@ export default async function ProspectsPage({
               <p className="whitespace-pre-wrap wrap-anywhere">{prospect.details}</p>
             </Panel>
           )}
+          <Dossier
+            data={data.sources.find((source) => source.source_rank === 2)?.payload.dossier}
+          />
+          <ProspectWork record={prospect} todos={data.todos} linear={data.linear} />
           {owner && (
             <Panel>
               <details>
@@ -231,13 +237,38 @@ export default async function ProspectsPage({
                       <>
                         <span className="text-sm text-muted">{e.actor_name}</span>
                         {e.note && <p className="whitespace-pre-wrap wrap-anywhere">{e.note}</p>}
-                        {e.profile_changes && (
-                          <details>
-                            <summary>{t("Saved changes")}</summary>
-                            <pre className="whitespace-pre-wrap wrap-anywhere text-sm">
-                              {JSON.stringify(e.profile_changes, null, 2)}
-                            </pre>
-                          </details>
+                        {e.kind === "stage" &&
+                        e.profile_changes &&
+                        typeof e.profile_changes.from === "string" &&
+                        typeof e.profile_changes.to === "string" &&
+                        e.profile_changes.from in statusLabel &&
+                        e.profile_changes.to in statusLabel ? (
+                          <p>
+                            {t(statusLabel[e.profile_changes.from as keyof typeof statusLabel])} →{" "}
+                            {t(statusLabel[e.profile_changes.to as keyof typeof statusLabel])}
+                          </p>
+                        ) : typeof e.profile_changes?.todo === "string" ? (
+                          <p>
+                            {t(e.profile_changes.done ? "Completed to-do" : "Open to-do")} ·{" "}
+                            {e.profile_changes.todo}
+                          </p>
+                        ) : typeof e.profile_changes?.linear === "string" ? (
+                          <p>
+                            {t(
+                              e.profile_changes.linear === "linked"
+                                ? "Linear link saved"
+                                : "Linear link cleared",
+                            )}
+                          </p>
+                        ) : (
+                          e.profile_changes && (
+                            <details>
+                              <summary>{t("Saved changes")}</summary>
+                              <pre className="whitespace-pre-wrap wrap-anywhere text-sm">
+                                {JSON.stringify(e.profile_changes, null, 2)}
+                              </pre>
+                            </details>
+                          )
                         )}
                       </>
                     )}
@@ -316,58 +347,8 @@ export default async function ProspectsPage({
               </div>
             </Panel>
           )}
-          <Panel>
-            <form action={base} method="get" className="mb-3 flex gap-2 items-center">
-              <Input
-                name="q"
-                defaultValue={search}
-                maxLength={300}
-                aria-label={t("Find a business")}
-                placeholder={t("Find a business")}
-              />
-              <Button type="submit" variant="secondary">
-                {t("Search")}
-              </Button>
-              {search && <Link href={base}>{t("Clear")}</Link>}
-            </form>
-            {prospects.length === 0 ? (
-              <p>
-                {t(
-                  all
-                    ? "No businesses on this page."
-                    : "No businesses shared with you on this page.",
-                )}
-              </p>
-            ) : (
-              <ul className="divide-y divide-line">
-                {prospects.map((p) => (
-                  <li key={p.id} className="py-3 grid gap-1">
-                    <Link
-                      prefetch={false}
-                      href={`${base}?business=${p.id}&page=${page}${filter}`}
-                      className="text-base font-semibold underline wrap-anywhere"
-                    >
-                      {p.name}
-                    </Link>
-                    <span className="text-sm">
-                      {t(statusLabel[p.status])} · {p.assignee_name ?? t("Unassigned")} ·{" "}
-                      {t(p.called ? "Called" : "Not called")}
-                    </span>
-                    {p.latest_outcome && (
-                      <span className="line-clamp-2 text-sm text-muted wrap-anywhere">
-                        {p.latest_outcome}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
-          {(page > 1 || hasNext) && (
-            <nav aria-label={t("Catalogue pages")} className="flex gap-4">
-              {page > 1 && <Link href={`${base}?page=${page - 1}${filter}`}>{t("Previous")}</Link>}
-              {hasNext && <Link href={`${base}?page=${page + 1}${filter}`}>{t("Next")}</Link>}
-            </nav>
+          {data.listing && (
+            <CatalogueBrowser query={filters.toString()} listing={data.listing} page={page} />
           )}
         </>
       )}
