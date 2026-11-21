@@ -6,6 +6,7 @@ export const leadSchema = z.object({
   title: z.string(),
   company: z.string(),
   url: nullable,
+  found_on: z.iso.date().nullable(),
   first_observed: nullable,
   first_seen_raw: nullable,
   last_checked: nullable,
@@ -47,6 +48,7 @@ export const commands = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("add"),
     token: z.uuid(),
+    found_on: date.refine((v) => v <= jobDate()).optional(),
     company: z.string().trim().min(1).max(200),
     title: z.string().trim().min(1).max(250),
     url: z
@@ -75,6 +77,7 @@ export const commands = z.discriminatedUnion("type", [
 ]);
 export type JobCommand = z.input<typeof commands>;
 export type JobFilters = {
+  found: string;
   query: string;
   availability: string;
   employer: string;

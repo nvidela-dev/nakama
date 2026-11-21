@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
+import { jobDate } from "../src/features/jobs/model";
 import { randomUUID } from "node:crypto";
 test("owner can pursue a lead, record an interview and send it back to the backlog with history", async ({
   page,
@@ -19,7 +20,23 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   const role = "QA role " + randomUUID();
   await page.getByLabel("Company", { exact: true }).fill("Example Labs");
   await page.getByLabel("Role title").fill(role);
+  const twoWeeksAgo = new Date(jobDate() + "T00:00:00Z");
+  twoWeeksAgo.setUTCDate(twoWeeksAgo.getUTCDate() - 14);
+  const foundDate = twoWeeksAgo.toISOString().slice(0, 10);
+  await page.getByLabel("Date found", { exact: true }).fill(foundDate);
   await page.getByRole("button", { name: "Save lead" }).click();
+  await expect(page.getByRole("heading", { name: role })).toBeVisible();
+  await expect(page.getByText(foundDate, { exact: true })).toBeVisible();
+  await page.goto("/jobs");
+  await page.getByRole("combobox", { name: "Found", exact: true }).selectOption("2");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await page.waitForURL((url) => url.searchParams.get("found") === "2");
+  const group = page
+    .locator("tbody")
+    .filter({ has: page.getByRole("rowheader", { name: "2 weeks ago" }) });
+  await expect(group.getByRole("link", { name: role })).toBeVisible();
+  await expect(group.locator("time").filter({ hasText: foundDate }).first()).toBeVisible();
+  await group.getByRole("link", { name: role }).click();
   await expect(page.getByRole("heading", { name: role })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create private Linear task" })).toHaveCount(0);
   await page.getByRole("button", { name: "Move to Pursuing" }).click();

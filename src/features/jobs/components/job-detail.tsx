@@ -125,7 +125,7 @@ export async function JobDetail({
           <h2 className="text-lg font-semibold">{t("Source evidence")}</h2>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
             {[
-              ["First recorded", lead.first_observed],
+              ["Date found", lead.found_on],
               ["Reported discovery", lead.first_seen_raw],
               ["Last source check", lead.last_checked],
               ["Employer type", lead.company_type],

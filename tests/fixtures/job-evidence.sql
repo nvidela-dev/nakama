@@ -5,3 +5,8 @@ INSERT INTO job_manager.opportunities VALUES ('fixture','Example Labs','Platform
 INSERT INTO job_manager.observations VALUES
 ('a','fixture',(now() AT TIME ZONE 'America/Montevideo')::date,'Seen today','PRODUCT COMPANY','Contractor',true,'open','https://www.linkedin.com/jobs/example','{"fit":"TypeScript experience"}','Direct evidence'),
 ('b','older',(now() AT TIME ZONE 'America/Montevideo')::date,'Unknown','consultancy','employee',null,'open','https://example.invalid/old','{"historical_evidence_text":"Archived evidence"}','Old evidence');
+CREATE TABLE job_manager.source_artifacts(sha256 text PRIMARY KEY, media_type text, body text);
+CREATE TABLE job_manager.observation_sources(observation_key text, artifact_sha256 text);
+INSERT INTO job_manager.source_artifacts VALUES
+('early','application/json','{"report_date":"2020-12-27"}'), ('late','application/json','{"report_date":"2021-01-04"}');
+INSERT INTO job_manager.observation_sources VALUES ('b','early'), ('b','late');

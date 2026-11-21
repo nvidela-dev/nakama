@@ -5,10 +5,17 @@ import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { jobsStore } from "../src/features/jobs/server/store";
 import { createPrivateJobIssue } from "../src/features/jobs/server/linear";
+import {
+  weeksSinceFound,
+  weekLabel,
+  weekColors,
+  foundRange,
+} from "../src/features/jobs/discovery-weeks";
 import { jobDate } from "../src/features/jobs/model";
 import type { Database } from "../src/server/database/database";
 const base = {
   query: "",
+  found: "",
   availability: "",
   employer: "",
   contract: "",
@@ -23,6 +30,7 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
   try {
     await pg.exec(await readFile("tests/fixtures/job-evidence.sql", "utf8"));
     await pg.exec(await readFile("integrations/jobs/001_workspace.sql", "utf8"));
+    await pg.exec(await readFile("integrations/jobs/002_found_dates.sql", "utf8"));
     const email = "owner@example.invalid",
       owner = { userId: "owner", verifiedEmails: [email] };
     assert.throws(() => jobsStore(db, { userId: "friend", verifiedEmails: [] }, email), /private/);
@@ -46,8 +54,31 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
       await store.browse({ ...base, employer: "agency", availability: "historical" })
     ).rows;
     assert.equal(archived?.last_checked, null);
+    assert.equal(archived?.found_on, "2020-12-27");
+    assert.deepEqual(
+      (await store.browse({ ...base, found: "2" }, "2021-01-04")).rows.map((r) => r.id),
+      [archived!.id],
+    );
+    assert.equal(
+      (await store.browse({ ...base, found: "2", query: "nonmatching" }, "2021-01-04")).total,
+      0,
+    );
     const [unknown] = (await store.browse({ ...base, availability: "unknown" })).rows;
     assert.equal(unknown?.first_observed, null);
+    assert.equal(unknown?.found_on, null);
+    assert.deepEqual(
+      (await store.browse({ ...base, found: "unknown" })).rows.map((r) => r.id),
+      [unknown!.id],
+    );
+    assert.equal((await store.browse(base)).rows.at(-1)?.id, unknown!.id);
+    await pg.query(
+      "UPDATE job_manager.observations SET first_seen_raw='2021-01-04T01:00:00Z' WHERE observation_key='a'",
+    );
+    assert.equal((await store.detail(role.id)).lead.found_on, "2021-01-03");
+    await pg.query(
+      "UPDATE job_manager.observations SET first_seen_raw='2021-02-30' WHERE observation_key='a'",
+    );
+    assert.equal((await store.detail(role.id)).lead.found_on, jobDate());
     await pg.query(
       "UPDATE job_manager.observations SET status_observed='live official JD; availability unverified' WHERE observation_key='a'",
     );
@@ -70,6 +101,11 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     };
     const manualId = await store.change(manual);
     assert.equal(await store.change(manual), manualId);
+    assert.equal((await store.detail(manualId)).lead.found_on, jobDate());
+    await assert.rejects(
+      store.change({ ...manual, token: randomUUID(), found_on: "2099-12-31" }),
+      /dates/,
+    );
     assert.equal((await store.browse(base)).total, 4);
     const different = jobsStore(db, { ...owner, userId: "replacement" }, email);
     await assert.rejects(different.detail(manualId), /not found/);
@@ -116,6 +152,26 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     await store.change({ ...plan, revision: 2 });
     await assert.rejects(pg.query("SELECT * FROM job_manager.observations"), /permission denied/);
     await assert.rejects(pg.query("DELETE FROM nakama_jobs.events"), /permission denied/);
+    const backdated = await store.change({
+      ...manual,
+      token: randomUUID(),
+      found_on: "2020-12-28",
+    });
+    assert.equal((await store.detail(backdated)).lead.found_on, "2020-12-28");
+    const ancient = await store.browse({ ...base, found: "4+" }, "2021-02-01");
+    assert.deepEqual(
+      ancient.rows.map((r) => r.id),
+      [backdated, archived!.id],
+    );
+    // A later page should still fall in discovery order when many newer leads are added.
+    await pg.query(
+      "INSERT INTO nakama_jobs.manual_leads(id,owner_id,company,title,first_observed) SELECT 'm-'||gen_random_uuid(),'owner','Sample','Role '||n,'2021-01-05' FROM generate_series(1,45) n",
+    );
+    const pageTwo = await store.browse({ ...base, page: 2 });
+    assert.deepEqual(
+      pageTwo.rows.slice(-3).map((r) => r.id),
+      [backdated, archived!.id, unknown!.id],
+    );
   } finally {
     await pg.close();
   }
@@ -146,4 +202,27 @@ test("Linear handoff verifies privacy, retries one stable issue, and sends only 
   await assert.rejects(createPrivateJobIssue(id, title, teamId, "test", send), /reply lost/);
   assert.equal(await createPrivateJobIssue(id, title, teamId, "test", send), url);
   assert.equal(creates, 1);
+});
+
+test("discovery weeks use Monday boundaries across years, and each age has a text and color", () => {
+  const today = "2021-01-04";
+  for (const [date, weeks, label, color] of [
+    [today, 0, "This week", "green"],
+    ["2021-01-03", 1, "Last week", "green"],
+    ["2020-12-27", 2, "{count} weeks ago", "yellow"],
+    ["2020-12-20", 3, "{count} weeks ago", "orange"],
+    ["2020-12-14", 3, "{count} weeks ago", "orange"],
+    ["2020-12-13", 4, "{count} weeks ago", "red"],
+    ["2020-12-06", 5, "{count} weeks ago", "red"],
+    [null, null, "Unknown date", "muted"],
+  ] as const) {
+    assert.equal(weeksSinceFound(date, today), weeks);
+    assert.equal(weekLabel(weeks), label);
+    assert.ok(weekColors(weeks).includes(color));
+    if (date && weeks !== null) {
+      const range = foundRange(weeks >= 4 ? "4+" : String(weeks), today)!;
+      assert.ok((!range.since || date >= range.since) && date < range.until);
+    }
+  }
+  assert.equal(weeksSinceFound("2020-12-28", "2021-01-03"), 0);
 });

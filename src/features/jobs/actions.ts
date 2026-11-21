@@ -38,6 +38,7 @@ export async function saveJob(form: FormData): Promise<ActionState & { id?: stri
               type,
               token: value("token"),
               company: value("company"),
+              found_on: value("found_on") || undefined,
               title: value("title"),
               url: value("url"),
               relevance: value("relevance"),

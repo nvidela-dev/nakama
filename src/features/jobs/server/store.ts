@@ -4,6 +4,7 @@ import { queryRows } from "@/server/database/query";
 import type { Actor } from "@/shared/contracts/actor";
 import { isAppAdmin } from "@/features/access/server/app-access";
 import { ProjectError } from "@/shared/contracts/errors";
+import { foundRange } from "../discovery-weeks";
 import { availabilityLabels, jobDate } from "../model";
 
 import {
@@ -17,10 +18,10 @@ import {
   type JobFilters,
 } from "../schemas";
 const catalogue = `WITH leads AS (
- SELECT * FROM nakama_jobs.discoveries
- UNION ALL SELECT id,company,title,url,first_observed,NULL,NULL,'unknown',relevance,NULL,NULL,NULL FROM nakama_jobs.manual_leads WHERE owner_id=$1
+ SELECT d.*, f.found_on FROM nakama_jobs.discoveries d LEFT JOIN nakama_jobs.found_dates f USING (id)
+ UNION ALL SELECT id,company,title,url,first_observed,NULL,NULL,'unknown',relevance,NULL,NULL,NULL,first_observed FROM nakama_jobs.manual_leads WHERE owner_id=$1
 ), cards AS (
- SELECT l.id,l.company,l.title,l.url,l.first_observed::text,l.first_seen_raw,l.last_checked::text,l.availability,l.relevance,l.company_type,l.employment,l.startup,t.stage,coalesce(t.next_action,'') AS next_action,t.follow_up::text,coalesce(t.revision,0) AS revision,t.linear_url
+ SELECT l.id,l.company,l.title,l.url,l.found_on::text,l.first_observed::text,l.first_seen_raw,l.last_checked::text,l.availability,l.relevance,l.company_type,l.employment,l.startup,t.stage,coalesce(t.next_action,'') AS next_action,t.follow_up::text,coalesce(t.revision,0) AS revision,t.linear_url
  FROM leads l LEFT JOIN nakama_jobs.tracking t ON t.lead_id=l.id AND t.owner_id=$1
 )`;
 export function jobsStore(db: Database, person: Actor, ownerEmail: string | undefined) {
@@ -43,13 +44,16 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
     );
   }
   return {
-    async browse(filters: JobFilters) {
+    async browse(filters: JobFilters, today = jobDate()) {
       const { query, availability, employer, contract, startup, board } = filters;
+      const found = board ? "" : filters.found;
+      const range = foundRange(found, today);
       const where = ` WHERE ($2='' OR strpos(lower(concat_ws(' ',title,company,relevance,url)),lower($2))>0)
  AND ($3='' OR availability=$3) AND ($4='' OR CASE WHEN lower(company_type) ~ '^(product|own.product|direct)' THEN 'direct' WHEN lower(company_type) ~ '^(consult|intermed|staffing|client delivery)' THEN 'agency' ELSE 'unknown' END=$4)
  AND ($5='' OR strpos(lower(coalesce(employment,'')),lower($5))>0)
  AND ($6='' OR coalesce(startup::text,'unknown')=$6) AND (NOT $7 OR stage IS NOT NULL)
- AND ($8 <> 'linkedin' OR url ~* '^https?://([a-z0-9-]+[.])*(linkedin[.]com|lnkd[.]in)([/:?#]|$)' OR EXISTS (SELECT 1 FROM nakama_jobs.evidence se WHERE se.lead_id=cards.id AND se.from_linkedin))`;
+ AND ($8 <> 'linkedin' OR url ~* '^https?://([a-z0-9-]+[.])*(linkedin[.]com|lnkd[.]in)([/:?#]|$)' OR EXISTS (SELECT 1 FROM nakama_jobs.evidence se WHERE se.lead_id=cards.id AND se.from_linkedin))
+ AND (NOT $9::boolean OR found_on IS NULL) AND ($10::text IS NULL OR found_on >= $10) AND ($11::text IS NULL OR found_on < $11)`;
       const values = [
         owner,
         query.slice(0, 250),
@@ -59,6 +63,9 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
         startup,
         board,
         filters.source,
+        found === "unknown",
+        range?.since ?? null,
+        range?.until ?? null,
       ];
       const [counts] = await queryRows(
         db,
@@ -74,8 +81,9 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
         catalogue +
           " SELECT * FROM cards" +
           where +
-          " ORDER BY last_checked DESC NULLS LAST, first_observed DESC NULLS LAST, company,title,id" +
-          (board ? "" : " LIMIT 40 OFFSET $9"),
+          (board
+            ? " ORDER BY last_checked DESC NULLS LAST, first_observed DESC NULLS LAST, company,title,id"
+            : " ORDER BY found_on DESC NULLS LAST,company,title,id LIMIT 40 OFFSET $12"),
         board ? values : [...values, (page - 1) * 40],
       );
       return { rows, total, page };
@@ -107,7 +115,15 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
           const key = "m-" + c.token;
           await tx.query(
             "INSERT INTO nakama_jobs.manual_leads(id,owner_id,company,title,url,first_observed,relevance) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT DO NOTHING",
-            [key, owner, c.company, c.title, c.url || null, jobDate(), c.relevance || null],
+            [
+              key,
+              owner,
+              c.company,
+              c.title,
+              c.url || null,
+              c.found_on ?? jobDate(),
+              c.relevance || null,
+            ],
           );
           await get(tx, key);
           return key;

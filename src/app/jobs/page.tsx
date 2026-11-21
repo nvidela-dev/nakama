@@ -4,7 +4,13 @@ import { ownerJobs } from "@/features/jobs/server/connection";
 import { linearJobsConfigured } from "@/features/jobs/server/linear";
 import { JobDetail } from "@/features/jobs/components/job-detail";
 import { JobForm } from "@/features/jobs/components/job-form";
-import { availabilityLabels, jobStages, sourceLink } from "@/features/jobs/model";
+import {
+  foundFilters,
+  weeksSinceFound,
+  weekLabel,
+  weekColors,
+} from "@/features/jobs/discovery-weeks";
+import { availabilityLabels, jobDate, jobStages, sourceLink } from "@/features/jobs/model";
 import { getT } from "@/shared/i18n/server";
 import { Button } from "@/shared/ui/button";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
@@ -21,6 +27,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const board = pick("view") === "board";
   const filters = {
     query: pick("q"),
+    found: board ? "" : pick("found"),
     availability: pick("availability"),
     employer: pick("employer"),
     contract: pick("contract"),
@@ -39,6 +46,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       "contract",
       "startup",
       "source",
+      "found",
       "page",
     ]) {
       const v = pick(key);
@@ -67,10 +75,12 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       />
     );
   }
-  const { rows, total, page } = await jobs.browse(filters);
+  const today = jobDate();
+  const { rows, total, page } = await jobs.browse(filters, today);
   const last = Math.ceil(total / 40);
   const filtering = [
     filters.query,
+    filters.found,
     filters.availability,
     filters.source,
     filters.employer,
@@ -101,6 +111,10 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
               <label>
                 {t("Role title")}
                 <Input name="title" required maxLength={250} />
+              </label>
+              <label>
+                {t("Date found")}
+                <Input name="found_on" type="date" required max={today} defaultValue={today} />
               </label>
               <label>
                 {t("Source URL")}
@@ -141,6 +155,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         </label>
         {(
           [
+            ...(!board ? [["found", "Found", Object.entries(foundFilters)]] : []),
             ["source", "Source", [["linkedin", "LinkedIn"]]],
             ["availability", "Availability", Object.entries(availabilityLabels)],
             [
@@ -228,9 +243,9 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             <thead className="bg-panel text-muted">
               <tr>
                 {[
+                  "Date found",
                   "Role",
                   "Source",
-                  "First recorded",
                   "Last source check",
                   "Availability",
                   "Relevance",
@@ -241,39 +256,72 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {rows.map((r) => {
-                const href = sourceLink(r.url);
-                return (
-                  <tr key={r.id} className="border-t border-line align-top">
-                    <td className="min-w-52 px-3 py-2">
-                      <Link className="font-semibold" prefetch={false} href={path({ role: r.id })}>
-                        {r.title}
-                      </Link>
-                      <p className="text-muted">
-                        {r.company}
-                        {r.stage ? " · " + t(jobStages[r.stage]) : ""}
-                      </p>
-                    </td>
-                    <td className="max-w-52 px-3 py-2 wrap-anywhere">
-                      {href ? (
-                        <a href={href} rel="noreferrer" target="_blank">
-                          {new URL(href).hostname} ↗
-                        </a>
-                      ) : (
-                        t("Unknown")
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2">{r.first_observed ?? "—"}</td>
-                    <td className="whitespace-nowrap px-3 py-2">{r.last_checked ?? "—"}</td>
-                    <td className="px-3 py-2">{t(availabilityLabels[r.availability])}</td>
-                    <td className="max-w-72 px-3 py-2">
-                      <span className="line-clamp-2">{r.relevance ?? "—"}</span>
-                    </td>
+            {Array.from(
+              Map.groupBy(rows, (r) => weeksSinceFound(r.found_on, today)),
+              ([weeks, leads]) => (
+                <tbody key={weeks ?? "unknown"}>
+                  <tr>
+                    <th
+                      scope="rowgroup"
+                      colSpan={6}
+                      className="border-y border-line bg-panel px-3 py-2"
+                    >
+                      <span
+                        className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${weekColors(weeks)}`}
+                      >
+                        {t(weekLabel(weeks), { count: weeks ?? 0 })}
+                      </span>
+                    </th>
                   </tr>
-                );
-              })}
-            </tbody>
+                  {leads.map((r) => {
+                    const href = sourceLink(r.url);
+                    return (
+                      <tr key={r.id} className="border-t border-line align-top">
+                        <td className="whitespace-nowrap px-3 py-2 font-medium tabular-nums">
+                          {r.found_on ? (
+                            <time
+                              dateTime={r.found_on}
+                              className={`inline-block rounded px-2 py-0.5 ${weekColors(weeks)}`}
+                            >
+                              {r.found_on}
+                            </time>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="min-w-52 px-3 py-2">
+                          <Link
+                            className="font-semibold"
+                            prefetch={false}
+                            href={path({ role: r.id })}
+                          >
+                            {r.title}
+                          </Link>
+                          <p className="text-muted">
+                            {r.company}
+                            {r.stage ? " · " + t(jobStages[r.stage]) : ""}
+                          </p>
+                        </td>
+                        <td className="max-w-52 px-3 py-2 wrap-anywhere">
+                          {href ? (
+                            <a href={href} rel="noreferrer" target="_blank">
+                              {new URL(href).hostname} ↗
+                            </a>
+                          ) : (
+                            t("Unknown")
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2">{r.last_checked ?? "—"}</td>
+                        <td className="px-3 py-2">{t(availabilityLabels[r.availability])}</td>
+                        <td className="max-w-72 px-3 py-2">
+                          <span className="line-clamp-2">{r.relevance ?? "—"}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              ),
+            )}
           </table>
         </div>
       )}
