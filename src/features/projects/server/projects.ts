@@ -1,3 +1,4 @@
+import { isLinearLink } from "@/shared/contracts/linear-link";
 import { listPage, listPageSize, readListCursor } from "@/server/database/list-page";
 import {
   invitationAcceptanceSchema,
@@ -113,6 +114,20 @@ const projectListSql = `SELECT p.*,m.role,f.flow_id,COALESCE(f.content_revision,
   LEFT JOIN project_flows f ON f.project_id=p.id WHERE m.user_id=$1`;
 export function projectService(db: Database) {
   return {
+    saveLinearLink(person: Actor, projectId: string, revision: number, input: string) {
+      return db.transaction(async (tx) => {
+        await membership(tx, person, projectId, true);
+        const url = input.trim() || null;
+        if ((url && !isLinearLink(url, true)) || !Number.isSafeInteger(revision) || revision < 0)
+          throw new ProjectError("Enter a direct Linear project URL.");
+        const change = await tx.query(
+          "UPDATE projects SET linear_project_url=$3,linear_link_revision=linear_link_revision+1 WHERE id=$1 AND linear_link_revision=$2 RETURNING id",
+          [projectId, revision, url],
+        );
+        if (!change.rows.length)
+          throw new ProjectError("The Linear link changed. Reload before saving.");
+      });
+    },
     async create(actor: Actor, input: unknown) {
       requireActor(actor);
       const parsed = projectInput.safeParse(input);

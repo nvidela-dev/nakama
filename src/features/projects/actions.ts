@@ -132,3 +132,27 @@ export async function changeProjectLink(
     }
   });
 }
+
+export async function saveProjectLinearLink(
+  projectId: string,
+  revision: number,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return observeAction("project.edit", async () => {
+    const person = await actor();
+    try {
+      await projectService(database()).saveLinearLink(
+        person,
+        projectId,
+        revision,
+        field(form, "url"),
+      );
+    } catch (error) {
+      telemetry.reportError(error);
+      return { error: message(error) };
+    }
+    revalidatePath(`/projects/${projectId}`);
+    return { success: "Saved." };
+  });
+}

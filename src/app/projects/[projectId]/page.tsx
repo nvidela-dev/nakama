@@ -1,3 +1,4 @@
+import { LinearProject } from "@/features/projects/components/linear-project";
 import { PageHeading, SidebarSection, Workspace } from "@/shared/ui/workspace-layout";
 import { loadWorkspace } from "./workspace";
 import { ProjectTests } from "@/features/experiments/components/project-tests";
@@ -300,6 +301,12 @@ export default async function ProjectPage({
         >
           {project.description}
         </p>
+        <LinearProject
+          projectId={projectId}
+          url={project.linear_project_url}
+          revision={project.linear_link_revision}
+          owner={project.role === "owner"}
+        />
       </PageHeading>
       {guidance ? (
         <Journey

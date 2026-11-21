@@ -291,6 +291,8 @@ export interface DatabaseRows {
     description: string;
     created_at: Date;
     archived: boolean;
+    linear_project_url: string | null;
+    linear_link_revision: number;
   };
   prospect_catalogue_grants: {
     catalogue_id: string;

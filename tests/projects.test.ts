@@ -275,3 +275,20 @@ test("dashboard pagination handles timestamp ties and scopes totals and card que
   );
   await assert.rejects(service.page(viewer, "broken"), /Invalid page link/);
 });
+
+test("only the project owner can save or clear a direct, revision-checked Linear project link", async () => {
+  const id = await service.create(alice, {
+    name: "Linked workspace",
+    description: "External project link test",
+  });
+  const url = "https://linear.app/example/project/sample-project";
+  await service.saveLinearLink(alice, id, 0, url);
+  assert.equal((await service.get(alice, id)).linear_project_url, url);
+  await assert.rejects(service.saveLinearLink(cara, id, 1, ""));
+  await assert.rejects(
+    service.saveLinearLink(alice, id, 1, "https://linear.app/example/issue/X-1"),
+  );
+  await assert.rejects(service.saveLinearLink(alice, id, 0, ""));
+  await service.saveLinearLink(alice, id, 1, "");
+  assert.equal((await service.get(alice, id)).linear_project_url, null);
+});

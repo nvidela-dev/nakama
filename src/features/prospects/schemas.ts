@@ -1,3 +1,4 @@
+import { isLinearLink } from "@/shared/contracts/linear-link";
 import { z } from "zod";
 import {
   ProspectEventKindValues,
@@ -38,18 +39,8 @@ export const commandSchema = z.discriminatedUnion("type", [
   change.extend({
     type: z.literal("linear"),
     url: z
-      .url({ protocol: /^https$/, hostname: /^linear\.app$/ })
-      .max(2000)
-      .refine((s) => {
-        if (!URL.canParse(s)) return false;
-        const u = new URL(s);
-        return (
-          !u.username &&
-          !u.password &&
-          !u.port &&
-          /^\/[^/]+\/(issue|project)\/[^/]+/.test(u.pathname)
-        );
-      }, "Use a Linear issue or project link.")
+      .string()
+      .refine((value) => isLinearLink(value))
       .nullable(),
   }),
   change.extend({

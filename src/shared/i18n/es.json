@@ -1757,5 +1757,11 @@
   "Completed to-do": "Tarea completada",
   "Open to-do": "Tarea pendiente",
   "Linear link saved": "Enlace de Linear guardado",
-  "Linear link cleared": "Enlace de Linear quitado"
+  "Linear link cleared": "Enlace de Linear quitado",
+  "Open Linear project": "Abrir proyecto en Linear",
+  "Edit Linear link": "Editar enlace de Linear",
+  "Link Linear project": "Vincular proyecto de Linear",
+  "Linear project URL": "URL del proyecto de Linear",
+  "Enter a direct Linear project URL.": "Ingresa la URL directa de un proyecto de Linear.",
+  "The Linear link changed. Reload before saving.": "El enlace de Linear cambió. Actualiza la página antes de guardar."
 }

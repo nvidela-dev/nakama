@@ -16,6 +16,8 @@ const id = z.uuid(),
   positive = z.number().int().positive();
 export const projectSchema = z.object({
   id,
+  linear_project_url: z.string().nullable(),
+  linear_link_revision: z.number().int(),
   name: z.string(),
   description: z.string(),
   archived: z.boolean(),
