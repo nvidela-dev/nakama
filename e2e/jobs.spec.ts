@@ -10,6 +10,7 @@ test("owner can pursue a lead, record an interview and send it back to the backl
       new URL(process.env.JOBS_DATABASE_URL).hostname !== "127.0.0.1",
     "Uses a disposable local jobs database.",
   );
+  page.setDefaultTimeout(15_000);
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
   await page.getByRole("link", { name: "Jobs and interviews" }).click();

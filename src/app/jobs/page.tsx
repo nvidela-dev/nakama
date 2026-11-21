@@ -165,7 +165,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         ).map(([name, label, options]) => (
           <label className={filterClass} key={name}>
             {t(label)}
-            <Select name={name} defaultValue={pick(name)}>
+            <Select aria-label={t(label)} name={name} defaultValue={pick(name)}>
               <option value="">{t("All")}</option>
               {options.map(([value, caption]) => (
                 <option key={value} value={value}>

@@ -47,7 +47,7 @@ export async function JobDetail({
             <Input type="hidden" name="revision" value={lead.revision} />
             <label className="grid gap-1">
               {t("Board stage")}
-              <Select name="stage" defaultValue={lead.stage ?? ""}>
+              <Select aria-label={t("Board stage")} name="stage" defaultValue={lead.stage ?? ""}>
                 <option value="">{t("Backlog only")}</option>
                 {Object.entries(jobStages).map(([v, label]) => (
                   <option key={v} value={v}>
@@ -72,7 +72,7 @@ export async function JobDetail({
             <div className="grid gap-2 sm:grid-cols-2">
               <label className="grid gap-1">
                 {t("Event")}
-                <Select name="kind" defaultValue="note">
+                <Select aria-label={t("Event")} name="kind" defaultValue="note">
                   {Object.entries(jobEvents).map(([v, label]) => (
                     <option key={v} value={v}>
                       {t(label)}
