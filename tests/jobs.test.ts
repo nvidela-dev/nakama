@@ -52,6 +52,14 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
       "UPDATE job_manager.observations SET status_observed='live official JD; availability unverified' WHERE observation_key='a'",
     );
     assert.equal((await store.detail(role.id)).lead.availability, "unknown");
+    await pg.query(
+      "UPDATE job_manager.observations SET source_url='https://lnkd.in/p/synthetic' WHERE observation_key='a'",
+    );
+    assert.equal((await store.browse({ ...base, source: "linkedin" })).total, 1);
+    await pg.query(
+      "UPDATE job_manager.observations SET source_url='https://lnkd.in.example.invalid/other' WHERE observation_key='a'",
+    );
+    assert.equal((await store.browse({ ...base, source: "linkedin" })).total, 0);
     const manual = {
       type: "add" as const,
       token: randomUUID(),

@@ -11,7 +11,11 @@ SELECT 'e-' || md5(o.canonical_key) AS lead_id, b.observation_key,
        b.classification_evidence,
        coalesce(b.payload->>'historical_evidence_text',
                 CASE WHEN jsonb_typeof(b.payload->'evidence')='string' THEN b.payload->>'evidence' END,
-                CASE WHEN jsonb_typeof(b.payload->'requirements')='string' THEN b.payload->>'requirements' END) AS evidence_text
+                CASE WHEN jsonb_typeof(b.payload->'requirements')='string' THEN b.payload->>'requirements' END) AS evidence_text,
+       EXISTS (SELECT FROM unnest(ARRAY[b.source_url,b.payload->>'post_url',b.payload->>'discovery_url',b.payload->>'source_url']) AS links(url)
+               WHERE url ~* '^https?://([a-z0-9-]+[.])*(linkedin[.]com|lnkd[.]in)([/:?#]|$)')
+       OR coalesce(b.payload->>'source_category', '') ~* '^linkedin($|[ _/-])'
+       OR coalesce(b.payload->>'source', '') ~* '^linkedin($|[ _/-])' AS from_linkedin
 FROM job_manager.opportunities o JOIN job_manager.observations b ON b.opportunity_key=o.canonical_key;
 
 CREATE OR REPLACE VIEW nakama_jobs.discoveries AS

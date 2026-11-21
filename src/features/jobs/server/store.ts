@@ -49,7 +49,7 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
  AND ($3='' OR availability=$3) AND ($4='' OR CASE WHEN lower(company_type) ~ '^(product|own.product|direct)' THEN 'direct' WHEN lower(company_type) ~ '^(consult|intermed|staffing|client delivery)' THEN 'agency' ELSE 'unknown' END=$4)
  AND ($5='' OR strpos(lower(coalesce(employment,'')),lower($5))>0)
  AND ($6='' OR coalesce(startup::text,'unknown')=$6) AND (NOT $7 OR stage IS NOT NULL)
- AND ($8 <> 'linkedin' OR url ~* '^https?://([a-z0-9-]+[.])*linkedin[.]com(/|$)' OR EXISTS (SELECT 1 FROM nakama_jobs.evidence se WHERE se.lead_id=cards.id AND se.source_url ~* '^https?://([a-z0-9-]+[.])*linkedin[.]com(/|$)'))`;
+ AND ($8 <> 'linkedin' OR url ~* '^https?://([a-z0-9-]+[.])*(linkedin[.]com|lnkd[.]in)([/:?#]|$)' OR EXISTS (SELECT 1 FROM nakama_jobs.evidence se WHERE se.lead_id=cards.id AND se.from_linkedin))`;
       const values = [
         owner,
         query.slice(0, 250),
