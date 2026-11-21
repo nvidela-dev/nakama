@@ -246,8 +246,8 @@ async function artifactCards(
 export function readArtifactChoices({ tx, projectId }: ProjectRead) {
   return queryRows(
     tx,
-    artifactRowSchema.pick({ id: true, name: true }),
-    "SELECT id,name FROM project_artifacts WHERE project_id=$1 ORDER BY updated_at DESC,id",
+    artifactRowSchema.pick({ id: true, name: true, status: true }),
+    "SELECT id,name,status FROM project_artifacts WHERE project_id=$1 ORDER BY updated_at DESC,id",
     [projectId],
   );
 }

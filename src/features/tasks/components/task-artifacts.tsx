@@ -1,4 +1,5 @@
 "use client";
+import type { ArtifactChoice } from "@/features/artifacts/model";
 import dynamic from "next/dynamic";
 import { useState, useTransition } from "react";
 import { Button } from "@/shared/ui/button";
@@ -24,7 +25,7 @@ export function TaskArtifacts({
 }: {
   projectId: string;
   taskId: string;
-  items: { id: string; name: string }[];
+  items: ArtifactChoice[];
   attached: string[];
   run: (op: TaskOperation) => Promise<boolean>;
   pending: boolean;
@@ -84,34 +85,43 @@ export function TaskArtifacts({
                 ))}
             </Select>
           </label>
-          {attached.map((id) => (
-            <div key={id} className="flex flex-wrap gap-1">
-              <Button
-                variant="secondary"
-                disabled={loading || pending}
-                onClick={() =>
-                  startTransition(async () => {
-                    try {
-                      const result = await readArtifact(projectId, id);
-                      if (result.error) setError(result.error);
-                      else if (result.artifact) setPreview(result.artifact);
-                    } catch {
-                      setError("Could not load artifact.");
-                    }
-                  })
-                }
-              >
-                {items.find((item) => item.id === id)?.name ?? t("Artifact")}
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={pending}
-                onClick={() => run({ kind: "attach", id: taskId, artifactId: id, remove: true })}
-              >
-                {t("Detach artifact")}
-              </Button>
-            </div>
-          ))}
+          {attached.map((id) => {
+            const item = items.find((a) => a.id === id);
+            return (
+              <div key={id} className="flex flex-wrap gap-1">
+                <Button
+                  variant="secondary"
+                  disabled={loading || pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      try {
+                        const result = await readArtifact(projectId, id);
+                        if (result.error) setError(result.error);
+                        else if (result.artifact) setPreview(result.artifact);
+                      } catch {
+                        setError("Could not load artifact.");
+                      }
+                    })
+                  }
+                >
+                  {item?.name ?? t("Artifact")}
+                </Button>
+                {item && (
+                  <span className="self-center text-xs text-muted">
+                    {t(item.status === "ready" ? "Ready to use" : "In progress")}
+                  </span>
+                )}
+                <Button
+                  variant="secondary"
+                  aria-label={t("Detach artifact") + " · " + (item?.name ?? t("Artifact"))}
+                  disabled={pending}
+                  onClick={() => run({ kind: "attach", id: taskId, artifactId: id, remove: true })}
+                >
+                  {t("Detach artifact")}
+                </Button>
+              </div>
+            );
+          })}
           <details>
             <summary className="cursor-pointer text-xs">
               {t("Create artifact for this task")}

@@ -10,6 +10,7 @@ export type Artifact = Omit<
   DatabaseRows["project_artifacts"],
   "created_by" | "updated_by" | "created_at"
 > & { project_name: string; tasks: ArtifactTask[] };
+export type ArtifactChoice = Pick<Artifact, "id" | "name" | "status">;
 export type ArtifactCard = Omit<Artifact, "tasks"> & {
   collection: string | null;
   shirt_poster: string | null;

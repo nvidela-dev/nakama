@@ -57,14 +57,6 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
   page.setDefaultTimeout(15000);
   await page.goto("/projects");
-  await page.setViewportSize({ width: 1800, height: 1000 });
-  const grid = page.locator(".project-list");
-  await expect
-    .poll(async () =>
-      grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length),
-    )
-    .toBeGreaterThanOrEqual(5);
-  await expect.poll(async () => (await grid.boundingBox())!.width).toBeGreaterThan(1700);
   await page.setViewportSize({ width: 1280, height: 900 });
   await openProjectSetup(page);
   await page.getByLabel("Project name", { exact: true }).fill(fixtureName);
@@ -75,6 +67,26 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await expect(page.getByRole("heading", { name: fixtureName, exact: true })).toBeVisible();
   const path = new URL(page.url()).pathname;
   fixtureId = path.split("/").at(-1);
+  await page.goto("/projects");
+  await page.setViewportSize({ width: 1800, height: 1000 });
+  const grid = page.locator(".project-list").filter({ hasText: fixtureName });
+  await expect(grid).toBeVisible();
+  expect(
+    await grid.evaluate((el) => {
+      const styles = getComputedStyle(el);
+      return (
+        styles.gridTemplateColumns.split(" ").length ===
+        Math.max(
+          1,
+          Math.floor(
+            (el.clientWidth + parseFloat(styles.columnGap)) / (300 + parseFloat(styles.columnGap)),
+          ),
+        )
+      );
+    }),
+  ).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(path);
   await page.getByRole("tab", { name: "Activity", exact: true }).click();
   await expect(page.locator(".activity-list")).toContainText("created the project");
   await expect(

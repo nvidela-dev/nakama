@@ -1,4 +1,5 @@
 "use client";
+import type { ArtifactChoice } from "@/features/artifacts/model";
 import { FormStack } from "@/shared/ui/workspace-layout";
 
 import { Switch } from "@/shared/ui/switch";
@@ -39,7 +40,7 @@ export function TaskList({
   projectId: string;
   initial: TaskSnapshot;
   flowId?: FlowId | null;
-  artifacts?: { id: string; name: string }[];
+  artifacts?: ArtifactChoice[];
 }) {
   const t = useT();
   const [list, setList] = useState(initial),
