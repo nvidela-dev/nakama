@@ -32,7 +32,9 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await page.getByLabel("What happened?").fill("Completed technical interview");
   await page.getByLabel("What to practice or do differently").fill("Explain the execution plan");
   await page.getByRole("button", { name: "Record event" }).click();
-  await expect(page.getByText("Completed technical interview", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Completed technical interview" }),
+  ).toBeVisible();
   await page.goto("/jobs?view=board");
   await page.getByRole("link", { name: role }).click();
   await expect(page.getByLabel("Next action")).toHaveValue("Practice joins");
@@ -40,7 +42,9 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await page.getByLabel("Board stage").selectOption("");
   await page.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(page.getByRole("button", { name: "Move to Pursuing" })).toBeVisible();
-  await expect(page.getByText("Completed technical interview", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Completed technical interview" }),
+  ).toBeVisible();
   const outsider = await browser.newContext({ baseURL: new URL(page.url()).origin });
   try {
     const other = await outsider.newPage();
