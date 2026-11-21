@@ -1801,5 +1801,7 @@
   "{business} · image {number}": "{business} · imagen {number}",
   "No image in the source catalogue.": "El catálogo de origen no incluye una imagen.",
   "Add a business to Ready from the backlog to start your board.": "Añade un negocio a Preparados desde la lista de pendientes para iniciar tu tablero.",
-  "Back to project": "Volver al proyecto"
+  "Back to project": "Volver al proyecto",
+  "Export part not found.": "No se encontró esta parte de la exportación.",
+  "This flow version is unavailable for export.": "Esta versión del flujo no está disponible para exportar."
 }
