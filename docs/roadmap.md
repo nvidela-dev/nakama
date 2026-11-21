@@ -484,3 +484,7 @@ The dashboard and cross-project artifact library fetch 24 cards at a time. Artif
 Business catalogue is a top-level area inside Nakama with an independent sales interface. Experiments belong to projects. The catalogue owns its own data and access roster. The owner sees the complete backlog, can assign one person per business, and can give selected collaborators full access. Assignments, calls, messages, replies and outcomes share a dated timeline. Project membership and deletion do not affect it.
 
 Use the Nakama database as the system of record from the first operational import. The import preserves stable business IDs, evidence, research, CRM history and the original package. Native changes carry forward through later imports. Record future work directly on the prospect. Use a recent published catalogue as the baseline. Publish only when every referenced attachment is available and the dossiers and source counts reconcile.
+
+## Retire public learning pages — 2026-11-21
+
+Remove the example project, Lab guide and Wiki, including the glossary aliases and links from Home and the project lab. Real project flows and experiments continue in their workspaces.

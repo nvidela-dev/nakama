@@ -1,7 +1,6 @@
 "use client";
 import { Icon, type IconName } from "@/shared/ui/icon";
 import { stageCoverage, stageLabel } from "../model/stage-progress";
-import { Panel } from "@/shared/ui/panel";
 
 import { Button } from "@/shared/ui/button";
 
@@ -66,7 +65,6 @@ export function Journey({
   nodeId,
   history = [],
   names = {},
-  preview = false,
   sidebar,
   discussion,
   tasks,
@@ -82,7 +80,6 @@ export function Journey({
   nodeId?: string | undefined;
   history?: Revision[];
   names?: Record<string, string>;
-  preview?: boolean;
   sidebar?: React.ReactNode;
   discussion?: React.ReactNode;
   tasks?: React.ReactNode;
@@ -95,7 +92,7 @@ export function Journey({
   const t = useT();
   const [showMap, setShowMap] = useState(false);
   const { flow, answers, reviews } = guidance;
-  const base = preview ? "/preview" : `/projects/${projectId}`;
+  const base = `/projects/${projectId}`;
   const href = (stage?: string, node?: string) =>
     `${base}${stage ? `?stage=${stage}` : ""}${node ? `&node=${node}` : ""}`;
   const questions = flow.stages.flatMap((s) => s.nodes).filter((n) => n.kind === "question");
@@ -453,74 +450,15 @@ export function Journey({
               ) : (
                 <>
                   {activeNode ? (
-                    preview ? (
-                      <Panel
-                        className={
-                          "answer-panel max-[700px]:p-5 bg-[var(--theme-surface-low,#14221f)]"
-                        }
-                      >
-                        <span
-                          className={
-                            "eyebrow text-[11px] tracking-[2px] text-lime font-bold block mb-5.5 [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px]"
-                          }
-                        >
-                          {t("READ-ONLY EXAMPLE")}
-                        </span>
-                        <h2
-                          className={
-                            "mb-[0.83em] mt-0 font-sans font-medium text-[16px] leading-[1.3] tracking-[-0.25px] lg:compact:my-1.5 lg:compact:mx-0 lg:compact:text-[14px] focus:[outline:none]"
-                          }
-                        >
-                          {t(activeNode.question)}
-                        </h2>
-                        <details
-                          className={
-                            "example bg-[var(--theme-surface,#263a2c)] [border-left:2px_solid_var(--theme-border,#adc57f)] py-3.5 px-4.5 my-6 mx-0 [&_small]:text-[11px] [&_small]:text-muted lg:compact:py-2 lg:compact:px-3 lg:compact:my-3"
-                          }
-                          open
-                        >
-                          <summary
-                            className={
-                              "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 text-[13px] cursor-pointer"
-                            }
-                          >
-                            {t("Example")}
-                          </summary>
-                          <p
-                            className={
-                              "text-[13px] mt-3.5 mx-0 mb-2 lg:compact:mt-2 lg:compact:mb-1.25"
-                            }
-                          >
-                            {t(activeNode.example)}
-                          </p>
-                        </details>
-                        <p className={"mb-[1em] mt-0"}>
-                          {current?.content
-                            ? t(current.content)
-                            : t(
-                                "No answer yet. In your project, this is a place for an answer, an uncertainty, or what you learned.",
-                              )}
-                        </p>
-                        <Link
-                          href={href(activeStage.id)}
-                          className={
-                            "button secondary lg:compact:min-h-8.5 lg:compact:py-2 lg:compact:px-3 lg:compact:text-[12px] lg:compact:rounded-[7px] rounded-[9px] inline-flex items-center justify-center gap-3 min-h-12 py-3.25 px-5.5 font-bold cursor-pointer [transition:background_0.15s,_transform_0.15s] hover:[transform:translateY(-1px)] bg-[var(--theme-selected,#344c39)] text-lime border border-[var(--theme-border,#658451)] hover:[background:var(--theme-selected,#456248)]"
-                          }
-                        >
-                          {t("Back to this stage")}{" "}
-                        </Link>
-                      </Panel>
-                    ) : (
-                      <AnswerEditor
-                        key={activeNode.id}
-                        projectId={projectId}
-                        node={activeNode}
-                        answer={current}
-                        history={history}
-                        names={names}
-                        backHref={href(activeStage.id)}
-                      />
-                    )
+                    <AnswerEditor
+                      key={activeNode.id}
+                      projectId={projectId}
+                      node={activeNode}
+                      answer={current}
+                      history={history}
+                      names={names}
+                      backHref={href(activeStage.id)}
+                    />
                   ) : (
                     <section
                       className={
@@ -673,13 +611,11 @@ export function Journey({
                           </p>
                         </div>
                       )}
-                      {!preview && (
-                        <StageReviewForm
-                          projectId={projectId}
-                          stageId={activeStage.id}
-                          contentRevision={guidance.contentRevision}
-                        />
-                      )}
+                      <StageReviewForm
+                        projectId={projectId}
+                        stageId={activeStage.id}
+                        contentRevision={guidance.contentRevision}
+                      />
                     </section>
                   )}
                 </>

@@ -41,11 +41,6 @@ export async function Header() {
         <Link href="/" className={"max-[700px]:first:hidden"}>
           {t("Home")}
         </Link>
-        <Link href="/preview" className={"max-[700px]:first:hidden"}>
-          {t("Example project")}
-        </Link>
-        <Link href="/wiki/experiments">{t("Lab guide")}</Link>
-        <Link href="/wiki">{t("Wiki")}</Link>
         {authConfigured() && (
           <>
             <Show when="signed-in">

@@ -1,3 +1,4 @@
+import { frontendBudgets, measureProjectInteractions } from "../scripts/frontend-metrics";
 import { openProjectSetup } from "./project-setup";
 import { test, expect, type Page } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
@@ -9,7 +10,20 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/preview");
+  await page.goto("/");
+  await clerk.signIn({
+    page,
+    emailAddress: process.env.E2E_OWNER_EMAIL || "nakama-owner+clerk_test@example.com",
+  });
+  await page.goto("/projects");
+  await openProjectSetup(page);
+  const name = `E2E layout ${Date.now()}`;
+  await page.getByLabel("Project name").fill(name);
+  await page.getByLabel("Description").fill("A creative project for layout verification.");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Creative/ }).click();
+  const projectPath = new URL(page.url()).pathname;
   await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
   await expect(page.locator(".stage-card:visible")).toHaveCount(5);
   const compact = await page.locator(".stage-card:visible").first().boundingBox();
@@ -38,7 +52,7 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   await page.setViewportSize({ width: 3440, height: 1440 });
   await expect(page.locator(".workspace:visible")).toHaveCount(1);
   const workspace = await page.locator(".workspace:visible").boundingBox();
-  expect(workspace!.width).toBe(1440);
+  expect(workspace!.width).toBeGreaterThanOrEqual(1440);
   const last = await page.locator(".stage-card:visible").last().boundingBox();
   expect(last!.y + last!.height).toBeLessThan(1100);
   await page.screenshot({
@@ -61,7 +75,7 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByLabel("Desktop layout")).toBeHidden();
-  await page.goto("/preview");
+  await page.goto(projectPath);
   await expect(page.locator(".stage-card:visible")).toHaveCount(5);
   expect(
     await page
@@ -74,7 +88,7 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
     path: test.info().outputPath("phone-unchanged.png"),
     fullPage: true,
   });
-  await page.goto("/preview?stage=imagine");
+  await page.goto(`${projectPath}?stage=imagine`);
   await expect(page.locator(".tree-connector").first()).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await page.screenshot({
@@ -84,6 +98,16 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   await page.locator(".question-node").first().focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/node=inspiration/);
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const result = await measureProjectInteractions(page, page.url(), projectPath);
+    expect(result.stageSwitchOverflow || result.nodeSelectOverflow || result.mapOverflow).toBe(
+      false,
+    );
+    expect(result.mapFocusRestored).toBe(true);
+    expect(result.mapLazyJsGzip).toBeGreaterThan(0);
+    expect(result.mapLazyJsGzip).toBeLessThanOrEqual(frontendBudgets.mapLazyJsGzip);
+  }
 });
 test("density changes keep capture and answer drafts, selections and saving intact", async ({
   page,

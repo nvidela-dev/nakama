@@ -36,7 +36,7 @@ The visual ambition is spatial, 3D, chill, piratey/hackery, and warm. Readable f
 
 Start with requirements and flows. Read the domain and collaboration rules before implementing persistence or access. Use the [development guide](docs/development.md) to run the public shell, connect isolated services, and verify private workflows.
 
-The in-app wiki (`/wiki`) teaches the system through a visual project walkthrough, workspace map, practical scenarios, collaboration guidance, and later reference sections. Its dense bilingual glossary lives at `/wiki/glossary` (also available at `/glossary`) for system terms, state contracts, and code vocabulary; [Domain](docs/domain.md#product-glossary-and-naming-contract--2026-10-24) owns its semantics. This addition is local until released.
+[Domain](docs/domain.md#product-glossary-and-naming-contract--2026-10-24) defines project terms, states and their code contracts.
 
 ## Schema and type maintenance
 

@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { authConfigured } from "@/features/access/server/auth";
-import { Icon } from "@/shared/ui/icon";
 export default async function Home() {
   if (authConfigured() && (await auth()).isAuthenticated) redirect("/projects");
   const t = await getT();
@@ -19,20 +18,14 @@ export default async function Home() {
               "A practical research station for your projects. Define what matters, keep the evidence, and decide what to try next.",
             )}
           </p>
-          <div className="flex flex-wrap items-center gap-3">
+          {authConfigured() && (
             <Link
-              className="inline-flex items-center min-h-11 px-4 py-2 rounded-[9px] bg-lime text-dark font-semibold"
-              href={authConfigured() ? "/projects" : "/preview"}
+              className="inline-flex w-fit items-center min-h-11 px-4 py-2 rounded-[9px] bg-lime text-dark font-semibold"
+              href="/projects"
             >
-              {t(authConfigured() ? "Open projects" : "View example")}
+              {t("Open projects")}
             </Link>
-            <Link
-              className="inline-flex items-center min-h-11 px-4 py-2 rounded-[9px] border border-[var(--theme-border)]"
-              href="/wiki/experiments"
-            >
-              {t("Learn to run an experiment")} <Icon name="arrowRight" />
-            </Link>
-          </div>
+          )}
         </div>
         <div className="grid gap-0 border border-line rounded-[12px] overflow-hidden content-start">
           <div className="bg-[var(--theme-surface)] p-4 font-mono text-[11px] text-muted">
@@ -61,39 +54,6 @@ export default async function Home() {
             </div>
           ))}
         </div>
-      </section>
-      <section className="grid gap-4 lg:grid-cols-3" aria-label={t("Workspace tools")}>
-        {[
-          [
-            "/preview",
-            "01 / WORKBENCH",
-            t("Project work"),
-            t("Keep questions, nested tasks, artifacts, and discussions together."),
-          ],
-          [
-            "/wiki/experiments",
-            "02 / EXPERIMENTS",
-            t("Test an idea"),
-            t("Walk through a fictional experiment, from claim to reviewed decision."),
-          ],
-          [
-            "/wiki",
-            "03 / FIELD MANUAL",
-            t("Understand the system"),
-            t("Explore the workflow, collaboration rules, and evidence vocabulary."),
-          ],
-        ].map(([href, label, title, description]) => (
-          <Link
-            key={href}
-            href={href!}
-            className="bg-panel border border-line rounded-[18px] p-6 grid gap-3 hover:border-lime focus-visible:outline-3 focus-visible:outline-lime"
-          >
-            <span className="font-mono text-[11px] text-muted">{label}</span>
-            <h2 className="font-semibold text-[20px]">{title}</h2>
-            <p className="text-muted text-[14px]">{description}</p>
-            <Icon name="arrowUpRight" />
-          </Link>
-        ))}
       </section>
     </main>
   );

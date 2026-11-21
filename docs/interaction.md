@@ -146,6 +146,10 @@ The Members/invitations/Activity sidebar panel shares Linked projects’ compact
 
 The 3D stage map opens in a modal popup rather than expanding the working column. Its background is 10% transparent (90% opacity); map geometry, labels, and controls keep their own opacity. Escape, Close, outside click, or choosing a map destination closes it; focus returns to the opener. Background scrolling is paused while open, and narrow screens retain horizontal map scrolling.
 
+## Public navigation — 2026-11-21
+
+Home opens the project workspace after sign-in. The example project, Lab guide, Wiki and glossary pages have been retired. The following dated design notes describe their earlier implementation.
+
 ## Wiki learning path — 2026-10-24
 
 The public `/wiki` starts with a small illustrative project, then explains workspace navigation, the flow/stage/node/answer hierarchy, placing answers/tasks/artifacts/comments, invitations, and a practical working rhythm. Static diagrams and native expandable scenarios teach the relationships without changing private data. Rules and troubleshooting follow the walkthrough; the dense glossary at `/wiki/glossary` provides exact terminology and state contracts. `/glossary` remains an alias with the same term anchors. Footer navigation opens the wiki. English and Spanish use the existing locale setting.

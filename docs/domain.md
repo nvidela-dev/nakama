@@ -90,7 +90,7 @@ Current answers and historical revisions enforce the same content/state rules. A
 
 ## Product glossary and naming contract — 2026-10-24
 
-The application’s public `/wiki/glossary` page (also available at `/glossary`) exposes system definitions only, never project records. Its bilingual presentation catalog lives in `src/features/shell/glossary.ts`; this document remains canonical for domain semantics. Update both when changing a definition. The glossary groups terms by projects/access, guidance/progress, learning/decisions, work/outputs, discussion/change history, and project relationships; these are reading groups, not new domain entities. Database-backed state lists on the page reuse generated enum constants rather than duplicating their values.
+This document owns the system vocabulary and state contracts.
 
 Use **Flow** for selected guidance, **Stage** for its sections, **Node** for addressable questions/activities/outcomes, and **Answer** for saved node content. Use **Project flow** for the guidance workspace and **Save answer** for answer submission. “Workflow,” “journey,” and “step” are synonyms or legacy presentation identifiers, not additional entities. New domain code should use `flow`, `stage`, `node`, and `answer`; existing component names, URL parameters, database enums, and interchange fields remain compatible.
 

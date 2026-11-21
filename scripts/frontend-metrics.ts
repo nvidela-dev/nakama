@@ -219,7 +219,7 @@ export function classifyChunkContent(content: string, filename: string): string[
   if (/ZodError|safeParseAsync|\$zod/.test(content)) tags.add("zod");
   if (content.includes("EJEMPLO DE SOLO LECTURA") || content.includes("Crear enlace de invitación"))
     tags.add("es-dictionary");
-  if (content.includes("Show 3D mini-view") && content.includes("READ-ONLY EXAMPLE"))
+  if (content.includes("Show 3D mini-view") && content.includes("stage-card"))
     tags.add("journey-ui");
   if (content.includes('["AnswerEditor"')) tags.add("answer-editor");
   if (content.includes('["StageReviewForm"')) tags.add("stage-review-form");
@@ -662,11 +662,11 @@ async function installPerfObservers(page: Page) {
   });
 }
 
-/** Only public synthetic routes (/preview, /) are measured; no project/authentication fixtures. */
+/** Measure a local production route using the supplied browser context. */
 export async function measureFrontend(
   page: Page,
   baseURL: string,
-  routePath = "/preview",
+  routePath = "/",
 ): Promise<FrontendRouteMetric> {
   const origin = new URL(baseURL).origin;
   if (!["localhost", "127.0.0.1"].includes(new URL(baseURL).hostname))
@@ -726,7 +726,7 @@ export async function measureFrontend(
   page.on("response", collect);
   const started = Date.now();
   await page.goto(`${origin}${routePath}`, { waitUntil: "load" });
-  if (routePath === "/preview") {
+  if (routePath.startsWith("/projects/")) {
     await page.getByRole("button", { name: "Show 3D mini-view" }).waitFor();
   } else {
     await page.locator("main").first().waitFor();
@@ -829,21 +829,22 @@ export async function measureFrontend(
   };
 }
 
-/** Measures interactive stage/node transitions and on-demand 3D mini-view lazy chunk loading on /preview. */
-export async function measurePreviewInteractions(
+/** Measures interactive stage/node transitions and on-demand 3D mini-view lazy chunk loading in a signed-in test project. */
+export async function measureProjectInteractions(
   page: Page,
   baseURL: string,
+  projectPath: string,
 ): Promise<PreviewInteractionMetric> {
   const origin = new URL(baseURL).origin;
   if (!["localhost", "127.0.0.1"].includes(new URL(baseURL).hostname))
     throw new Error("Measure a local production build.");
 
-  await page.goto(`${origin}/preview`, { waitUntil: "load" });
+  await page.goto(`${origin}${projectPath}`, { waitUntil: "load" });
   const trigger = page.getByRole("button", { name: "Show 3D mini-view" });
   await trigger.waitFor();
 
   const stageStarted = Date.now();
-  await page.locator('a[href="/preview?stage=spark"]').first().click();
+  await page.locator(`a[href="${projectPath}?stage=spark"]`).first().click();
   await page.waitForURL((url) => url.searchParams.get("stage") === "spark");
   const stageSwitchMs = Date.now() - stageStarted;
   const stageSwitchOverflow = await page.evaluate(
@@ -851,7 +852,7 @@ export async function measurePreviewInteractions(
   );
 
   const nodeStarted = Date.now();
-  await page.locator('a[href="/preview?stage=spark&node=spark-name"]').first().click();
+  await page.locator(`a[href="${projectPath}?stage=spark&node=spark-name"]`).first().click();
   await page.waitForURL((url) => url.searchParams.get("node") === "spark-name");
   const nodeSelectMs = Date.now() - nodeStarted;
   const nodeSelectOverflow = await page.evaluate(
@@ -992,7 +993,8 @@ export function evaluateFrontendBudgets(input: {
     );
   }
 
-  const cssGzip = previewBrowser?.cssGzip ?? input.staticBuild?.sharedCssGzip;
+  const cssGzip =
+    landingBrowser?.cssGzip ?? previewBrowser?.cssGzip ?? input.staticBuild?.sharedCssGzip;
   if (cssGzip !== undefined) {
     checks.push(
       checkMetric(
@@ -1080,24 +1082,23 @@ export function compareFrontendReports(
     deltas.push({ metric, before, after, delta, percentChange });
   };
 
-  const currentPreview =
-    current.browserRoutes.find((r) => r.route === "/preview" && r.width === 1440) ??
-    current.browserRoutes[0];
+  const currentPreview = current.browserRoutes.find(
+    (r) => r.route === "/preview" && r.width === 1440,
+  );
   const currentStaticPreview = current.staticBuild?.routes.find((r) => r.route === "/preview");
   const afterPreviewGzip = currentPreview?.jsGzip ?? currentStaticPreview?.jsGzip;
   const afterPreviewBytes = currentPreview?.jsBytes ?? currentStaticPreview?.jsBytes;
 
   if (Array.isArray(parsed.data)) {
-    const basePreview =
-      parsed.data.find((r) => r.route === "/preview" && r.width === 1440) ?? parsed.data[0];
+    const basePreview = parsed.data.find((r) => r.route === "/preview" && r.width === 1440);
     pushDelta("/preview initial JS gzip (bytes)", basePreview?.jsGzip, afterPreviewGzip);
     pushDelta("/preview initial JS raw (bytes)", basePreview?.jsBytes, afterPreviewBytes);
     pushDelta("/preview navigation (ms)", basePreview?.navigationMs, currentPreview?.navigationMs);
   } else if ("schemaVersion" in parsed.data) {
     const baseReport = parsed.data;
-    const basePreview =
-      baseReport.browserRoutes.find((r) => r.route === "/preview" && r.width === 1440) ??
-      baseReport.browserRoutes[0];
+    const basePreview = baseReport.browserRoutes.find(
+      (r) => r.route === "/preview" && r.width === 1440,
+    );
     const baseStaticPreview = baseReport.staticBuild?.routes.find((r) => r.route === "/preview");
     pushDelta(
       "/preview initial JS gzip (bytes)",
@@ -1272,7 +1273,7 @@ async function readJsonFile(path: string): Promise<unknown> {
 
 async function isServerReachable(origin: string): Promise<boolean> {
   try {
-    const res = await fetch(`${origin}/preview`, { signal: AbortSignal.timeout(1500) });
+    const res = await fetch(`${origin}/`, { signal: AbortSignal.timeout(1500) });
     return res.ok;
   } catch {
     return false;
@@ -1329,17 +1330,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     });
     try {
       for (const width of [1440, 390]) {
-        const previewPage = await browser.newPage({ viewport: { width, height: 900 } });
-        browserRoutes.push(await measureFrontend(previewPage, baseURL, "/preview"));
-        await previewPage.close();
+        const page = await browser.newPage({ viewport: { width, height: 900 } });
+        browserRoutes.push(await measureFrontend(page, baseURL));
+        await page.close();
       }
-      const landingPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-      browserRoutes.push(await measureFrontend(landingPage, baseURL, "/"));
-      await landingPage.close();
-
-      const interactionPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-      interactions.push(await measurePreviewInteractions(interactionPage, baseURL));
-      await interactionPage.close();
     } finally {
       await browser.close();
       if (spawnedServer) {
@@ -1371,8 +1365,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
 
   await mkdir(".nakama/performance", { recursive: true });
   if (!staticOnly && browserRoutes.length > 0) {
-    const previewResults = browserRoutes.filter((r) => r.route === "/preview");
-    await writeFile(".nakama/performance/latest.json", JSON.stringify(previewResults, null, 2));
+    const landingResults = browserRoutes.filter((r) => r.route === "/");
+    await writeFile(".nakama/performance/latest.json", JSON.stringify(landingResults, null, 2));
   }
   await writeFile(".nakama/performance/report.json", JSON.stringify(report, null, 2));
   if (!staticOnly) {

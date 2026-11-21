@@ -8,7 +8,7 @@ for (const width of [390, 1440]) {
     baseURL,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/preview");
+    await page.goto("/");
     const html = page.locator("html");
     const picker = page.getByLabel("Visual style");
     await expect(html).toHaveAttribute("data-theme", "day");

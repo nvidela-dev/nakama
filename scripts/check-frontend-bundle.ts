@@ -49,9 +49,9 @@ if (failed.length > 0) {
   );
 }
 
-const previewRoute = staticBuild.routes.find((r) => r.route === "/preview");
+const landingRoute = staticBuild.routes.find((r) => r.route === "/");
 const heaviestRoute = staticBuild.routes[0];
 const threeLazy = staticBuild.lazyChunks.find((c) => c.tags?.includes("three-3d"));
 console.log(
-  `Frontend bundle verified: ${files.length} deployment traces exclude Storybook, stories, and accessibility test tooling; ${staticBuild.routes.length} routes checked (/preview ${previewRoute?.jsGzip.toLocaleString("en-US") ?? "n/a"} B gzip, heaviest ${heaviestRoute?.route ?? "n/a"} ${heaviestRoute?.jsGzip.toLocaleString("en-US") ?? "n/a"} B gzip, lazy 3D map ${threeLazy?.gzip.toLocaleString("en-US") ?? "n/a"} B gzip).`,
+  `Frontend bundle verified: ${files.length} deployment traces exclude Storybook, stories, and accessibility test tooling; ${staticBuild.routes.length} routes checked (/ ${landingRoute?.jsGzip.toLocaleString("en-US") ?? "n/a"} B gzip, heaviest ${heaviestRoute?.route ?? "n/a"} ${heaviestRoute?.jsGzip.toLocaleString("en-US") ?? "n/a"} B gzip, lazy 3D map ${threeLazy?.gzip.toLocaleString("en-US") ?? "n/a"} B gzip).`,
 );

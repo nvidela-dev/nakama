@@ -60,16 +60,12 @@ export const operationNames = [
 export type OperationName = (typeof operationNames)[number];
 export const routeNames = [
   "/",
-  "/preview",
   "/projects",
   "/projects/[projectId]",
   "/artifacts",
   "/projects/[projectId]/artifacts/[artifactId]",
   "/projects/[projectId]/artifacts/[artifactId]/files/[fileId]",
   "/admin",
-  "/wiki",
-  "/wiki/glossary",
-  "/glossary",
   "/access-required",
   "/invitations/accept",
   "/sign-in",

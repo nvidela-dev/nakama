@@ -58,7 +58,6 @@ export default async function LabPage({
         <Link href={`/projects/${projectId}`}>{t("Project flow")}</Link>
         <Link href={`/projects/${projectId}?view=tasks`}>{t("To-do")}</Link>
         <Link href={`/projects/${projectId}?view=artifacts`}>{t("Artifacts")}</Link>
-        <Link href="/wiki/experiments">{t("Lab guide")}</Link>
       </nav>
       <h1 className="text-[32px] font-semibold mb-3">{project.name}</h1>
       {items === null ? (
