@@ -510,3 +510,7 @@ Catalogue invitations use the same seven-day window as project invitations. The 
 ## Personal sales board and backlog — 2026-11-21
 
 The catalogue opens as a backlog table of every business the viewer can access. My board is personal. Adding a business to Ready assigns it to the viewer and admits it to their board. Collaborators can add their existing assignments. Cards remain there as sales progress and leave on removal or handoff. Both views show the business image. Opening a record exposes the preferred original near the title and the remaining images beside it.
+
+## Jobs and interviews · November 21, 2026
+
+Jobs and interviews is an owner-only area of Nakama, independent of Business Sales and project memberships. Read new discoveries directly from the existing job evidence database. A lead enters the personal board when the owner chooses to pursue it. Board stages and follow-up plans express intent. Dated events capture applications, recruiter contact, interview feedback, outcomes, and practice. Returning to the backlog preserves history. The owner chose to keep Linear task creation off. If enabled later for a private team, an explicit handoff shares only the entered task title and retains one linked issue across retries.

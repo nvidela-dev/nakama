@@ -2,9 +2,7 @@ import { ThemeSwitcher } from "@/features/preferences/components/theme-switcher"
 import type { StyleTheme } from "@/shared/ui/style-theme";
 import Link from "next/link";
 import { Show } from "@clerk/nextjs";
-import { authConfigured, currentProfile } from "@/features/access/server/auth";
-import { isAppAdmin } from "@/features/access/server/app-access";
-import { adminEmail } from "@/features/access/server/whitelist";
+import { currentIsAdmin } from "@/features/access/server/auth";
 import { getT } from "@/shared/i18n/server";
 import { DensitySwitcher } from "@/features/preferences/components/density";
 import { LanguageSwitcher } from "@/features/preferences/components/language-switcher";
@@ -17,18 +15,7 @@ export async function Footer({
   theme: StyleTheme;
 }) {
   const t = await getT();
-  const user = authConfigured() ? await currentProfile() : null;
-  const admin =
-    !!user &&
-    isAppAdmin(
-      {
-        userId: user.id,
-        verifiedEmails: user.emailAddresses
-          .filter((email) => email.verification?.status === "verified")
-          .map((email) => email.emailAddress),
-      },
-      adminEmail(),
-    );
+  const admin = await currentIsAdmin();
   return (
     <footer className="bg-panel border-t border-line px-3 py-1 flex items-center justify-between gap-2 z-30 text-xs">
       <span className="hidden sm:inline">{t("Nakama")}</span>

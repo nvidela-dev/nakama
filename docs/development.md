@@ -554,3 +554,11 @@ The production catalogue import reconciled 2,483 published dossiers and 2,732 sc
 The iteration migration introduces a stage on existing experiment rows and a separate append-only reflection history. The project task service does not load reflections. The lab reads the latest revision for each of four questions through bounded key lookups. History pages read 25 revisions and one continuation row in descending revision order.
 
 The backlog shows all accessible businesses in a table. My board queries only the current person’s actively selected cards, and its counts and pagination follow the same rule. Release v450 supplies images for 2,465 of its 2,483 businesses. A detail page displays the source thumbnail first when available and links to the original private file.
+
+## Jobs and interviews
+
+The existing software job manager database owns the ingestion schema `job_manager`. In that database apply [the workspace migration](../integrations/jobs/001_workspace.sql) transactionally as the schema owner. Create a dedicated unprivileged login named `nakama_jobs_app`, then apply [the runtime grants](../integrations/jobs/runtime-grants.sql). Configure its pooled TLS connection as the server-only `JOBS_DATABASE_URL`. Reads use two projections over existing opportunities and observations. Manual leads, plans and actual events live in separate tables. No replication job or secondary scanner is required.
+
+The route and every action require the verified account configured as the Nakama owner. Unknown evidence dates stay empty. First recorded is the earliest dated observation. Last source check is the latest dated non-archival status observation and can include an inconclusive check. Current requires an explicitly open observation from today in Montevideo; historical report cards never qualify. Each detail shows the source observations.
+
+Linear handoff is optional. Configure `JOBS_LINEAR_TEAM_ID` and a server-only, team-limited `JOBS_LINEAR_API_KEY` only for the owner's chosen private team. The app rechecks team visibility when the owner submits a title, then uses a stable client-supplied issue ID to recover from interrupted creates. The only content sent is that title. Project and catalogue memberships have no access to this workflow.

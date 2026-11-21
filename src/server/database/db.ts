@@ -8,21 +8,24 @@ import { observedDatabase } from "@/server/database/observed-database";
 import { telemetry } from "@/server/observability/observability";
 import { withRequestContext } from "@/server/observability/request-observability";
 
-let instance: Database | undefined;
-export function database(): Database {
-  if (instance) return instance;
-  if (!process.env.DATABASE_URL)
+const databases = new Map<"nakama" | "jobs", Database>();
+export function database(name: "nakama" | "jobs" = "nakama"): Database {
+  const existing = databases.get(name);
+  if (existing) return existing;
+  const connectionString =
+    name === "jobs" ? process.env.JOBS_DATABASE_URL : process.env.DATABASE_URL;
+  if (!connectionString)
     throw new DiagnosticError({
       family: "backend",
       code: "CONFIGURATION_INVALID",
       component: "database",
     });
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
+  const pool = new Pool({ connectionString, max: 5 });
   attachDatabasePool(pool);
   pool.on("error", (error) => {
     telemetry.reportError(error, "db.pool_error");
   });
-  instance = observedDatabase(
+  const instance = observedDatabase(
     {
       query: (sql, values) => pool.query(sql, values),
       async transaction(work) {
@@ -71,5 +74,6 @@ export function database(): Database {
     telemetry,
     withRequestContext,
   );
+  databases.set(name, instance);
   return instance;
 }

@@ -12,6 +12,8 @@ The experiment lab is deployed and verified: short plans, repeated runs, retaine
 
 Business catalogue is a separate area in Nakama’s main navigation with its own private sales backlog and collaborator access. An owner can import a catalogue database or ZIP and review the import receipt. Nakama stores the original package, business profiles, source evidence, supplied images and earlier sales records in PostgreSQL. Members can log outreach on businesses they can access. Assignments, replies, outcomes and profile changes persist with the business. See [prospect access](docs/collaboration.md#business-prospects) and [import and cutover](docs/development.md#prospect-import-and-cutover).
 
+The owner-only Jobs and interviews workspace reads discovered roles from the existing job evidence database. It has a searchable backlog, a personal board, dated interview and application history, and follow-up plans. See [jobs setup and verification](docs/development.md#jobs-and-interviews).
+
 ## The experience
 
 Capture a name and a brief description. See a downward path of named stages. Expand a stage into its question tree, open a node, and answer with plain-language examples. Discuss the project, a stage, or an answer with invited friends. Return to earlier questions as you learn.

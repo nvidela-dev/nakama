@@ -62,3 +62,19 @@ export async function adminActor(): Promise<Actor> {
     return person;
   });
 }
+
+export const currentIsAdmin = cache(async () => {
+  const user = authConfigured() ? await currentProfile() : null;
+  return (
+    !!user &&
+    isAppAdmin(
+      {
+        userId: user.id,
+        verifiedEmails: user.emailAddresses
+          .filter((email) => email.verification?.status === "verified")
+          .map((email) => email.emailAddress),
+      },
+      adminEmail(),
+    )
+  );
+});

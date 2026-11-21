@@ -6,9 +6,9 @@ import { WaveMark } from "@/shared/ui/wave-mark";
 import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
-import { authConfigured } from "@/features/access/server/auth";
+import { authConfigured, currentIsAdmin } from "@/features/access/server/auth";
 export async function Header() {
-  const t = await getT();
+  const [t, owner] = await Promise.all([getT(), currentIsAdmin()]);
   return (
     <header
       className={
@@ -49,6 +49,11 @@ export async function Header() {
               <Link href="/prospects" prefetch={false}>
                 {t("Business catalogue")}
               </Link>
+              {owner && (
+                <Link href="/jobs" prefetch={false}>
+                  {t("Jobs and interviews")}
+                </Link>
+              )}
               <Link href="/artifacts">{t("Artifacts")}</Link>
               <NotificationBell />
               <UserButton />
