@@ -40,7 +40,7 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await page.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(page.getByRole("button", { name: "Move to Pursuing" })).toBeVisible();
   await expect(page.getByText("Completed technical interview", { exact: true })).toBeVisible();
-  const outsider = await browser.newContext();
+  const outsider = await browser.newContext({ baseURL: new URL(page.url()).origin });
   try {
     const other = await outsider.newPage();
     await other.goto(page.url());
