@@ -120,6 +120,7 @@ src/
     guidance/              full templates, generated picker catalog, answers/reviews/map
     notifications/         unread comment reads and notification interaction
     preferences/           locale/density controls and cookie actions
+    prospects/             business backlog, assignment access and outreach history
     projects/              capture/setup, cards, workspace composition, lineage
     shell/                 header/footer composition
     tasks/                 hierarchical tasks and Lock-In exchange

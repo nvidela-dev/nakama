@@ -51,6 +51,9 @@ export async function Header() {
             <Show when="signed-in">
               <NewProjectButton />
               <ProjectNavigation />
+              <Link href="/prospects" prefetch={false}>
+                {t("Business catalogue")}
+              </Link>
               <Link href="/artifacts">{t("Artifacts")}</Link>
               <NotificationBell />
               <UserButton />

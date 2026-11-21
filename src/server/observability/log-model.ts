@@ -6,6 +6,7 @@ export const operationNames = [
   "project.create",
   "project.edit",
   "project.archive",
+  "prospect.change",
   "project.delete",
   "project.link",
   "project.members.manage",

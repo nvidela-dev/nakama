@@ -1,0 +1,348 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { readFile, readdir } from "node:fs/promises";
+import { PGlite } from "@electric-sql/pglite";
+import { strToU8, zipSync } from "fflate";
+import type { Database } from "../src/server/database/database";
+import { prospectService } from "../src/features/prospects/server/catalogue";
+import { projectService } from "../src/features/projects/server/projects";
+import { decodeSource, checksum } from "../src/features/prospects/server/source-reader";
+import { sourceImports } from "../src/features/prospects/server/imports";
+import initSql from "sql.js/dist/sql-asm.js";
+import { gzipSync } from "node:zlib";
+
+test("catalogue export preserves stable business IDs, reads contacts, ignores unrelated files", async () => {
+  const id = randomUUID();
+  const index = strToU8(
+    JSON.stringify({
+      businesses: [{ id, name: "Test business", city: "Sample City", category: "Studio" }],
+    }),
+  );
+  const zip = zipSync({
+    "site/dist/data/catalogue.json": index,
+    [`site/dist/data/${id}.json`]: strToU8(
+      JSON.stringify({ id, contacts: [{ display_value: "test@example.invalid" }] }),
+    ),
+  });
+  const parsed = await decodeSource(zip);
+  assert.equal(parsed.records[0]?.id, id);
+  assert.equal(parsed.records[0]?.details, "Sample City\nStudio\ntest@example.invalid");
+  assert.equal(parsed.records[0]?.rank, 2);
+  await assert.rejects(decodeSource(index), /complete archive/);
+  await assert.rejects(decodeSource(strToU8("{}")));
+});
+test("standalone catalogue, single assignee, permission changes and preserved outreach history", async () => {
+  const sql = new PGlite();
+  try {
+    for (const file of (await readdir("migrations")).filter((f) => f.endsWith(".sql")).sort())
+      await sql.exec(await readFile("migrations/" + file, "utf8"));
+    const db: Database = {
+      query: (q, v) => sql.query(q, v),
+      transaction: (fn) => sql.transaction((tx) => fn(tx)),
+    };
+    const ps = projectService(db),
+      svc = prospectService(db);
+    const user = (userId: string) => ({
+      userId,
+      displayName: userId,
+      verifiedEmails: [userId.toLowerCase() + "@example.invalid"],
+    });
+    const owner = user("Owner"),
+      ana = user("Ana"),
+      pedro = user("Pedro"),
+      outside = user("Other");
+    const unrelated = await ps.create(outside, {
+      name: "Unrelated",
+      description: "Project ownership alone grants no catalogue access",
+    });
+    await db.query("INSERT INTO prospect_catalogues VALUES('business',$1)", [owner.userId]);
+    await db.query("INSERT INTO prospect_memberships VALUES('business',$1,$1,'owner')", [
+      owner.userId,
+    ]);
+    async function join(id: string) {
+      const invited = user(id);
+      await svc.change(owner, { type: "invite", email: invited.verifiedEmails[0] });
+      await assert.rejects(svc.read({ ...invited, verifiedEmails: [] }));
+      await svc.read(invited);
+    }
+    await join(ana.userId);
+    await join(pedro.userId);
+    const id = randomUUID(),
+      another = randomUUID();
+    const records = [
+      { id, name: "A shop", details: "A contact" },
+      { id: another, name: "B shop", details: "B contact" },
+    ];
+    const change = (p: typeof owner, cmd: object) => svc.change(p, cmd);
+    const detail = (p: typeof owner) => svc.read(p, id);
+    for (const record of records) await change(owner, { type: "add", record });
+    assert.equal((await svc.read(owner)).prospects.length, 2);
+    assert.equal((await svc.read(ana)).prospects.length, 0);
+    await assert.rejects(detail(ana));
+    await assert.rejects(detail(outside));
+    await svc.change(owner, { type: "share", id, userId: "Pedro", enabled: true });
+    assert.equal((await detail(pedro)).prospect?.assignee_id, null);
+    assert.equal((await svc.read(pedro, undefined, 1, "B shop")).prospects.length, 0);
+    await svc.change(owner, { type: "share", id, userId: "Pedro", enabled: false });
+    await assert.rejects(detail(pedro));
+    await assert.rejects(svc.read(outside));
+    await assert.rejects(svc.read(owner, "bad-id"));
+    await assert.rejects(change(ana, { type: "assign", id, revision: 0, assignee: "Ana" }));
+    await assert.rejects(change(owner, { type: "assign", id, revision: 0, assignee: "Other" }));
+    await change(owner, { type: "assign", id, revision: 0, assignee: "Ana" });
+    assert.equal((await detail(ana)).prospect?.status, "ready");
+    assert.equal((await svc.read(ana)).prospects.length, 1);
+    await assert.rejects(
+      change(pedro, { type: "log", id, revision: 1, kind: "call", note: "Wrong person" }),
+    );
+    await change(ana, { type: "log", id, revision: 1, kind: "call", note: "No answer" });
+    assert.equal((await detail(ana)).prospect?.called, true);
+    assert.equal((await detail(ana)).prospect?.status, "in_progress");
+    await assert.rejects(
+      change(owner, { type: "assign", id, revision: 1, assignee: "Pedro" }),
+      /changed/,
+    );
+    await change(owner, { type: "assign", id, revision: 2, assignee: "Pedro" });
+    await assert.rejects(detail(ana));
+    await assert.rejects(
+      change(ana, { type: "log", id, revision: 3, kind: "reply", note: "After handoff" }),
+    );
+    await change(pedro, { type: "log", id, revision: 3, kind: "reply", note: "Asked for offer" });
+    await change(pedro, {
+      type: "log",
+      id,
+      revision: 4,
+      kind: "call",
+      outcome: "rejected",
+      note: "Declined for this quarter",
+    });
+    const handoff = await detail(pedro);
+    assert.equal(handoff.prospect?.status, "rejected");
+    assert.equal(handoff.prospect?.latest_outcome, "Declined for this quarter");
+    assert.deepEqual(
+      handoff.timeline.map((e) => [e.kind, e.actor_name, e.previous_assignee, e.next_assignee]),
+      [
+        ["call", "Pedro", null, null],
+        ["reply", "Pedro", null, null],
+        ["assignment", "Owner", "Ana", "Pedro"],
+        ["call", "Ana", null, null],
+        ["assignment", "Owner", null, "Ana"],
+      ],
+    );
+    await assert.rejects(change(ana, { type: "access", userId: "Ana", enabled: true }));
+    await change(owner, { type: "access", userId: "Ana", enabled: true });
+    assert.equal((await svc.read(ana)).prospects.length, 2);
+    await change(ana, { type: "log", id: another, revision: 0, kind: "note", note: "Updated" });
+    await change(owner, { type: "access", userId: "Ana", enabled: false });
+    assert.equal((await svc.read(ana)).prospects.length, 0);
+    assert.deepEqual(await change(owner, { type: "add", record: records[0] }), { added: 0 });
+    assert.equal((await detail(owner)).timeline.length, 5);
+    await change(owner, { type: "access", userId: "Pedro", enabled: true });
+    await svc.change(owner, { type: "remove", userId: "Pedro" });
+    await assert.rejects(detail(pedro));
+    assert.equal((await detail(owner)).prospect?.assignee_id, null);
+    assert.equal((await detail(owner)).timeline[0]?.kind, "membership_ended");
+    await join("Pedro");
+    assert.equal((await svc.read(pedro)).prospects.length, 0);
+    await change(owner, { type: "assign", id, revision: 6, assignee: "Owner" });
+    await ps.deleteProject(outside, unrelated, "Unrelated");
+    assert.ok((await detail(owner)).timeline.length > 0);
+  } finally {
+    await sql.close();
+  }
+});
+
+test("full catalogue publication, exact recovery, evidence access and conflict-safe native updates", async () => {
+  const sql = new PGlite(),
+    id = randomUUID();
+  const owner = { userId: "owner", displayName: "Owner", verifiedEmails: [] },
+    member = { ...owner, userId: "member" };
+  const image = Uint8Array.from([255, 216, 255, 224, 0, 0, 255, 217]);
+  const extraImage = Uint8Array.from([255, 216, 255, 224, 1, 0, 255, 217]);
+  const absent = checksum(extraImage);
+  const SQL = await initSql();
+  function archive(name: string, at: string, incomplete = false) {
+    const db = new SQL.Database();
+    try {
+      db.run(`CREATE TABLE businesses(id TEXT PRIMARY KEY,name TEXT,website TEXT);
+        CREATE TABLE observations(id INTEGER PRIMARY KEY,business_id TEXT REFERENCES businesses(id),facts_json TEXT,exact_id INTEGER DEFAULT 9007199254740993);
+        CREATE TABLE contacts(id INTEGER PRIMARY KEY,kind TEXT);
+        CREATE TABLE business_contacts(business_id TEXT,contact_id INTEGER,display_value TEXT);
+        CREATE TABLE pipeline(business_id TEXT,stage TEXT,notes TEXT);
+        CREATE TABLE stage_history(business_id TEXT,to_stage TEXT,changed_at TEXT);
+        CREATE TABLE followups(business_id TEXT,task TEXT);
+        CREATE TABLE screenshot_artifacts(business_id TEXT,sha256 TEXT);
+        CREATE VIEW computed AS SELECT name FROM businesses;`);
+      db.run("INSERT INTO businesses VALUES(?,?,?)", [id, name, "example.invalid"]);
+      db.run("INSERT INTO observations(id,business_id,facts_json) VALUES(1,?,?)", [
+        id,
+        JSON.stringify({ evidence: name }),
+      ]);
+      db.run("INSERT INTO contacts VALUES(1,'email')");
+      db.run("INSERT INTO business_contacts VALUES(?,1,'hello@example.invalid')", [id]);
+      db.run("INSERT INTO pipeline VALUES(?,'won','accepted offer')", [id]);
+      db.run("INSERT INTO stage_history VALUES(?,'won',?)", [id, at]);
+      db.run("INSERT INTO followups VALUES(?,'check in')", [id]);
+      db.run("INSERT INTO screenshot_artifacts VALUES(?,?),(?,?)", [
+        id,
+        checksum(image),
+        id,
+        absent,
+      ]);
+      const native = db.export();
+      return {
+        native,
+        zip: zipSync({
+          "database/prospects.sqlite3.gz": gzipSync(native),
+          "site/dist/data/catalogue.json": strToU8(
+            JSON.stringify({ meta: { snapshot_at: at }, businesses: [{ id, name }] }),
+          ),
+          [`site/dist/data/${id}.json`]: strToU8(
+            JSON.stringify({ id, notes: ["original dossier"] }),
+          ),
+          "assets/sample.jpg": image,
+          ...(!incomplete ? { "assets/extra.jpg": extraImage } : {}),
+        }),
+      };
+    } finally {
+      db.close();
+    }
+  }
+  try {
+    for (const file of (await readdir("migrations")).filter((f) => f.endsWith(".sql")).sort())
+      await sql.exec(await readFile("migrations/" + file, "utf8"));
+    const db: Database = {
+      query: (q, v) => sql.query(q, v),
+      transaction: (f) => sql.transaction((tx) => f(tx)),
+    };
+    await db.query("INSERT INTO prospect_catalogues VALUES('business',$1)", [owner.userId]);
+    await db.query(
+      "INSERT INTO prospect_memberships VALUES('business',$1,$1,'owner'),('business',$2,$2,'member')",
+      [owner.userId, member.userId],
+    );
+    const imports = sourceImports(db),
+      svc = prospectService(db);
+    const first = archive("Original", "2026-01-01T00:00:00Z"),
+      next = archive("Updated", "2026-02-01T00:00:00Z");
+    const digest = checksum(first.zip);
+    await assert.rejects(imports.start(member, digest, first.zip.length));
+    await imports.start(owner, digest, first.zip.length);
+    await assert.rejects(imports.finish(owner, digest));
+    await imports.append(owner, digest, 0, new Uint8Array(first.zip.length));
+    await assert.rejects(imports.finish(owner, digest));
+    await assert.rejects(imports.download(owner, digest));
+    assert.equal((await svc.read(owner)).prospects.length, 0);
+    async function upload(bytes: Uint8Array) {
+      const hash = checksum(bytes);
+      await imports.start(owner, hash, bytes.length);
+      await imports.append(owner, hash, 0, bytes);
+      return imports.finish(owner, hash);
+    }
+    await assert.rejects(
+      upload(archive("Incomplete", "2026-01-01T00:00:00Z", true).zip),
+      /referenced attachment/,
+    );
+    assert.equal((await svc.read(owner)).prospects.length, 0);
+    const r = await upload(first.zip);
+    assert.equal(r.tables.observations, 1);
+    assert.equal(r.businesses, 1);
+    assert.equal(r.missingImageFiles, 0);
+    assert.equal(r.sourceRecords, 2);
+    assert.equal((await decodeSource(first.native)).records[0]?.id, id);
+    assert.equal(checksum(Buffer.concat(await imports.download(owner, digest))), digest);
+    assert.deepEqual(await imports.start(owner, digest, first.zip.length), r);
+    assert.deepEqual(await upload(first.zip), r);
+    const detail = () => svc.read(owner, id);
+    let d = await detail();
+    assert.equal(d.prospect?.status, "deal");
+    assert.match(JSON.stringify(d.sources), /accepted offer/);
+    assert.match(JSON.stringify(d.sources), /9007199254740993/);
+    assert.match(JSON.stringify(d.sources), /original dossier/);
+    assert.match(JSON.stringify(d.sources), /check in/);
+    assert.match(d.prospect!.details, /hello@example.invalid/);
+    await assert.rejects(svc.image(member, id, checksum(image)));
+    await assert.rejects(imports.download(member, digest));
+    await svc.change(owner, {
+      type: "assign",
+      id,
+      revision: d.prospect!.revision,
+      assignee: member.userId,
+    });
+    assert.deepEqual(
+      Buffer.from((await svc.image(member, id, checksum(image))).content),
+      Buffer.from(image),
+    );
+    await assert.rejects(svc.image(owner, id, "a".repeat(64)));
+    d = await detail();
+    await svc.change(member, {
+      type: "log",
+      kind: "reply",
+      id,
+      revision: d.prospect!.revision,
+      outcome: "rejected",
+      note: "declined",
+    });
+    const prior = (await detail()).prospect!.revision;
+    await assert.rejects(
+      svc.change(member, { type: "profile", id, revision: prior, name: "Forbidden" }),
+    );
+    await svc.change(owner, {
+      type: "profile",
+      id,
+      revision: prior,
+      details: "Verified locally",
+      research: { pitch: "new offer" },
+    });
+    await assert.rejects(
+      svc.change(owner, {
+        type: "profile",
+        id,
+        revision: prior,
+        research: { pitch: "stale" },
+      }),
+      /changed/,
+    );
+    await upload(next.zip);
+    d = await detail();
+    assert.equal(d.prospect?.name, "Updated");
+    assert.equal(d.prospect?.details, "Verified locally");
+    assert.equal(d.prospect?.status, "rejected");
+    assert.equal(d.prospect?.assignee_id, member.userId);
+    assert.deepEqual(d.research, { pitch: "new offer" });
+    assert.equal(d.timeline.length, 3);
+    assert.deepEqual(d.timeline[0]?.profile_changes, {
+      details: "Verified locally",
+      research: { pitch: "new offer" },
+    });
+    const stale = await upload(archive("Older", "2025-12-01T00:00:00Z").zip);
+    assert.equal(stale.stale, 2);
+    await assert.rejects(
+      upload(
+        strToU8(
+          JSON.stringify({
+            meta: { snapshot_at: "2027-01-01T00:00:00Z" },
+            businesses: [{ id, name: "Sparse" }],
+          }),
+        ),
+      ),
+      /complete archive/,
+    );
+    assert.equal((await detail()).prospect?.name, "Updated");
+    assert.equal((await svc.read(owner)).receipts.length, 3);
+    assert.equal((await svc.read(member)).receipts.length, 0);
+    await assert.rejects(upload(strToU8("{}")));
+    assert.equal((await svc.read(owner)).receipts.length, 3);
+    await svc.change(owner, {
+      type: "assign",
+      id,
+      revision: (await detail()).prospect!.revision,
+      assignee: null,
+    });
+    await assert.rejects(svc.image(member, id, checksum(image)));
+    await db.query("DELETE FROM prospect_catalogues WHERE id='business'");
+    assert.equal((await db.query("SELECT digest FROM prospect_imports")).rows.length, 0);
+  } finally {
+    await sql.close();
+  }
+});

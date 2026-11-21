@@ -478,3 +478,9 @@ Route content and loading states use the same workspace widths. Shared native fo
 ## Browsing project and artifact collections — 2026-11-18
 
 The dashboard and cross-project artifact library fetch 24 cards at a time. Artifact search and filters apply to all current memberships before paging. Keep PostgreSQL file bytes behind the membership-checked private file route. Managed milestones continue to belong to Tasks. A board needs its complete tree and list revision for safe subtree edits, so fetch that bounded snapshot only when opening To-do. The artifact tab loads its bounded project collection when opened. Previously visited panels retain their drafts while navigating within the project.
+
+## Business prospect workflow — 2026-11-21
+
+Business catalogue is a top-level area inside Nakama with an independent sales interface. Experiments belong to projects. The catalogue owns its own data and access roster. The owner sees the complete backlog, can assign one person per business, and can give selected collaborators full access. Assignments, calls, messages, replies and outcomes share a dated timeline. Project membership and deletion do not affect it.
+
+Use the Nakama database as the system of record from the first operational import. The import preserves stable business IDs, evidence, research, CRM history and the original package. Native changes carry forward through later imports. Record future work directly on the prospect. Use a recent published catalogue as the baseline. Publish only when every referenced attachment is available and the dossiers and source counts reconcile.

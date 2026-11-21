@@ -10,6 +10,8 @@ Project types include Venture, Creative/fun, Investigation, E-shop (generic or S
 
 The experiment lab is deployed and verified: short plans, repeated runs, retained evidence, scoped claim reviews and manually reviewed agent contributions. Migration 016 is applied to the shared database. The authenticated live journey passed plan → run → evidence → outcome → review → reload; see [database recovery and verification](docs/development.md#experiment-lab-database-recovery--2026-10-26). Existing questionnaires, tasks and artifacts remain intact.
 
+Business catalogue is a separate area in Nakama’s main navigation with its own private sales backlog and collaborator access. An owner can import a catalogue database or ZIP and review the import receipt. Nakama stores the original package, business profiles, source evidence, supplied images and earlier sales records in PostgreSQL. Members can log outreach on businesses they can access. Assignments, replies, outcomes and profile changes persist with the business. See [prospect access](docs/collaboration.md#business-prospects) and [import and cutover](docs/development.md#prospect-import-and-cutover).
+
 ## The experience
 
 Capture a name and a brief description. See a downward path of named stages. Expand a stage into its question tree, open a node, and answer with plain-language examples. Discuss the project, a stage, or an answer with invited friends. Return to earlier questions as you learn.

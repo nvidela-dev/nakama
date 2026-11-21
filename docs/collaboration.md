@@ -102,3 +102,9 @@ Selection inserts a named internal link into the existing plain-text draft at th
 ## Experiment lab access — 2026-10-26
 
 Active owners and members can read, plan, run, add evidence, submit/review agent contributions, review claims and export a scoped brief. Every service operation checks membership in its transaction. Composite foreign keys and server checks keep plans, runs, evidence, reviews and proposals in one project/experiment; no admin bypass exists. Experiment revisions reject concurrent stale writes without overwriting drafts. The UI offers an explicit reload for comparison. Saved histories preserve actor IDs; current member names are resolved for display, with former-member fallback. Lab history currently lives in the lab, not the general project activity feed.
+
+## Business prospects
+
+Business catalogue opens from Nakama's main navigation at `/prospects`. It has its own owner, collaborator list, individual assignments and full-catalogue grants. Creating, joining, archiving or deleting a project has no effect on prospect access. The configured Nakama administrator's verified identity initializes the catalogue owner. That identity is then stored in the database.
+
+The owner can allow a collaborator's exact email. An admitted Nakama user with that verified email joins on opening the catalogue link. New collaborators start with an empty backlog. Assignment makes one business visible, with its imported dossier, images and timeline. The owner can also share individual records without transferring responsibility, or grant full-catalogue access. Visible collaborators can record outreach. Handoffs immediately release the former assignee's assignment-only access. Removing a collaborator clears access and assignments and keeps their attributed history. Only the owner can import or download an original package, edit the business profile, or manage access. The invitation action does not send email.

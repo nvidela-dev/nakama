@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   // Operational log files are runtime data and must never enter deployment bundles.
   outputFileTracingExcludes: { "/*": ["./.nakama/**/*"] },
+  serverExternalPackages: ["sql.js"],
   env: {
     NAKAMA_RELEASE: process.env.NAKAMA_RELEASE ?? "local",
     NAKAMA_BUILD_ID: process.env.NAKAMA_BUILD_ID ?? "",

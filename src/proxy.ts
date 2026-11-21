@@ -21,6 +21,7 @@ export default function proxy(request: NextRequest, event: Parameters<typeof cle
     if (
       request.nextUrl.pathname.startsWith("/admin") ||
       request.nextUrl.pathname.startsWith("/artifacts") ||
+      request.nextUrl.pathname.startsWith("/prospects") ||
       request.nextUrl.pathname.startsWith("/projects") ||
       request.nextUrl.pathname.startsWith("/invitations")
     ) {

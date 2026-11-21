@@ -28,6 +28,10 @@ export const NodeStatusValues = ["unanswered","draft","answered","skipped","bloc
 export type NodeStatus = (typeof NodeStatusValues)[number];
 export const ProjectStateValues = ["active","parked","finished_enough"] as const;
 export type ProjectState = (typeof ProjectStateValues)[number];
+export const ProspectEventKindValues = ["assignment","call","message","reply","note","membership_ended","profile"] as const;
+export type ProspectEventKind = (typeof ProspectEventKindValues)[number];
+export const ProspectStatusValues = ["ready","in_progress","deal","rejected"] as const;
+export type ProspectStatus = (typeof ProspectStatusValues)[number];
 export const RevisionOriginValues = ["capture","human"] as const;
 export type RevisionOrigin = (typeof RevisionOriginValues)[number];
 export const TaskStatusValues = ["ready","in_progress","done"] as const;
@@ -287,6 +291,93 @@ export interface DatabaseRows {
     description: string;
     created_at: Date;
     archived: boolean;
+  };
+  prospect_catalogue_grants: {
+    catalogue_id: string;
+    user_id: string;
+  };
+  prospect_catalogues: {
+    id: string;
+    owner_id: string;
+  };
+  prospect_events: {
+    id: string;
+    catalogue_id: string;
+    prospect_id: string;
+    kind: ProspectEventKind;
+    actor_id: string;
+    actor_name: string;
+    outcome: ProspectStatus | null;
+    previous_assignee_id: string | null;
+    next_assignee_id: string | null;
+    previous_assignee: string | null;
+    next_assignee: string | null;
+    note: string;
+    created_at: Date;
+    profile_changes: unknown | null;
+  };
+  prospect_image_files: {
+    catalogue_id: string;
+    sha256: string;
+    media_type: string;
+    content: Uint8Array;
+  };
+  prospect_image_refs: {
+    catalogue_id: string;
+    prospect_id: string;
+    sha256: string;
+  };
+  prospect_import_chunks: {
+    catalogue_id: string;
+    digest: string;
+    position: number;
+    content: Uint8Array;
+  };
+  prospect_imports: {
+    catalogue_id: string;
+    digest: string;
+    byte_size: number;
+    sequence: string;
+    imported_by: string;
+    completed_at: Date | null;
+    metadata: unknown | null;
+    report: unknown | null;
+  };
+  prospect_invitations: {
+    catalogue_id: string;
+    email: string;
+  };
+  prospect_memberships: {
+    catalogue_id: string;
+    user_id: string;
+    display_name: string;
+    role: string;
+    joined_email: string | null;
+  };
+  prospect_shares: {
+    catalogue_id: string;
+    prospect_id: string;
+    user_id: string;
+  };
+  prospect_sources: {
+    catalogue_id: string;
+    prospect_id: string;
+    source_rank: number;
+    digest: string;
+    source_time: Date | null;
+    payload: unknown;
+  };
+  prospects: {
+    catalogue_id: string;
+    id: string;
+    name: string;
+    details: string;
+    assignee_id: string | null;
+    status: ProspectStatus;
+    revision: number;
+    edited_name: boolean;
+    edited_details: boolean;
+    research: unknown;
   };
   shirt_designs: {
     project_id: string;
