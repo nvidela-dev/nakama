@@ -6,7 +6,7 @@ import { isAppAdmin } from "@/features/access/server/app-access";
 import { ProjectError } from "@/shared/contracts/errors";
 import { resumeMatch, type ResumeMatch } from "../resume-match";
 import { foundRange } from "../discovery-weeks";
-import { availabilityLabels, jobDate } from "../model";
+import { availabilityLabels, jobDate, jobPageSize } from "../model";
 
 import {
   commands,
@@ -18,6 +18,9 @@ import {
   type JobCommand,
   type JobFilters,
 } from "../schemas";
+function pageFor(requested: number, total: number) {
+  return Math.max(1, Math.min(requested, Math.ceil(total / jobPageSize) || 1));
+}
 const catalogue = `WITH leads AS (
  SELECT d.*, f.found_on FROM nakama_jobs.discoveries d LEFT JOIN nakama_jobs.found_dates f USING (id)
  UNION ALL SELECT id,company,title,url,first_observed,NULL,NULL,'unknown',relevance,NULL,NULL,NULL,first_observed FROM nakama_jobs.manual_leads WHERE owner_id=$1
@@ -98,6 +101,26 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
         range?.since ?? null,
         range?.until ?? null,
       ];
+      const selection = catalogue + " SELECT * FROM cards" + where;
+      const ascending = filters.direction === "asc";
+      const dateOrder = (oldestFirst: boolean) =>
+        " ORDER BY found_on " + (oldestFirst ? "ASC" : "DESC") + " NULLS LAST,company,title,id";
+      if (!board && filters.sort === "match") {
+        // Scoring uses the same evidence as the visible meter. Sort all filtered roles
+        // before paging; stable ties keep the newest discovery first.
+        const candidates = await queryRows(db, leadSchema, selection + dateOrder(false), values);
+        const matches = await matchesFor(candidates);
+        const page = pageFor(filters.page, candidates.length);
+        candidates.sort((a, b) => {
+          const left = matches.get(a.id)!;
+          const right = matches.get(b.id)!;
+          if (left.status !== "scored") return right.status === "scored" ? 1 : 0;
+          if (right.status !== "scored") return -1;
+          return ascending ? left.percent - right.percent : right.percent - left.percent;
+        });
+        const rows = candidates.slice((page - 1) * jobPageSize, page * jobPageSize);
+        return { rows, total: candidates.length, page, matches };
+      }
       const [counts] = await queryRows(
         db,
         z.object({ total: z.number() }),
@@ -105,17 +128,15 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
         values,
       );
       const total = counts?.total ?? 0;
-      const page = Math.max(1, Math.min(filters.page, Math.ceil(total / 40) || 1));
+      const page = pageFor(filters.page, total);
       const rows = await queryRows(
         db,
         leadSchema,
-        catalogue +
-          " SELECT * FROM cards" +
-          where +
+        selection +
           (board
             ? " ORDER BY last_checked DESC NULLS LAST, first_observed DESC NULLS LAST, company,title,id"
-            : " ORDER BY found_on DESC NULLS LAST,company,title,id LIMIT 40 OFFSET $12"),
-        board ? values : [...values, (page - 1) * 40],
+            : dateOrder(ascending) + ` LIMIT ${jobPageSize} OFFSET $12`),
+        board ? values : [...values, (page - 1) * jobPageSize],
       );
       const matches = await matchesFor(board ? [] : rows);
       return { rows, total, page, matches };

@@ -1,3 +1,4 @@
+export const jobPageSize = 40;
 export const jobStages = {
   pursuing: "Pursuing",
   applied: "Applied",

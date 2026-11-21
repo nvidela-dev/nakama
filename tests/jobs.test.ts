@@ -228,6 +228,39 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
       pageTwo.rows.slice(-3).map((r) => r.id),
       [backdated, archived!.id, unknown!.id],
     );
+    const best = await store.change({
+      ...manual,
+      token: randomUUID(),
+      found_on: "2019-01-01",
+      listed_skills: "React",
+    });
+    const byMatch = { ...base, sort: "match" as const };
+    const high = await store.browse(byMatch);
+    const low = await store.browse({ ...byMatch, direction: "asc" });
+    assert.deepEqual(
+      high.rows.slice(0, 5).map((r) => r.id),
+      [best, role.id, manualId, backdated, archived!.id],
+    );
+    assert.deepEqual(
+      low.rows.slice(0, 5).map((r) => r.id),
+      [archived!.id, manualId, backdated, role.id, best],
+    );
+    for (const direction of ["asc", "desc"] as const) {
+      const first = direction === "asc" ? low : high;
+      const second = await store.browse({ ...byMatch, direction, page: 2 });
+      assert.equal(first.rows.length, 40);
+      const all = [...first.rows, ...second.rows];
+      assert.equal(new Set(all.map((r) => r.id)).size, first.total);
+      assert.ok(second.rows.every((r) => second.matches.get(r.id)?.status !== "scored"));
+      const filtered = await store.browse({ ...byMatch, direction, employer: "direct" });
+      assert.deepEqual(
+        filtered.rows.map((r) => r.id),
+        [role.id],
+      );
+    }
+    const oldest = { ...base, sort: "date" as const, direction: "asc" as const };
+    assert.equal((await store.browse(oldest)).rows[0]?.id, best);
+    assert.equal((await store.browse({ ...oldest, page: 2 })).rows.at(-1)?.id, unknown!.id);
   } finally {
     await pg.close();
   }

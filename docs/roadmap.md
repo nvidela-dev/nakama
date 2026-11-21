@@ -518,3 +518,5 @@ Jobs and interviews is an owner-only area of Nakama, independent of Business Sal
 The jobs backlog is ordered by date found, newest first, with a group for each calendar week in Montevideo starting on Monday. This week and last week are green, two weeks ago is yellow, three is orange, and four or more are red. Each lead shows its exact discovery date. Undated leads appear together at the end. A later check or interview does not change when the lead was found.
 
 The owner wants a résumé compatibility bar on the jobs backlog. Use the share of recognized listed job skills documented in the owner's résumé. Show the count and the matched and unlisted skills, with an explicit unscored state when evidence is missing.
+
+Résumé match and Date found lead the jobs table. Either header sorts the whole filtered backlog in both directions. Date defaults to newest first, résumé match opens highest first, ties use newest discovery first, and missing values appear last. Date sorting retains weekly groups. Match sorting keeps each role's age beside its date.

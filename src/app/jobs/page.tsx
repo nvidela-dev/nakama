@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ownerJobs } from "@/features/jobs/server/connection";
 import { linearJobsConfigured } from "@/features/jobs/server/linear";
+import type { JobFilters, JobSort } from "@/features/jobs/schemas";
 import { ResumeMeter } from "@/features/jobs/components/resume-meter";
 import { JobDetail } from "@/features/jobs/components/job-detail";
 import { JobForm } from "@/features/jobs/components/job-form";
@@ -11,7 +12,13 @@ import {
   weekLabel,
   weekColors,
 } from "@/features/jobs/discovery-weeks";
-import { availabilityLabels, jobDate, jobStages, sourceLink } from "@/features/jobs/model";
+import {
+  availabilityLabels,
+  jobDate,
+  jobPageSize,
+  jobStages,
+  sourceLink,
+} from "@/features/jobs/model";
 import { getT } from "@/shared/i18n/server";
 import { Button } from "@/shared/ui/button";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
@@ -26,7 +33,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const [params, t] = await Promise.all([searchParams, getT()]);
   const pick = (key: string) => (typeof params[key] === "string" ? params[key] : "");
   const board = pick("view") === "board";
-  const filters = {
+  const sort: JobSort = pick("sort") === "match" ? "match" : "date";
+  const direction = pick("direction") === "asc" ? "asc" : "desc";
+  const filters: JobFilters = {
+    sort,
+    direction,
     query: pick("q"),
     found: board ? "" : pick("found"),
     availability: pick("availability"),
@@ -48,6 +59,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       "startup",
       "source",
       "found",
+      "sort",
+      "direction",
       "page",
     ]) {
       const v = pick(key);
@@ -58,6 +71,26 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       else p.delete(k);
     }
     return "/jobs" + (p.size ? "?" + p.toString() : "");
+  }
+  function sortableHeader(key: JobSort, label: string) {
+    const active = sort === key;
+    const ascendingNext = active && direction === "desc";
+    return (
+      <th
+        scope="col"
+        aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : undefined}
+        className="px-3 py-2 whitespace-nowrap"
+      >
+        <Link
+          href={path({ sort: key, direction: ascendingNext ? "asc" : "", page: "" })}
+          prefetch={false}
+          className="inline-flex items-center gap-1 rounded font-semibold underline-offset-4 hover:underline focus-visible:underline"
+        >
+          {t(label)}{" "}
+          <span aria-hidden="true">{active ? (direction === "asc" ? "↑" : "↓") : "↕"}</span>
+        </Link>
+      </th>
+    );
   }
   if (pick("role")) {
     let data;
@@ -78,7 +111,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   }
   const today = jobDate();
   const { rows, total, page, matches } = await jobs.browse(filters, today);
-  const last = Math.ceil(total / 40);
+  const last = Math.ceil(total / jobPageSize);
+  const groups =
+    sort === "date"
+      ? Map.groupBy(rows, (r) => weeksSinceFound(r.found_on, today))
+      : new Map([[null, rows]]);
   const filtering = [
     filters.query,
     filters.found,
@@ -153,6 +190,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         ))}
       </nav>
       <form action="/jobs" method="get" className="flex flex-wrap items-end gap-2">
+        {sort === "match" && <Input type="hidden" name="sort" value={sort} />}
+        {direction === "asc" && <Input type="hidden" name="direction" value={direction} />}
         {board && <Input type="hidden" name="view" value="board" />}
         <label className={filterClass + " min-w-48 grow"}>
           {t("Search roles")}
@@ -202,7 +241,22 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         <Button type="submit" variant="secondary">
           {t("Apply filters")}
         </Button>
-        {filtering && <Link href={board ? "/jobs?view=board" : "/jobs"}>{t("Clear filters")}</Link>}
+        {filtering && (
+          <Link
+            href={path({
+              q: "",
+              found: "",
+              source: "",
+              availability: "",
+              employer: "",
+              contract: "",
+              startup: "",
+              page: "",
+            })}
+          >
+            {t("Clear filters")}
+          </Link>
+        )}
       </form>
       {board ? (
         <div className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -247,25 +301,18 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           >
             <thead className="bg-panel text-muted">
               <tr>
-                {[
-                  "Date found",
-                  "Role",
-                  "Résumé match",
-                  "Source",
-                  "Last source check",
-                  "Availability",
-                  "Relevance",
-                ].map((h) => (
+                {sortableHeader("match", "Résumé match")}
+                {sortableHeader("date", "Date found")}
+                {["Role", "Source", "Last source check", "Availability", "Relevance"].map((h) => (
                   <th key={h} scope="col" className="px-3 py-2 font-medium">
                     {t(h)}
                   </th>
                 ))}
               </tr>
             </thead>
-            {Array.from(
-              Map.groupBy(rows, (r) => weeksSinceFound(r.found_on, today)),
-              ([weeks, leads]) => (
-                <tbody key={weeks ?? "unknown"}>
+            {Array.from(groups, ([weeks, leads]) => (
+              <tbody key={weeks ?? "unknown"}>
+                {sort === "date" && (
                   <tr>
                     <th
                       scope="rowgroup"
@@ -279,58 +326,64 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                       </span>
                     </th>
                   </tr>
-                  {leads.map((r) => {
-                    const href = sourceLink(r.url);
-                    return (
-                      <tr key={r.id} className="border-t border-line align-top">
-                        <td className="whitespace-nowrap px-3 py-2 font-medium tabular-nums">
-                          {r.found_on ? (
-                            <time
-                              dateTime={r.found_on}
-                              className={`inline-block rounded px-2 py-0.5 ${weekColors(weeks)}`}
-                            >
-                              {r.found_on}
-                            </time>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="min-w-52 px-3 py-2">
-                          <Link
-                            className="font-semibold"
-                            prefetch={false}
-                            href={path({ role: r.id })}
+                )}
+                {leads.map((r) => {
+                  const href = sourceLink(r.url);
+                  const age = weeksSinceFound(r.found_on, today);
+                  return (
+                    <tr key={r.id} className="border-t border-line align-top">
+                      <td className="min-w-36 px-3 py-2">
+                        <ResumeMeter match={matches.get(r.id)!} t={t} />
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 font-medium tabular-nums">
+                        {r.found_on ? (
+                          <time
+                            dateTime={r.found_on}
+                            className={`inline-block rounded px-2 py-0.5 ${weekColors(age)}`}
                           >
-                            {r.title}
-                          </Link>
-                          <p className="text-muted">
-                            {r.company}
-                            {r.stage ? " · " + t(jobStages[r.stage]) : ""}
-                          </p>
-                        </td>
-                        <td className="min-w-36 px-3 py-2">
-                          <ResumeMeter match={matches.get(r.id)!} t={t} />
-                        </td>
-                        <td className="max-w-52 px-3 py-2 wrap-anywhere">
-                          {href ? (
-                            <a href={href} rel="noreferrer" target="_blank">
-                              {new URL(href).hostname} ↗
-                            </a>
-                          ) : (
-                            t("Unknown")
-                          )}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-2">{r.last_checked ?? "—"}</td>
-                        <td className="px-3 py-2">{t(availabilityLabels[r.availability])}</td>
-                        <td className="max-w-72 px-3 py-2">
-                          <span className="line-clamp-2">{r.relevance ?? "—"}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              ),
-            )}
+                            {r.found_on}
+                          </time>
+                        ) : (
+                          "—"
+                        )}
+                        {sort === "match" && (
+                          <span className="block text-xs font-normal text-muted">
+                            {t(weekLabel(age), { count: age ?? 0 })}
+                          </span>
+                        )}
+                      </td>
+                      <td className="min-w-52 px-3 py-2">
+                        <Link
+                          className="font-semibold"
+                          prefetch={false}
+                          href={path({ role: r.id })}
+                        >
+                          {r.title}
+                        </Link>
+                        <p className="text-muted">
+                          {r.company}
+                          {r.stage ? " · " + t(jobStages[r.stage]) : ""}
+                        </p>
+                      </td>
+                      <td className="max-w-52 px-3 py-2 wrap-anywhere">
+                        {href ? (
+                          <a href={href} rel="noreferrer" target="_blank">
+                            {new URL(href).hostname} ↗
+                          </a>
+                        ) : (
+                          t("Unknown")
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2">{r.last_checked ?? "—"}</td>
+                      <td className="px-3 py-2">{t(availabilityLabels[r.availability])}</td>
+                      <td className="max-w-72 px-3 py-2">
+                        <span className="line-clamp-2">{r.relevance ?? "—"}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            ))}
           </table>
         </div>
       )}

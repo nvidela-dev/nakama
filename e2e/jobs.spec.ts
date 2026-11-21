@@ -30,6 +30,20 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   }
   await page.getByRole("link", { name: "Jobs and interviews" }).click();
   await expect(page.getByRole("table", { name: "Leads backlog" })).toBeVisible();
+  const headers = page.getByRole("columnheader");
+  const matchHeader = headers.nth(0);
+  const dateHeader = headers.nth(1);
+  await expect(matchHeader).toHaveAccessibleName("Résumé match");
+  await expect(dateHeader).toHaveAccessibleName("Date found");
+  await expect(dateHeader).toHaveAttribute("aria-sort", "descending");
+  await dateHeader.getByRole("link").click();
+  await expect(dateHeader).toHaveAttribute("aria-sort", "ascending");
+  await matchHeader.getByRole("link").click();
+  await expect(matchHeader).toHaveAttribute("aria-sort", "descending");
+  await matchHeader.getByRole("link").click();
+  await expect(matchHeader).toHaveAttribute("aria-sort", "ascending");
+  await dateHeader.getByRole("link").click();
+  await expect(dateHeader).toHaveAttribute("aria-sort", "descending");
   await page.getByText("Add job lead", { exact: true }).click();
   const role = "QA role " + randomUUID();
   await page.getByLabel("Company", { exact: true }).fill("Example Labs");
@@ -58,7 +72,13 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await row.locator("summary").click();
   await expect(row.getByText("On your résumé", { exact: true })).toBeVisible();
   await expect(row.getByText("Rust", { exact: true })).toBeVisible();
-  await group.getByRole("link", { name: role }).click();
+  await matchHeader.getByRole("link").click();
+  await expect(matchHeader).toHaveAttribute("aria-sort", "descending");
+  await expect(page.getByRole("rowheader")).toHaveCount(0);
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page).toHaveURL(/sort=match/);
+  await expect(page.getByLabel("Found", { exact: true })).toHaveValue("2");
+  await page.getByRole("link", { name: role }).click();
   await expect(page.getByRole("heading", { name: role })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create private Linear task" })).toHaveCount(0);
   await page.getByRole("button", { name: "Move to Pursuing" }).click();

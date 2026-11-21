@@ -78,7 +78,10 @@ export const commands = z.discriminatedUnion("type", [
   }),
 ]);
 export type JobCommand = z.input<typeof commands>;
+export type JobSort = "date" | "match";
 export type JobFilters = {
+  sort?: JobSort;
+  direction?: "asc" | "desc";
   found: string;
   query: string;
   availability: string;
