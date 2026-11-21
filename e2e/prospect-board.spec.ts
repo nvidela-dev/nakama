@@ -46,7 +46,9 @@ test("a private image follows a business from the backlog into fullscreen, its d
     await page.getByRole("link", { name: "My board", exact: true }).click();
     await expect(page.getByRole("heading", { name: "0 businesses" })).toBeVisible();
     await page.getByRole("link", { name: "Backlog", exact: true }).click();
+    await expect(row).toBeVisible();
     await page.getByRole("link", { name: "Fullscreen", exact: true }).click();
+    await expect(page.getByRole("link", { name: "Exit fullscreen", exact: true })).toBeFocused();
     await decoded();
     await row.getByRole("link", { name, exact: true }).click();
     const gallery = page.getByRole("region", { name: "Business images" });
@@ -63,6 +65,7 @@ test("a private image follows a business from the backlog into fullscreen, its d
     await page.locator("main > nav").getByRole("link").click();
     await expect(page.getByRole("link", { name: "Exit fullscreen" })).toBeVisible();
     await page.keyboard.press("Escape");
+    await expect(page.getByRole("link", { name: "Fullscreen", exact: true })).toBeVisible();
     await page.getByRole("link", { name: "My board", exact: true }).click();
     const card = page
       .getByRole("region", { name: "Ready", exact: true })
