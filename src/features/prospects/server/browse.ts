@@ -14,6 +14,9 @@ const card = z.object({
   latest_outcome: z.string().nullable(),
   open_todos: z.number(),
   image: z.string().nullable(),
+  mine: z.boolean(),
+  unassigned: z.boolean(),
+  on_board: z.boolean(),
 });
 const facets = z.object({
   regions: z.array(z.string()),
@@ -37,24 +40,25 @@ export async function browse(
     result,
     `
   WITH allowed AS MATERIALIZED (
-    SELECT p.id,p.name,p.status,p.revision,p.assignee_id,m.display_name AS assignee_name,
+    SELECT p.id,p.name,p.status,p.revision,p.assignee_id,(p.assignee_id IS NOT DISTINCT FROM $2) mine,(p.assignee_id IS NULL) unassigned,p.on_board,m.display_name AS assignee_name,
       coalesce(f.region,'') region,coalesce(f.city,'') city,coalesce(f.industry,'') industry,coalesce(f.services,'{}'::text[]) services,coalesce(f.identity_state,'unknown') identity_state,
       position(lower($4) in lower(concat_ws(' ',p.name,p.details,f.search_text,CASE WHEN $4<>'' THEN p.research::text END)))>0 AS search_hit,
       EXISTS(SELECT 1 FROM prospect_events e WHERE e.catalogue_id=p.catalogue_id AND e.prospect_id=p.id AND e.kind='call') called,
-      (SELECT r.sha256 FROM prospect_image_refs r WHERE r.catalogue_id=p.catalogue_id AND r.prospect_id=p.id ORDER BY r.sha256 LIMIT 1) image
+      coalesce(s.cover_sha256,(SELECT r.sha256 FROM prospect_image_refs r WHERE r.catalogue_id=p.catalogue_id AND r.prospect_id=p.id ORDER BY r.sha256 LIMIT 1)) image
     FROM prospects p LEFT JOIN prospect_facets f ON f.catalogue_id=p.catalogue_id AND f.prospect_id=p.id
+    LEFT JOIN prospect_sources s ON s.catalogue_id=p.catalogue_id AND s.prospect_id=p.id AND s.source_rank=2
     LEFT JOIN prospect_memberships m ON m.catalogue_id=p.catalogue_id AND m.user_id=p.assignee_id
-    WHERE ${visibility}
+    WHERE ${visibility} AND (NOT $16::boolean OR (p.assignee_id=$2 AND p.on_board))
   ), filtered AS MATERIALIZED (
     SELECT * FROM allowed WHERE search_hit AND ($5='' OR region=$5) AND ($6='' OR city=$6)
-    AND ($7='' OR industry=$7) AND ($8='' OR status::text=$8) AND ($9='' OR coalesce(assignee_id,'unassigned')=$9)
+    AND ($7='' OR industry=$7) AND ($8='' OR status::text=$8) AND ($16 OR $9='' OR coalesce(assignee_id,'unassigned')=$9)
     AND ($10='' OR called=($10='yes')) AND ($11='' OR (image IS NOT NULL)=($11='yes')) AND ($12='' OR identity_state=$12)
     AND ($13='' OR (cardinality(services)>0)=($13='tagged'))
     AND (cardinality($14::text[])=0 OR CASE WHEN $15='all' THEN services @> $14::text[] ELSE services && $14::text[] END)
   ), ranked AS (
     SELECT *,row_number() OVER(PARTITION BY CASE WHEN $16 THEN status END ORDER BY lower(name),id) AS rn FROM filtered
   ), shown AS (
-    SELECT r.id,r.name,r.status,r.revision,r.assignee_name,r.city,r.industry,r.called,r.image,
+    SELECT r.id,r.name,r.status,r.revision,r.assignee_name,r.city,r.industry,r.called,r.image,r.mine,r.unassigned,r.on_board,
       (SELECT e.note FROM prospect_events e WHERE e.catalogue_id=$1 AND e.prospect_id=r.id
        AND (e.outcome IS NOT NULL OR e.kind IN ('call','message','reply')) ORDER BY e.id DESC LIMIT 1) latest_outcome,
       (SELECT count(*)::int FROM prospect_todos t WHERE t.catalogue_id=$1 AND t.prospect_id=r.id AND NOT done) open_todos
@@ -88,8 +92,8 @@ export async function browse(
       filters.getAll("service"),
       filters.get("match") ?? "any",
       board,
-      board ? 0 : (page - 1) * limit,
-      board ? limit : page * limit,
+      (page - 1) * limit,
+      page * limit,
     ],
   );
   if (!rows) throw new Error("Missing catalogue result");

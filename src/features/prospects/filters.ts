@@ -51,6 +51,9 @@ export type BusinessCard = {
   latest_outcome: string | null;
   open_todos: number;
   image: string | null;
+  mine: boolean;
+  unassigned: boolean;
+  on_board: boolean;
 };
 
 export type BrowseResult = {

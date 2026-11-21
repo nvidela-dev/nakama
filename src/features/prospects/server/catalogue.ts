@@ -44,7 +44,7 @@ async function memberName({ tx, catalogueId }: CatalogueRead, userId: string) {
 }
 const visible =
   "p.catalogue_id=$1 AND ($3::boolean OR p.assignee_id=$2 OR EXISTS(SELECT 1 FROM prospect_shares s WHERE s.catalogue_id=p.catalogue_id AND s.prospect_id=p.id AND s.user_id=$2))";
-const summary = `SELECT p.id,p.name,p.details,p.status,p.revision,p.assignee_id,m.display_name AS assignee_name,
+const summary = `SELECT p.id,p.name,p.details,p.status,p.revision,p.assignee_id,p.on_board,m.display_name AS assignee_name,
   EXISTS (SELECT 1 FROM prospect_events e WHERE e.catalogue_id=p.catalogue_id AND e.prospect_id=p.id AND e.kind='call') AS called,
   (SELECT e.note FROM prospect_events e WHERE e.catalogue_id=p.catalogue_id AND e.prospect_id=p.id
     AND (e.outcome IS NOT NULL OR e.kind IN ('call','message','reply')) ORDER BY e.id DESC LIMIT 1) AS latest_outcome
@@ -115,7 +115,7 @@ export function prospectService(db: Database) {
               tx,
               z.object({ sha256: z.string(), available: z.boolean() }),
               `SELECT r.sha256,f.sha256 IS NOT NULL AS available FROM prospect_image_refs r LEFT JOIN prospect_image_files f USING(catalogue_id,sha256)
-          WHERE r.catalogue_id=$1 AND r.prospect_id=$2 ORDER BY r.sha256`,
+          WHERE r.catalogue_id=$1 AND r.prospect_id=$2 ORDER BY (r.sha256=(SELECT cover_sha256 FROM prospect_sources WHERE catalogue_id=$1 AND prospect_id=$2 AND source_rank=2)) DESC NULLS LAST,r.sha256`,
               [catalogueId, prospect.id],
             )
           : [];
@@ -140,8 +140,11 @@ export function prospectService(db: Database) {
           role === "owner" && !selected
             ? await queryRows(
                 tx,
-                z.object({ email: z.string() }),
-                "SELECT email FROM prospect_invitations WHERE catalogue_id=$1 ORDER BY email",
+                z.object({
+                  email: z.string(),
+                  state: z.enum(["Pending", "Accepted", "Expired", "Revoked"]),
+                }),
+                "SELECT email,CASE WHEN revoked_at IS NOT NULL THEN 'Revoked' WHEN accepted_by IS NOT NULL THEN 'Accepted' WHEN expires_at<=now() THEN 'Expired' ELSE 'Pending' END AS state FROM prospect_invitations WHERE catalogue_id=$1 ORDER BY email",
                 [catalogueId],
               )
             : [];
@@ -219,7 +222,7 @@ export function prospectService(db: Database) {
         if (!parsed.success) throw new ProjectError("Check the prospect details and try again.");
         const cmd = parsed.data;
         if (
-          !["log", "stage", "linear", "todo_add", "todo_check"].includes(cmd.type) &&
+          !["log", "my_board", "stage", "linear", "todo_add", "todo_check"].includes(cmd.type) &&
           role !== "owner"
         )
           throw unavailable();
@@ -250,14 +253,14 @@ export function prospectService(db: Database) {
           const email = cmd.email.toLowerCase();
           if (cmd.type === "invite")
             await tx.query(
-              "INSERT INTO prospect_invitations(catalogue_id,email) SELECT $1,$2 WHERE NOT EXISTS(SELECT 1 FROM prospect_memberships WHERE catalogue_id=$1 AND joined_email=$2) ON CONFLICT DO NOTHING",
+              "INSERT INTO prospect_invitations(catalogue_id,email) SELECT $1,$2 WHERE NOT EXISTS(SELECT 1 FROM prospect_memberships WHERE catalogue_id=$1 AND joined_email=$2) ON CONFLICT (catalogue_id,email) DO UPDATE SET revoked_at=NULL,accepted_by=NULL,expires_at=excluded.expires_at WHERE prospect_invitations.revoked_at IS NOT NULL OR (prospect_invitations.accepted_by IS NULL AND prospect_invitations.expires_at<=now())",
               [catalogueId, email],
             );
           else
-            await tx.query("DELETE FROM prospect_invitations WHERE catalogue_id=$1 AND email=$2", [
-              catalogueId,
-              email,
-            ]);
+            await tx.query(
+              "UPDATE prospect_invitations SET revoked_at=now() WHERE catalogue_id=$1 AND email=$2 AND accepted_by IS NULL AND revoked_at IS NULL",
+              [catalogueId, email],
+            );
           return;
         }
         if (cmd.type === "remove") {
@@ -266,6 +269,10 @@ export function prospectService(db: Database) {
           await tx.query("SELECT id FROM prospect_catalogues WHERE id=$1 FOR NO KEY UPDATE", [
             catalogueId,
           ]);
+          await tx.query(
+            "UPDATE prospect_invitations SET revoked_at=now() WHERE catalogue_id=$1 AND accepted_by=$2 AND revoked_at IS NULL",
+            [catalogueId, cmd.userId],
+          );
           await tx.query(
             "DELETE FROM prospect_memberships WHERE catalogue_id=$1 AND user_id=$2 AND role='member'",
             [catalogueId, cmd.userId],
@@ -310,7 +317,7 @@ export function prospectService(db: Database) {
             );
           return;
         }
-        if (cmd.type === "assign") {
+        if (cmd.type === "assign" || cmd.type === "my_board") {
           // Membership removal takes this same lock before releasing the member's assignments.
           await tx.query("SELECT id FROM prospect_catalogues WHERE id=$1 FOR NO KEY UPDATE", [
             catalogueId,
@@ -319,8 +326,8 @@ export function prospectService(db: Database) {
         const all = await canBrowseAll(scope);
         const [current] = await queryRows(
           tx,
-          prospectSchema.pick({ assignee_id: true, status: true, revision: true }),
-          `SELECT p.assignee_id,p.status,p.revision FROM prospects p WHERE ${visible} AND p.id=$4 FOR UPDATE`,
+          prospectSchema.pick({ assignee_id: true, status: true, revision: true, on_board: true }),
+          `SELECT p.assignee_id,p.status,p.revision,p.on_board FROM prospects p WHERE ${visible} AND p.id=$4 FOR UPDATE`,
           [catalogueId, person.userId, all, cmd.id],
         );
         if (!current) throw unavailable();
@@ -329,6 +336,39 @@ export function prospectService(db: Database) {
             "This prospect changed. Review the timeline before saving again.",
           );
         const actorName = await memberName(scope, person.userId);
+        if (cmd.type === "my_board") {
+          const unassigned = current.assignee_id === null;
+          if (
+            current.assignee_id !== person.userId &&
+            !(unassigned && role === "owner" && cmd.enabled)
+          )
+            throw unavailable();
+          if (current.on_board === cmd.enabled) return;
+          await tx.query(
+            "UPDATE prospects SET on_board=$4,assignee_id=$3,status=CASE WHEN $4 THEN 'ready'::prospect_status ELSE status END,revision=revision+1 WHERE catalogue_id=$1 AND id=$2",
+            [catalogueId, cmd.id, person.userId, cmd.enabled],
+          );
+          if (unassigned)
+            await tx.query(
+              "INSERT INTO prospect_events(catalogue_id,prospect_id,kind,actor_id,actor_name,next_assignee,next_assignee_id) VALUES($1,$2,'assignment',$3,$4,$4,$3)",
+              [catalogueId, cmd.id, person.userId, actorName],
+            );
+          await tx.query(
+            "INSERT INTO prospect_events(catalogue_id,prospect_id,kind,actor_id,actor_name,profile_changes) VALUES($1,$2,'stage',$3,$4,$5)",
+            [
+              catalogueId,
+              cmd.id,
+              person.userId,
+              actorName,
+              JSON.stringify({
+                board: cmd.enabled ? "added" : "removed",
+                from: current.status,
+                to: cmd.enabled ? "ready" : current.status,
+              }),
+            ],
+          );
+          return;
+        }
         if (
           cmd.type === "stage" ||
           cmd.type === "linear" ||
@@ -338,14 +378,19 @@ export function prospectService(db: Database) {
           let kind: "stage" | "profile" = "profile";
           let changes: Record<string, unknown>;
           if (cmd.type === "stage") {
-            if (cmd.status === current.status) return;
-            await tx.query("UPDATE prospects SET status=$3 WHERE catalogue_id=$1 AND id=$2", [
-              catalogueId,
-              cmd.id,
-              cmd.status,
-            ]);
+            const entering =
+              !current.on_board && current.assignee_id === person.userId && cmd.status === "ready";
+            if (cmd.status === current.status && !entering) return;
+            await tx.query(
+              "UPDATE prospects SET status=$3,on_board=on_board OR $4 WHERE catalogue_id=$1 AND id=$2",
+              [catalogueId, cmd.id, cmd.status, entering],
+            );
             kind = "stage";
-            changes = { from: current.status, to: cmd.status };
+            changes = {
+              from: current.status,
+              to: cmd.status,
+              ...(entering ? { board: "added" } : {}),
+            };
           } else if (cmd.type === "linear") {
             const result = await tx.query(
               "UPDATE prospects SET linear_url=$3 WHERE catalogue_id=$1 AND id=$2 AND linear_url IS DISTINCT FROM $3 RETURNING id",

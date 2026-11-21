@@ -500,3 +500,13 @@ Owners can save or clear an optional Linear project link in a Nakama project. Cu
 ## Project iterations and reflections — 2026-11-21
 
 Projects organize experiments as iterations on a four-stage board. Stages track work in progress. Evidence, assessment and the next decision continue to use the recorded experiment history. Each iteration has four revisitable reflection questions. Every answer retains its author, revision and timestamp. Show the latest answer beside its question and page through older revisions on demand.
+
+## Project context export — 2026-11-21
+
+A current member can preview and download one project’s learning history as Markdown. Include a scope manifest, visible source records and explicit omissions. Check membership again before delivery and require a fresh preview if the content changed. Sharing outside Nakama is a separate human action.
+
+Catalogue invitations use the same seven-day window as project invitations. The owner can see whether an invitation is pending, accepted, expired or revoked, and can renew access explicitly.
+
+## Personal sales board and backlog — 2026-11-21
+
+The catalogue opens as a backlog table of every business the viewer can access. My board is personal. Adding a business to Ready assigns it to the viewer and admits it to their board. Collaborators can add their existing assignments. Cards remain there as sales progress and leave on removal or handoff. Both views show the business image. Opening a record exposes the preferred original near the title and the remaining images beside it.

@@ -12,6 +12,7 @@ import { getLocale, getT } from "@/shared/i18n/server";
 import { translator, formatDate } from "@/shared/i18n";
 import { kindLabel, statusLabel } from "@/features/prospects/model";
 import {
+  BoardEntry,
   EditProspect,
   ProspectWork,
   AddProspect,
@@ -72,13 +73,60 @@ export default async function ProspectsPage({
         </h1>
         {prospect && (
           <p className="mt-2 text-muted">
-            {t(statusLabel[prospect.status])} · {prospect.assignee_name ?? t("Unassigned")} ·{" "}
+            {t(
+              !prospect.on_board && prospect.status === "ready"
+                ? "Backlog"
+                : statusLabel[prospect.status],
+            )}{" "}
+            · {prospect.assignee_name ?? t("Unassigned")} ·{" "}
             {t(prospect.called ? "Called" : "Not called")}
           </p>
         )}
       </header>
       {prospect ? (
         <>
+          <section aria-label={t("Business images")} className="grid gap-3">
+            {data.images.length ? (
+              <ul className="flex flex-wrap items-start gap-3">
+                {data.images.map((img, i) => (
+                  <li key={img.sha256} className={i === 0 ? "w-full" : ""}>
+                    {img.available ? (
+                      <a
+                        href={`${base}/${prospect.id}/images/${img.sha256}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-fit max-w-full cursor-zoom-in"
+                      >
+                        <Image
+                          unoptimized
+                          loading={i === 0 ? "eager" : "lazy"}
+                          src={`${base}/${prospect.id}/images/${img.sha256}`}
+                          alt={t("{business} · image {number}", {
+                            business: prospect.name,
+                            number: i + 1,
+                          })}
+                          width={i === 0 ? 960 : 240}
+                          height={i === 0 ? 540 : 144}
+                          className={
+                            i === 0
+                              ? "block max-h-[48vh] w-auto max-w-full rounded-lg border border-line object-contain"
+                              : "h-20 w-32 rounded border border-line object-cover"
+                          }
+                        />
+                      </a>
+                    ) : (
+                      t("Image {number} missing from archive", { number: i + 1 })
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted">{t("No image in the source catalogue.")}</p>
+            )}
+          </section>
+          {(prospect.assignee_id === person.userId || (owner && !prospect.assignee_id)) && (
+            <BoardEntry id={prospect.id} revision={prospect.revision} onBoard={prospect.on_board} />
+          )}
           {prospect.details && (
             <Panel>
               <h2 className="font-semibold">{t("Contact details")}</h2>
@@ -172,34 +220,6 @@ export default async function ProspectsPage({
                     ))}
                 </details>
               ))}
-              {data.images.length > 0 && (
-                <details className="py-1">
-                  <summary>{t("Evidence images")}</summary>
-                  <ul>
-                    {data.images.map((img, i) => (
-                      <li key={img.sha256}>
-                        {img.available ? (
-                          <a
-                            href={`${base}/${prospect.id}/images/${img.sha256}`}
-                            className="underline"
-                          >
-                            <Image
-                              unoptimized
-                              src={`${base}/${prospect.id}/images/${img.sha256}`}
-                              alt={t("Open image {number}", { number: i + 1 })}
-                              width={280}
-                              height={180}
-                              className="my-2 h-28 w-48 object-contain bg-panel"
-                            />
-                          </a>
-                        ) : (
-                          t("Image {number} missing from archive", { number: i + 1 })
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              )}
             </Panel>
           )}
           <Panel>
@@ -237,12 +257,20 @@ export default async function ProspectsPage({
                       <>
                         <span className="text-sm text-muted">{e.actor_name}</span>
                         {e.note && <p className="whitespace-pre-wrap wrap-anywhere">{e.note}</p>}
-                        {e.kind === "stage" &&
-                        e.profile_changes &&
-                        typeof e.profile_changes.from === "string" &&
-                        typeof e.profile_changes.to === "string" &&
-                        e.profile_changes.from in statusLabel &&
-                        e.profile_changes.to in statusLabel ? (
+                        {e.kind === "stage" && typeof e.profile_changes?.board === "string" ? (
+                          <p>
+                            {t(
+                              e.profile_changes.board === "added"
+                                ? "Added to Ready on my board"
+                                : "Removed from my board",
+                            )}
+                          </p>
+                        ) : e.kind === "stage" &&
+                          e.profile_changes &&
+                          typeof e.profile_changes.from === "string" &&
+                          typeof e.profile_changes.to === "string" &&
+                          e.profile_changes.from in statusLabel &&
+                          e.profile_changes.to in statusLabel ? (
                           <p>
                             {t(statusLabel[e.profile_changes.from as keyof typeof statusLabel])} →{" "}
                             {t(statusLabel[e.profile_changes.to as keyof typeof statusLabel])}
@@ -348,7 +376,12 @@ export default async function ProspectsPage({
             </Panel>
           )}
           {data.listing && (
-            <CatalogueBrowser query={filters.toString()} listing={data.listing} page={page} />
+            <CatalogueBrowser
+              owner={owner}
+              query={filters.toString()}
+              listing={data.listing}
+              page={page}
+            />
           )}
         </>
       )}

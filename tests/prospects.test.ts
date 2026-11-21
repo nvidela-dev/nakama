@@ -66,6 +66,26 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
       await assert.rejects(svc.read({ ...invited, verifiedEmails: [] }));
       await svc.read(invited);
     }
+    const expired = user("Expired");
+    const invitationStatus = async () =>
+      (await svc.read(owner)).invitations.find((i) => i.email === expired.verifiedEmails[0])?.state;
+    await svc.change(owner, { type: "invite", email: expired.verifiedEmails[0] });
+    assert.equal(await invitationStatus(), "Pending");
+    await db.query(
+      "UPDATE prospect_invitations SET expires_at=now()-interval '1 minute' WHERE email=$1",
+      [expired.verifiedEmails[0]],
+    );
+    assert.equal(await invitationStatus(), "Expired");
+    await assert.rejects(svc.read(expired));
+    await svc.change(owner, { type: "invite", email: expired.verifiedEmails[0] });
+    await svc.change(owner, { type: "cancel_invite", email: expired.verifiedEmails[0] });
+    assert.equal(await invitationStatus(), "Revoked");
+    await assert.rejects(svc.read(expired));
+    await join(expired.userId);
+    assert.equal(await invitationStatus(), "Accepted");
+    await svc.change(owner, { type: "remove", userId: expired.userId });
+    assert.equal(await invitationStatus(), "Revoked");
+    await assert.rejects(svc.read(expired));
     await join(ana.userId);
     await join(pedro.userId);
     const id = randomUUID(),
@@ -189,6 +209,16 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
         title: "Hidden",
       }),
     );
+    const personal = async (p: typeof owner) =>
+      (await svc.read(p, undefined, 1, "", new URLSearchParams({ view: "board" }))).listing!.cards;
+    assert.equal((await personal(owner)).length, 0);
+    await assert.rejects(
+      svc.change(ana, { type: "my_board", id, enabled: true, revision: await revision() }),
+    );
+    await svc.change(owner, { type: "my_board", id, enabled: true, revision: await revision() });
+    assert.equal((await detail(owner)).prospect?.assignee_id, owner.userId);
+    assert.equal((await personal(owner))[0]?.status, "ready");
+    await svc.change(owner, { type: "stage", id, status: "deal", revision: await revision() });
     const board = await svc.read(
       owner,
       undefined,
@@ -202,6 +232,14 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
     assert.equal(available.listing?.cards.length, 0);
     await join("Pedro");
     assert.equal((await svc.read(pedro)).prospects.length, 0);
+    await change(owner, { type: "assign", id, revision: await revision(), assignee: "Ana" });
+    assert.equal((await personal(owner)).length, 0);
+    assert.equal((await personal(ana)).length, 0);
+    await change(ana, { type: "stage", id, revision: await revision(), status: "ready" });
+    assert.equal((await personal(ana))[0]?.id, id);
+    await change(ana, { type: "my_board", id, revision: await revision(), enabled: false });
+    assert.equal((await personal(ana)).length, 0);
+    assert.equal((await detail(ana)).prospect?.assignee_id, "Ana");
     await change(owner, { type: "assign", id, revision: await revision(), assignee: "Owner" });
     await ps.deleteProject(outside, unrelated, "Unrelated");
     assert.ok((await detail(owner)).timeline.length > 0);

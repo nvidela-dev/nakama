@@ -39,7 +39,7 @@ export async function catalogueMembership(tx: Queryable, actor: Actor, ownerOnly
     }
     if (!ownerOnly && actor.verifiedEmails.length) {
       await tx.query(
-        `WITH accepted AS (DELETE FROM prospect_invitations WHERE catalogue_id=$1 AND email=ANY($4::text[]) RETURNING catalogue_id,email)
+        `WITH accepted AS (UPDATE prospect_invitations SET accepted_by=$2 WHERE catalogue_id=$1 AND email=ANY($4::text[]) AND accepted_by IS NULL AND revoked_at IS NULL AND expires_at>now() RETURNING catalogue_id,email)
         INSERT INTO prospect_memberships(catalogue_id,user_id,display_name,role,joined_email) SELECT catalogue_id,$2,$3,'member',min(email) FROM accepted GROUP BY catalogue_id ON CONFLICT DO NOTHING`,
         [
           catalogueId,

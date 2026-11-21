@@ -12,11 +12,12 @@ import type { ActionState } from "@/shared/contracts/action-state";
 import type { BrowseResult } from "../filters";
 import { catalogueHref, type BusinessCard } from "../filters";
 import { statusLabel } from "../model";
+import { BoardEntry } from "./prospect-forms";
 import { updateProspect } from "../actions";
 
 type Option = [string, string];
-type Props = { listing: BrowseResult; query: string; page: number };
-export function CatalogueBrowser({ listing, query, page }: Props) {
+type Props = { listing: BrowseResult; query: string; page: number; owner: boolean };
+export function CatalogueBrowser({ listing, query, page, owner }: Props) {
   const t = useT(),
     router = useRouter(),
     params = new URLSearchParams(query),
@@ -67,11 +68,41 @@ export function CatalogueBrowser({ listing, query, page }: Props) {
     });
   }
   const businessHref = (id: string) => catalogueHref(params, { business: id, page });
+  function businessLink(card: BusinessCard, large = false) {
+    return (
+      <Link
+        href={businessHref(card.id)}
+        prefetch={false}
+        className={
+          large
+            ? "grid gap-2 font-semibold wrap-anywhere hover:underline"
+            : "flex items-center gap-3 font-semibold wrap-anywhere hover:underline"
+        }
+      >
+        {card.image && (
+          <Image
+            unoptimized
+            draggable={false}
+            src={`/prospects/${card.id}/images/${card.image}`}
+            alt=""
+            width={large ? 320 : 100}
+            height={large ? 160 : 68}
+            className={
+              large
+                ? "w-full h-28 bg-bg object-contain rounded"
+                : "size-14 shrink-0 rounded border border-line object-cover sm:w-20"
+            }
+          />
+        )}
+        <span>{card.name}</span>
+      </Link>
+    );
+  }
   function tile(card: BusinessCard) {
     return (
       <li
         key={card.id}
-        draggable={board && !pending}
+        draggable={!pending}
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = "move";
           e.dataTransfer.setData("text/plain", card.id);
@@ -81,54 +112,28 @@ export function CatalogueBrowser({ listing, query, page }: Props) {
           setDragged(null);
           setHover(null);
         }}
-        className={
-          board
-            ? "rounded-lg border border-line bg-panel p-3 grid gap-1.5"
-            : "border-b border-line py-3 grid grid-cols-[1fr_auto] gap-2 items-center"
-        }
+        className="rounded-lg border border-line bg-panel p-3 grid gap-1.5"
       >
-        <div className="grid min-w-0 gap-1">
-          <Link
-            href={businessHref(card.id)}
-            prefetch={false}
-            className="font-semibold wrap-anywhere hover:underline"
-          >
-            {card.name}
-          </Link>
-          {(card.city || card.industry) && (
-            <span className="text-xs text-muted wrap-anywhere">
-              {[card.city, card.industry].filter(Boolean).join(" · ")}
-            </span>
-          )}
-          <span className="text-xs text-muted">
-            {[
-              board ? null : t(statusLabel[card.status]),
-              card.assignee_name ?? t("Unassigned"),
-              t(card.called ? "Called" : "Not called"),
-              card.open_todos ? t("{count} open to-dos", { count: card.open_todos }) : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-          {card.latest_outcome && (
-            <span className="line-clamp-2 text-sm wrap-anywhere">{card.latest_outcome}</span>
-          )}
-        </div>
-        {focus && !board && card.image && (
-          <Link href={businessHref(card.id)} prefetch={false} aria-label={card.name}>
-            <Image
-              unoptimized
-              src={`/prospects/${card.id}/images/${card.image}`}
-              alt=""
-              width={120}
-              height={72}
-              className="h-16 w-24 object-cover rounded"
-            />
-          </Link>
+        {businessLink(card, true)}
+        <span className="text-xs text-muted">
+          {[
+            card.city,
+            card.industry,
+            t(card.called ? "Called" : "Not called"),
+            card.open_todos ? t("{count} open to-dos", { count: card.open_todos }) : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </span>
+        {card.latest_outcome && (
+          <span className="line-clamp-2 text-sm wrap-anywhere">{card.latest_outcome}</span>
         )}
       </li>
     );
   }
+  const nextPage = board
+    ? Object.values(listing.counts).some((n) => n > page * 16)
+    : page * 40 < count;
   const filterItems = Array.from(params.entries()).filter(
     ([k]) => !["view", "focus", "match"].includes(k),
   );
@@ -154,7 +159,7 @@ export function CatalogueBrowser({ listing, query, page }: Props) {
               href={catalogueHref(params, { view: v === "board" ? "board" : null })}
               className="rounded px-3 py-1.5 aria-[current=page]:bg-[var(--theme-surface)] aria-[current=page]:font-bold"
             >
-              {t(v === "board" ? "Board" : "List")}
+              {t(v === "board" ? "My board" : "Backlog")}
             </Link>
           ))}
           <Link
@@ -193,10 +198,11 @@ export function CatalogueBrowser({ listing, query, page }: Props) {
             "Sales stage",
             ProspectStatusValues.map((v) => [v, t(statusLabel[v])]),
           )}
-          {pick("assignee", "Assigned to", [
-            ["unassigned", t("Unassigned")],
-            ...listing.facets.owners.map((m): Option => [m.id, m.name]),
-          ])}
+          {!board &&
+            pick("assignee", "Assigned to", [
+              ["unassigned", t("Unassigned")],
+              ...listing.facets.owners.map((m): Option => [m.id, m.name]),
+            ])}
         </div>
         <details
           open={
@@ -273,7 +279,7 @@ export function CatalogueBrowser({ listing, query, page }: Props) {
       </form>
       <Feedback state={feedback} />
       {board ? (
-        <div className="overflow-x-auto pb-3">
+        <div className="overflow-x-auto pb-3" tabIndex={0} role="region" aria-label={t("My board")}>
           <div className="grid grid-cols-4 gap-3 min-w-[850px]">
             {ProspectStatusValues.map((stage) => {
               const cards = listing.cards.filter((c) => c.status === stage),
@@ -301,44 +307,85 @@ export function CatalogueBrowser({ listing, query, page }: Props) {
                     <span className="text-muted tabular-nums">{total}</span>
                   </h3>
                   <ul className="grid gap-2">{cards.map(tile)}</ul>
-                  {total > cards.length && (
-                    <Link
-                      className="mt-3 inline-block underline"
-                      href={catalogueHref(params, { view: null, stage })}
-                    >
-                      {t("View all {count}", { count: total })}
-                    </Link>
-                  )}
                 </section>
               );
             })}
           </div>
         </div>
       ) : (
-        <>
-          <ul
-            className={
-              focus
-                ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-                : "divide-y divide-line rounded-xl border border-line px-4 bg-panel"
-            }
-          >
-            {listing.cards.map(tile)}
-          </ul>
-          {(page > 1 || page * 40 < count) && (
-            <nav aria-label={t("Catalogue pages")} className="flex items-center gap-4">
-              {page > 1 && (
-                <Link href={catalogueHref(params, { page: page - 1 })}>{t("Previous")}</Link>
-              )}
-              <span>{t("Page {page}", { page })}</span>
-              {page * 40 < count && (
-                <Link href={catalogueHref(params, { page: page + 1 })}>{t("Next")}</Link>
-              )}
-            </nav>
-          )}
-        </>
+        <div
+          className="min-w-0 rounded-xl border border-line bg-panel overflow-x-auto"
+          role="region"
+          aria-label={t("Backlog")}
+          tabIndex={0}
+        >
+          <table className="w-full text-sm text-left">
+            <caption className="sr-only">{t("Business backlog")}</caption>
+            <thead className="text-xs text-muted border-b border-line">
+              <tr>
+                <th className="p-3">{t("Business")}</th>
+                <th className="p-3 hidden md:table-cell">{t("City")}</th>
+                <th className="p-3 hidden lg:table-cell">{t("Industry")}</th>
+                <th className="p-3 hidden sm:table-cell">{t("Assigned to")}</th>
+                <th className="p-3">{t("Sales stage")}</th>
+                <th className="p-3">
+                  <span className="sr-only sm:not-sr-only">{t("My board")}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {listing.cards.map((card) => (
+                <tr key={card.id}>
+                  <th scope="row" className="p-2 sm:p-3">
+                    {businessLink(card)}
+                    <span className="block text-xs font-normal text-muted md:hidden">
+                      {card.city}
+                    </span>
+                  </th>
+                  <td className="p-3 hidden md:table-cell">{card.city || "—"}</td>
+                  <td className="p-3 hidden lg:table-cell">{card.industry || "—"}</td>
+                  <td className="p-3 hidden sm:table-cell">
+                    {card.assignee_name ?? t("Unassigned")}
+                  </td>
+                  <td className="p-2">
+                    {t(
+                      !card.on_board && card.status === "ready"
+                        ? "Backlog"
+                        : statusLabel[card.status],
+                    )}
+                    <span className="block text-xs text-muted">
+                      {t(card.called ? "Called" : "Not called")}
+                    </span>
+                  </td>
+                  <td className="p-2">
+                    {(card.mine || (owner && card.unassigned)) && !card.on_board && (
+                      <BoardEntry id={card.id} revision={card.revision} onBoard={false} />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-      {count === 0 && <p className="p-3">{t("No matching businesses.")}</p>}
+      {(page > 1 || nextPage) && (
+        <nav aria-label={t("Catalogue pages")} className="flex items-center gap-4">
+          {page > 1 && (
+            <Link href={catalogueHref(params, { page: page - 1 })}>{t("Previous")}</Link>
+          )}
+          <span>{t("Page {page}", { page })}</span>
+          {nextPage && <Link href={catalogueHref(params, { page: page + 1 })}>{t("Next")}</Link>}
+        </nav>
+      )}
+      {count === 0 && (
+        <p className="p-3">
+          {t(
+            board && !filterItems.length
+              ? "Add a business to Ready from the backlog to start your board."
+              : "No matching businesses.",
+          )}
+        </p>
+      )}
     </section>
   );
 }

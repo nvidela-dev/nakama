@@ -13,6 +13,7 @@ export const prospectSchema = z.object({
   status: z.enum(ProspectStatusValues),
   revision: z.number().int(),
   assignee_id: z.string().nullable(),
+  on_board: z.boolean(),
   assignee_name: z.string().nullable(),
   called: z.boolean(),
   latest_outcome: z.string().nullable(),
@@ -35,6 +36,7 @@ const input = z.object({
 });
 const change = z.object({ id: z.uuid(), revision: z.number().int().nonnegative() });
 export const commandSchema = z.discriminatedUnion("type", [
+  change.extend({ type: z.literal("my_board"), enabled: z.boolean() }),
   change.extend({ type: z.literal("stage"), status: z.enum(ProspectStatusValues) }),
   change.extend({
     type: z.literal("linear"),

@@ -62,6 +62,22 @@ function ChangeForm({
     </form>
   );
 }
+export function BoardEntry({
+  id,
+  revision,
+  onBoard,
+}: {
+  id: string;
+  revision: number;
+  onBoard: boolean;
+}) {
+  return (
+    <ChangeForm
+      label={onBoard ? "Remove from my board" : "Add to Ready"}
+      submit={() => updateProspect({ type: "my_board", id, revision, enabled: !onBoard })}
+    />
+  );
+}
 export function AddProspect() {
   const t = useT();
   const requestId = useRef<string | null>(null);
@@ -149,7 +165,11 @@ export function ImportProspects() {
     </ChangeForm>
   );
 }
-export function InviteCollaborator({ pending }: { pending: { email: string }[] }) {
+export function InviteCollaborator({
+  pending,
+}: {
+  pending: { email: string; state: "Pending" | "Accepted" | "Expired" | "Revoked" }[];
+}) {
   const t = useT();
   return (
     <div className="grid gap-2">
@@ -170,11 +190,15 @@ export function InviteCollaborator({ pending }: { pending: { email: string }[] }
       </p>
       {pending.map((i) => (
         <div key={i.email} className="flex gap-2 items-center">
-          <span>{i.email}</span>
-          <ChangeForm
-            label="Cancel invitation"
-            submit={() => updateProspect({ type: "cancel_invite", email: i.email })}
-          />
+          <span>
+            {i.email} · {t(i.state)}
+          </span>
+          {i.state === "Pending" && (
+            <ChangeForm
+              label="Cancel invitation"
+              submit={() => updateProspect({ type: "cancel_invite", email: i.email })}
+            />
+          )}
         </div>
       ))}
     </div>

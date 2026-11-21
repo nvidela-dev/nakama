@@ -371,6 +371,9 @@ export interface DatabaseRows {
   prospect_invitations: {
     catalogue_id: string;
     email: string;
+    expires_at: Date;
+    accepted_by: string | null;
+    revoked_at: Date | null;
   };
   prospect_memberships: {
     catalogue_id: string;
@@ -391,6 +394,7 @@ export interface DatabaseRows {
     digest: string;
     source_time: Date | null;
     payload: unknown;
+    cover_sha256: string | null;
   };
   prospect_todos: {
     catalogue_id: string;
@@ -412,6 +416,7 @@ export interface DatabaseRows {
     edited_details: boolean;
     research: unknown;
     linear_url: string | null;
+    on_board: boolean;
   };
   shirt_designs: {
     project_id: string;
