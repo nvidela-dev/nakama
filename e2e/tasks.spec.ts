@@ -203,16 +203,16 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await page.getByLabel("Your answer, learning, or uncertainty").fill("Unsaved guided draft");
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   await expect(list.getByRole("button", { name: "Independent task", exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "Tests", exact: true }).click();
-  const tests = page.getByRole("tabpanel", { name: "Tests", exact: true });
-  await expect(tests.getByRole("heading", { name: "Experiment lab", exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Iterations", exact: true }).click();
+  const tests = page.getByRole("tabpanel", { name: "Iterations", exact: true });
+  await expect(tests.getByRole("heading", { name: "Iterations", exact: true })).toBeVisible();
   await tests
     .getByLabel("Claim · what do you want to learn?", { exact: true })
     .fill("Keep this test-plan draft across tabs");
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   await expect(page.locator(".project-discussion-column")).toHaveCount(0);
   await expect(page.locator(".project-sidebar")).toHaveCount(0);
-  await page.getByRole("tab", { name: "Tests", exact: true }).click();
+  await page.getByRole("tab", { name: "Iterations", exact: true }).click();
   await expect(tests.getByLabel("Claim · what do you want to learn?", { exact: true })).toHaveValue(
     "Keep this test-plan draft across tabs",
   );

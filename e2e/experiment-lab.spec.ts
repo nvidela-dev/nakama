@@ -62,6 +62,33 @@ test("live lab database target and availability", async ({ page }) => {
   } finally {
     await pool.end();
   }
+  if (!process.env.LAB_PREFLIGHT) {
+    await page.getByText("Link Linear project", { exact: true }).click();
+    const address = "https://linear.app/example/project/synthetic-project";
+    const input = page.getByLabel("Linear project URL");
+    await input.fill(address);
+    const stale = await page.context().newPage();
+    await stale.goto(page.url());
+    await stale.getByText("Link Linear project", { exact: true }).click();
+    await page.getByRole("button", { name: "Save Linear link" }).click();
+    const link = page.getByRole("link", { name: "Open Linear project" });
+    await expect(link).toHaveAttribute("href", address);
+    await stale.getByLabel("Linear project URL").fill(address + "-other");
+    await stale.getByRole("button", { name: "Save Linear link" }).click();
+    await expect(stale.getByText("The Linear link changed. Reload before saving.")).toBeVisible();
+    await stale.close();
+    await page
+      .context()
+      .route(address, (route) => route.fulfill({ status: 200, body: "Test destination" }));
+    const [opened] = await Promise.all([page.waitForEvent("popup"), link.click()]);
+    await expect(opened).toHaveURL(address);
+    await opened.close();
+    await page.reload();
+    await page.getByText("Edit Linear link", { exact: true }).click();
+    await input.fill("");
+    await page.getByRole("button", { name: "Save Linear link" }).click();
+    await expect(link).toHaveCount(0);
+  }
   await page.goto(
     process.env.LAB_PREFLIGHT ? `/projects/${fixtureId}/lab` : `/projects/${fixtureId}?view=tests`,
   );
@@ -72,12 +99,12 @@ test("live lab database target and availability", async ({ page }) => {
       ),
     ).toBeVisible();
   } else {
-    await expect(page.getByRole("tab", { name: "Tests", exact: true })).toHaveAttribute(
+    await expect(page.getByRole("tab", { name: "Iterations", exact: true })).toHaveAttribute(
       "aria-selected",
       "true",
     );
     await expect(
-      page.getByRole("heading", { name: "Frame an experiment", exact: true }),
+      page.getByRole("heading", { name: "Plan an iteration", exact: true }),
     ).toBeVisible();
     await page.screenshot({
       path: test.info().outputPath("lab-setup-desktop.png"),
@@ -98,7 +125,31 @@ test("live lab database target and availability", async ({ page }) => {
     await page
       .getByLabel("Success criteria · what would count?", { exact: true })
       .fill("All three identify the next step");
-    await page.getByRole("button", { name: "Create experiment", exact: true }).click();
+    await page.getByRole("button", { name: "Create iteration", exact: true }).click();
+    await page.getByLabel("Iteration stage", { exact: true }).selectOption("run");
+    await page.getByRole("button", { name: "Move iteration" }).click();
+    await expect(
+      page.getByRole("region", { name: "Trying it", exact: true }).getByRole("button"),
+    ).toBeVisible();
+    await page.getByText("Reflection questions", { exact: true }).click();
+    const reflection = page.getByLabel("What did you learn?", { exact: true });
+    const save = reflection
+      .locator("xpath=ancestor::form")
+      .getByRole("button", { name: "Save reflection" });
+    await reflection.fill("The first trial was inconclusive.");
+    await save.click();
+    await expect(page.getByRole("link", { name: "Reflection history · 1" })).toBeVisible();
+    await reflection.fill("We need a larger sample.");
+    await save.click();
+    await page.getByRole("link", { name: "Reflection history · 2" }).click();
+    await expect(
+      page.getByText("The first trial was inconclusive.", { exact: true }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "#1", exact: true }).click();
+    await page.reload();
+    await expect(page.locator("#revision-1")).toContainText("The first trial was inconclusive.");
+    await page.getByRole("link", { name: "Iterations", exact: true }).click();
+    await expect(page.getByLabel("Iteration stage", { exact: true })).toHaveValue("run");
     await page.getByLabel("Executor · person or external agent").fill("Synthetic browser verifier");
     await page.getByRole("button", { name: "Start run", exact: true }).click();
     await page.getByText("Add evidence or measurement", { exact: true }).click();

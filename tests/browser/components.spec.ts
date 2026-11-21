@@ -416,7 +416,7 @@ test("experiment lab starts with three required fields and exposes optional deta
   await page
     .getByLabel("Success criteria · what would count?", { exact: true })
     .fill("Four finish independently");
-  await page.getByRole("button", { name: "Create experiment", exact: true }).click();
+  await page.getByRole("button", { name: "Create iteration", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Preview only");
   await expect(page.getByLabel("Claim · what do you want to learn?", { exact: true })).toHaveValue(
     "A shorter form helps",
@@ -444,7 +444,7 @@ test("testing an existing idea opens an editable claim without inventing a metho
   page,
 }) => {
   await story(page, "features-experiments-lab--from-idea");
-  const capture = page.getByRole("heading", { name: "Frame an experiment" }).locator("..");
+  const capture = page.getByRole("heading", { name: "Plan an iteration" }).locator("..");
   await expect(capture).toBeVisible();
   await expect(capture.locator('textarea[name="claim"]')).toHaveValue(
     "A shorter setup could help a new user finish independently.",
@@ -457,7 +457,7 @@ test("testing an existing idea opens an editable claim without inventing a metho
   await capture.locator('textarea[name="claim"]').fill("Edited claim");
   await capture.locator('textarea[name="method"]').fill("Observe five sessions");
   await capture.locator('textarea[name="criteria"]').fill("Four complete independently");
-  await page.getByRole("button", { name: "Create experiment", exact: true }).click();
+  await page.getByRole("button", { name: "Create iteration", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Draft retained");
   await expect(capture.locator('textarea[name="claim"]')).toHaveValue("Edited claim");
 });

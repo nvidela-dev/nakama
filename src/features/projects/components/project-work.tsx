@@ -62,7 +62,7 @@ export function ProjectWork({
       label: t("Artifacts"),
       content: <VisitedPanel>{artifacts}</VisitedPanel>,
     });
-  if (tests) items.push({ value: "tests", label: t("Tests"), content: tests });
+  if (tests) items.push({ value: "tests", label: t("Iterations"), content: tests });
   if (activity) items.push({ value: "activity", label: t("Activity"), content: activity });
   return <Tabs items={items} value={active} onChange={select} label={t("Project workspace")} />;
 }

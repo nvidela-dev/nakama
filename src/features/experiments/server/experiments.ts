@@ -3,8 +3,10 @@ import { queryRows, required } from "@/server/database/query";
 import type { Database, Queryable } from "@/server/database/database";
 import { membership, ProjectError, type Actor } from "@/features/projects/server/projects";
 import { flows, isFlowId } from "@/features/guidance/model/flows";
-import { planSchema, operationSchema, type Plan } from "../input";
+import { reflectionKey, planSchema, operationSchema, type Plan } from "../input";
 import {
+  IterationStageValues,
+  type IterationStage,
   LabRunStatusValues,
   LabEvidenceKindValues,
   LabAssessmentValues,
@@ -85,7 +87,17 @@ export type LabRun = z.infer<typeof runRow> & { stale: boolean };
 export type LabEvidence = z.infer<typeof evidenceRow>;
 export type LabReview = z.infer<typeof reviewRow>;
 export type LabProposal = z.infer<typeof proposalRow>;
+const reflectionRow = z.object({
+  experiment_id: z.uuid(),
+  prompt: reflectionKey,
+  revision: z.number(),
+  content: z.string(),
+  author_name: z.string(),
+  created_at: date,
+});
 export type Experiment = {
+  stage: IterationStage;
+  reflections: z.infer<typeof reflectionRow>[];
   id: string;
   revision: number;
   plans: LabPlan[];
@@ -125,8 +137,14 @@ async function context(tx: Queryable, projectId: string, nodeId: string) {
 async function snapshot(tx: Queryable, projectId: string): Promise<Experiment[]> {
   const experiments = await queryRows(
     tx,
-    z.object({ id: z.uuid(), revision: z.number() }),
-    "SELECT id,revision FROM experiments WHERE project_id=$1 ORDER BY created_at,id",
+    z.object({ id: z.uuid(), revision: z.number(), stage: z.enum(IterationStageValues) }),
+    "SELECT id,revision,stage FROM experiments WHERE project_id=$1 ORDER BY created_at,id",
+    [projectId],
+  );
+  const latestReflections = await queryRows(
+    tx,
+    reflectionRow,
+    `SELECT r.* FROM experiments e CROSS JOIN (VALUES ('aim'),('observed'),('learned'),('next')) q(prompt) CROSS JOIN LATERAL (SELECT experiment_id,prompt,revision,content,author_name,created_at FROM iteration_reflections WHERE project_id=$1 AND experiment_id=e.id AND prompt=q.prompt ORDER BY revision DESC LIMIT 1) r WHERE e.project_id=$1`,
     [projectId],
   );
   const plans = await queryRows(
@@ -162,6 +180,7 @@ async function snapshot(tx: Queryable, projectId: string): Promise<Experiment[]>
   return Promise.all(
     experiments.map(async (e) => ({
       ...e,
+      reflections: latestReflections.filter((r) => r.experiment_id === e.id),
       plans: plans.filter((p) => p.experiment_id === e.id),
       runs: await Promise.all(
         runs
@@ -204,7 +223,7 @@ async function ready(tx: Queryable) {
       await queryRows(
         tx,
         z.object({ ready: z.boolean() }),
-        "SELECT bool_and(to_regclass(name) IS NOT NULL) AS ready FROM unnest(ARRAY['public.experiments','public.experiment_plans','public.experiment_runs','public.experiment_evidence','public.experiment_reviews','public.experiment_proposals']) AS name",
+        "SELECT bool_and(to_regclass(name) IS NOT NULL) AS ready FROM unnest(ARRAY['public.experiments','public.experiment_plans','public.experiment_runs','public.experiment_evidence','public.experiment_reviews','public.experiment_proposals','public.iteration_reflections']) AS name",
       )
     )[0],
   ).ready;
@@ -217,6 +236,37 @@ async function requireReady(tx: Queryable) {
 }
 export function experimentService(db: Database) {
   return {
+    reflectionHistory: (
+      actor: Actor,
+      projectId: string,
+      id: string,
+      prompt: unknown,
+      before: number,
+    ) =>
+      db.transaction(async (tx) => {
+        await membership(tx, actor, projectId);
+        const key = reflectionKey.safeParse(prompt);
+        if (
+          !z.uuid().safeParse(id).success ||
+          !key.success ||
+          !Number.isSafeInteger(before) ||
+          before < 1
+        )
+          throw new ProjectError("Reflection unavailable.");
+        const [item] = await queryRows(
+          tx,
+          z.object({ id: z.uuid() }),
+          "SELECT id FROM experiments WHERE project_id=$1 AND id=$2",
+          [projectId, id],
+        );
+        if (!item) throw new ProjectError("Reflection unavailable.");
+        return queryRows(
+          tx,
+          reflectionRow,
+          "SELECT experiment_id,prompt,revision,content,author_name,created_at FROM iteration_reflections WHERE project_id=$1 AND experiment_id=$2 AND prompt=$3 AND revision<$4 ORDER BY revision DESC LIMIT 26",
+          [projectId, id, key.data, Math.min(before, 2147483647)],
+        );
+      }),
     available: (actor: Actor, projectId: string) =>
       db.transaction(async (tx) => {
         await authorize(tx, actor, projectId);
@@ -264,6 +314,19 @@ export function experimentService(db: Database) {
         const plan = required(current.plans.at(-1));
         const run = "runId" in op ? current.runs.find((r) => r.id === op.runId) : undefined;
         if ("runId" in op && !run) throw new ProjectError("Run not found.");
+        if (op.kind === "stage")
+          await tx.query("UPDATE experiments SET stage=$3 WHERE project_id=$1 AND id=$2", [
+            projectId,
+            id,
+            op.stage,
+          ]);
+        if (op.kind === "reflection") {
+          await tx.query(
+            `INSERT INTO iteration_reflections(project_id,experiment_id,prompt,revision,content,author_id,author_name)
+            SELECT $1,$2,$3,coalesce(max(revision),0)+1,$4,$5,(SELECT display_name FROM project_memberships WHERE project_id=$1 AND user_id=$5) FROM iteration_reflections WHERE project_id=$1 AND experiment_id=$2 AND prompt=$3`,
+            [projectId, id, op.prompt, op.content, actor.userId],
+          );
+        }
         if (op.kind === "plan") await savePlan(tx, actor, projectId, id, plan.version + 1, op.plan);
         if (op.kind === "start")
           await tx.query(

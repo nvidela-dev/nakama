@@ -10,6 +10,8 @@ export const ArtifactStatusValues = ["in_progress","ready"] as const;
 export type ArtifactStatus = (typeof ArtifactStatusValues)[number];
 export const FlowIdValues = ["venture","creative","investigation","eshop","shirt-eshop","saas","importation","consultancy","platform","self-improvement","video-game"] as const;
 export type FlowId = (typeof FlowIdValues)[number];
+export const IterationStageValues = ["plan","run","review","follow_up"] as const;
+export type IterationStage = (typeof IterationStageValues)[number];
 export const LabAssessmentValues = ["supported","contradicted","inconclusive"] as const;
 export type LabAssessment = (typeof LabAssessmentValues)[number];
 export const LabEvidenceKindValues = ["ai_analysis","external_evidence","measurement","observation"] as const;
@@ -144,6 +146,17 @@ export interface DatabaseRows {
     project_id: string;
     revision: number;
     created_by: string;
+    created_at: Date;
+    stage: IterationStage;
+  };
+  iteration_reflections: {
+    project_id: string;
+    experiment_id: string;
+    prompt: string;
+    revision: number;
+    content: string;
+    author_id: string;
+    author_name: string;
     created_at: Date;
   };
   milestone_columns: {

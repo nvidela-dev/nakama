@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  IterationStageValues,
   LabAssessmentValues,
   LabNextActionValues,
   LabEvidenceKindValues,
@@ -19,7 +20,10 @@ export const planSchema = z.object({
   nodeId: z.string().max(150).default(""),
 });
 const run = { runId: z.uuid() };
+export const reflectionKey = z.enum(["aim", "observed", "learned", "next"]);
 export const operationSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("stage"), stage: z.enum(IterationStageValues) }),
+  z.object({ kind: z.literal("reflection"), prompt: reflectionKey, content: text }),
   z.object({ kind: z.literal("plan"), plan: planSchema }),
   z.object({ kind: z.literal("start"), executor: text }),
   z.object({

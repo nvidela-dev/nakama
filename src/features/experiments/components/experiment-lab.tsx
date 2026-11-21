@@ -1,6 +1,8 @@
 "use client";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { iterationStages, reflectionPrompts } from "../iteration";
+import { IterationStageValues, type IterationStage } from "@/shared/contracts/database.generated";
 import { LabPath, LabResults } from "./lab-visuals";
 import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
@@ -181,7 +183,7 @@ export function ExperimentLab({
   }
   function planForm(current: Plan, create: boolean) {
     return form(
-      create ? "Create experiment" : "Save new plan version",
+      create ? "Create iteration" : "Save new plan version",
       (d) => ({
         kind: create ? "create" : "plan",
         plan: {
@@ -230,14 +232,14 @@ export function ExperimentLab({
     <div className="grid gap-3 min-w-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-[20px]">{t("Experiment lab")}</h2>
+          <h2 className="text-[20px]">{t("Iterations")}</h2>
           <p className="text-muted text-[14px]">
             {t("Ideas, analysis, evidence and reviewed conclusions stay distinct.")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => setCreating(!creating)}>
-            {t(creating ? "Close new experiment" : "New experiment")}
+            {t(creating ? "Close new iteration" : "New iteration")}
           </Button>
           <Button
             variant="secondary"
@@ -305,7 +307,7 @@ export function ExperimentLab({
       </details>
       {creating && (
         <section className="rounded-[18px] border border-line p-4 bg-panel">
-          <h3 className="text-[18px] mb-3">{t("Frame an experiment")}</h3>
+          <h3 className="text-[18px] mb-3">{t("Plan an iteration")}</h3>
           <LabPath />
           <div className="mt-3" />
           {initialClaim && (
@@ -325,39 +327,104 @@ export function ExperimentLab({
           )}
         </section>
       )}
-      <div className="grid lg:grid-cols-[repeat(12,minmax(0,1fr))] gap-4 min-w-0">
-        <aside className="grid content-start gap-2 lg:col-span-2" aria-label={t("Experiments")}>
-          {!items.length && (
-            <p className="text-muted">
-              {t("Start with one uncertainty. No commercial validation is required.")}
-            </p>
-          )}
-          {items.map((item) => (
-            <Button
-              key={item.id}
-              variant={item.id === selected ? "primary" : "secondary"}
-              className="text-left justify-start wrap-anywhere"
-              aria-pressed={item.id === selected}
-              onClick={() => {
-                setSelected(item.id);
-                setBrief("");
-              }}
+      <section aria-label={t("Iteration board")} tabIndex={0} className="overflow-x-auto">
+        <div className="grid min-w-[700px] grid-cols-4 gap-2">
+          {IterationStageValues.map((stage) => (
+            <section
+              key={stage}
+              aria-label={t(iterationStages[stage])}
+              className="rounded-lg border border-line bg-panel p-2"
             >
-              <span className="grid gap-2">
-                <span className="line-clamp-2">{item.plans.at(-1)?.definition.claim}</span>
-                <span className="text-[11px] opacity-75">
-                  {item.runs.length} {t("Run")} · {item.evidence.length} {t("Evidence")} ·{" "}
-                  {item.reviews.length} {t("Review")}
-                </span>
-              </span>
-            </Button>
+              <h3 className="mb-2 font-semibold">
+                {t(iterationStages[stage])} · {items.filter((i) => i.stage === stage).length}
+              </h3>
+              {items
+                .filter((i) => i.stage === stage)
+                .map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={item.id === selected ? "primary" : "secondary"}
+                    disabled={busy}
+                    aria-pressed={item.id === selected}
+                    className="mb-1 w-full whitespace-normal h-auto min-h-9"
+                    onClick={() => {
+                      setCreating(false);
+                      setSelected(item.id);
+                    }}
+                  >
+                    {item.plans.at(-1)?.definition.claim}
+                  </Button>
+                ))}
+            </section>
           ))}
-        </aside>
+        </div>
+      </section>
+      <div className="grid min-w-0">
         {e && plan && (
           <section
             key={e.id}
             className="min-w-0 rounded-[18px] border border-line bg-panel p-4 grid gap-5 lg:col-span-10"
           >
+            <div className="grid gap-3 md:grid-cols-2">
+              {form(
+                "Move iteration",
+                (d) => ({ kind: "stage", stage: d.get("stage") as IterationStage }),
+                <label>
+                  {t("Iteration stage")}
+                  <Select key={e.stage} name="stage" defaultValue={e.stage}>
+                    {IterationStageValues.map((v) => (
+                      <option key={v} value={v}>
+                        {t(iterationStages[v])}
+                      </option>
+                    ))}
+                  </Select>
+                </label>,
+                false,
+              )}
+              <details>
+                <summary className="cursor-pointer font-semibold">
+                  {t("Reflection questions")}
+                </summary>
+                <div className="grid gap-3 mt-2">
+                  {(Object.keys(reflectionPrompts) as (keyof typeof reflectionPrompts)[]).map(
+                    (key) => {
+                      const last = e.reflections.find((r) => r.prompt === key);
+                      return (
+                        <div key={key}>
+                          {form(
+                            "Save reflection",
+                            (d) => ({
+                              kind: "reflection",
+                              prompt: key,
+                              content: String(d.get("content") ?? ""),
+                            }),
+                            <label>
+                              {t(reflectionPrompts[key])}
+                              <Textarea
+                                name="content"
+                                required
+                                maxLength={12000}
+                                defaultValue={last?.content ?? ""}
+                              />
+                            </label>,
+                            false,
+                          )}
+                          {last && (
+                            <Link
+                              prefetch={false}
+                              className="text-xs underline"
+                              href={`/projects/${projectId}/lab/${e.id}/reflections/${key}`}
+                            >
+                              {t("Reflection history")} · {last.revision}
+                            </Link>
+                          )}
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              </details>
+            </div>
             <LabPath experiment={e} />
             <header>
               <p className="text-[12px] text-muted">

@@ -4,6 +4,8 @@ import { ExperimentLab } from "./experiment-lab";
 import type { Experiment } from "../model";
 const timestamp = "2026-10-26T12:00:00.000Z";
 const experiment: Experiment = {
+  stage: "review",
+  reflections: [],
   id: "00000000-0000-4000-8000-000000000001",
   revision: 1,
   plans: [

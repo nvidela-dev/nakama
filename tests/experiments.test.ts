@@ -5,6 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { projectService, type Actor } from "../src/features/projects/server/projects";
 import { experimentService } from "../src/features/experiments/server/experiments";
 import type { Database } from "../src/server/database/database";
+import { taskService } from "../src/features/tasks/server/tasks";
 import { guidanceService } from "../src/features/guidance/server/guidance";
 import { required } from "../src/shared/lib/required";
 const sql = new PGlite();
@@ -415,7 +416,7 @@ test("unmigrated databases fail safely after membership checks and become ready 
   };
   try {
     for (const f of (await readdir("migrations"))
-      .filter((f) => f.endsWith(".sql") && !f.startsWith("016_"))
+      .filter((f) => f.endsWith(".sql") && !f.startsWith("016_") && !f.startsWith("029_"))
       .sort())
       await old.exec(await readFile(`migrations/${f}`, "utf8"));
     const id = await projectService(oldDb).create(owner, {
@@ -428,6 +429,8 @@ test("unmigrated databases fail safely after membership checks and become ready 
     await assert.rejects(service.list(owner, id), /awaiting its database update/);
     await assert.rejects(service.create(owner, id, plan), /awaiting its database update/);
     await old.exec(await readFile("migrations/016_experiment_lab.sql", "utf8"));
+    assert.equal(await service.available(owner, id), false);
+    await old.exec(await readFile("migrations/029_iteration_workflow.sql", "utf8"));
     assert.equal(await service.available(owner, id), true);
     assert.deepEqual(await service.list(owner, id), []);
     assert.equal((await projectService(oldDb).get(owner, id)).name, "Migration fixture");
@@ -504,4 +507,87 @@ test("every project flow supports a linked test, retained results and a separate
     assert.equal((await guidance.get(owner, id))?.flow.id, flow.id);
     await assert.rejects(lab.list(outsider, id));
   }
+});
+
+test("iteration stages preserve results and reflection history stays bounded and project-scoped", async () => {
+  const projectId = await setup();
+  let item = required((await lab.create(owner, projectId, plan))[0]);
+  assert.equal(item.stage, "plan");
+  item = required(
+    (
+      await lab.change(member, projectId, item.id, item.revision, {
+        kind: "stage",
+        stage: "review",
+      })
+    )[0],
+  );
+  assert.equal(item.reviews.length, 0);
+  assert.equal(item.evidence.length, 0);
+  const revision = item.revision;
+  item = required(
+    (
+      await lab.change(owner, projectId, item.id, revision, {
+        kind: "reflection",
+        prompt: "learned",
+        content: "We need more observations.",
+      })
+    )[0],
+  );
+  await assert.rejects(
+    lab.change(member, projectId, item.id, revision, {
+      kind: "reflection",
+      prompt: "learned",
+      content: "Stale answer",
+    }),
+    /changed/,
+  );
+  assert.equal(item.reflections[0]?.author_name, "Owner");
+  await db.query(
+    "INSERT INTO iteration_reflections(project_id,experiment_id,prompt,revision,content,author_id,author_name) SELECT $1,$2,'learned',n,'Synthetic reflection '||n,$3,'Member' FROM generate_series(2,10001) n",
+    [projectId, item.id, member.userId],
+  );
+  const taskQueries: string[] = [];
+  const tasks = taskService({
+    ...db,
+    transaction: (work) =>
+      db.transaction((tx) =>
+        work({
+          query(sql, values) {
+            taskQueries.push(sql);
+            return tx.query(sql, values);
+          },
+        }),
+      ),
+  });
+  const list = await tasks.list(member, projectId);
+  const saved = await tasks.change(member, projectId, list.revision, {
+    kind: "add",
+    title: "Revisit the results",
+    parentId: null,
+  });
+  assert.equal(saved.tasks.at(-1)?.title, "Revisit the results");
+  assert.ok(
+    taskQueries.length > 0 && taskQueries.every((sql) => !sql.includes("iteration_reflections")),
+  );
+  const current = required((await lab.list(owner, projectId))[0]);
+  assert.equal(current.reflections.length, 1);
+  assert.equal(current.reflections[0]?.revision, 10001);
+  const first = await lab.reflectionHistory(member, projectId, item.id, "learned", 2147483647);
+  assert.equal(first.length, 26);
+  assert.equal(first[0]?.revision, 10001);
+  const second = await lab.reflectionHistory(
+    member,
+    projectId,
+    item.id,
+    "learned",
+    first[24]!.revision,
+  );
+  assert.equal(second[0]?.revision, 9976);
+  assert.equal(
+    (await lab.reflectionHistory(owner, projectId, item.id, "learned", 2))[0]?.content,
+    "We need more observations.",
+  );
+  await assert.rejects(lab.reflectionHistory(outsider, projectId, item.id, "learned", 2147483647));
+  const other = await setup();
+  await assert.rejects(lab.reflectionHistory(owner, other, item.id, "learned", 2147483647));
 });

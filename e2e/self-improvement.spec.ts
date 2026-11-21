@@ -105,9 +105,7 @@ test("self-improvement capture, answers, tasks, artifacts and experiments", asyn
     "Synthetic practice journal.",
   );
   await page.goto(`/projects/${fixtureId}/lab`);
-  await expect(
-    page.getByRole("heading", { name: "Frame an experiment", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Plan an iteration", exact: true })).toBeVisible();
   await page
     .getByLabel("Claim · what do you want to learn?")
     .fill("A prepared first step helps me start before opening messages");
@@ -117,7 +115,7 @@ test("self-improvement capture, answers, tasks, artifacts and experiments", asyn
   await page
     .getByLabel("Success criteria · what would count?")
     .fill("Start with the chosen task on all three mornings");
-  await page.getByRole("button", { name: "Create experiment", exact: true }).click();
+  await page.getByRole("button", { name: "Create iteration", exact: true }).click();
   await page.getByLabel("Executor · person or external agent").fill("Synthetic browser verifier");
   await page.getByRole("button", { name: "Start run", exact: true }).click();
   await page.getByText("Add evidence or measurement", { exact: true }).click();

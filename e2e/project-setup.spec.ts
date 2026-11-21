@@ -101,7 +101,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await board.getByLabel("Board template").selectOption("build_sprint");
   await board.getByRole("button", { name: "Save milestone" }).click();
   await expect(board).toHaveCount(0);
-  await page.getByRole("tab", { name: "Tests", exact: true }).click();
+  await page.getByRole("tab", { name: "Iterations", exact: true }).click();
   await expect(page.getByLabel("Budget and action limits", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Related question", { exact: true })).toHaveCount(0);
   await page.goto("/projects");

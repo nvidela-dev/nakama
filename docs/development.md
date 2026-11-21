@@ -546,3 +546,9 @@ The AHA-61 pass on `codex/linear-overnight-qa` reproduced 32px coarse-pointer co
 - `git diff --check`: passed.
 
 These are local synthetic-fixture results on the available current baseline, not authenticated end-to-end or hosted-release verification. The separate November 6 iteration/catalogue changes remain unavailable in the inspected checkouts. No production data, schema, deployment or existing checkout was changed; AHA-61 remains open.
+
+### Catalogue and iteration release checks — 2026-11-21
+
+The production catalogue import reconciled 2,483 published dossiers and 2,732 screenshot entries to 2,709 distinct files. The post-import database check found zero missing references or corrupt image files. The owner opened the populated catalogue in Chrome and decoded an original image from a business detail screen. A signed-in isolated browser check exercised sales board movement, search, fullscreen, checklists and Linear links. The published archive is the import baseline. The external research collector writes independently.
+
+The iteration migration introduces a stage on existing experiment rows and a separate append-only reflection history. The project task service does not load reflections. The lab reads the latest revision for each of four questions through bounded key lookups. History pages read 25 revisions and one continuation row in descending revision order.

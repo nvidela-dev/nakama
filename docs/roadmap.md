@@ -496,3 +496,7 @@ Nakama stores a checklist and an optional Linear issue or project link per prosp
 ## Direct project links — 2026-11-21
 
 Owners can save or clear an optional Linear project link in a Nakama project. Current project members can open it. A revision check protects concurrent edits. Prospect links remain independent.
+
+## Project iterations and reflections — 2026-11-21
+
+Projects organize experiments as iterations on a four-stage board. Stages track work in progress. Evidence, assessment and the next decision continue to use the recorded experiment history. Each iteration has four revisitable reflection questions. Every answer retains its author, revision and timestamp. Show the latest answer beside its question and page through older revisions on demand.
