@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+// Playwright runs the accessibility scan after each interaction; disable the competing automatic scan for these story URLs.
 async function story(page: import("@playwright/test").Page, id: string) {
-  await page.goto(`/iframe.html?id=${id}&viewMode=story`);
+  await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=a11y.manual:!true`);
   await page.locator("#storybook-root").waitFor();
 }
 test("dialog traps focus, closes with Escape and restores its trigger", async ({ page }) => {
@@ -58,7 +59,7 @@ for (const id of [
 test("the workflow picker stays compact on a phone and supports Spanish", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(
-    "/iframe.html?id=features-guided-flows-type-picker--selectable&viewMode=story&globals=locale:es;density:compact",
+    "/iframe.html?id=features-guided-flows-type-picker--selectable&viewMode=story&globals=a11y.manual:!true;locale:es;density:compact",
   );
   await expect(page.getByRole("button", { name: /Investigación/ })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -346,7 +347,7 @@ for (const id of [
   "features-projects-project-timeline--compact-cards",
 ]) {
   test(`Daylight palette has no serious accessibility violations: ${id}`, async ({ page }) => {
-    await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=theme:day`);
+    await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=a11y.manual:!true;theme:day`);
     await expect(page.locator("html")).toHaveAttribute("data-theme", "day");
     const results = await new AxeBuilder({ page }).include("#storybook-root").analyze();
     expect(
@@ -591,7 +592,7 @@ for (const theme of ["day", "night"]) {
   test(`milestone board and editor fit narrow ${theme} layouts`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 700 });
     await page.goto(
-      `/iframe.html?id=features-tasks-milestone-board--failed-save&viewMode=story&globals=theme:${theme}`,
+      `/iframe.html?id=features-tasks-milestone-board--failed-save&viewMode=story&globals=a11y.manual:!true;theme:${theme}`,
     );
     await expect(page.getByRole("button", { name: "New milestone", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -650,7 +651,7 @@ test.describe("touch layout checks", () => {
       page,
     }) => {
       await page.goto(
-        `/iframe.html?id=features-tasks-milestone-board--failed-save&viewMode=story&globals=theme:${theme};locale:${locale}`,
+        `/iframe.html?id=features-tasks-milestone-board--failed-save&viewMode=story&globals=a11y.manual:!true;theme:${theme};locale:${locale}`,
       );
       const actions = page.getByRole("button", {
         name: locale === "es" ? "Acciones de la tarjeta" : "Card actions",
@@ -716,7 +717,7 @@ test.describe("touch layout checks", () => {
         "features-experiments-lab--changed-context",
       ]) {
         await page.goto(
-          `/iframe.html?id=${id}&viewMode=story&globals=theme:${theme};locale:${locale}`,
+          `/iframe.html?id=${id}&viewMode=story&globals=a11y.manual:!true;theme:${theme};locale:${locale}`,
         );
         await page.locator("#storybook-root > *").first().waitFor();
         if (id.includes("experiments-lab"))
@@ -740,7 +741,7 @@ test.describe("touch layout checks", () => {
     for (const width of [320, 640, 1024]) {
       await page.setViewportSize({ width, height: 700 });
       await page.goto(
-        "/iframe.html?id=features-experiments-lab--changed-context&viewMode=story&globals=locale:es",
+        "/iframe.html?id=features-experiments-lab--changed-context&viewMode=story&globals=a11y.manual:!true;locale:es",
       );
       const milestones = page.getByRole("list", { name: "Hitos registrados", exact: true });
       await expect(milestones).toBeVisible();

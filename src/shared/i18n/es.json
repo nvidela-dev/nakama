@@ -1803,5 +1803,6 @@
   "Add a business to Ready from the backlog to start your board.": "Añade un negocio a Preparados desde la lista de pendientes para iniciar tu tablero.",
   "Back to project": "Volver al proyecto",
   "Export part not found.": "No se encontró esta parte de la exportación.",
-  "This flow version is unavailable for export.": "Esta versión del flujo no está disponible para exportar."
+  "This flow version is unavailable for export.": "Esta versión del flujo no está disponible para exportar.",
+  "Business": "Negocio"
 }
