@@ -49,11 +49,7 @@ export async function Header() {
               <Link href="/prospects" prefetch={false}>
                 {t("Business catalogue")}
               </Link>
-              {owner && (
-                <Link href="/jobs" prefetch={false}>
-                  {t("Jobs and interviews")}
-                </Link>
-              )}
+              {owner && <Link href="/jobs">{t("Jobs and interviews")}</Link>}
               <Link href="/artifacts">{t("Artifacts")}</Link>
               <NotificationBell />
               <UserButton />

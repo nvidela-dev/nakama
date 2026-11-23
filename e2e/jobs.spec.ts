@@ -57,6 +57,18 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await expect(page.getByRole("heading", { name: role })).toBeVisible();
   await expect(page.getByText(foundDate, { exact: true })).toBeVisible();
   await page.goto("/jobs");
+  await page.evaluate(() => document.body.setAttribute("data-jobs-document", "same-document"));
+  const search = page.getByRole("searchbox", { name: "Search roles" });
+  await search.fill("No matching fixture " + randomUUID());
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.getByText("No matching leads.")).toBeVisible();
+  await expect(page.locator("body")).toHaveAttribute("data-jobs-document", "same-document");
+  await page.goBack();
+  await expect(search).toHaveValue("");
+  await page.goForward();
+  await expect(page.getByText("No matching leads.")).toBeVisible();
+  await page.getByRole("link", { name: "Clear filters" }).click();
+  await expect(search).toHaveValue("");
   await page.getByRole("combobox", { name: "Found", exact: true }).selectOption("2");
   await page.getByRole("button", { name: "Apply filters" }).click();
   await page.waitForURL((url) => url.searchParams.get("found") === "2");

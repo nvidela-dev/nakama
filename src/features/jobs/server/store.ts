@@ -21,6 +21,7 @@ import {
 function pageFor(requested: number, total: number) {
   return Math.max(1, Math.min(requested, Math.ceil(total / jobPageSize) || 1));
 }
+const pagedLeads = z.object({ total: z.number(), page: z.number(), leads: z.array(leadSchema) });
 const catalogue = `WITH leads AS (
  SELECT d.*, f.found_on FROM nakama_jobs.discoveries d LEFT JOIN nakama_jobs.found_dates f USING (id)
  UNION ALL SELECT id,company,title,url,first_observed,NULL,NULL,'unknown',relevance,NULL,NULL,NULL,first_observed FROM nakama_jobs.manual_leads WHERE owner_id=$1
@@ -104,11 +105,16 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
       const selection = catalogue + " SELECT * FROM cards" + where;
       const ascending = filters.direction === "asc";
       const dateOrder = (oldestFirst: boolean) =>
-        " ORDER BY found_on " + (oldestFirst ? "ASC" : "DESC") + " NULLS LAST,company,title,id";
+        `found_on ${oldestFirst ? "ASC" : "DESC"} NULLS LAST,company,title,id`;
       if (!board && filters.sort === "match") {
         // Scoring uses the same evidence as the visible meter. Sort all filtered roles
         // before paging; stable ties keep the newest discovery first.
-        const candidates = await queryRows(db, leadSchema, selection + dateOrder(false), values);
+        const candidates = await queryRows(
+          db,
+          leadSchema,
+          selection + " ORDER BY " + dateOrder(false),
+          values,
+        );
         const matches = await matchesFor(candidates);
         const page = pageFor(filters.page, candidates.length);
         candidates.sort((a, b) => {
@@ -121,25 +127,45 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
         const rows = candidates.slice((page - 1) * jobPageSize, page * jobPageSize);
         return { rows, total: candidates.length, page, matches };
       }
-      const [counts] = await queryRows(
+      if (board) {
+        const rows = await queryRows(
+          db,
+          leadSchema,
+          selection +
+            " ORDER BY last_checked DESC NULLS LAST, first_observed DESC NULLS LAST, company,title,id",
+          values,
+        );
+        return {
+          rows,
+          total: rows.length,
+          page: pageFor(filters.page, rows.length),
+          matches: new Map<string, ResumeMatch>(),
+        };
+      }
+      // Build the expensive discovery/found-date view and apply the filters once. An
+      // aggregate result also preserves the exact total and clamped page on zero hits.
+      const order = dateOrder(ascending);
+      const [result] = await queryRows(
         db,
-        z.object({ total: z.number() }),
-        catalogue + " SELECT count(*)::int AS total FROM cards" + where,
-        values,
+        pagedLeads,
+        catalogue +
+          `, filtered AS MATERIALIZED (SELECT * FROM cards${where}),
+             counted AS (SELECT count(*)::int AS total FROM filtered),
+             bounds AS (
+               SELECT total, greatest(1,least($12::bigint, (total::bigint+${jobPageSize - 1})/${jobPageSize}))::int AS page
+               FROM counted
+             )
+             SELECT total,page,
+               coalesce((SELECT jsonb_agg(to_jsonb(r) ORDER BY ${order}) FROM (
+                 SELECT * FROM filtered ORDER BY ${order} LIMIT ${jobPageSize}
+                 OFFSET (SELECT (page::bigint-1)*${jobPageSize} FROM bounds)
+               ) AS r), '[]'::jsonb) AS leads
+             FROM bounds`,
+        [...values, Math.min(filters.page, Number.MAX_SAFE_INTEGER)],
       );
-      const total = counts?.total ?? 0;
-      const page = pageFor(filters.page, total);
-      const rows = await queryRows(
-        db,
-        leadSchema,
-        selection +
-          (board
-            ? " ORDER BY last_checked DESC NULLS LAST, first_observed DESC NULLS LAST, company,title,id"
-            : dateOrder(ascending) + ` LIMIT ${jobPageSize} OFFSET $12`),
-        board ? values : [...values, (page - 1) * jobPageSize],
-      );
-      const matches = await matchesFor(board ? [] : rows);
-      return { rows, total, page, matches };
+      if (!result) throw new Error("Missing jobs results.");
+      const { leads: rows, total, page } = result;
+      return { rows, total, page, matches: await matchesFor(rows) };
     },
     async detail(key: string) {
       const lead = await get(db, key);

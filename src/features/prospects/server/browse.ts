@@ -30,6 +30,15 @@ const facets = z.object({
   owners: z.array(z.object({ id: z.string(), name: z.string() })),
 });
 const result = z.object({ cards: z.array(card), counts: z.record(z.string(), z.number()), facets });
+// These enrichments are needed for all candidates only when their filter is active.
+const called = (id: string) =>
+  `EXISTS(SELECT 1 FROM prospect_events e WHERE e.catalogue_id=$1 AND e.prospect_id=${id} AND e.kind='call')`;
+const image = (id: string) =>
+  `coalesce(
+    (SELECT s.cover_sha256 FROM prospect_sources s WHERE s.catalogue_id=$1 AND s.prospect_id=${id} AND s.source_rank=2),
+    (SELECT image_ref.sha256 FROM prospect_image_refs image_ref WHERE image_ref.catalogue_id=$1 AND image_ref.prospect_id=${id} ORDER BY image_ref.sha256 LIMIT 1)
+  )`;
+
 export async function browse(
   scope: CatalogueRead,
   all: boolean,
@@ -46,11 +55,10 @@ export async function browse(
   WITH allowed AS MATERIALIZED (
     SELECT p.id,p.name,p.status,p.revision,p.assignee_id,(p.assignee_id IS NOT DISTINCT FROM $2) mine,(p.assignee_id IS NULL) unassigned,p.on_board,m.display_name AS assignee_name,
       coalesce(f.region,'') region,coalesce(f.city,'') city,coalesce(f.industry,'') industry,coalesce(f.services,'{}'::text[]) services,coalesce(f.identity_state,'unknown') identity_state,
-      position(lower($4) in lower(concat_ws(' ',p.name,p.details,f.search_text,CASE WHEN $4<>'' THEN p.research::text END)))>0 AS search_hit,
-      EXISTS(SELECT 1 FROM prospect_events e WHERE e.catalogue_id=p.catalogue_id AND e.prospect_id=p.id AND e.kind='call') called,
-      coalesce(s.cover_sha256,(SELECT r.sha256 FROM prospect_image_refs r WHERE r.catalogue_id=p.catalogue_id AND r.prospect_id=p.id ORDER BY r.sha256 LIMIT 1)) image
+      CASE WHEN $4='' THEN true ELSE position(lower($4) in lower(concat_ws(' ',p.name,p.details,f.search_text,p.research::text)))>0 END AS search_hit,
+      CASE WHEN $10<>'' THEN ${called("p.id")} END AS called,
+      CASE WHEN $11<>'' THEN ${image("p.id")} END AS image
     FROM prospects p LEFT JOIN prospect_facets f ON f.catalogue_id=p.catalogue_id AND f.prospect_id=p.id
-    LEFT JOIN prospect_sources s ON s.catalogue_id=p.catalogue_id AND s.prospect_id=p.id AND s.source_rank=2
     LEFT JOIN prospect_memberships m ON m.catalogue_id=p.catalogue_id AND m.user_id=p.assignee_id
     WHERE ${visibility} AND (NOT $16::boolean OR (p.assignee_id=$2 AND p.on_board))
   ), filtered AS MATERIALIZED (
@@ -64,7 +72,9 @@ export async function browse(
   ), page AS MATERIALIZED (
     SELECT * FROM ranked WHERE rn>$17 AND rn<=$18
   ), shown AS (
-    SELECT r.id,r.name,r.status,r.revision,r.assignee_name,r.city,r.industry,r.called,r.image,r.mine,r.unassigned,r.on_board,
+    SELECT r.id,r.name,r.status,r.revision,r.assignee_name,r.city,r.industry,r.mine,r.unassigned,r.on_board,
+      CASE WHEN $10<>'' THEN r.called ELSE ${called("r.id")} END AS called,
+      CASE WHEN $11<>'' THEN r.image ELSE ${image("r.id")} END AS image,
       (SELECT e.note FROM prospect_events e WHERE e.catalogue_id=$1 AND e.prospect_id=r.id
        AND (e.outcome IS NOT NULL OR e.kind IN ('call','message','reply')) ORDER BY e.id DESC LIMIT 1) latest_outcome,
       ${salesSummaryFields},

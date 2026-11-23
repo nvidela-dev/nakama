@@ -223,7 +223,15 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     await pg.query(
       "INSERT INTO nakama_jobs.manual_leads(id,owner_id,company,title,first_observed) SELECT 'm-'||gen_random_uuid(),'owner','Sample','Role '||n,'2021-01-05' FROM generate_series(1,45) n",
     );
+    const pageOne = await store.browse(base);
     const pageTwo = await store.browse({ ...base, page: 2 });
+    const clamped = await store.browse({ ...base, page: 1000000 });
+    assert.equal(pageOne.rows.length + pageTwo.rows.length, pageOne.total);
+    assert.equal(pageTwo.total, pageOne.total);
+    assert.equal(clamped.page, 2);
+    assert.deepEqual(clamped.rows, pageTwo.rows);
+    const empty = await store.browse({ ...base, query: "no such lead", page: 1000000 });
+    assert.deepEqual(empty, { rows: [], total: 0, page: 1, matches: new Map() });
     assert.deepEqual(
       pageTwo.rows.slice(-3).map((r) => r.id),
       [backdated, archived!.id, unknown!.id],

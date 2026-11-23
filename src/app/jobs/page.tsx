@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Form from "next/form";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ownerJobs } from "@/features/jobs/server/connection";
 import { linearJobsConfigured } from "@/features/jobs/server/linear";
@@ -23,14 +25,34 @@ import { getT } from "@/shared/i18n/server";
 import { Button } from "@/shared/ui/button";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
 import { ProjectError } from "@/shared/contracts/errors";
+import Loading from "./loading";
 
 export async function generateMetadata() {
   return { title: (await getT())("Jobs and interviews") };
 }
 type Params = Record<string, string | string[] | undefined>;
 export default async function JobsPage({ searchParams }: { searchParams: Promise<Params> }) {
-  const jobs = await ownerJobs();
-  const [params, t] = await Promise.all([searchParams, getT()]);
+  const [params, jobs, t] = await Promise.all([searchParams, ownerJobs(), getT()]);
+  // A search, sort, or page change inside the same route needs its own pending boundary.
+  return (
+    <Suspense
+      key={JSON.stringify(Object.entries(params).sort(([a], [b]) => a.localeCompare(b)))}
+      fallback={<Loading />}
+    >
+      <JobsContent jobs={jobs} params={params} t={t} />
+    </Suspense>
+  );
+}
+
+async function JobsContent({
+  jobs,
+  params,
+  t,
+}: {
+  jobs: Awaited<ReturnType<typeof ownerJobs>>;
+  params: Params;
+  t: Awaited<ReturnType<typeof getT>>;
+}) {
   const pick = (key: string) => (typeof params[key] === "string" ? params[key] : "");
   const board = pick("view") === "board";
   const sort: JobSort = pick("sort") === "match" ? "match" : "date";
@@ -189,7 +211,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           </Link>
         ))}
       </nav>
-      <form action="/jobs" method="get" className="flex flex-wrap items-end gap-2">
+      <Form action="/jobs" className="flex flex-wrap items-end gap-2">
         {sort === "match" && <Input type="hidden" name="sort" value={sort} />}
         {direction === "asc" && <Input type="hidden" name="direction" value={direction} />}
         {board && <Input type="hidden" name="view" value="board" />}
@@ -257,7 +279,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             {t("Clear filters")}
           </Link>
         )}
-      </form>
+      </Form>
       {board ? (
         <div className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {Object.entries(jobStages).map(([stage, label]) => {

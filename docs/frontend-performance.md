@@ -78,3 +78,25 @@ CI found the project route and shared CSS just above the existing budgets. Date 
 ## Ant Design workspace — 2026-11-07
 
 The application now uses Ant Design across shared controls and navigation. A production build measured 328,236 compressed JavaScript bytes on the landing page, 334,957 on the preview and 357,139 on the project page. The approved hard limits are 345,000, 350,000 and 375,000 bytes respectively. The project board loads on its first visit. Existing CSS, 3D, layout stability and interaction budgets continue to apply.
+
+## Business catalogue and Jobs loading and filter pass — 2026-11-23
+
+The App Router now streams a localized loading state for `/prospects` and `/jobs`; each has a retryable error boundary. Jobs keeps URL-backed GET filtering but uses Next Form for a client-side transition, and keys its results boundary on the requested search params. No owner or catalogue membership checks moved into or around a cache. The Business link remains unprefetched so it does not anticipate catalogue admission.
+
+Jobs date-sorted browsing computes the filtered discovery set once for the count and page rather than repeating the evidence views. Résumé-match sorting still scores the full selected set before paging. Business browsing avoids running call and image lookups for off-page candidates unless the corresponding filters need them. It preserves keyword matches, facets, counts, and authorized visibility.
+
+Before/after comparison from `293325e`, on one local PGlite instance using synthetic fixtures (1,600 added jobs with 8,000 observations, 2,700 businesses). Each case alternated implementations, discarded its first pair and took the median of eight samples per implementation. The corresponding Jobs rows, total, page, visible scores and catalogue payloads matched exactly.
+
+| Operation | Before | After |
+| --- | ---: | ---: |
+| Jobs: first page | 123.93 ms | 83.42 ms |
+| Jobs: keyword | 124.70 ms | 76.56 ms |
+| Jobs: keyword + employer + contract | 344.27 ms | 196.92 ms |
+| Jobs: unmatched keyword | 70.02 ms | 40.85 ms |
+| Jobs: second date page | 136.71 ms | 85.51 ms |
+| Catalogue: first page | 34.22 ms | 20.26 ms |
+| Catalogue: keyword | 54.80 ms | 43.02 ms |
+| Catalogue: call + image filters | 29.11 ms | 23.59 ms |
+| Catalogue: unmatched keyword | 58.91 ms | 45.06 ms |
+
+The Jobs date and keyword paths made one fewer database call, including the empty case. These are local data-path measurements, not authenticated browser latency, hosted cold starts, or a production speed claim. The built server's unconfigured-auth smoke checks redirected both routes and their filtered URLs; the existing authenticated browser suite needs isolated Clerk and database test services to check the actual end-to-end transitions.
