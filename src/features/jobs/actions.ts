@@ -56,6 +56,7 @@ export async function saveJob(form: FormData): Promise<ActionState & { id?: stri
               follow_up: value("follow_up") || null,
             };
             break;
+          case "legacy_event":
           case "event": {
             const contactAt = value("contact_at");
             const parsed = commands.safeParse({

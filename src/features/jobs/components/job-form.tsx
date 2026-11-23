@@ -15,7 +15,7 @@ export function JobForm({
   canPursue = false,
   revision,
 }: {
-  operation: "add" | "plan" | "event" | "linear";
+  operation: "add" | "plan" | "event" | "legacy_event" | "linear";
   id?: string;
   submit: string;
   children: ReactNode;
@@ -46,7 +46,7 @@ export function JobForm({
         if (operation === "add" && reply.id) {
           router.push("/jobs?role=" + encodeURIComponent(reply.id));
         } else {
-          if (operation === "event") form.reset();
+          if (operation === "event" || operation === "legacy_event") form.reset();
           router.refresh();
         }
       } catch {

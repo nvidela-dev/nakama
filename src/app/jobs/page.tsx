@@ -19,6 +19,7 @@ import {
   jobDate,
   jobPageSize,
   jobStages,
+  originalStages,
   sourceLink,
 } from "@/features/jobs/model";
 import { getT } from "@/shared/i18n/server";
@@ -284,7 +285,9 @@ async function JobsContent({
         <div className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {Object.entries(jobStages).map(([stage, label]) => {
             const cards = rows.filter((r) => r.stage === stage);
-            if (!cards.length && (stage === "offer" || stage === "closed")) return null;
+            if (!jobs.workflowReady && !originalStages.has(stage)) return null;
+            if (jobs.workflowReady && !cards.length && (stage === "offer" || stage === "closed"))
+              return null;
             return (
               <section
                 key={stage}

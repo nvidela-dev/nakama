@@ -33,7 +33,34 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     await pg.exec(await readFile("integrations/jobs/001_workspace.sql", "utf8"));
     await pg.exec(await readFile("integrations/jobs/002_found_dates.sql", "utf8"));
     await pg.exec(await readFile("integrations/jobs/003_resume_match.sql", "utf8"));
+    // A rolling deployment can reach the existing evidence database before migration 004.
+    const legacyActor = { userId: "legacy", verifiedEmails: ["legacy@example.invalid"] };
+    const legacy = jobsStore(db, legacyActor, legacyActor.verifiedEmails[0], false);
+    const legacyLead = (await legacy.browse(base)).rows[0]!;
+    await legacy.change({
+      type: "plan",
+      id: legacyLead.id,
+      stage: "closed",
+      revision: 0,
+      next_action: "",
+      follow_up: null,
+    });
+    await legacy.change({
+      type: "legacy_event",
+      id: legacyLead.id,
+      kind: "interview",
+      token: randomUUID(),
+      occurred_on: jobDate(),
+      detail: "Prior round",
+      practice: "",
+    });
+    assert.equal((await legacy.detail(legacyLead.id)).events[0]?.detail, "Prior round");
     await pg.exec(await readFile("integrations/jobs/004_interview_workflow.sql", "utf8"));
+    const migrated = await jobsStore(db, legacyActor, legacyActor.verifiedEmails[0]).detail(
+      legacyLead.id,
+    );
+    assert.equal(migrated.lead.stage, "closed");
+    assert.equal(migrated.events[0]?.rating, null);
     const email = "owner@example.invalid",
       owner = { userId: "owner", verifiedEmails: [email] };
     assert.throws(() => jobsStore(db, { userId: "friend", verifiedEmails: [] }, email), /private/);

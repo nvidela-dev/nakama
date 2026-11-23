@@ -4,7 +4,14 @@ import { Input, Select } from "@/shared/ui/controls";
 import { ResumeMeter } from "./resume-meter";
 import { EventFields } from "./event-fields";
 import { JobForm } from "./job-form";
-import { availabilityLabels, jobStages, jobEvents, jobDate, sourceLink } from "../model";
+import {
+  availabilityLabels,
+  originalStages,
+  jobStages,
+  jobEvents,
+  jobDate,
+  sourceLink,
+} from "../model";
 import type { JobDetailData } from "../schemas";
 const panel = "grid content-start gap-3 rounded-lg border border-line bg-panel p-4";
 export async function JobDetail({
@@ -43,11 +50,13 @@ export async function JobDetail({
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <section className={panel}>
           <h2 className="text-lg font-semibold">{t("Role plan")}</h2>
-          <p className="text-sm text-muted">
-            {t(
-              "Move to Waiting after the final round. After 14 days without a response, the role moves to Ghosted.",
-            )}
-          </p>
+          {data.workflowReady && (
+            <p className="text-sm text-muted">
+              {t(
+                "Move to Waiting after the final round. After 14 days without a response, the role moves to Ghosted.",
+              )}
+            </p>
+          )}
           <JobForm
             revision={lead.revision}
             canPursue={!lead.stage}
@@ -62,8 +71,10 @@ export async function JobDetail({
               <Select aria-label={t("Board stage")} name="stage" defaultValue={lead.stage ?? ""}>
                 <option value="">{t("Backlog only")}</option>
                 {Object.entries(jobStages)
-                  .filter(
-                    ([key]) => key === lead.stage || !["ghosted", "offer", "closed"].includes(key),
+                  .filter(([key]) =>
+                    data.workflowReady
+                      ? key === lead.stage || !["ghosted", "offer", "closed"].includes(key)
+                      : originalStages.has(key),
                   )
                   .map(([v, label]) => (
                     <option key={v} value={v}>
@@ -96,10 +107,15 @@ export async function JobDetail({
         </section>
         <section className={panel}>
           <h2 className="text-lg font-semibold">{t("Log an event")}</h2>
-          <JobForm operation="event" id={lead.id} submit="Record event">
+          <JobForm
+            operation={data.workflowReady ? "event" : "legacy_event"}
+            id={lead.id}
+            submit="Record event"
+          >
             <Input type="hidden" name="revision" value={lead.revision} />
             <EventFields
               today={jobDate()}
+              workflowReady={data.workflowReady}
               awaitingDecision={lead.stage === "waiting" || lead.stage === "ghosted"}
             />
           </JobForm>

@@ -11,6 +11,13 @@ export const jobStages = {
   offer: "Offer",
   closed: "Closed",
 } as const;
+export const originalStages = new Set<string>([
+  "pursuing",
+  "applied",
+  "interview",
+  "offer",
+  "closed",
+]);
 export const jobEvents = {
   application: "Application sent",
   contact: "Recruiter contact",

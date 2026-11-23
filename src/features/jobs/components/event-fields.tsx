@@ -7,20 +7,26 @@ import { jobEvents } from "../model";
 export function EventFields({
   today,
   awaitingDecision,
+  workflowReady,
 }: {
   today: string;
   awaitingDecision: boolean;
+  workflowReady: boolean;
 }) {
   const t = useT();
   const [kind, setKind] = useState("note");
-  const round = kind === "screening" || kind === "interview";
+  const round = workflowReady && (kind === "screening" || kind === "interview");
   return (
     <>
       <label>
         {t("Event")}
         <Select name="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
           {Object.entries(jobEvents)
-            .filter(([key]) => key !== "contact" && key !== "reply")
+            .filter(([key]) =>
+              workflowReady
+                ? key !== "contact" && key !== "reply"
+                : key !== "outreach" && key !== "screening",
+            )
             .map(([key, label]) => (
               <option key={key} value={key}>
                 {t(label)}

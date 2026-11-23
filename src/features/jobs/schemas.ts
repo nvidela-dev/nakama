@@ -106,6 +106,20 @@ const eventCommand = z.object({
 });
 export const commands = z.union([
   baseCommands,
+  eventCommand.extend({
+    type: z.literal("legacy_event"),
+    kind: z.enum([
+      "application",
+      "contact",
+      "reply",
+      "interview",
+      "feedback",
+      "offer",
+      "rejected",
+      "withdrawn",
+      "note",
+    ]),
+  }),
   eventCommand.extend({ kind: z.enum(["screening", "interview"]), ...roundFields }),
   eventCommand
     .extend({ kind: z.literal("outreach"), ...outreachFields })
@@ -144,6 +158,7 @@ export type JobFilters = {
   page: number;
 };
 export type JobDetailData = {
+  workflowReady: boolean;
   lead: JobLead;
   match: ResumeMatch;
   stages: z.infer<typeof stagePeriod>[];
