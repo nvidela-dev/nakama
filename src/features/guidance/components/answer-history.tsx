@@ -7,14 +7,12 @@ import type { Revision } from "../model/types";
 
 export function AnswerHistory({
   history,
-  names,
   olderHref,
   latestHref,
 }: {
   history: Revision[];
   olderHref?: string | undefined;
   latestHref?: string | undefined;
-  names: Record<string, string>;
 }) {
   const t = useT();
   const locale = useLocale();
@@ -41,7 +39,7 @@ export function AnswerHistory({
             {r.origin === "capture"
               ? t("From the original project capture")
               : t("Saved by {name}", {
-                  name: names[r.author_id] || t("a former member"),
+                  name: r.author_name || t("a former member"),
                 })}{" "}
             · {formatDate(r.created_at, locale)}
           </small>

@@ -229,7 +229,6 @@ export function AnswerEditor({
               : undefined
           }
           history={history}
-          names={names}
         />
       )}
     </Panel>

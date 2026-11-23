@@ -27,6 +27,21 @@ export async function membership(
     throw new ProjectError("Project not found or access is no longer available.");
   return rows[0];
 }
+/** Only the signed-in member's active roster entries can change. */
+export async function refreshMemberLabel(db: Queryable, actor: Actor, projectId?: string) {
+  requireActor(actor);
+  if (!actor.displayName || !actor.profileLabelUpdatedAt) return;
+  if (projectId !== undefined && !uuid.safeParse(projectId).success)
+    throw new ProjectError("Project not found.");
+  await db.query(
+    `UPDATE project_memberships SET display_name=$2,profile_label_updated_at=$3
+    WHERE user_id=$1 AND (profile_label_updated_at IS NULL OR profile_label_updated_at<$3)
+    ${projectId === undefined ? "" : "AND project_id=$4"}`,
+    projectId === undefined
+      ? [actor.userId, actor.displayName, actor.profileLabelUpdatedAt]
+      : [actor.userId, actor.displayName, actor.profileLabelUpdatedAt, projectId],
+  );
+}
 const verifiedProject = Symbol("verified project membership");
 export type ProjectRead = {
   readonly [verifiedProject]: true;
@@ -40,8 +55,10 @@ export function withProjectRead<T>(
   actor: Actor,
   projectId: string,
   read: (scope: ProjectRead) => Promise<T>,
+  options?: { refreshMemberLabel: boolean },
 ) {
   return db.transaction(async (tx) => {
+    if (options?.refreshMemberLabel) await refreshMemberLabel(tx, actor, projectId);
     const { role } = await membership(tx, actor, projectId);
     return read({ [verifiedProject]: true, tx, actor, projectId, role });
   });

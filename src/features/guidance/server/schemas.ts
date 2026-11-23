@@ -24,6 +24,7 @@ export const revisionSchema = z.object({
   status: nodeStatusSchema,
   choice: z.string().nullable(),
   author_id: z.string(),
+  author_name: z.string().nullable(),
   origin: revisionOriginSchema,
   created_at: z.date(),
 }) satisfies z.ZodType<Omit<DatabaseRows["answer_revisions"], "project_id" | "node_id">>;

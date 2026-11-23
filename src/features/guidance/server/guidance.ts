@@ -98,7 +98,7 @@ export async function readHistory(
   return await queryRows(
     tx,
     revisionSchema,
-    "SELECT revision,content,status,choice,author_id,origin,created_at FROM answer_revisions WHERE project_id = $1 AND node_id = $2 AND ($3::integer IS NULL OR revision < $3) ORDER BY revision DESC LIMIT 26",
+    "SELECT revision,content,status,choice,author_id,author_name,origin,created_at FROM answer_revisions WHERE project_id = $1 AND node_id = $2 AND ($3::integer IS NULL OR revision < $3) ORDER BY revision DESC LIMIT 26",
     [projectId, nodeId, revision],
   );
 }

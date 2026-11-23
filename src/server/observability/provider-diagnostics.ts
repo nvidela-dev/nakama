@@ -154,7 +154,10 @@ export const currentIdentity = z
 // The footer also consumes the identity ID for its verified-administrator check.
 export const currentIdentityWithId = currentIdentity
   .unwrap()
-  .extend({ id: z.string().min(1) })
+  .extend({
+    id: z.string().min(1),
+    updatedAt: z.number().int().nonnegative().max(8640000000000000),
+  })
   .nullable();
 
 export async function* clerkPages<T>(

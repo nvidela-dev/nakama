@@ -1,3 +1,4 @@
+import { refreshMemberLabel } from "../src/server/database/membership";
 import { required } from "../src/server/database/query";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -306,4 +307,69 @@ test("issuing an approved invitation checks current recipient membership inside 
     /already a project member/,
   );
   await assert.rejects(service.invite(bob, id, "new@example.com", []));
+});
+
+test("signed-in profile refresh changes only active roster labels and keeps historical attribution", async () => {
+  const project = await service.create(alice, {
+    name: "Profile labels",
+    description: "Private roster",
+  });
+  const other = await service.create(cara, {
+    name: "Other roster",
+    description: "Separate project",
+  });
+  const invitation = await service.invite(alice, project, "bob@example.com");
+  await service.accept(bob, invitation.token);
+  const { guidanceService } = await import("../src/features/guidance/server/guidance");
+  await guidanceService(db).select(bob, project, "creative");
+  await guidanceService(db).save(bob, project, "spark-name", {
+    content: "First project name",
+    revision: 1,
+    status: "answered",
+    choice: null,
+  });
+  const renamed = {
+    ...bob,
+    displayName: "Updated name",
+    profileLabelUpdatedAt: new Date("2026-01-02T00:00:00Z"),
+  };
+  const { loadWorkspace } = await import("../src/app/projects/[projectId]/workspace");
+  const view = await loadWorkspace(db, renamed, project, {
+    target: {},
+    focusedWork: false,
+    activityView: false,
+  });
+  assert.equal(
+    view.people.members.find((m) => m.user_id === bob.userId)?.display_name,
+    "Updated name",
+  );
+  await refreshMemberLabel(db, {
+    ...renamed,
+    displayName: "Older name",
+    profileLabelUpdatedAt: new Date("2026-01-01T00:00:00Z"),
+  });
+  await refreshMemberLabel(db, renamed);
+  assert.equal(
+    (await service.people(alice, project)).members.find((m) => m.user_id === bob.userId)
+      ?.display_name,
+    "Updated name",
+  );
+  assert.ok(!(await service.people(cara, other)).members.some((m) => m.user_id === bob.userId));
+  const { collaborationService } =
+    await import("../src/features/collaboration/server/collaboration");
+  const history = await collaborationService(db).activity(alice, project);
+  assert.equal(
+    history.items.find((e) => e.kind === "member_joined" && e.actor_id === bob.userId)?.actor_name,
+    bob.displayName,
+  );
+  assert.equal(
+    history.items.find((event) => event.kind === "answer_saved" && event.actor_id === bob.userId)
+      ?.actor_name,
+    bob.displayName,
+  );
+  await service.remove(alice, project, bob.userId);
+  await assert.rejects(
+    loadWorkspace(db, renamed, project, { target: {}, focusedWork: false, activityView: false }),
+  );
+  assert.ok(!(await service.people(alice, project)).members.some((m) => m.user_id === bob.userId));
 });

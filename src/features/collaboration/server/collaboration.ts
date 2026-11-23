@@ -148,16 +148,16 @@ export async function readActivity({ tx, projectId }: ProjectRead, before?: stri
        FROM project_activity WHERE project_id=$1 AND ($2::timestamptz IS NULL OR (created_at,'event:'||id::text)<($2,$3::text))
        ORDER BY created_at DESC,sort_key DESC LIMIT 26)
       UNION ALL
-      (SELECT 'answer:'||node_id||':'||revision::text AS sort_key,CASE WHEN origin='capture' THEN 'answer_captured' ELSE 'answer_saved' END,author_id,NULL,NULL,node_id,NULL::uuid,NULL,CASE WHEN status='answered' THEN COALESCE(choice,status::text) ELSE status::text END,created_at
+      (SELECT 'answer:'||node_id||':'||revision::text AS sort_key,CASE WHEN origin='capture' THEN 'answer_captured' ELSE 'answer_saved' END,author_id,author_name,NULL,node_id,NULL::uuid,NULL,CASE WHEN status='answered' THEN COALESCE(choice,status::text) ELSE status::text END,created_at
        FROM answer_revisions WHERE project_id=$1 AND ($2::timestamptz IS NULL OR (created_at,'answer:'||node_id||':'||revision::text)<($2,$3::text))
        ORDER BY created_at DESC,sort_key DESC LIMIT 26)
       UNION ALL
-      (SELECT 'review:'||id::text AS sort_key,'stage_reviewed',author_id,NULL,stage_id,NULL,NULL::uuid,NULL,NULL,created_at
+      (SELECT 'review:'||id::text AS sort_key,'stage_reviewed',author_id,author_name,stage_id,NULL,NULL::uuid,NULL,NULL,created_at
        FROM stage_review_history WHERE project_id=$1 AND ($2::timestamptz IS NULL OR (created_at,'review:'||id::text)<($2,$3::text))
        ORDER BY created_at DESC,sort_key DESC LIMIT 26)
     ), recent AS (SELECT * FROM events ORDER BY created_at DESC,sort_key DESC LIMIT 26)
     SELECT e.sort_key,e.kind,e.actor_id,e.node_id,e.comment_id,e.subject_name,e.detail,e.created_at,
-      COALESCE(e.stage_id,a.stage_id) AS stage_id,COALESCE(e.actor_name,m.display_name,'') AS actor_name,m.user_id IS NULL AS former_member,
+      COALESCE(e.stage_id,a.stage_id) AS stage_id,COALESCE(e.actor_name,'') AS actor_name,m.user_id IS NULL AS former_member,
       to_char(e.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'Z' AS cursor_time
       FROM recent e LEFT JOIN project_memberships m ON m.project_id=$1 AND m.user_id=e.actor_id
       LEFT JOIN node_answers a ON e.kind IN ('answer_captured','answer_saved') AND a.project_id=$1 AND a.node_id=e.node_id

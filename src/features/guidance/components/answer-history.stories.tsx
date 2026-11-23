@@ -4,7 +4,6 @@ export default { title: "Guidance/Answer history" } satisfies Meta;
 export const Revisions = {
   render: () => (
     <AnswerHistory
-      names={{ author: "Project owner" }}
       olderHref="?historyBefore=3"
       history={[
         {
@@ -13,6 +12,7 @@ export const Revisions = {
           status: "answered",
           choice: null,
           author_id: "author",
+          author_name: "Project owner",
           origin: "human",
           created_at: new Date("2026-01-02T12:00:00Z"),
         },
@@ -22,6 +22,7 @@ export const Revisions = {
           status: "draft",
           choice: null,
           author_id: "former",
+          author_name: null,
           origin: "human",
           created_at: new Date("2026-01-01T12:00:00Z"),
         },

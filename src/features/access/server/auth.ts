@@ -37,11 +37,8 @@ const admittedActor = cache(async (): Promise<Actor> => {
     const user = await profiles.get(userId);
     const person: Actor = {
       userId,
-      displayName:
-        user.fullName ||
-        user.username ||
-        user.primaryEmailAddress?.emailAddress.split("@")[0] ||
-        "Crew member",
+      displayName: user.fullName?.trim() || user.username?.trim() || "Crew member",
+      profileLabelUpdatedAt: new Date(user.updatedAt),
       verifiedEmails:
         user.emailAddresses
           ?.filter((e) => e.verification?.status === "verified")

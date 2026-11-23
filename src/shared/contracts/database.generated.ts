@@ -50,6 +50,7 @@ export interface DatabaseRows {
     author_id: string;
     origin: RevisionOrigin;
     created_at: Date;
+    author_name: string | null;
   };
   artifact_files: {
     id: string;
@@ -257,6 +258,7 @@ export interface DatabaseRows {
     display_name: string;
     role: MembershipRole;
     joined_at: Date;
+    profile_label_updated_at: Date | null;
   };
   project_milestones: {
     id: string;
@@ -447,6 +449,7 @@ export interface DatabaseRows {
     rationale: string;
     author_id: string;
     created_at: Date;
+    author_name: string | null;
   };
   stage_reviews: {
     project_id: string;
