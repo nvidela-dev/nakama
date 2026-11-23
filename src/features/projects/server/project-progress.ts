@@ -1,6 +1,7 @@
 import { projectProgressSchema, milestoneProgressSchema } from "./schemas";
 import { queryRows } from "@/server/database/query";
 import type { Database } from "@/server/database/database";
+import { hasMilestoneBoard } from "@/features/guidance/model/production-stages";
 import { flows } from "@/features/guidance/model/flows";
 import { ProjectError } from "@/shared/contracts/errors";
 import { type Actor } from "@/shared/contracts/actor";
@@ -38,6 +39,7 @@ export async function projectProgress(db: Database, actor: Actor, projectIds?: s
         const review = row.reviews.find((r) => r.stage_id === stage.id);
         return {
           id: stage.id,
+          hasMilestoneBoard: hasMilestoneBoard(flow.id, stage.id),
           name: stage.name,
           answered: questions.filter((n) =>
             answers.some((a) => a.node_id === n.id && a.status === "answered"),

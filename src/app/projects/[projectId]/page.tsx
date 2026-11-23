@@ -5,7 +5,7 @@ import { PageHeading, Workspace } from "@/shared/ui/workspace-layout";
 import { loadWorkspace } from "./workspace";
 import { ProjectTests } from "@/features/experiments/components/project-tests";
 import { experimentPrompts } from "@/features/experiments/flow-prompts";
-import { productionStages } from "@/features/tasks/milestone-catalog";
+import { productionStages } from "@/features/guidance/model/production-stages";
 
 import { ProjectRelations } from "@/features/projects/components/project-relations";
 import { ArtifactLibrary } from "@/features/artifacts/components/artifact-library";

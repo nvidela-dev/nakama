@@ -133,8 +133,16 @@ export default function JourneyMiniview({
                   aria-current={
                     (nodeId ? point.id === nodeId : point.id === stageId) ? "location" : undefined
                   }
-                  aria-label={`${t(point.label)} · ${t(point.status)}${point.revisit ? t(" · revisit") : ""}`}
+                  aria-label={`${t(point.label)}${point.hasMilestoneBoard ? " · " + t("Milestone board") : ""} · ${t(point.status)}${point.revisit ? t(" · revisit") : ""}`}
                 >
+                  {point.hasMilestoneBoard && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 grid place-items-center rounded-md border border-line bg-panel text-ink"
+                    >
+                      <Icon name="board" size={16} />
+                    </span>
+                  )}
                   <span
                     className={
                       "miniview-label absolute left-1/2 [transform:translateX(-50%)] w-[max-content] max-w-36.25 py-[0.25rem] px-[0.4rem] bg-bg border rounded-[2px] text-ink text-[0.7rem] text-center leading-[1.35] border-line tracking-[0.03em] top-[auto] bottom-10 hidden [pointer-events:none]"
@@ -145,6 +153,7 @@ export default function JourneyMiniview({
                     )}
                     {t(point.label)}
                     <small className={"block text-muted text-[0.65rem]"}>
+                      {point.hasMilestoneBoard && <>{t("Milestone board")} · </>}
                       {t(point.status)}
                       {point.revisit ? t(" · revisit") : ""}
                     </small>

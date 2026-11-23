@@ -10,6 +10,7 @@ import { ProjectTimeline } from "./project-timeline";
 const sampleStages: StageProgress[] = [
   {
     id: "shape-01",
+    hasMilestoneBoard: false,
     name: "User and context",
     answered: 2,
     blocked: 0,
@@ -21,6 +22,7 @@ const sampleStages: StageProgress[] = [
   },
   {
     id: "shape-02",
+    hasMilestoneBoard: false,
     name: "Core experience",
     answered: 5,
     blocked: 0,
@@ -32,6 +34,7 @@ const sampleStages: StageProgress[] = [
   },
   {
     id: "shape-03",
+    hasMilestoneBoard: false,
     name: "Architecture and data",
     answered: 0,
     blocked: 0,
@@ -43,6 +46,7 @@ const sampleStages: StageProgress[] = [
   },
   {
     id: "shape-04",
+    hasMilestoneBoard: true,
     name: "Quality and edge cases",
     answered: 0,
     blocked: 0,
@@ -54,6 +58,7 @@ const sampleStages: StageProgress[] = [
   },
   {
     id: "shape-05",
+    hasMilestoneBoard: false,
     name: "Release and learn",
     answered: 0,
     blocked: 0,

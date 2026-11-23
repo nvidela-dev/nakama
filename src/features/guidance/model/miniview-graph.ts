@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { Guidance } from "./types";
 import { stageCoverage, stageLabel } from "./stage-progress";
+import { hasMilestoneBoard } from "./production-stages";
 import { computeNodeDepths } from "./node-presentation";
 export type Point = {
   id: string;
@@ -9,6 +10,7 @@ export type Point = {
   label: string;
   status: string;
   revisit: boolean;
+  hasMilestoneBoard: boolean;
   position: THREE.Vector3;
 };
 export function buildMiniviewGraph(guidance: Guidance) {
@@ -23,6 +25,7 @@ export function buildMiniviewGraph(guidance: Guidance) {
       id: stage.id,
       stageId: stage.id,
       label: stage.name,
+      hasMilestoneBoard: hasMilestoneBoard(guidance.flow.id, stage.id),
       status: stageLabel(coverage),
       revisit: coverage.revisit,
       position: new THREE.Vector3(x, y, z),
@@ -40,6 +43,7 @@ export function buildMiniviewGraph(guidance: Guidance) {
         stageId: stage.id,
         nodeId: node.id,
         label: node.label,
+        hasMilestoneBoard: false,
         status: answer?.status ?? "unanswered",
         revisit: answer?.needs_review ?? false,
         position: new THREE.Vector3(

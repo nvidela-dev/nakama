@@ -1,3 +1,4 @@
+import { Icon } from "@/shared/ui/icon";
 import { stageLabel } from "@/features/guidance/model/stage-progress";
 import { ProgressMarker } from "@/shared/ui/progress-marker";
 import type { StageProgress } from "@/features/projects/model";
@@ -66,7 +67,7 @@ export function ProjectTimeline({
     >
       {stages.map((stage, index) => {
         const state = t(stageLabel(stage));
-        const label = `${t(stage.name)} · ${state} · ${stage.answered}/${stage.total} ${t("questions answered")}${stage.revisit ? t(" · revisit") : ""} · ${stage.blocked} ${t("blocked")} · ${stage.skipped} ${t("skipped")}`;
+        const label = `${t(stage.name)}${stage.hasMilestoneBoard ? " · " + t("Milestone board") : ""} · ${state} · ${stage.answered}/${stage.total} ${t("questions answered")}${stage.revisit ? t(" · revisit") : ""} · ${stage.blocked} ${t("blocked")} · ${stage.skipped} ${t("skipped")}`;
         return (
           <li
             key={stage.id}
@@ -95,6 +96,9 @@ export function ProjectTimeline({
               className={`timeline-name block px-0.5 truncate tracking-[-0.02em] ${stage.started ? "text-ink" : "text-muted"}`}
               aria-hidden="true"
             >
+              {stage.hasMilestoneBoard && (
+                <Icon name="board" size={12} className="mr-0.5 inline-block align-middle" />
+              )}
               {t(stage.name)}
             </span>
             <span
