@@ -207,3 +207,7 @@ Keyboard activation of a card menu consumes the opening Enter key before opening
 On coarse-pointer devices, shared buttons (including small and icon buttons) have a minimum 44×44px target. Shared text inputs and selects have a minimum 44px height. Fine-pointer desktop sizing remains compact. This does not change saved density preferences or underlying form values.
 
 Task-card move actions and Experiment Lab heading actions wrap onto additional rows when needed, including Spanish at 320px. Experiment Lab milestone tiles fit the available container width so translated labels remain separate from their counts. Dialog contents remain vertically scrollable on short landscape screens; cancellation remains reachable without submitting an operation.
+
+## Business and Jobs workspaces
+
+Backlog and board views, search and filters, and page-level actions share one workspace toolbar. Business catalogue follows the Jobs and interviews filter layout: compact labeled controls inline, with infrequent filters under More filters and a count of active advanced groups. The disclosure preserves selections when closed. The owner’s Add business, Import catalogue and Catalogue access actions sit with fullscreen in the toolbar. Jobs keeps its existing filter order and moves Add job lead into the action group. Controls wrap on narrow screens and icon actions keep accessible names and touch targets. Filtering and clearing keep the current workspace view.

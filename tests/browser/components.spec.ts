@@ -892,3 +892,80 @@ test("artifact lightbox navigates images and restores focus", async ({ page }) =
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
 });
+
+test("catalogue toolbar groups actions and preserves advanced filters when collapsed", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await story(page, "features-prospects-catalogue-toolbar--owner");
+  const toolbar = page.getByRole("group", { name: "Catalogue actions" });
+  const query = toolbar.getByRole("searchbox", { name: "Find a business" });
+  const advanced = toolbar.locator("summary").filter({ hasText: "More filters" });
+  const evidence = toolbar.getByLabel("Evidence images");
+  const apply = toolbar.getByRole("button", { name: "Apply filters", exact: true });
+  await expect(query).toHaveValue("desk");
+  await expect(toolbar.getByLabel("Region")).toHaveValue("Montevideo");
+  await expect(evidence).not.toBeVisible();
+  const searchY = (await query.boundingBox())!.y;
+  expect(
+    Math.abs((await toolbar.getByLabel("Assigned to").boundingBox())!.y - searchY),
+  ).toBeLessThan(8);
+  for (const name of ["Add business", "Import catalogue", "Catalogue access"]) {
+    const trigger = toolbar.getByRole("button", { name, exact: true });
+    await trigger.click();
+    await expect(toolbar.getByRole("dialog", { name })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+  }
+  await advanced.focus();
+  await page.keyboard.press("Enter");
+  await expect(evidence).toHaveValue("no");
+  const axe = await new AxeBuilder({ page }).include("#storybook-root").analyze();
+  expect(
+    axe.violations.filter((violation) => ["serious", "critical"].includes(violation.impact ?? "")),
+  ).toEqual([]);
+  await expect(toolbar.getByRole("checkbox", { name: "Web development" })).toBeChecked();
+  await expect(toolbar.getByLabel("Match services")).toHaveValue("all");
+  await evidence.selectOption("yes");
+  await evidence.focus();
+  await page.keyboard.press("Escape");
+  await expect(advanced).toBeFocused();
+  await expect(evidence).not.toBeVisible();
+  const formValues = await apply.evaluate((button) => {
+    if (!(button instanceof HTMLButtonElement) || !button.form) return null;
+    return Object.fromEntries(new FormData(button.form));
+  });
+  expect(formValues).toMatchObject({
+    q: "desk",
+    region: "Montevideo",
+    images: "yes",
+    service: "Web development",
+    match: "all",
+    focus: "1",
+  });
+  await expect(toolbar.getByRole("link", { name: "Clear filters" })).toHaveAttribute(
+    "href",
+    "/prospects?focus=1",
+  );
+});
+
+test("catalogue toolbar fits a narrow screen without exposing owner actions to members", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await story(page, "features-prospects-catalogue-toolbar--board-member");
+  const toolbar = page.getByRole("group", { name: "Catalogue actions" });
+  await expect(toolbar.getByRole("link", { name: "My board" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(toolbar.getByRole("button", { name: "Import catalogue" })).toHaveCount(0);
+  await expect(toolbar.getByLabel("Assigned to")).toHaveCount(0);
+  await expect(toolbar.getByRole("link", { name: "Clear filters" })).toHaveAttribute(
+    "href",
+    "/prospects?view=board",
+  );
+  await toolbar.locator("summary").filter({ hasText: "More filters" }).click();
+  await expect(toolbar.getByRole("checkbox", { name: "Social media" })).toBeChecked();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});

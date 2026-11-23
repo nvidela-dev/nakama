@@ -44,7 +44,9 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await expect(matchHeader).toHaveAttribute("aria-sort", "ascending");
   await dateHeader.getByRole("link").click();
   await expect(dateHeader).toHaveAttribute("aria-sort", "descending");
-  await page.getByText("Add job lead", { exact: true }).click();
+  const toolbar = page.getByRole("group", { name: "Job actions" });
+  await toolbar.getByRole("button", { name: "Add job lead", exact: true }).click();
+  await expect(toolbar.getByRole("dialog", { name: "Add job lead" })).toBeVisible();
   const role = "QA role " + randomUUID();
   await page.getByLabel("Company", { exact: true }).fill("Example Labs");
   await page.getByLabel("Role title").fill(role);

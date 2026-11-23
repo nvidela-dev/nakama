@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CatalogueAction } from "@/features/prospects/components/catalogue-action";
+import { ToolbarDialog } from "@/shared/ui/toolbar-dialog";
 import { CatalogueBrowser } from "@/features/prospects/components/catalogue-browser";
 import { catalogueHref, catalogueParams, type CatalogueQuery } from "@/features/prospects/filters";
 import { notFound } from "next/navigation";
@@ -89,68 +89,6 @@ export default async function ProspectsPage({
           <h1 className="text-3xl font-semibold tracking-tight wrap-anywhere">
             {prospect?.name ?? title}
           </h1>
-          {!prospect && owner && (
-            <div className="flex items-center gap-1">
-              <CatalogueAction label="Add business" icon="plus">
-                <div className="mt-3">
-                  <AddProspect />
-                </div>
-              </CatalogueAction>
-              <CatalogueAction label="Import catalogue" icon="upload">
-                <div className="mt-3">
-                  <ImportProspects />
-                  {data.receipts.length > 0 && (
-                    <ul className="mt-3 grid gap-2">
-                      {data.receipts.map((r) => (
-                        <li key={r.digest}>
-                          <time>{formatDate(r.completed_at, locale)}</time> ·{" "}
-                          {t(
-                            r.format === "database"
-                              ? "Source database"
-                              : r.format === "presentation"
-                                ? "Catalogue dossier"
-                                : "Catalogue index",
-                          )}{" "}
-                          ·{" "}
-                          {t("{count} businesses, {missing} missing image files", {
-                            count: r.businesses,
-                            missing: r.missing,
-                          })}{" "}
-                          ·{" "}
-                          <a className="underline" href={`${base}/imports/${r.digest}`}>
-                            {t("Download original")}
-                          </a>
-                          {Object.keys(r.tables).length > 0 && (
-                            <details>
-                              <summary className="cursor-pointer">
-                                {t("Source table counts")}
-                              </summary>
-                              <dl className="text-sm">
-                                {Object.entries(r.tables)
-                                  .sort(([a], [b]) => a.localeCompare(b))
-                                  .map(([table, count]) => (
-                                    <div key={table} className="flex gap-2">
-                                      <dt>{table.replaceAll("_", " ")}</dt>
-                                      <dd>{count}</dd>
-                                    </div>
-                                  ))}
-                              </dl>
-                            </details>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </CatalogueAction>
-              <CatalogueAction label="Catalogue access" icon="consultancy">
-                <div className="mt-3">
-                  <InviteCollaborator pending={data.invitations} />
-                  {others.length ? <CatalogueAccess members={others} /> : null}
-                </div>
-              </CatalogueAction>
-            </div>
-          )}
         </div>
         {prospect && (
           <p className="mt-2 text-muted">
@@ -409,6 +347,70 @@ export default async function ProspectsPage({
         <>
           {data.listing && (
             <CatalogueBrowser
+              actions={
+                owner ? (
+                  <div className="flex items-center gap-1">
+                    <ToolbarDialog label="Add business" icon="plus">
+                      <div className="mt-3">
+                        <AddProspect />
+                      </div>
+                    </ToolbarDialog>
+                    <ToolbarDialog label="Import catalogue" icon="upload">
+                      <div className="mt-3">
+                        <ImportProspects />
+                        {data.receipts.length > 0 && (
+                          <ul className="mt-3 grid gap-2">
+                            {data.receipts.map((r) => (
+                              <li key={r.digest}>
+                                <time>{formatDate(r.completed_at, locale)}</time> ·{" "}
+                                {t(
+                                  r.format === "database"
+                                    ? "Source database"
+                                    : r.format === "presentation"
+                                      ? "Catalogue dossier"
+                                      : "Catalogue index",
+                                )}{" "}
+                                ·{" "}
+                                {t("{count} businesses, {missing} missing image files", {
+                                  count: r.businesses,
+                                  missing: r.missing,
+                                })}{" "}
+                                ·{" "}
+                                <a className="underline" href={`${base}/imports/${r.digest}`}>
+                                  {t("Download original")}
+                                </a>
+                                {Object.keys(r.tables).length > 0 && (
+                                  <details>
+                                    <summary className="cursor-pointer">
+                                      {t("Source table counts")}
+                                    </summary>
+                                    <dl className="text-sm">
+                                      {Object.entries(r.tables)
+                                        .sort(([a], [b]) => a.localeCompare(b))
+                                        .map(([table, count]) => (
+                                          <div key={table} className="flex gap-2">
+                                            <dt>{table.replaceAll("_", " ")}</dt>
+                                            <dd>{count}</dd>
+                                          </div>
+                                        ))}
+                                    </dl>
+                                  </details>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </ToolbarDialog>
+                    <ToolbarDialog label="Catalogue access" icon="consultancy">
+                      <div className="mt-3">
+                        <InviteCollaborator pending={data.invitations} />
+                        {others.length ? <CatalogueAccess members={others} /> : null}
+                      </div>
+                    </ToolbarDialog>
+                  </div>
+                ) : undefined
+              }
               availableStages={data.availableStages}
               owner={owner}
               query={filters.toString()}
