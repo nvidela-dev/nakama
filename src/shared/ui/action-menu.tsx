@@ -1,4 +1,5 @@
 "use client";
+import { useDismissibleLayer } from "@/shared/lib/use-dismissible-layer";
 import { Popover } from "antd";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { IconButton } from "./button";
@@ -14,6 +15,13 @@ export function ActionMenu({
 }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLSpanElement>(null);
+  useDismissibleLayer(
+    open,
+    trigger,
+    () => setOpen(false),
+    () => trigger.current?.querySelector("button")?.focus(),
+    true,
+  );
   useEffect(() => {
     const scope = trigger.current?.closest<HTMLElement>("[data-action-scope]");
     if (!scope) return;
@@ -31,17 +39,7 @@ export function ActionMenu({
     return () => scope.removeEventListener("contextmenu", show);
   }, []);
   return (
-    <span
-      ref={trigger}
-      className="relative inline-flex"
-      onKeyDown={(event) => {
-        if (open && event.key === "Escape") {
-          event.stopPropagation();
-          setOpen(false);
-          trigger.current?.querySelector("button")?.focus();
-        }
-      }}
-    >
+    <span ref={trigger} className="relative inline-flex">
       <Popover
         placement="bottomRight"
         trigger="click"

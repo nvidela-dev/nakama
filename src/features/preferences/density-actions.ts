@@ -1,16 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { setPreferenceCookie } from "./server/cookie";
 export async function changeDensity(density: string) {
   const { observeAction } = await import("@/server/observability/request-observability");
   return observeAction("preference.density", async () => {
     if (density !== "compact" && density !== "comfortable") throw new Error("Unsupported density");
-    (await cookies()).set("nakama-density", density, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    });
+    await setPreferenceCookie("nakama-density", density);
   });
 }

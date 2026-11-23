@@ -63,7 +63,7 @@ test("administrator manages exact-email admission without granting project membe
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
       false,
     );
-    await page.getByRole("button", { name: "Español", exact: true }).click();
+    await page.getByRole("button", { name: "ES — Español", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Administración", exact: true })).toBeVisible();
   } finally {
     if (added) {

@@ -5,7 +5,8 @@ import { flowIdSchema } from "@/shared/contracts/domain-schemas";
 import { queryRows, required } from "@/server/database/query";
 import type { Database } from "@/server/database/database";
 import type { Actor } from "@/shared/contracts/actor";
-import { ProjectError, membership } from "./projects";
+import { ProjectError } from "@/shared/contracts/errors";
+import { membership } from "@/server/database/membership";
 import { contextSections } from "./context-queries";
 
 const rowSchema = z.record(

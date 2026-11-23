@@ -1,24 +1,23 @@
 "use server";
-import { observeAction } from "@/server/observability/request-observability";
+import { runAction } from "@/features/access/server/action-runner";
 import { telemetry } from "@/server/observability/observability";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
-import { ProjectError, projectService } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
+import { projectService } from "@/features/projects/server/projects";
 import { projectLinksService } from "@/features/projects/server/project-links";
 import { startProject } from "@/features/projects/server/project-start";
 import { guidanceService } from "@/features/guidance/server/guidance";
 import type { ActionState } from "@/shared/contracts/action-state";
-const field = (data: FormData, name: string) => String(data.get(name) ?? "");
+import { field } from "@/server/actions/form";
 const message = (error: unknown) =>
   error instanceof ProjectError
     ? error.message
     : "We could not save this. Please try again; your draft is still here.";
 export async function createProject(_state: ActionState, data: FormData): Promise<ActionState> {
-  return observeAction("project.create", async () => {
-    const person = await actor();
+  return runAction("project.create", async (person) => {
     let id: string;
     try {
       id = await startProject(database(), person, {
@@ -41,8 +40,7 @@ export async function editProject(
   _state: ActionState,
   data: FormData,
 ): Promise<ActionState> {
-  return observeAction("project.edit", async () => {
-    const person = await actor();
+  return runAction("project.edit", async (person) => {
     try {
       await guidanceService(database()).editProject(
         person,
@@ -66,8 +64,7 @@ export async function setProjectArchived(
   projectId: string,
   archived: boolean,
 ): Promise<ActionState> {
-  return observeAction("project.archive", async () => {
-    const person = await actor();
+  return runAction("project.archive", async (person) => {
     try {
       if (typeof archived !== "boolean") throw new ProjectError("Invalid archive action.");
       await projectService(database()).setArchived(person, projectId, archived);
@@ -85,8 +82,7 @@ export async function deleteProject(
   _state: ActionState,
   data: FormData,
 ): Promise<ActionState> {
-  return observeAction("project.delete", async () => {
-    const person = await actor();
+  return runAction("project.delete", async (person) => {
     try {
       await projectService(database()).deleteProject(
         person,
@@ -108,19 +104,15 @@ export async function changeProjectLink(
   _state: ActionState,
   data: FormData,
 ): Promise<ActionState> {
-  return observeAction("project.link", async () => {
-    const person = await actor();
+  return runAction("project.link", async (person) => {
     const otherId = field(data, "otherId"),
       direction = field(data, "direction");
-    if (direction !== "source" && direction !== "child")
-      return { error: "Choose a relationship direction." };
-    const [sourceId, childId] =
-      direction === "source" ? [otherId, projectId] : [projectId, otherId];
     try {
-      await projectLinksService(database()).change(
+      await projectLinksService(database()).changeRelative(
         person,
-        sourceId,
-        childId,
+        projectId,
+        otherId,
+        direction,
         field(data, "operation") === "remove",
       );
       revalidatePath(`/projects/${projectId}`);
@@ -139,8 +131,7 @@ export async function saveProjectLinearLink(
   _state: ActionState,
   form: FormData,
 ): Promise<ActionState> {
-  return observeAction("project.edit", async () => {
-    const person = await actor();
+  return runAction("project.edit", async (person) => {
     try {
       await projectService(database()).saveLinearLink(
         person,

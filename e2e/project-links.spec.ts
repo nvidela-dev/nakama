@@ -124,7 +124,7 @@ test("spawn, add several sources, navigate both ways, link/unlink existing proje
   await expect(panel.getByRole("link", { name: aName, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await panel.screenshot({ path: "/tmp/nakama-lineage-phone.png" });
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await page.getByRole("button", { name: "ES — Español", exact: true }).click();
   await expect(
     panel.getByRole("heading", { name: "Proyectos vinculados", exact: true }),
   ).toBeVisible();

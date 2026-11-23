@@ -1,17 +1,13 @@
+import { milestoneRowSchema, attachmentRowSchema } from "./schemas";
+import { lockProject } from "@/server/database/membership";
 import { applyBoardOperation } from "./boards";
-import { flowIdSchema } from "@/shared/contracts/domain-schemas";
-import { taskListRevisionSchema, projectTaskSchema } from "@/server/database/row-schemas";
+import { taskListRevisionSchema, projectTaskSchema } from "@/features/tasks/server/schemas";
 import { queryRows } from "@/server/database/query";
 import { randomUUID } from "node:crypto";
-import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
-import {
-  withProjectRead,
-  type ProjectRead,
-  membership,
-  ProjectError,
-  type Actor,
-} from "@/features/projects/server/projects";
+import { withProjectRead, type ProjectRead } from "@/server/database/membership";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 import { recordActivity } from "@/server/database/activity-log";
 import type { TaskSnapshot } from "@/features/tasks/model";
 import { operation } from "@/features/tasks/input";
@@ -43,21 +39,13 @@ async function snapshot(tx: Queryable, projectId: string): Promise<TaskSnapshot>
   );
   const milestones = await queryRows(
     tx,
-    z.object({
-      id: z.uuid(),
-      title: z.string(),
-      description: z.string(),
-      template_id: z.string(),
-      flow_id: flowIdSchema,
-      status: z.enum(["active", "completed", "archived"]),
-      position: z.number().int(),
-    }),
+    milestoneRowSchema,
     "SELECT id,title,description,template_id,flow_id,status,position FROM project_milestones WHERE project_id=$1 ORDER BY position,id",
     [projectId],
   );
   const attachments = await queryRows(
     tx,
-    z.object({ task_id: z.uuid(), artifact_id: z.uuid() }),
+    attachmentRowSchema,
     "SELECT task_id,artifact_id FROM task_artifacts WHERE project_id=$1 ORDER BY created_at,artifact_id",
     [projectId],
   );
@@ -65,8 +53,7 @@ async function snapshot(tx: Queryable, projectId: string): Promise<TaskSnapshot>
 }
 // A list-wide revision protects subtree operations when another member adds a child.
 async function lock(tx: Queryable, actor: Actor, projectId: string, revision: number) {
-  await membership(tx, actor, projectId);
-  await tx.query("SELECT id FROM projects WHERE id=$1 FOR UPDATE", [projectId]);
+  await lockProject(tx, actor, projectId, "write");
   if (!Number.isSafeInteger(revision) || revision < 0)
     throw new ProjectError("Invalid task revision.");
   const current = await snapshot(tx, projectId);

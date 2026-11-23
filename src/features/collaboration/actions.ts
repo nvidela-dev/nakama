@@ -1,15 +1,14 @@
 "use server";
-import { observeAction } from "@/server/observability/request-observability";
+import { runAction } from "@/features/access/server/action-runner";
 import { telemetry } from "@/server/observability/observability";
 
 import { revalidatePath } from "next/cache";
-import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import {
   collaborationService,
   type CommentTarget,
 } from "@/features/collaboration/server/collaboration";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import type { ActionState } from "@/shared/contracts/action-state";
 const errorMessage = (error: unknown) =>
   error instanceof ProjectError
@@ -21,8 +20,7 @@ export async function postComment(
   _state: ActionState,
   data: FormData,
 ): Promise<ActionState> {
-  return observeAction("comment.post", async () => {
-    const person = await actor();
+  return runAction("comment.post", async (person) => {
     try {
       await collaborationService(database()).post(
         person,
@@ -45,8 +43,7 @@ export async function changeComment(
   _state: ActionState,
   data: FormData,
 ): Promise<ActionState> {
-  return observeAction("comment.change", async () => {
-    const person = await actor();
+  return runAction("comment.change", async (person) => {
     const operation = String(data.get("operation") ?? "");
     try {
       if (operation !== "edit" && operation !== "delete") throw new ProjectError("Unknown action.");

@@ -7,24 +7,28 @@ import { fileURLToPath } from "node:url";
 
 type Dependency = { specifier: string; typeOnly: boolean };
 const featureDependencies: Readonly<Record<string, readonly string[]>> = {
-  access: ["projects"],
-  artifacts: ["access", "projects", "guidance"],
+  access: [],
+  artifacts: ["access", "guidance"],
   collaboration: ["access", "projects", "guidance", "notifications"],
-  guidance: ["access", "projects"],
-  notifications: ["access", "projects"],
+  guidance: ["access"],
+  notifications: ["access"],
   preferences: [],
   prospects: ["access"],
   jobs: ["access"],
-  projects: ["access", "guidance", "collaboration"],
+  projects: ["access", "guidance"],
   shell: ["access", "projects", "notifications", "preferences"],
-  tasks: ["access", "projects", "artifacts"],
-  experiments: ["access", "projects", "guidance"],
+  tasks: ["access", "artifacts"],
+  experiments: ["access", "guidance"],
 };
 
 /** Pure checker: tests can prove rejection using synthetic modules. */
-export function architectureViolations(sources: ReadonlyMap<string, string>): string[] {
+export function architectureViolations(
+  sources: ReadonlyMap<string, string>,
+  checkUnused = false,
+): string[] {
   const errors = new Set<string>();
   const graph = new Map<string, string[]>();
+  const features = new Map<string, Set<string>>();
   const clients: string[] = [];
   const trees = new Map<string, ts.SourceFile>();
   const serverActions = new Set<string>();
@@ -101,7 +105,19 @@ export function architectureViolations(sources: ReadonlyMap<string, string>): st
       if (
         (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
         !file.startsWith("src/shared/ui/") &&
-        ["button", "input", "select", "textarea", "dialog"].includes(node.tagName.getText(tree))
+        ["button", "input", "select", "textarea", "dialog"].includes(node.tagName.getText(tree)) &&
+        !(
+          node.tagName.getText(tree) === "input" &&
+          node.attributes.properties.every((prop) => !ts.isJsxSpreadAttribute(prop)) &&
+          node.attributes.properties.some(
+            (prop) =>
+              ts.isJsxAttribute(prop) &&
+              prop.name.getText(tree) === "type" &&
+              prop.initializer &&
+              ts.isStringLiteral(prop.initializer) &&
+              prop.initializer.text === "hidden",
+          )
+        )
       )
         errors.add(`${file}: use the shared UI ${node.tagName.getText(tree)} primitive`);
       if (
@@ -118,6 +134,12 @@ export function architectureViolations(sources: ReadonlyMap<string, string>): st
       if (dependency.specifier.startsWith("lucide-react") && file !== "src/shared/ui/icon.tsx")
         errors.add(`${file}: choose icons through the shared icon catalog`);
       const dest = target(file, dependency.specifier);
+      if (
+        /^src\/features\/[^/]+\/components\//.test(file) &&
+        (dependency.specifier === "@clerk/nextjs/server" ||
+          dest?.startsWith("src/server/observability/"))
+      )
+        errors.add(`${file}: presentation must use a feature service for identity and diagnostics`);
       if (/^(?:@\/)?(?:lib|components)\//.test(dependency.specifier))
         errors.add(`${file}: legacy folder import ${dependency.specifier}`);
       if (
@@ -133,13 +155,12 @@ export function architectureViolations(sources: ReadonlyMap<string, string>): st
       const other = dest?.match(/^src\/features\/([^/]+)/)?.[1];
       if (owner && !featureDependencies[owner])
         errors.add(`${file}: feature is missing from the explicit dependency policy`);
-      if (
-        !dependency.typeOnly &&
-        owner &&
-        other &&
-        owner !== other &&
-        !featureDependencies[owner]?.includes(other)
-      )
+      if (owner && other && owner !== other) {
+        const edges = features.get(owner) ?? new Set<string>();
+        edges.add(other);
+        features.set(owner, edges);
+      }
+      if (owner && other && owner !== other && !featureDependencies[owner]?.includes(other))
         errors.add(`${file}: undeclared feature dependency on ${other}`);
       if (
         file.startsWith("src/shared/ui/") &&
@@ -182,6 +203,21 @@ export function architectureViolations(sources: ReadonlyMap<string, string>): st
     }
     walk(client);
   }
+  function checkFeature(name: string, path: string[]) {
+    if (path.includes(name)) {
+      errors.add(`Feature dependency cycle: ${[...path, name].join(" -> ")}`);
+      return;
+    }
+    for (const next of features.get(name) ?? []) checkFeature(next, [...path, name]);
+  }
+  for (const [name, allowed] of Object.entries(featureDependencies)) {
+    checkFeature(name, []);
+    if (checkUnused)
+      for (const dependency of allowed) {
+        if (!features.get(name)?.has(dependency))
+          errors.add(`Unused dependency: ${name} -> ${dependency}`);
+      }
+  }
   const visited = new Set<string>(),
     active = new Set<string>();
   function cycle(file: string) {
@@ -219,7 +255,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
         .map(async (file) => [file, await readFile(file, "utf8")] as const),
     ),
   );
-  const errors = architectureViolations(sources);
+  const errors = architectureViolations(sources, true);
   if (errors.length) {
     console.error(errors.join("\n"));
     process.exitCode = 1;

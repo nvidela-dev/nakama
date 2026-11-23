@@ -24,7 +24,16 @@ export function Button({
       {...props}
       className={`pointer-coarse:min-h-11! pointer-coarse:min-w-11! ${props.className ?? ""}`}
       htmlType={type}
-      loading={pending}
+      loading={
+        pending && {
+          icon: (
+            <span
+              aria-hidden="true"
+              className="inline-block size-[1em] rounded-full border-2 border-current border-e-transparent motion-safe:animate-spin"
+            />
+          ),
+        }
+      }
       disabled={disabled || pending || (!!props.onClick && !hydrated)}
       aria-busy={pending || undefined}
       danger={variant === "danger"}
@@ -58,4 +67,15 @@ export function ToolbarAction({
       />
     </Tooltip>
   );
+}
+
+export function buttonClassName(variant: "primary" | "secondary" = "primary") {
+  return `button inline-flex items-center justify-center gap-2 min-h-9 rounded-md px-3 py-2 font-semibold no-underline focus-visible:outline-2 focus-visible:outline-lime pointer-coarse:min-h-11 ${variant === "secondary" ? "secondary border border-line bg-panel text-ink hover:border-lime" : "bg-lime text-bg"}`;
+}
+export function ButtonLink({
+  variant,
+  className = "",
+  ...props
+}: ComponentProps<"a"> & { variant?: "primary" | "secondary" }) {
+  return <a {...props} className={`${buttonClassName(variant)} ${className}`} />;
 }

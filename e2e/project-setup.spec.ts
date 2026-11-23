@@ -130,7 +130,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
     .locator(".flow-options")
     .screenshot({ path: test.info().outputPath("existing-project-type-grid.png") });
   await page.goto("/projects");
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await page.getByRole("button", { name: "ES — Español", exact: true }).click();
   await page.getByRole("button", { name: "Nuevo proyecto", exact: true }).click();
   await expect(dialog.getByText("Paso 1 de 2 · Tipo de proyecto", { exact: true })).toBeVisible();
   await dialog.getByRole("button", { name: "Elegir más adelante", exact: true }).click();

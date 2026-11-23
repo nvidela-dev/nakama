@@ -18,6 +18,13 @@ test("dialog traps focus, closes with Escape and restores its trigger", async ({
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
 });
+test("the pending spinner keeps the button's accessible name", async ({ page }) => {
+  await story(page, "ui-button--pending");
+  const save = page.getByRole("button", { name: "Saving…", exact: true });
+  await expect(save).toBeDisabled();
+  await expect(save).toHaveAttribute("aria-busy", "true");
+});
+
 test("tab keyboard navigation preserves drafts in inactive panels", async ({ page }) => {
   await story(page, "ui-tabs--persistent-panels");
   await page.getByLabel("Draft").fill("Keep this draft");
@@ -868,6 +875,29 @@ test("private prospect call debrief switches branches and saves or records the s
   await page.getByRole("button", { name: "Record call" }).click();
   await expect(page.getByText("Call recorded")).toBeVisible();
   await expect(outcome).toHaveValue("");
+});
+
+test("exact-name confirmation enables only a matching name", async ({ page }) => {
+  await story(page, "ui-form-patterns--exact-name");
+  const field = page.getByLabel("Enter Prototype to confirm"),
+    submit = page.getByRole("button", { name: "Delete project" });
+  await expect(submit).toBeDisabled();
+  await field.fill("prototype");
+  await expect(submit).toBeDisabled();
+  await field.fill("Prototype");
+  await submit.click();
+  await expect(page.getByRole("status")).toHaveText("Confirmed");
+});
+test("artifact lightbox navigates images and restores focus", async ({ page }) => {
+  await story(page, "artifacts-lightbox--keyboard-navigation");
+  const trigger = page.getByRole("button", { name: "Open preview" });
+  await trigger.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("img", { name: "Small icon" })).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(dialog.getByRole("img", { name: "Large icon" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
 });
 
 test("catalogue toolbar groups actions and preserves advanced filters when collapsed", async ({

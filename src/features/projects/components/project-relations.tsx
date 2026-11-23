@@ -2,7 +2,7 @@
 import { FormStack, SidebarSection } from "@/shared/ui/workspace-layout";
 
 import { Icon } from "@/shared/ui/icon";
-import { Input, Select } from "@/shared/ui/controls";
+import { Select } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
 
@@ -27,9 +27,9 @@ function RemoveLink({
   return (
     <div>
       <form action={action}>
-        <Input type="hidden" name="otherId" value={other.id} />
-        <Input type="hidden" name="direction" value={direction} />
-        <Input type="hidden" name="operation" value="remove" />
+        <input type="hidden" name="otherId" value={other.id} />
+        <input type="hidden" name="direction" value={direction} />
+        <input type="hidden" name="operation" value="remove" />
         <Button
           type="submit"
           variant="ghost"

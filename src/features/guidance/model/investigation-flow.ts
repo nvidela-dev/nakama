@@ -14,6 +14,7 @@ export const investigationFlow: Flow & { readonly id: "investigation" } = {
       nodes: [
         {
           id: "inquiry-name",
+          captureField: "name",
           label: "Name",
           question: "What is the investigation called?",
           example: "Which home energy upgrades are worthwhile?",
@@ -22,6 +23,7 @@ export const investigationFlow: Flow & { readonly id: "investigation" } = {
         },
         {
           id: "inquiry-description",
+          captureField: "description",
           label: "Brief description",
           question: "What topic are we investigating?",
           example: "Compare insulation and heating options for our home.",
@@ -198,7 +200,7 @@ export const investigationFlow: Flow & { readonly id: "investigation" } = {
           example:
             "Action: seal drafts first. Report: comparison table with source references and uncertainties.",
           after: ["inquiry-output"],
-          kind: "question",
+          kind: "outcome",
         },
         {
           id: "inquiry-check",

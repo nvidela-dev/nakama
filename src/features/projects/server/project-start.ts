@@ -1,5 +1,7 @@
+import { scopedDatabase } from "@/server/database/database";
 import type { Database } from "@/server/database/database";
-import { projectService, type Actor } from "@/features/projects/server/projects";
+import { projectService } from "@/features/projects/server/projects";
+import { type Actor } from "@/shared/contracts/actor";
 import { projectLinksService, sourceProjectIds } from "@/features/projects/server/project-links";
 import { guidanceService } from "@/features/guidance/server/guidance";
 
@@ -10,10 +12,7 @@ export function startProject(
   input: { name: string; description: string; flow?: string; sourceIds?: unknown },
 ) {
   return db.transaction(async (tx) => {
-    const scoped: Database = {
-      query: (sql, values) => tx.query(sql, values),
-      transaction: (work) => work(tx),
-    };
+    const scoped = scopedDatabase(tx);
     const id = await projectService(scoped).create(person, input);
     if (input.flow) await guidanceService(scoped).select(person, id, input.flow);
     for (const sourceId of sourceProjectIds(input.sourceIds))

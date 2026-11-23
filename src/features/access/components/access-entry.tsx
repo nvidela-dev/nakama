@@ -58,7 +58,7 @@ export function AccessEntry({ signup = false }: { signup?: boolean }) {
           autoComplete="email"
           className={"w-full [resize:vertical]"}
         />
-        <Button type="submit" disabled={pending} className={"mt-2 lg:compact:mt-1"}>
+        <Button type="submit" pending={pending} className={"mt-2 lg:compact:mt-1"}>
           {pending ? t("Saving…") : t("Continue")}
         </Button>
         {state.error && (

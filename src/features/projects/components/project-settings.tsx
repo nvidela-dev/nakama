@@ -1,4 +1,5 @@
 "use client";
+import { ConfirmByName } from "@/shared/ui/form-patterns";
 import { FormStack } from "@/shared/ui/workspace-layout";
 
 import { Input, Textarea } from "@/shared/ui/controls";
@@ -90,7 +91,7 @@ export function ProjectSettings({
           )}
         </small>
         <Feedback state={editState} />
-        <Button type="submit" disabled={saving} className={"mt-2 lg:compact:mt-1"}>
+        <Button type="submit" pending={saving} className={"mt-2 lg:compact:mt-1"}>
           {saving ? t("Saving…") : t("Save changes")}
         </Button>
       </FormStack>
@@ -112,26 +113,21 @@ export function ProjectSettings({
             "Permanently delete this project for all members, including answers, revision history, and invitations. This cannot be undone.",
           )}
         </p>
-        <label htmlFor={`${prefix}-delete-project-confirmation`} className={"text-[13px] text-ink"}>
-          {t("Type the project name to confirm:")} <strong>{name}</strong>
-        </label>
-        <Input
-          id={`${prefix}-delete-project-confirmation`}
-          name="confirmation"
+        <ConfirmByName
+          expected={name}
           value={confirmation}
-          onChange={(event) => setConfirmation(event.target.value)}
-          autoComplete="off"
-          required
-          className={"w-full [resize:vertical]"}
-        />
-        <Feedback state={deleteState} />
-        <Button
-          type="submit"
-          disabled={deleting || confirmation !== name}
-          className={"mt-2 lg:compact:mt-1"}
+          onChange={setConfirmation}
+          id={`${prefix}-delete-project-confirmation`}
+          label={
+            <>
+              {t("Type the project name to confirm:")} <strong>{name}</strong>
+            </>
+          }
+          submitLabel={deleting ? t("Deleting…") : t("Permanently delete project")}
+          pending={deleting}
         >
-          {deleting ? t("Deleting…") : t("Permanently delete project")}
-        </Button>
+          <Feedback state={deleteState} />
+        </ConfirmByName>
       </FormStack>
     </section>
   );

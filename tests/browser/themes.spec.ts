@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { palettes, styleThemeProperties } from "../../src/shared/ui/style-theme";
+
+function computedRgb(hex: string) {
+  const channels = [1, 3, 5].map((start) => Number.parseInt(hex.slice(start, start + 2), 16));
+  return `rgb(${channels.join(", ")})`;
+}
 
 for (const width of [390, 1440]) {
   test(`saved styles apply across reloads and remain accessible at ${width}px`, async ({
@@ -15,7 +21,10 @@ for (const width of [390, 1440]) {
     await expect(picker).toHaveValue("day");
     await picker.selectOption("night");
     await expect(html).toHaveAttribute("data-theme", "night");
-    await expect(page.locator("body")).toHaveCSS("background-color", "rgb(20, 36, 31)");
+    await expect(page.locator("body")).toHaveCSS(
+      "background-color",
+      computedRgb(palettes.night.bg),
+    );
     const cookie = (await context.cookies()).find((entry) => entry.name === "nakama-theme");
     expect(cookie?.value).toBe("night");
     expect(cookie?.httpOnly).toBe(true);
@@ -33,12 +42,25 @@ for (const width of [390, 1440]) {
     await expect(html).toHaveAttribute("data-theme", "night");
     await page.getByLabel("Visual style").selectOption("day");
     await expect(html).toHaveAttribute("data-theme", "day");
-    await expect(page.locator("body")).toHaveCSS("background-color", "rgb(243, 244, 234)");
+    await expect(page.locator("body")).toHaveCSS("background-color", computedRgb(palettes.day.bg));
     expect(
       await html.evaluate((element) => element.style.getPropertyValue("--theme-surface")),
-    ).toBe("#e8eddf");
+    ).toBe(styleThemeProperties("day")["--theme-surface"]);
     await context.addCookies([{ name: "nakama-theme", value: "invalid", url: baseURL! }]);
     await page.reload();
     await expect(html).toHaveAttribute("data-theme", "day");
   });
 }
+
+test("compact language controls expose their visible codes and retain the language on reload", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const spanish = page.getByRole("button", { name: "ES — Español", exact: true });
+  await spanish.click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await page.reload();
+  await expect(spanish).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "EN — English", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+});

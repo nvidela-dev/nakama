@@ -67,3 +67,31 @@ test("interface icons must use the catalog while the brand wave remains custom",
   );
   assert.deepEqual(check({ "src/shared/ui/wave-mark.tsx": "export const Wave=()=> <svg/>;" }), []);
 });
+
+test("type-only feature cycles, presentation service bypasses and unused declarations are checked", () => {
+  const graph = new Map(
+    Object.entries({
+      "src/features/tasks/a.ts": 'import type {X} from "@/features/projects/b";export type Y=X;',
+      "src/features/projects/b.ts": 'import type {Y} from "@/features/tasks/a";export type X=Y;',
+      "src/features/shell/components/view.tsx": 'import {auth} from "@clerk/nextjs/server";',
+    }),
+  );
+  const errors = architectureViolations(graph, true);
+  for (const expected of [
+    "Feature dependency cycle",
+    "undeclared feature dependency",
+    "Unused dependency",
+    "presentation must use",
+  ])
+    assert.ok(
+      errors.some((s) => s.includes(expected)),
+      expected,
+    );
+  assert.deepEqual(
+    check({
+      "src/features/tasks/components/hidden.tsx":
+        'export const Hidden=()=> <input type="hidden" name="id"/>;',
+    }),
+    [],
+  );
+});

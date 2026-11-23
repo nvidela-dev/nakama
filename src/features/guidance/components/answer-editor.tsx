@@ -1,4 +1,9 @@
 "use client";
+import { projectPageHref } from "@/shared/navigation/project-href";
+import { Eyebrow } from "@/shared/ui/workspace-layout";
+import { ConflictBanner } from "@/shared/ui/form-patterns";
+import { AnswerHistory } from "./answer-history";
+import { useUnsavedDraftGuard } from "@/shared/lib/use-unsaved-draft-guard";
 import { FormStack } from "@/shared/ui/workspace-layout";
 
 import { Button } from "@/shared/ui/button";
@@ -6,10 +11,7 @@ import { useT } from "@/shared/i18n/provider";
 import { Feedback } from "@/shared/ui/feedback";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { AnswerFields } from "./answer-fields";
-import { Input } from "@/shared/ui/controls";
 import { Panel } from "@/shared/ui/panel";
-import { useLocale } from "@/shared/i18n/provider";
-import { formatDate } from "@/shared/i18n/date";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveAnswer, type GuidanceActionState } from "../actions";
@@ -21,6 +23,8 @@ export function AnswerEditor({
   node,
   answer,
   history,
+  hasOlderHistory = false,
+  historyBefore,
   names,
   backHref,
 }: {
@@ -28,12 +32,13 @@ export function AnswerEditor({
   node: FlowNode;
   answer?: Answer | undefined;
   history: Revision[];
+  hasOlderHistory?: boolean;
+  historyBefore?: string | undefined;
   names: Record<string, string>;
   backHref: string;
 }) {
   const t = useT();
   const router = useRouter();
-  const locale = useLocale();
   const [content, setContent] = useState(answer?.content ?? "");
   const [status, setStatus] = useState<NodeStatus>(answer?.status ?? "draft");
   const [choice, setChoice] = useState(answer?.choice ?? "");
@@ -58,45 +63,19 @@ export function AnswerEditor({
   useEffect(() => {
     heading.current?.focus();
   }, []);
-  useEffect(() => {
-    if (!dirty) return;
-    const guard = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-    };
-    const linkGuard = (event: MouseEvent) => {
-      const link = (event.target as Element)?.closest?.("a");
-      if (
-        link &&
-        link.href !== window.location.href &&
-        !window.confirm(t("Leave this unsaved draft?"))
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    };
-    window.addEventListener("beforeunload", guard);
-    document.addEventListener("click", linkGuard, true);
-    return () => {
-      window.removeEventListener("beforeunload", guard);
-      document.removeEventListener("click", linkGuard, true);
-    };
-  }, [dirty, t]);
+  useUnsavedDraftGuard(dirty, t("Leave this unsaved draft?"));
   return (
     <Panel className={"answer-panel max-[700px]:p-5"}>
       <Link href={backHref} className={"back-link text-[13px] text-muted"}>
         {t("← Back to this stage")}{" "}
       </Link>
-      <span
-        className={
-          "eyebrow node-kind text-[11px] tracking-[2px] text-lime font-bold block mb-5.5 [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mt-7 lg:compact:mt-3"
-        }
-      >
+      <Eyebrow className="node-kind mb-3">
         {node.kind === "question"
           ? t("QUESTION")
           : node.kind === "action"
             ? t("ACTIVITY")
             : t("DECISION")}
-      </span>
+      </Eyebrow>
       <h2
         ref={heading}
         tabIndex={-1}
@@ -138,7 +117,7 @@ export function AnswerEditor({
         action={action}
         className="answer-form [&_label]:text-[13px] [&_label]:text-ink lg:compact:[&_#answer]:min-h-37.5 min-w-0 [&_>_textarea]:w-full [&_>_textarea]:min-w-0 [&_>_textarea]:max-w-full [&_>_select]:w-full [&_>_select]:min-w-0 [&_>_select]:max-w-full"
       >
-        <Input
+        <input
           type="hidden"
           name="revision"
           value={revision}
@@ -176,7 +155,7 @@ export function AnswerEditor({
           </small>
         )}
         {state.conflict && (
-          <div className={"conflict border border-[var(--theme-border,#b59769)] p-4 rounded-[8px]"}>
+          <ConflictBanner>
             <h3
               className={
                 "mb-[1em] font-sans tracking-[-0.045em] text-[20px] font-semibold lg:compact:text-[15px] lg:compact:mt-3 lg:compact:mx-0 lg:compact:mb-2 mt-0"
@@ -223,7 +202,7 @@ export function AnswerEditor({
                 {t("Keep my version")}{" "}
               </Button>
             </div>
-          </div>
+          </ConflictBanner>
         )}
         <div className={"save-row flex items-center gap-4 flex-wrap"}>
           <Button
@@ -238,47 +217,19 @@ export function AnswerEditor({
           </span>
         </div>
       </FormStack>
-      {history.length > 0 && (
-        <details
-          className={
-            "history border-t border-t-line mt-7 pt-5 text-[12px] lg:compact:pt-2.5 lg:compact:mt-3.5"
+      {(history.length > 0 || historyBefore) && (
+        <AnswerHistory
+          latestHref={historyBefore ? projectPageHref(backHref, { node: node.id }) : undefined}
+          olderHref={
+            hasOlderHistory
+              ? projectPageHref(backHref, {
+                  node: node.id,
+                  historyBefore: history.at(-1)?.revision.toString(),
+                })
+              : undefined
           }
-        >
-          <summary
-            className={
-              "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-lime focus-visible:outline-offset-5 cursor-pointer text-lime"
-            }
-          >
-            {t("Earlier work ·")} {history.length}{" "}
-            {history.length === 1 ? t("revision") : t("revisions")}
-          </summary>
-          {history.map((r) => (
-            <article
-              key={r.revision}
-              className={"border-b border-b-line py-5 px-0 lg:compact:py-3"}
-            >
-              <strong>
-                {t("Revision")} {r.revision} · {t(r.status)}
-              </strong>
-              <small className={"block text-muted mt-1.25 mx-0 mb-3.5"}>
-                {r.origin === "capture"
-                  ? t("From the original project capture")
-                  : t("Saved by {name}", {
-                      name: names[r.author_id] || t("a former member"),
-                    })}{" "}
-                · {formatDate(r.created_at, locale)}
-              </small>
-              {r.choice && (
-                <p className={"text-[12px] m-0"}>
-                  {t("Direction:")} {t(r.choice)}
-                </p>
-              )}
-              <p className={"preserve-lines whitespace-pre-wrap wrap-anywhere text-[12px] m-0"}>
-                {r.content || t("(No text)")}
-              </p>
-            </article>
-          ))}
-        </details>
+          history={history}
+        />
       )}
     </Panel>
   );

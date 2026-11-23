@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { queryRows, required } from "@/server/database/query";
 import type { Database, Queryable } from "@/server/database/database";
-import { membership, ProjectError, type Actor } from "@/features/projects/server/projects";
+import { membership } from "@/server/database/membership";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 import { flows, isFlowId } from "@/features/guidance/model/flows";
 import { reflectionKey, planSchema, operationSchema, type Plan } from "../input";
 import {

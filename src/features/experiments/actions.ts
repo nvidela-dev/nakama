@@ -1,9 +1,8 @@
 "use server";
-import { actor } from "@/features/access/server/auth";
+import { runAction } from "@/features/access/server/action-runner";
 import { database } from "@/server/database/db";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import { experimentService } from "./server/experiments";
-import { observeAction } from "@/server/observability/request-observability";
 import { telemetry } from "@/server/observability/observability";
 import type { LabOperation, Plan, Experiment } from "./model";
 export type LabResult = { items: Experiment[]; error?: never } | { error: string; items?: never };
@@ -13,8 +12,7 @@ export async function saveExperiment(
   revision: number,
   operation: LabOperation | { kind: "create"; plan: Plan },
 ): Promise<LabResult> {
-  return observeAction("experiment.change", async () => {
-    const person = await actor();
+  return runAction("experiment.change", async (person) => {
     try {
       const service = experimentService(database());
       return {
@@ -35,8 +33,7 @@ export async function saveExperiment(
   });
 }
 export async function reloadExperiments(projectId: string): Promise<LabResult> {
-  return observeAction("experiment.read", async () => {
-    const person = await actor();
+  return runAction("experiment.read", async (person) => {
     try {
       return { items: await experimentService(database()).list(person, projectId) };
     } catch (error) {
@@ -50,8 +47,7 @@ export async function exportExperimentBrief(
   id: string,
   runId: string,
 ): Promise<{ brief?: string; error?: string }> {
-  return observeAction("experiment.export", async () => {
-    const person = await actor();
+  return runAction("experiment.export", async (person) => {
     try {
       return { brief: await experimentService(database()).brief(person, projectId, id, runId) };
     } catch (error) {

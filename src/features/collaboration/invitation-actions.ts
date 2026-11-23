@@ -1,31 +1,28 @@
 "use server";
-import { observeAction } from "@/server/observability/request-observability";
+import { runAction } from "@/features/access/server/action-runner";
 import { telemetry } from "@/server/observability/observability";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
-import { ProjectError, projectService } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
+import { projectService } from "@/features/projects/server/projects";
+import type { InviteActionState } from "./model";
 import type { ActionState } from "@/shared/contracts/action-state";
-const field = (data: FormData, name: string) => String(data.get(name) ?? "");
+import { field } from "@/server/actions/form";
+import { issueApprovedInvitation } from "./server/invitation-candidates";
 const message = (error: unknown) =>
   error instanceof ProjectError
     ? error.message
     : "We could not save this. Please try again; your draft is still here.";
-import { invitationCandidates } from "./server/invitation-candidates";
 export async function invitePerson(
   projectId: string,
   _state: ActionState,
   data: FormData,
-): Promise<ActionState> {
-  return observeAction("invitation.create", async () => {
-    const person = await actor();
+): Promise<InviteActionState> {
+  return runAction("invitation.create", async (person) => {
     try {
-      const email = field(data, "email").trim().toLowerCase();
-      if (!(await invitationCandidates(person, projectId)).includes(email))
-        throw new ProjectError("Choose an approved person who is not already a project member.");
-      const { token } = await projectService(database()).invite(person, projectId, email);
+      const { token } = await issueApprovedInvitation(person, projectId, field(data, "email"));
       revalidatePath(`/projects/${projectId}`);
       return {
         token,
@@ -42,8 +39,7 @@ export async function managePerson(
   _state: ActionState,
   data: FormData,
 ): Promise<ActionState> {
-  return observeAction("project.members.manage", async () => {
-    const person = await actor();
+  return runAction("project.members.manage", async (person) => {
     try {
       const service = projectService(database());
       if (field(data, "operation") === "revoke")
@@ -60,16 +56,19 @@ export async function managePerson(
   });
 }
 export async function acceptInvitation(_state: ActionState, data: FormData): Promise<ActionState> {
-  return observeAction("invitation.accept", async () => {
-    const person = await actor(true);
-    let id: string;
-    try {
-      id = await projectService(database()).accept(person, field(data, "token"));
-    } catch (error) {
-      telemetry.reportError(error);
-      return { error: message(error) };
-    }
-    revalidatePath("/projects");
-    redirect(`/projects/${id}`);
-  });
+  return runAction(
+    "invitation.accept",
+    async (person) => {
+      let id: string;
+      try {
+        id = await projectService(database()).accept(person, field(data, "token"));
+      } catch (error) {
+        telemetry.reportError(error);
+        return { error: message(error) };
+      }
+      revalidatePath("/projects");
+      redirect(`/projects/${id}`);
+    },
+    true,
+  );
 }

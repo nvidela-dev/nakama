@@ -86,7 +86,7 @@ export function CommentComposer({
       <Feedback state={state} />
       <Button
         type="submit"
-        disabled={pending}
+        pending={pending}
         aria-label={pending ? t("Posting…") : t("Post comment")}
         title={t("Post comment")}
         className={

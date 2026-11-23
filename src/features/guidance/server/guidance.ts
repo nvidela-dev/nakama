@@ -1,23 +1,21 @@
+import { lockProject } from "@/server/database/membership";
+import type { Flow } from "../model/flows";
+import { scopedDatabase } from "@/server/database/database";
 import {
   selectedFlowSchema,
-  projectSchema,
-  memberSchema,
   answerSchema,
   revisionSchema,
   stageReviewSchema,
-} from "@/server/database/row-schemas";
+} from "@/features/guidance/server/schemas";
+import { projectSchema, memberSchema } from "@/server/database/row-schemas";
 import { nodeStatusSchema } from "@/shared/contracts/domain-schemas";
 import { queryRows } from "@/server/database/query";
 import { recordActivity } from "@/server/database/activity-log";
 import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
-import {
-  withProjectRead,
-  type ProjectRead,
-  membership,
-  ProjectError,
-  type Actor,
-} from "@/features/projects/server/projects";
+import { withProjectRead, type ProjectRead, membership } from "@/server/database/membership";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 import {
   captureNodes,
   descendants,
@@ -36,13 +34,13 @@ export class ConflictError extends ProjectError {
     );
   }
 }
-async function selectedFlow(tx: Queryable, projectId: string) {
+async function optionalFlow(tx: Queryable, projectId: string) {
   const row = (
     await queryRows(tx, selectedFlowSchema, "SELECT * FROM project_flows WHERE project_id = $1", [
       projectId,
     ])
   )[0];
-  if (!row) throw new ProjectError("Choose a flow first.");
+  if (!row) return null;
   const flow = flows[row.flow_id];
   if (flow.version !== row.template_version)
     throw new ProjectError("This flow version is not supported.");
@@ -52,6 +50,11 @@ async function selectedFlow(tx: Queryable, projectId: string) {
     contentRevision: row.content_revision,
   };
 }
+async function selectedFlow(tx: Queryable, projectId: string) {
+  const selection = await optionalFlow(tx, projectId);
+  if (!selection) throw new ProjectError("Choose a flow first.");
+  return selection;
+}
 const answerInput = z.object({
   revision: z.number().int().min(0),
   content: z.string().trim().max(20000),
@@ -60,18 +63,8 @@ const answerInput = z.object({
 });
 export async function readGuidance({ tx, projectId }: ProjectRead): Promise<Guidance | null> {
   await tx.query("SELECT id FROM projects WHERE id = $1 FOR SHARE", [projectId]);
-  if (
-    !(
-      await queryRows(
-        tx,
-        z.object({ project_id: z.uuid() }),
-        "SELECT project_id FROM project_flows WHERE project_id = $1",
-        [projectId],
-      )
-    ).length
-  )
-    return null;
-  const selected = await selectedFlow(tx, projectId);
+  const selected = await optionalFlow(tx, projectId);
+  if (!selected) return null;
   return {
     ...selected,
     answers: await queryRows(
@@ -88,14 +81,25 @@ export async function readGuidance({ tx, projectId }: ProjectRead): Promise<Guid
     ),
   };
 }
-export async function readHistory({ tx, projectId }: ProjectRead, nodeId: string) {
-  const { flow } = await selectedFlow(tx, projectId);
+export async function readHistory(
+  { tx, projectId }: ProjectRead,
+  nodeId: string,
+  before?: string,
+  knownFlow?: Flow,
+) {
+  const flow = knownFlow ?? (await selectedFlow(tx, projectId)).flow;
+  const revision = before === undefined ? null : Number(before);
+  if (
+    revision !== null &&
+    (!Number.isSafeInteger(revision) || revision < 1 || revision > 2147483647)
+  )
+    throw new ProjectError("Invalid page link.");
   if (!findNode(flow, nodeId)) throw new ProjectError("Question not found.");
   return await queryRows(
     tx,
     revisionSchema,
-    "SELECT revision,content,status,choice,author_id,origin,created_at FROM answer_revisions WHERE project_id = $1 AND node_id = $2 ORDER BY revision DESC",
-    [projectId, nodeId],
+    "SELECT revision,content,status,choice,author_id,author_name,origin,created_at FROM answer_revisions WHERE project_id = $1 AND node_id = $2 AND ($3::integer IS NULL OR revision < $3) ORDER BY revision DESC LIMIT 26",
+    [projectId, nodeId, revision],
   );
 }
 export function guidanceService(db: Database) {
@@ -210,10 +214,7 @@ export function guidanceService(db: Database) {
         const { flow } = await selectedFlow(tx, projectId);
         // Reuse answer saves on this same transaction: both metadata fields, history,
         // review invalidation, and the project header either commit together or roll back.
-        const scoped: Database = {
-          query: (query, values) => tx.query(query, values),
-          transaction: (work) => work(tx),
-        };
+        const scoped = scopedDatabase(tx);
         for (const [index, value] of [name, description].entries()) {
           if (value === (index === 0 ? current.name : current.description)) continue;
           const captured = captureNodes(flow);
@@ -249,9 +250,7 @@ export function guidanceService(db: Database) {
       if (data.status === "unanswered" && data.content)
         throw new ProjectError("Use Draft to keep unfinished text.");
       return db.transaction(async (tx) => {
-        await membership(tx, actor, projectId);
-        // One project lock gives first inserts, edits, and stage reviews a consistent revision boundary.
-        await tx.query("SELECT id FROM projects WHERE id = $1 FOR UPDATE", [projectId]);
+        await lockProject(tx, actor, projectId, "write");
         const { flow } = await selectedFlow(tx, projectId);
         const target = findNode(flow, nodeId);
         if (!target) throw new ProjectError("This question does not belong to this project flow.");
@@ -320,23 +319,13 @@ export function guidanceService(db: Database) {
           "UPDATE stage_reviews SET reviewed = false WHERE project_id = $1 AND stage_id = ANY($2::text[])",
           [projectId, affectedStages],
         );
-        if (
-          data.status === "answered" &&
-          (nodeId === "venture-direction" || nodeId === "experiment-direction")
-        ) {
-          const state = ["Park", "Save for later"].includes(data.choice ?? "")
-            ? "parked"
-            : "active";
+        if (data.status === "answered" && target.node.projectStateByChoice) {
+          const state = target.node.projectStateByChoice[data.choice ?? ""] ?? "active";
           await tx.query("UPDATE project_flows SET project_state = $1 WHERE project_id = $2", [
             state,
             projectId,
           ]);
         }
-        if (data.status === "answered" && nodeId === "create-loop")
-          await tx.query("UPDATE project_flows SET project_state = $1 WHERE project_id = $2", [
-            data.choice === "Finished enough" ? "finished_enough" : "active",
-            projectId,
-          ]);
         await tx.query(
           "UPDATE project_flows SET content_revision = content_revision + 1 WHERE project_id = $1",
           [projectId],
@@ -344,8 +333,8 @@ export function guidanceService(db: Database) {
         return revision;
       });
     },
-    async history(actor: Actor, projectId: string, nodeId: string) {
-      return withProjectRead(db, actor, projectId, (scope) => readHistory(scope, nodeId));
+    async history(actor: Actor, projectId: string, nodeId: string, before?: string) {
+      return withProjectRead(db, actor, projectId, (scope) => readHistory(scope, nodeId, before));
     },
     async reviewStage(
       actor: Actor,
@@ -359,8 +348,7 @@ export function guidanceService(db: Database) {
           "Record what you decided and any remaining unknowns (up to 2,000 characters).",
         );
       await db.transaction(async (tx) => {
-        await membership(tx, actor, projectId);
-        await tx.query("SELECT id FROM projects WHERE id = $1 FOR UPDATE", [projectId]);
+        await lockProject(tx, actor, projectId, "write");
         const { flow, contentRevision } = await selectedFlow(tx, projectId);
         if (expectedRevision !== contentRevision)
           throw new ProjectError(

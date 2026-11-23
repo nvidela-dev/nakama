@@ -1,5 +1,4 @@
 "use client";
-import { Input } from "@/shared/ui/controls";
 
 import { Button } from "@/shared/ui/button";
 
@@ -12,7 +11,7 @@ export function RequestActions({ id }: { id: string }) {
   const [state, action, pending] = useActionState(manageAccessRequest, {});
   return (
     <form action={action}>
-      <Input type="hidden" name="id" value={id} />
+      <input type="hidden" name="id" value={id} />
       <div className={"request-actions flex gap-1.5 flex-wrap"}>
         <Button type="submit" name="operation" value="allow" disabled={pending}>
           {t("Allow email")}

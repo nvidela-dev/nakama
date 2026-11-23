@@ -1,3 +1,4 @@
+import { refreshMemberLabel } from "@/server/database/membership";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectError } from "@/shared/contracts/errors";
@@ -29,6 +30,7 @@ export default async function ProjectsPage({
   const title = t(archived ? "Archived projects" : "Projects");
   const db = database(),
     service = projectService(db);
+  await refreshMemberLabel(db, person);
   const [page, totals] = await Promise.all([
     service.page(person, after, archived).catch((error) => {
       if (error instanceof ProjectError) notFound();

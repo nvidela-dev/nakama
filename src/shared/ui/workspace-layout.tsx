@@ -67,14 +67,27 @@ export function SidebarSection({
       <summary className="cursor-pointer select-none [[open]>&]:mb-2">
         <h2 className="font-sans tracking-[-0.045em] font-medium inline-flex items-center m-0 text-[14px] leading-[1.3]">
           {heading}
-          {count !== undefined && (
-            <span className="count text-muted border border-line rounded-full text-[11px] py-0.5 px-1.5 ml-1.25">
-              {count}
-            </span>
-          )}
+          {count !== undefined && <Badge className="count ml-1.25">{count}</Badge>}
         </h2>
       </summary>
       {children}
     </details>
+  );
+}
+
+export function Badge({ className = "", ...props }: ComponentProps<"span">) {
+  return (
+    <span
+      {...props}
+      className={`text-muted border border-line rounded-full text-[11px] py-0.5 px-1.5 ${className}`}
+    />
+  );
+}
+export function Eyebrow({ className = "", ...props }: ComponentProps<"span">) {
+  return (
+    <span
+      {...props}
+      className={`eyebrow text-[11px] tracking-[2px] text-lime font-bold block [&_>_span:first-child:not(:last-child)]:inline-block ${className}`}
+    />
   );
 }

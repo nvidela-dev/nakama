@@ -123,8 +123,8 @@ export function CatalogueToolbar({
           </>
         }
       >
-        {board && <Input type="hidden" name="view" value="board" />}
-        {focus && <Input type="hidden" name="focus" value="1" />}
+        {board && <input type="hidden" name="view" value="board" />}
+        {focus && <input type="hidden" name="focus" value="1" />}
         <label className={`${workspaceFilterLabel} flex-[1_1_12rem]`}>
           <span className="inline-flex items-center gap-1.5">
             <Icon name="search" size={13} />

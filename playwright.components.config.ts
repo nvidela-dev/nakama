@@ -15,7 +15,10 @@ export default defineConfig({
     video: "off",
   },
   webServer: {
-    command: `npm run storybook -- --port ${port} --host 127.0.0.1 --ci`,
+    command:
+      process.env.STORYBOOK_STATIC === "1"
+        ? `node node_modules/vite/bin/vite.js preview --outDir storybook-static --host 127.0.0.1 --port ${port} --strictPort`
+        : `npm run storybook -- --port ${port} --host 127.0.0.1 --ci`,
     url: url,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,

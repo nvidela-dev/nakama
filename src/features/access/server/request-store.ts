@@ -2,7 +2,7 @@ import {
   callClerk,
   clerkResponse,
   waitlistPage,
-  incompleteClerkPage,
+  clerkPages,
 } from "@/server/observability/provider-diagnostics";
 import { observeAction } from "@/server/observability/request-observability";
 import "server-only";
@@ -19,9 +19,8 @@ const requestStore: RequestStore = {
     return observeAction("identity.requests.list", async () => {
       const client = await callClerk("client", () => clerkClient());
       const entries: AccessRequest[] = [];
-      let offset = 0;
-      while (true) {
-        const page = clerkResponse(
+      for await (const page of clerkPages("waitlist.list", async (offset) =>
+        clerkResponse(
           "waitlist.list",
           waitlistPage,
           await callClerk("waitlist.list", () =>
@@ -32,18 +31,17 @@ const requestStore: RequestStore = {
               orderBy: "-created_at",
             }),
           ),
-        );
+        ),
+      )) {
         entries.push(
-          ...page.data.map((entry) => ({
+          ...page.map((entry) => ({
             id: entry.id,
             email: entry.emailAddress,
             createdAt: entry.createdAt,
           })),
         );
-        offset += page.data.length;
-        if (offset >= page.totalCount) return entries;
-        if (!page.data.length) incompleteClerkPage("waitlist.list");
       }
+      return entries;
     });
   },
   async create(emailAddress) {

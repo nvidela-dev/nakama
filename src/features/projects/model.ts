@@ -10,6 +10,7 @@ export type Invitation = Pick<
 >;
 
 export type StageProgress = {
+  hasMilestoneBoard: boolean;
   id: string;
   name: string;
   answered: number;

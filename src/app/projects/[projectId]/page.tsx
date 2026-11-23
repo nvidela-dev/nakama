@@ -1,22 +1,23 @@
+import { projectPageHref } from "@/shared/navigation/project-href";
+import { ProjectMembersPanel } from "./project-members-panel";
 import { LinearProject } from "@/features/projects/components/linear-project";
-import { PageHeading, SidebarSection, Workspace } from "@/shared/ui/workspace-layout";
+import { PageHeading, Workspace } from "@/shared/ui/workspace-layout";
 import { loadWorkspace } from "./workspace";
 import { ProjectTests } from "@/features/experiments/components/project-tests";
 import { experimentPrompts } from "@/features/experiments/flow-prompts";
-import { productionStages } from "@/features/tasks/milestone-catalog";
+import { productionStages } from "@/features/guidance/model/production-stages";
 
 import { ProjectRelations } from "@/features/projects/components/project-relations";
 import { ArtifactLibrary } from "@/features/artifacts/components/artifact-library";
 import { ProjectTasks } from "@/features/tasks/components/project-tasks";
-import { ProjectWork } from "@/features/projects/components/project-work";
-import { invitationCandidates } from "@/features/collaboration/server/invitation-candidates";
-import { getT } from "@/shared/i18n/server";
+import { ProjectWork } from "@/shared/navigation/project-work";
+import { translator } from "@/shared/i18n/index";
+import { getLocale } from "@/shared/i18n/server";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
-import { ProjectError } from "@/features/projects/server/projects";
-import { AccessButton, InviteForm } from "@/features/collaboration/components/forms";
+import { ProjectError } from "@/shared/contracts/errors";
 import { FlowChooser } from "@/features/guidance/components/flow-chooser";
 import { ProjectSettings } from "@/features/projects/components/project-settings";
 import { Discussion } from "@/features/collaboration/components/discussion";
@@ -33,12 +34,14 @@ export default async function ProjectPage({
     stage?: string;
     node?: string;
     view?: string;
+    historyBefore?: string;
     commentsBefore?: string;
     comment?: string;
     activityBefore?: string;
   }>;
 }) {
-  const t = await getT();
+  const locale = await getLocale();
+  const t = translator(locale);
   const person = await actor();
   const { projectId } = await params;
   const query = await searchParams;
@@ -132,8 +135,6 @@ export default async function ProjectPage({
       }
     />
   );
-  const candidates =
-    !focusedWork && project.role === "owner" ? await invitationCandidates(person, projectId) : [];
   const selectedStage = guidance?.flow.stages.find((stage) => stage.id === query.stage);
   const selectedNode = selectedStage?.nodes.find((node) => node.id === query.node);
   const discussionLabel = isTasksView
@@ -157,10 +158,11 @@ export default async function ProjectPage({
     if (query.activityBefore && kind !== "activityBefore")
       params.set("activityBefore", query.activityBefore);
     if (value) params.set(kind, value);
-    return `/projects/${projectId}${params.size ? `?${params}` : ""}`;
+    return projectPageHref(`/projects/${projectId}`, params);
   }
   const activityPanel = (
     <ActivityFeed
+      locale={locale}
       projectId={projectId}
       activity={activity}
       flow={guidance?.flow}
@@ -175,81 +177,14 @@ export default async function ProjectPage({
         links={links}
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
       />
-      <SidebarSection
-        open
-        heading={t("Members")}
-        count={people.members.length}
-        className="project-people-panel [&_.form-stack]:gap-1.5 [&_.form-stack_label]:text-[11px] [&_.form-stack_label]:leading-[1.4] [&_.form-stack_small]:text-[11px] [&_.form-stack_small]:leading-[1.45] [&_select]:w-full pointer-coarse:[&_button]:min-h-11 pointer-coarse:[&_select]:min-h-11"
-      >
-        <div className="project-members grid gap-2.5 min-w-0 max-w-full">
-          <ul className={"people-list list-none p-0 m-0 min-w-0"}>
-            {people.members.map((m) => (
-              <li
-                key={m.user_id}
-                className={
-                  "border-b border-b-line last:border-b-0 flex items-center justify-between min-w-0 break-words wrap-anywhere flex-wrap py-1 px-0 gap-1.5"
-                }
-              >
-                <div className="min-w-0 flex-1 flex items-baseline gap-1.5 flex-wrap break-words wrap-anywhere">
-                  <strong className={"text-[11px] leading-[1.4] break-words"}>
-                    {m.user_id === person.userId ? t("You") : m.display_name}
-                  </strong>
-                  <small className={"text-muted text-[11px] leading-[1.4]"}>{t(m.role)}</small>
-                </div>
-                {project.role === "owner" && m.role === "member" && (
-                  <AccessButton projectId={projectId} id={m.user_id} operation="remove" />
-                )}
-              </li>
-            ))}
-          </ul>
-          {project.role === "owner" && (
-            <>
-              <InviteForm projectId={projectId} candidates={candidates} />
-              {people.invitations.length > 0 && (
-                <div className="min-w-0 max-w-full pt-1 border-t border-t-line">
-                  <h3
-                    className={
-                      "font-sans tracking-[-0.045em] font-medium text-muted m-0 mb-1 text-[11px] uppercase leading-[1.4]"
-                    }
-                  >
-                    {t("Invitations")}
-                  </h3>
-                  <ul className={"people-list list-none p-0 m-0 min-w-0"}>
-                    {people.invitations.map((inv) => (
-                      <li
-                        key={inv.id}
-                        className={
-                          "border-b border-b-line last:border-b-0 flex items-center justify-between min-w-0 break-words wrap-anywhere flex-wrap py-1 px-0 gap-1.5"
-                        }
-                      >
-                        <div className="min-w-0 flex-1 flex items-baseline gap-1.5 flex-wrap break-words wrap-anywhere">
-                          <strong className={"text-[11px] leading-[1.4] break-words"}>
-                            {inv.email}
-                          </strong>
-                          <small className={"text-muted text-[11px] leading-[1.4]"}>
-                            {inv.revoked_at
-                              ? t("Revoked")
-                              : inv.accepted_at
-                                ? t("Accepted")
-                                : new Date(inv.expires_at) <= new Date()
-                                  ? t("Expired")
-                                  : t("Pending")}
-                          </small>
-                        </div>
-                        {!inv.revoked_at &&
-                          !inv.accepted_at &&
-                          new Date(inv.expires_at) > new Date() && (
-                            <AccessButton projectId={projectId} id={inv.id} operation="revoke" />
-                          )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </SidebarSection>
+      <ProjectMembersPanel
+        projectId={projectId}
+        people={people}
+        invitees={workspace.invitees}
+        owner={project.role === "owner"}
+        userId={person.userId}
+        t={t}
+      />
 
       {project.role === "owner" && (
         <ProjectSettings
@@ -323,7 +258,9 @@ export default async function ProjectPage({
           guidance={guidance}
           stageId={query.stage}
           nodeId={query.node}
-          history={history}
+          history={history.slice(0, 25)}
+          historyBefore={query.historyBefore}
+          hasOlderHistory={history.length > 25}
           names={Object.fromEntries(people.members.map((m) => [m.user_id, m.display_name]))}
           sidebar={sidebar}
           discussion={discussion}

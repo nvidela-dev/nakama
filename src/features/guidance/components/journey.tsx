@@ -1,19 +1,22 @@
 "use client";
-import { Icon, type IconName } from "@/shared/ui/icon";
+import { projectPageHref } from "@/shared/navigation/project-href";
+import { StageNodeTree } from "./stage-node-tree";
+import { StageRailNav } from "./stage-rail-nav";
+import { JourneyBreadcrumb } from "./journey-breadcrumb";
+import { Icon } from "@/shared/ui/icon";
 import { stageCoverage, stageLabel } from "../model/stage-progress";
 
 import { Button } from "@/shared/ui/button";
 
-import { ProjectWork } from "@/features/projects/components/project-work";
+import { ProjectWork } from "@/shared/navigation/project-work";
 import { WaveMark } from "@/shared/ui/wave-mark";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useT } from "@/shared/i18n/provider";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Guidance, Revision } from "@/features/guidance/model/types";
-import type { FlowStage } from "@/features/guidance/model/flows";
 import { LoadingState } from "@/shared/ui/loading-state";
 function EditorLoading() {
   const t = useT();
@@ -40,30 +43,14 @@ const JourneyMiniview = dynamic(() => import("@/features/guidance/components/jou
   ssr: false,
   loading: MapLoading,
 });
-const symbols: Record<string, IconName> = {
-  unanswered: "unanswered",
-  draft: "draft",
-  answered: "answered",
-  skipped: "skipped",
-  blocked: "warning",
-};
-function levels(stage: FlowStage) {
-  const depth = new Map<string, number>();
-  for (const node of stage.nodes)
-    depth.set(
-      node.id,
-      node.after.length ? Math.max(...node.after.map((id) => depth.get(id) ?? 0)) + 1 : 0,
-    );
-  return [...new Set(depth.values())].map((level) =>
-    stage.nodes.filter((n) => depth.get(n.id) === level),
-  );
-}
 export function Journey({
   projectId,
   guidance,
   stageId,
   nodeId,
   history = [],
+  hasOlderHistory = false,
+  historyBefore,
   names = {},
   sidebar,
   discussion,
@@ -79,6 +66,8 @@ export function Journey({
   stageId?: string | undefined;
   nodeId?: string | undefined;
   history?: Revision[];
+  hasOlderHistory?: boolean;
+  historyBefore?: string | undefined;
   names?: Record<string, string>;
   sidebar?: React.ReactNode;
   discussion?: React.ReactNode;
@@ -92,28 +81,33 @@ export function Journey({
   const t = useT();
   const [showMap, setShowMap] = useState(false);
   const { flow, answers, reviews } = guidance;
+  const answerById = useMemo(
+    () => new Map(answers.map((answer) => [answer.node_id, answer])),
+    [answers],
+  );
+  const reviewById = useMemo(
+    () => new Map(reviews.map((review) => [review.stage_id, review])),
+    [reviews],
+  );
   const base = `/projects/${projectId}`;
-  const href = (stage?: string, node?: string) =>
-    `${base}${stage ? `?stage=${stage}` : ""}${node ? `&node=${node}` : ""}`;
+  const href = (stage?: string, node?: string) => projectPageHref(base, { stage, node });
   const questions = flow.stages.flatMap((s) => s.nodes).filter((n) => n.kind === "question");
-  const answered = questions.filter((n) =>
-    answers.some((a) => a.node_id === n.id && a.status === "answered"),
-  ).length;
+  const answered = questions.filter((n) => answerById.get(n.id)?.status === "answered").length;
   const skipped = answers.filter((a) => a.status === "skipped").length;
   const blocked = answers.filter((a) => a.status === "blocked").length;
   const activeStage = stageId ? flow.stages.find((s) => s.id === stageId) : undefined;
   if (stageId && !activeStage) notFound();
   const activeNode = nodeId ? activeStage?.nodes.find((n) => n.id === nodeId) : undefined;
   if (nodeId && !activeNode) notFound();
-  const current = answers.find((a) => a.node_id === nodeId);
+  const current = nodeId ? answerById.get(nodeId) : undefined;
   const next = flow.stages
     .flatMap((stage) => stage.nodes.map((node) => ({ stage, node })))
     .find(
       ({ node }) =>
         node.kind === "question" &&
-        !answers.some((a) => a.node_id === node.id && ["answered", "skipped"].includes(a.status)),
+        !["answered", "skipped"].includes(answerById.get(node.id)?.status ?? ""),
     );
-  const review = reviews.find((r) => r.stage_id === stageId);
+  const review = stageId ? reviewById.get(stageId) : undefined;
   const progressControls = (
     <div className={"journey-progress-controls flex items-center gap-3 shrink-0"}>
       <Button
@@ -196,63 +190,12 @@ export function Journey({
                   "journey-stage-heading min-w-0 mb-2.5 [&_>_.muted]:m-0 [&_>_.muted]:text-[12px] lg:[grid-column:1_/_-1] lg:m-0"
                 }
               >
-                <nav
-                  className={
-                    'journey-breadcrumb items-center max-[700px]:gap-3.5 max-[700px]:text-[12px] flex flex-wrap text-muted gap-2.5 my-6.5 lg:compact:my-3.5 [&_[aria-current="page"]]:inline-flex [&_[aria-current="page"]]:items-center [&_[aria-current="page"]]:gap-1.5 [&_[aria-current="page"]]:py-1.5 [&_[aria-current="page"]]:px-2 [&_[aria-current="page"]]:min-h-8 [&_[aria-current="page"]]:rounded-[6px] [&_[aria-current="page"]]:leading-[1.4] [&_[aria-current="page"]]:wrap-anywhere [&_[aria-current="page"]]:text-ink [&_[aria-current="page"]]:bg-[var(--theme-surface,#22372f)] [&_[aria-current="page"]]:border [&_[aria-current="page"]]:border-line [&_[aria-current="page"]]:font-semibold [&_svg]:shrink-0 mt-0 mx-0 mb-1.5 text-[11px] lg:compact:mb-2'
-                  }
-                  aria-label={t("Project path")}
-                >
-                  <ol className={"flex items-center flex-wrap gap-1 list-none m-0 p-0"}>
-                    <li className={"min-w-0"}>
-                      <Link
-                        href={base}
-                        className={
-                          "no-underline underline-offset-4 inline-flex items-center gap-1.5 py-1.5 px-2 min-h-8 rounded-[6px] leading-[1.4] wrap-anywhere text-muted [transition:background_0.15s,_color_0.15s] pointer-coarse:min-h-11 hover:bg-[var(--theme-surface,#22372f)] hover:text-lime"
-                        }
-                      >
-                        <Icon name="overview" />
-                        {t("All stages")}
-                      </Link>
-                    </li>
-                    <li
-                      className={
-                        "breadcrumb-separator min-w-0 text-muted opacity-60 px-0.5 text-[18px]"
-                      }
-                      aria-hidden="true"
-                    >
-                      <Icon name="chevronRight" />
-                    </li>
-                    <li className={"min-w-0"}>
-                      {activeNode ? (
-                        <Link
-                          href={href(activeStage.id)}
-                          className={
-                            "no-underline underline-offset-4 inline-flex items-center gap-1.5 py-1.5 px-2 min-h-8 rounded-[6px] leading-[1.4] wrap-anywhere text-muted [transition:background_0.15s,_color_0.15s] pointer-coarse:min-h-11 hover:bg-[var(--theme-surface,#22372f)] hover:text-lime"
-                          }
-                        >
-                          {t(activeStage.name)}
-                        </Link>
-                      ) : (
-                        <span aria-current="page">{t(activeStage.name)}</span>
-                      )}
-                    </li>
-                    {activeNode && (
-                      <>
-                        <li
-                          className={
-                            "breadcrumb-separator min-w-0 text-muted opacity-60 px-0.5 text-[18px]"
-                          }
-                          aria-hidden="true"
-                        >
-                          <Icon name="chevronRight" />
-                        </li>
-                        <li className={"min-w-0"}>
-                          <span aria-current="page">{t(activeNode.label)}</span>
-                        </li>
-                      </>
-                    )}
-                  </ol>
-                </nav>
+                <JourneyBreadcrumb
+                  base={base}
+                  activeNode={activeNode}
+                  href={href}
+                  activeStage={activeStage}
+                />
                 <div
                   className={
                     "stage-heading-row flex items-center justify-between gap-4 [&_.progress-ring]:w-8 [&_.progress-ring]:h-8 [&_.progress-ring_span]:w-6.75 [&_.progress-ring_span]:h-6.75 [&_.progress-ring_span]:text-[17px] [&_.journey-progress-controls]:gap-2 [&_.journey-progress-controls_.miniview-icon]:w-8 [&_.journey-progress-controls_.miniview-icon]:h-8 [&_.journey-progress-controls_.miniview-icon]:min-h-8 [&_.journey-progress-controls_.miniview-icon]:min-w-8 [&_.journey-progress-controls_.miniview-icon]:p-0 [&_.journey-progress-controls_.miniview-icon]:rounded-[6px] [&_.miniview-icon_svg]:w-4.5 [&_.miniview-icon_svg]:h-4.5 pointer-coarse:[&_.journey-progress-controls_.miniview-icon]:w-11 pointer-coarse:[&_.journey-progress-controls_.miniview-icon]:h-11 pointer-coarse:[&_.journey-progress-controls_.miniview-icon]:min-w-11 pointer-coarse:[&_.journey-progress-controls_.miniview-icon]:min-h-11"
@@ -270,60 +213,7 @@ export function Journey({
               </header>
             )}
             {activeStage && (
-              <nav
-                className={
-                  "desktop-stage-nav hidden lg:flex flex-col flex-nowrap items-stretch gap-1.5 m-0 sticky top-5"
-                }
-                aria-label={t("All stages")}
-              >
-                {flow.stages.map((stage, index) => {
-                  const coverage = stageCoverage(stage, guidance);
-                  const { answered, total, reviewed, revisit } = coverage;
-                  const status = stageLabel(coverage);
-                  return (
-                    <Link
-                      key={stage.id}
-                      href={href(stage.id)}
-                      className={[
-                        `stage-rail-link${reviewed ? " reviewed" : ""}${revisit ? " revisit" : ""}`,
-                        "flex items-center flex-none gap-2 min-h-18 py-3 px-2.5 border border-[var(--theme-border,#637a55)] rounded-[6px] text-[12px] wrap-anywhere justify-start bg-[var(--theme-surface,#2a4034)]",
-                        stage.id === activeStage.id &&
-                          "border-lime bg-[var(--theme-surface,#405b39)] shadow-[inset_3px_0_var(--color-lime)]",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      aria-current={stage.id === activeStage.id ? "step" : undefined}
-                      title={`${t(status)} · ${answered}/${total} ${t("questions answered")}${revisit ? t(" · revisit") : ""}`}
-                    >
-                      <span className={"rail-number [font:10px_monospace] shrink-0 text-lime"}>
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <div className={"rail-label min-w-0 flex-1"}>
-                        <strong className={"block text-[12px] font-semibold"}>
-                          {t(stage.name)}
-                        </strong>
-                        <small
-                          className={`block mt-0.75 text-[11px] leading-[1.4] ${revisit ? "text-[var(--theme-text,#d5df8a)]" : reviewed ? "text-lime" : "text-muted"}`}
-                        >
-                          {answered}/{total} · {t(status)}
-                          {revisit ? t(" · revisit") : ""}
-                        </small>
-                        <span
-                          className="block h-1 rounded-full bg-line overflow-hidden mt-2"
-                          aria-hidden="true"
-                        >
-                          <span
-                            className="block h-full bg-lime"
-                            style={{
-                              width: `${total ? (answered / total) * 100 : 0}%`,
-                            }}
-                          />
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </nav>
+              <StageRailNav flow={flow} guidance={guidance} href={href} activeStage={activeStage} />
             )}
             <div
               className={
@@ -456,6 +346,8 @@ export function Journey({
                       node={activeNode}
                       answer={current}
                       history={history}
+                      hasOlderHistory={hasOlderHistory}
+                      historyBefore={historyBefore}
                       names={names}
                       backHref={href(activeStage.id)}
                     />
@@ -465,129 +357,19 @@ export function Journey({
                         "stage-expanded [&_>_h2]:text-[15px] [&_>_h2]:mt-4 lg:compact:[&_>_h2]:mt-3 lg:compact:[&_>_h2]:mx-0 lg:compact:[&_>_h2]:mb-2 lg:compact:[&_>_.muted]:my-2 lg:compact:[&_>_.muted]:mx-0"
                       }
                     >
-                      <div className={"node-tree flex flex-col my-4 mx-0 lg:compact:my-3"}>
-                        {levels(activeStage).map((row, i) => (
-                          <div key={i} className="tree-level min-w-0">
-                            {i > 0 && (
-                              <div
-                                className="tree-connector flex h-12 items-center justify-center text-lime"
-                                aria-hidden="true"
-                              >
-                                <Icon name="arrowDown" size={48} strokeWidth={3} />
-                              </div>
-                            )}
-                            <div className="tree-row grid grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] gap-3 max-[700px]:grid-cols-[minmax(0,_1fr)]">
-                              {row.map((node) => {
-                                const answer = answers.find((a) => a.node_id === node.id);
-                                return (
-                                  <Link
-                                    key={node.id}
-                                    href={href(activeStage.id, node.id)}
-                                    className={[
-                                      `question-node ${answer?.status ?? "unanswered"}`,
-                                      "grid gap-[6px_12px] border border-line rounded-[8px] py-4 px-4 bg-[var(--theme-surface,#1c3028)] wrap-anywhere grid-cols-[minmax(0,_1fr)_auto] content-center items-center min-h-22 [&.answered]:[border-color:var(--theme-border,#738d50)] [&.blocked]:[border-color:var(--theme-border,#b59769)] hover:[background:var(--theme-surface,#284332)] max-[700px]:p-3.5",
-                                    ]
-                                      .filter(Boolean)
-                                      .join(" ")}
-                                  >
-                                    <span
-                                      className={
-                                        "node-state [text-transform:capitalize] text-lime col-start-2 row-start-1 text-[11px] text-right"
-                                      }
-                                    >
-                                      <Icon
-                                        name={
-                                          symbols[answer?.status ?? "unanswered"] ?? "unanswered"
-                                        }
-                                        size={12}
-                                      />{" "}
-                                      {t(answer?.status ?? "unanswered")}
-                                      {answer?.needs_review ? t(" · revisit") : ""}
-                                    </span>
-                                    <strong
-                                      className={
-                                        "text-[13px] leading-[1.4] col-start-1 row-start-1"
-                                      }
-                                    >
-                                      {t(node.label)}
-                                    </strong>
-                                    <small
-                                      className={
-                                        "node-type text-muted col-start-2 row-start-2 text-[11px] text-right"
-                                      }
-                                    >
-                                      {t(node.kind)}
-                                    </small>
-                                    {node.after.length > 0 && (
-                                      <small
-                                        className={
-                                          "node-after max-[700px]:hidden text-muted text-[11px] border-t-line col-start-1 row-start-2 border-0 p-0 leading-[1.4]"
-                                        }
-                                      >
-                                        {t("After:")}{" "}
-                                        {node.after
-                                          .map((id) =>
-                                            t(
-                                              activeStage.nodes.find((n) => n.id === id)?.label ??
-                                                "",
-                                            ),
-                                          )
-                                          .join(" + ")}
-                                      </small>
-                                    )}
-                                  </Link>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      {activeStage.id === "building" && (
-                        <p
-                          className={"loop-links text-[12px] text-muted my-6 mx-0 lg:compact:my-3"}
-                        >
-                          {t("Need help or another round?")}{" "}
+                      <StageNodeTree
+                        activeStage={activeStage}
+                        answerById={answerById}
+                        href={href}
+                      />
+                      {activeStage.revisit && (
+                        <p className="loop-links text-[12px] text-muted my-6 mx-0 lg:compact:my-3">
+                          {t(activeStage.revisit.prompt)}{" "}
                           <Link
-                            href={href("building", "next-task")}
-                            className={"text-lime underline"}
+                            href={href(activeStage.revisit.stage, activeStage.revisit.node)}
+                            className="text-lime underline"
                           >
-                            {t("Return to the next task ↶")}{" "}
-                          </Link>
-                        </p>
-                      )}
-                      {activeStage.id === "experiment" && (
-                        <p
-                          className={"loop-links text-[12px] text-muted my-6 mx-0 lg:compact:my-3"}
-                        >
-                          {t("Trying another direction?")}{" "}
-                          <Link
-                            href={href("experiment", "rough-version")}
-                            className={"text-lime underline"}
-                          >
-                            {t("Test another prototype ↶")}{" "}
-                          </Link>
-                        </p>
-                      )}
-                      {activeStage.id === "create" && (
-                        <p
-                          className={"loop-links text-[12px] text-muted my-6 mx-0 lg:compact:my-3"}
-                        >
-                          {t("Not finished enough?")}{" "}
-                          <Link
-                            href={href("create", "next-piece")}
-                            className={"text-lime underline"}
-                          >
-                            {t("Make the next piece ↶")}{" "}
-                          </Link>
-                        </p>
-                      )}
-                      {activeStage.id === "validation" && (
-                        <p
-                          className={"loop-links text-[12px] text-muted my-6 mx-0 lg:compact:my-3"}
-                        >
-                          {t("Revising the idea?")}{" "}
-                          <Link href={href("exploration")} className={"text-lime underline"}>
-                            {t("Revisit Exploration ↶")}
+                            {t(activeStage.revisit.label)}
                           </Link>
                         </p>
                       )}

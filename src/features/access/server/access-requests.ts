@@ -5,7 +5,8 @@ import {
   normalizeEmail,
   type WhitelistStore,
 } from "@/features/access/server/app-access";
-import { ProjectError, type Actor } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 import type { RequestStore } from "@/features/access/model";
 export type { AccessRequest, RequestStore } from "@/features/access/model";
 export function accessRequests(
@@ -15,6 +16,15 @@ export function accessRequests(
 ) {
   function requireAdmin(person: Actor) {
     if (!isAppAdmin(person, adminEmail)) throw new ProjectError("Administrator access required.");
+  }
+  async function overview(person: Actor) {
+    requireAdmin(person);
+    const [requests, allowed] = await Promise.all([store.list(), whitelist.list()]);
+    const emails = new Set(allowed.map((entry) => normalizeEmail(entry.identifier)));
+    return {
+      entries: allowed,
+      requests: requests.filter((request) => !emails.has(normalizeEmail(request.email))),
+    };
   }
   return {
     async submit(input: string) {
@@ -28,11 +38,9 @@ export function accessRequests(
       await store.create(email);
       return { allowed: false as const };
     },
+    overview,
     async list(person: Actor) {
-      requireAdmin(person);
-      const [requests, allowed] = await Promise.all([store.list(), whitelist.list()]);
-      const emails = new Set(allowed.map((entry) => normalizeEmail(entry.identifier)));
-      return requests.filter((request) => !emails.has(normalizeEmail(request.email)));
+      return (await overview(person)).requests;
     },
     async manage(person: Actor, id: string, operation: "allow" | "dismiss") {
       requireAdmin(person);

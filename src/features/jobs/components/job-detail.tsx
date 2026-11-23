@@ -64,8 +64,8 @@ export async function JobDetail({
             id={lead.id}
             submit={lead.stage ? "Save plan" : "Save role plan"}
           >
-            <Input type="hidden" name="previous_stage" value={lead.stage ?? ""} />
-            <Input type="hidden" name="revision" value={lead.revision} />
+            <input type="hidden" name="previous_stage" value={lead.stage ?? ""} />
+            <input type="hidden" name="revision" value={lead.revision} />
             <label className="grid gap-1">
               {t("Board stage")}
               <Select aria-label={t("Board stage")} name="stage" defaultValue={lead.stage ?? ""}>
@@ -112,7 +112,7 @@ export async function JobDetail({
             id={lead.id}
             submit="Record event"
           >
-            <Input type="hidden" name="revision" value={lead.revision} />
+            <input type="hidden" name="revision" value={lead.revision} />
             <EventFields
               today={jobDate()}
               workflowReady={data.workflowReady}

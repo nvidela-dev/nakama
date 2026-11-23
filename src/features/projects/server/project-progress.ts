@@ -1,9 +1,10 @@
-import { z } from "zod";
+import { projectProgressSchema, milestoneProgressSchema } from "./schemas";
 import { queryRows } from "@/server/database/query";
-import { flowIdSchema, nodeStatusSchema } from "@/shared/contracts/domain-schemas";
 import type { Database } from "@/server/database/database";
+import { hasMilestoneBoard } from "@/features/guidance/model/production-stages";
 import { flows } from "@/features/guidance/model/flows";
-import { ProjectError, type Actor } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 
 import type { StageProgress } from "@/features/projects/model";
 export type { StageProgress } from "@/features/projects/model";
@@ -13,20 +14,7 @@ export async function projectProgress(db: Database, actor: Actor, projectIds?: s
   if (!actor.userId) throw new ProjectError("Please sign in to continue.");
   const rows = await queryRows(
     db,
-    z.object({
-      project_id: z.uuid(),
-      flow_id: flowIdSchema,
-      template_version: z.number().int(),
-      answers: z.array(
-        z.object({
-          node_id: z.string(),
-          stage_id: z.string(),
-          status: nodeStatusSchema,
-          needs_review: z.boolean(),
-        }),
-      ),
-      reviews: z.array(z.object({ stage_id: z.string(), reviewed: z.boolean() })),
-    }),
+    projectProgressSchema,
     `SELECT f.project_id, f.flow_id, f.template_version,
     COALESCE((SELECT jsonb_agg(jsonb_build_object(
       'node_id', a.node_id, 'stage_id', a.stage_id,
@@ -51,6 +39,7 @@ export async function projectProgress(db: Database, actor: Actor, projectIds?: s
         const review = row.reviews.find((r) => r.stage_id === stage.id);
         return {
           id: stage.id,
+          hasMilestoneBoard: hasMilestoneBoard(flow.id, stage.id),
           name: stage.name,
           answered: questions.filter((n) =>
             answers.some((a) => a.node_id === n.id && a.status === "answered"),
@@ -71,21 +60,10 @@ export async function projectProgress(db: Database, actor: Actor, projectIds?: s
 // Aggregate each child relation independently. Joining task rows to run rows would inflate both counts.
 export async function projectActivityCounts(db: Database, actor: Actor, projectIds?: string[]) {
   if (!actor.userId) throw new ProjectError("Please sign in to continue.");
-  const count = z.number().int().nonnegative();
+
   const rows = await queryRows(
     db,
-    z.object({
-      id: z.uuid(),
-      milestones: count,
-      covered: count,
-      tasks: count,
-      open_tasks: count,
-      experiments: count,
-      active: count,
-      completed: count,
-      shirts: count,
-      collections: count,
-    }),
+    milestoneProgressSchema,
     `SELECT m.project_id AS id, ms.*, t.*, e.*, s.*
       FROM project_memberships m
       CROSS JOIN LATERAL (SELECT count(*)::int AS milestones,

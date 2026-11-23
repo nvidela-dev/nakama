@@ -185,6 +185,12 @@ test("cursor pagination preserves microseconds and covers all records exactly on
   const second = await collaboration.comments(owner, id, {}, first.next);
   assert.equal(second.items.length, 4);
   assert.equal(new Set([...first.items, ...second.items].map((c) => c.id)).size, 29);
+  // The cursor spans three sources even when their sort timestamps are identical.
+  for (const table of ["project_activity", "answer_revisions", "stage_review_history"])
+    await db.query(
+      `UPDATE ${table} SET created_at='2026-10-22T12:00:00.123001Z' WHERE project_id=$1`,
+      [id],
+    );
   const seen = new Set<string>();
   let next: string | undefined;
   do {

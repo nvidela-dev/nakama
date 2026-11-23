@@ -533,3 +533,13 @@ Screening holds the first recruiter interview. Interviewing holds subsequent rou
 ## Private prospect assessment and call debrief — 2026-11-23
 
 Assess fit precedes Ready to call for new businesses. The owner can save incomplete assessments; four complete ratings enable an informational average, not a decision. Only an explicit ready choice and confirmed move advances the stage. Store private drafts, dated call debriefs with outcome-specific prompts, and dated next actions separately from existing shared outreach. Retain previous stages and history when migrating. See [business prospects](domain.md#business-prospects).
+
+## Whole-codebase audit execution — 2026-11-23
+
+Use current main and a fresh measurement as the baseline for each audit phase. The original findings describe migrations 001–015. The first rendering change uses Clerk’s built-in English copy, loads Uruguayan Spanish when selected, and renders project activity on the server using the viewer’s locale. The activity feed keeps its UTC dates and paginated links. The four phases and their verification status are tracked in [AHA-198](https://linear.app/ahab/issue/AHA-198/execute-the-nakama-whole-codebase-audit).
+
+The audit branch implements the four phases tracked under [AHA-198](https://linear.app/ahab/issue/AHA-198). Keep Clerk admission request-scoped and preserve database membership checks on every independent read and mutation. Page older answer revisions in groups of 25. Normalize section comments with migration 035 and keep legacy application writes compatible during a rolling release. The historical author fallback and outcome-node classification are recorded in the [domain reference](domain.md). Hosted migration and deployment are separate release actions.
+
+## Collaborator display names · November 23, 2026
+
+The project roster reflects the public Clerk name a member last used in Nakama. A profile rename keeps the names recorded on earlier comments, activity, answer revisions and reviews. Membership continues to use the Clerk user ID.

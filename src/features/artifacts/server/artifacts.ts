@@ -1,12 +1,15 @@
+import { artifactUploadByteLimit } from "@/features/artifacts/model";
+import { artifactDetailRowSchema } from "./schemas";
+import { lockProject } from "@/server/database/membership";
 import { listPage, listPageSize, readListCursor } from "@/server/database/list-page";
 import { emptyArtifactFilters, type ArtifactPage } from "../model";
+import { selectedFlowSchema } from "@/features/guidance/server/schemas";
 import {
-  selectedFlowSchema,
   artifactBytesSchema,
   artifactRowSchema,
   artifactFileSchema,
-  countSchema,
-} from "@/server/database/row-schemas";
+} from "@/features/artifacts/server/schemas";
+import { countSchema } from "@/server/database/row-schemas";
 import {
   artifactKindSchema,
   artifactStatusSchema,
@@ -17,13 +20,9 @@ import type { ArtifactMediaType } from "@/shared/contracts/database.generated";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
-import {
-  withProjectRead,
-  type ProjectRead,
-  membership,
-  ProjectError,
-  type Actor,
-} from "@/features/projects/server/projects";
+import { withProjectRead, type ProjectRead, membership } from "@/server/database/membership";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 import { flows } from "@/features/guidance/model/flows";
 import { recordActivity } from "@/server/database/activity-log";
 import type { ArtifactDetail, ArtifactKind } from "@/features/artifacts/model";
@@ -63,24 +62,18 @@ async function detail(
   const artifact = (
     await queryRows(
       tx,
-      artifactRowSchema,
-      `SELECT ${columns} FROM project_artifacts a JOIN projects p ON p.id=a.project_id WHERE a.project_id=$1 AND a.id=$2`,
+      artifactDetailRowSchema,
+      `SELECT ${columns},
+      (SELECT COALESCE(jsonb_agg(jsonb_build_object('id',f.id,'name',f.name,'media_type',f.media_type,'size',f.size) ORDER BY f.created_at,f.id),'[]'::jsonb)
+         FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id) AS files,
+      (SELECT COALESCE(jsonb_agg(jsonb_build_object('id',t.id,'title',t.title,'status',t.status) ORDER BY t.position),'[]'::jsonb)
+         FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id) AS tasks
+     FROM project_artifacts a JOIN projects p ON p.id=a.project_id WHERE a.project_id=$1 AND a.id=$2`,
       [projectId, artifactId],
     )
   )[0];
   if (!artifact) throw new ProjectError("Artifact not found.");
-  const files = await queryRows(
-    tx,
-    artifactFileSchema,
-    "SELECT id,name,media_type,size FROM artifact_files WHERE project_id=$1 AND artifact_id=$2 ORDER BY created_at,id",
-    [projectId, artifactId],
-  );
-  const tasks = await queryRows(
-    tx,
-    artifactTaskSchema,
-    "SELECT id,title,status FROM artifact_tasks WHERE project_id=$1 AND artifact_id=$2 ORDER BY position",
-    [projectId, artifactId],
-  );
+  const { files, tasks } = artifact;
   let markdown: string | null = null;
   if (artifact.kind === "markdown" && files.length) {
     const row = (
@@ -113,12 +106,59 @@ async function lock(
   artifactId: string,
   revision: number,
 ) {
-  await membership(tx, person, projectId);
-  await tx.query("SELECT id FROM projects WHERE id=$1 FOR UPDATE", [projectId]);
+  await lockProject(tx, person, projectId, "write");
   const current = await detail(tx, projectId, artifactId);
   if (!Number.isSafeInteger(revision) || revision !== current.revision)
     throw new ArtifactConflictError(current);
   return current;
+}
+async function validateUpload(kind: ArtifactKind, file: { name: string; data: Uint8Array }) {
+  let name = file.name.replace(/[\x00-\x1f\x7f/\\]/g, "_").slice(0, 180);
+  if (!name || !file.data.length || file.data.length > artifactUploadByteLimit)
+    throw new ProjectError("Choose a file up to 2 MB.");
+  let mediaType: ArtifactMediaType;
+  if (kind === "software") throw new ProjectError("Software artifacts use a GitHub link.");
+  if (kind === "markdown") {
+    if (!/\.(md|markdown)$/i.test(name) || file.data.length > 512_000)
+      throw new ProjectError("Choose a UTF-8 Markdown file up to 500 KB.");
+    try {
+      const text = new TextDecoder("utf-8", { fatal: true }).decode(file.data);
+      if (!text.trim() || text.includes("\0")) throw new Error();
+    } catch {
+      throw new ProjectError("Choose a UTF-8 Markdown file up to 500 KB.");
+    }
+    mediaType = "text/markdown";
+  } else {
+    try {
+      const sharp = (await import("sharp")).default;
+      const image = await sharp(file.data, { limitInputPixels: 40_000_000 }).metadata();
+      const types: Partial<Record<string, ArtifactMediaType>> = {
+        png: "image/png",
+        jpeg: "image/jpeg",
+        webp: "image/webp",
+        gif: "image/gif",
+      };
+      const detectedType = types[image.format ?? ""];
+      if (
+        !detectedType ||
+        !image.width ||
+        !image.height ||
+        image.width * (image.pageHeight ?? image.height) * (image.pages ?? 1) > 40_000_000
+      )
+        throw new Error();
+      mediaType = detectedType;
+      const extension = image.format === "jpeg" ? "jpg" : required(image.format);
+      if (
+        !(image.format === "jpeg" ? /\.jpe?g$/i : new RegExp("\\." + extension + "$", "i")).test(
+          name,
+        )
+      )
+        name = name.replace(/\.[^.]*$/, "").slice(0, 170) + "." + extension;
+    } catch {
+      throw new ProjectError("Choose a valid PNG, JPEG, WebP, or GIF image up to 2 MB.");
+    }
+  }
+  return { name, mediaType };
 }
 function github(input: string) {
   if (!input) return null;
@@ -204,11 +244,14 @@ async function artifactCards(
         file_count: z.number().int().nonnegative(),
       }),
       `SELECT ${columns}, to_char(a.updated_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time,s.collection,s.layout->>'poster' AS shirt_poster, CASE WHEN s.artifact_id IS NOT NULL AND NOT s.layout ? 'poster' THEN jsonb_build_object('color',s.layout->'color','layers',s.layout->'layers','ink',COALESCE(s.layout->'ink','[]'::jsonb)) END AS shirt_cover,
-        (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id) AS task_count,
-        (SELECT count(*)::int FROM artifact_tasks t WHERE t.project_id=a.project_id AND t.artifact_id=a.id AND t.status='done') AS done_task_count,
-        (SELECT f.id FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id AND f.media_type::text LIKE 'image/%' ORDER BY f.created_at,f.id LIMIT 1) AS cover_id,
-        (SELECT count(*)::int FROM artifact_files f WHERE f.project_id=a.project_id AND f.artifact_id=a.id) AS file_count
+        tasks.task_count,tasks.done_task_count,files.cover_id,files.file_count
         FROM project_artifacts a JOIN projects p ON p.id=a.project_id
+        CROSS JOIN LATERAL (SELECT count(*)::int AS task_count,
+          (count(*) FILTER (WHERE t.status='done'))::int AS done_task_count
+          FROM artifact_tasks t WHERE (t.project_id,t.artifact_id)=(a.project_id,a.id)) tasks
+        CROSS JOIN LATERAL (SELECT count(*)::int AS file_count,
+          (array_agg(f.id ORDER BY f.created_at,f.id) FILTER (WHERE f.media_type::text LIKE 'image/%'))[1] AS cover_id
+          FROM artifact_files f WHERE (f.project_id,f.artifact_id)=(a.project_id,a.id)) files
         LEFT JOIN shirt_designs s ON (s.project_id,s.artifact_id)=(a.project_id,a.id)
         JOIN project_memberships m ON m.project_id=a.project_id AND m.user_id=$1
         WHERE ($2::uuid IS NULL OR a.project_id=$2) ${
@@ -275,14 +318,12 @@ export function artifactService(db: Database) {
     },
     get: (person: Actor, projectId: string, artifactId: string) =>
       db.transaction(async (tx) => {
-        await membership(tx, person, projectId);
-        await tx.query("SELECT id FROM projects WHERE id=$1 FOR SHARE", [projectId]);
+        await lockProject(tx, person, projectId, "read");
         return detail(tx, projectId, artifactId);
       }),
     create: (person: Actor, projectId: string, input: unknown) =>
       db.transaction(async (tx) => {
-        await membership(tx, person, projectId);
-        await tx.query("SELECT id FROM projects WHERE id=$1 FOR UPDATE", [projectId]);
+        await lockProject(tx, person, projectId, "write");
         const parsed = metadata
           .extend({
             kind: z.union([artifactKindSchema, z.literal("shirt")]),
@@ -470,67 +511,35 @@ export function artifactService(db: Database) {
         );
         return updated(tx, person, projectId, artifactId);
       }),
-    upload: (
+    upload: async (
       person: Actor,
       projectId: string,
       artifactId: string,
       revision: number,
       file: { name: string; data: Uint8Array },
-    ) =>
-      db.transaction(async (tx) => {
+    ) => {
+      // Artifact kind is immutable. Check membership before parsing bytes, then verify membership and revision again at the write.
+      const kind = await withProjectRead(db, person, projectId, async ({ tx }) => {
+        if (!uuid.safeParse(artifactId).success) throw new ProjectError("Artifact not found.");
+        const [artifact] = await queryRows(
+          tx,
+          artifactRowSchema.pick({ kind: true }),
+          "SELECT kind FROM project_artifacts WHERE project_id=$1 AND id=$2",
+          [projectId, artifactId],
+        );
+        if (!artifact) throw new ProjectError("Artifact not found.");
+        return artifact.kind;
+      });
+      const { name, mediaType } = await validateUpload(kind, file);
+      return db.transaction(async (tx) => {
         const current = await lock(tx, person, projectId, artifactId, revision);
-        let name = file.name.replace(/[\x00-\x1f\x7f/\\]/g, "_").slice(0, 180);
-        if (!name || !file.data.length || file.data.length > 2 * 1024 * 1024)
-          throw new ProjectError("Choose a file up to 2 MB.");
-        let mediaType: ArtifactMediaType;
-        if (current.kind === "software")
-          throw new ProjectError("Software artifacts use a GitHub link.");
-        if (current.kind === "markdown") {
-          if (!/\.(md|markdown)$/i.test(name) || file.data.length > 512_000)
-            throw new ProjectError("Choose a UTF-8 Markdown file up to 500 KB.");
-          try {
-            const text = new TextDecoder("utf-8", { fatal: true }).decode(file.data);
-            if (!text.trim() || text.includes("\0")) throw new Error();
-          } catch {
-            throw new ProjectError("Choose a UTF-8 Markdown file up to 500 KB.");
-          }
-          mediaType = "text/markdown";
+        if (current.kind === "markdown")
           await tx.query("DELETE FROM artifact_files WHERE project_id=$1 AND artifact_id=$2", [
             projectId,
             artifactId,
           ]);
-        } else {
-          if (current.files.length >= 6)
-            throw new ProjectError("An image artifact can contain up to six images.");
-          try {
-            const sharp = (await import("sharp")).default;
-            const image = await sharp(file.data, { limitInputPixels: 40_000_000 }).metadata();
-            const types: Partial<Record<string, ArtifactMediaType>> = {
-              png: "image/png",
-              jpeg: "image/jpeg",
-              webp: "image/webp",
-              gif: "image/gif",
-            };
-            const detectedType = types[image.format ?? ""];
-            if (
-              !detectedType ||
-              !image.width ||
-              !image.height ||
-              image.width * (image.pageHeight ?? image.height) * (image.pages ?? 1) > 40_000_000
-            )
-              throw new Error();
-            mediaType = detectedType;
-            const extension = image.format === "jpeg" ? "jpg" : required(image.format);
-            if (
-              !(
-                image.format === "jpeg" ? /\.jpe?g$/i : new RegExp("\\." + extension + "$", "i")
-              ).test(name)
-            )
-              name = name.replace(/\.[^.]*$/, "").slice(0, 170) + "." + extension;
-          } catch {
-            throw new ProjectError("Choose a valid PNG, JPEG, WebP, or GIF image up to 2 MB.");
-          }
-        }
+        else if (current.files.length >= 6)
+          throw new ProjectError("An image artifact can contain up to six images.");
         await tx.query(
           "INSERT INTO artifact_files(id,project_id,artifact_id,name,media_type,data,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)",
           [
@@ -544,7 +553,8 @@ export function artifactService(db: Database) {
           ],
         );
         return updated(tx, person, projectId, artifactId);
-      }),
+      });
+    },
     removeFile: (
       person: Actor,
       projectId: string,

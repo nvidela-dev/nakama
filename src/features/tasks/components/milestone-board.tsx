@@ -372,7 +372,7 @@ export function MilestoneBoard({
               </label>
             )}
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" pending={pending}>
                 {t("Save milestone")}
               </Button>
               <Button variant="secondary" disabled={pending} onClick={() => setEditing(false)}>
@@ -535,7 +535,7 @@ export function MilestoneBoard({
               {t("Only this card moves. Its subtasks keep their own status and board.")}
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" pending={pending}>
                 {t("Confirm move")}
               </Button>
               <Button variant="secondary" disabled={pending} onClick={() => setMove(null)}>

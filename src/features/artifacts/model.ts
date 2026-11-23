@@ -39,3 +39,14 @@ export const artifactFileUrl = (projectId: string, artifactId: string, fileId: s
 export const emptyArtifactFilters = { search: "", project: "all", kind: "all", status: "all" };
 export type ArtifactFilters = typeof emptyArtifactFilters;
 export type ArtifactPage = { items: ArtifactCard[]; next: string | null };
+
+export type ArtifactDraft = Pick<Artifact, "name" | "description" | "status"> & {
+  stageId: string;
+  githubUrl: string;
+};
+
+export const artifactUploadByteLimit = 2 * 1024 * 1024;
+export const artifactStatusLabels = {
+  in_progress: "In progress",
+  ready: "Ready to use",
+} satisfies Record<Artifact["status"], string>;

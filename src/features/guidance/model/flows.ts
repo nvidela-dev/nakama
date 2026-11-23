@@ -1,11 +1,12 @@
+import { node } from "./flow-node";
 import { required } from "@/shared/lib/required";
 import { businessFlows } from "@/features/guidance/model/business-flows";
 import { investigationFlow } from "@/features/guidance/model/investigation-flow";
 import { platformFlow } from "@/features/guidance/model/platform-flow";
 import { videoGameFlow } from "./video-game-flow";
 import { selfImprovementFlow } from "./self-improvement-flow";
+import type { FlowId, ProjectState } from "@/shared/contracts/database.generated";
 export type { FlowId, NodeStatus } from "@/shared/contracts/database.generated";
-import type { FlowId } from "@/shared/contracts/database.generated";
 export type FlowNode = {
   id: string;
   label: string;
@@ -14,12 +15,15 @@ export type FlowNode = {
   kind: "question" | "action" | "outcome";
   after: readonly string[];
   choices?: readonly string[];
+  captureField?: "name" | "description";
+  projectStateByChoice?: Readonly<Record<string, ProjectState>>;
 };
 export type FlowStage = {
   id: string;
   name: string;
   question: string;
   nodes: readonly FlowNode[];
+  revisit?: { prompt: string; label: string; stage: string; node?: string };
 };
 export type Flow = {
   id: FlowId;
@@ -28,15 +32,6 @@ export type Flow = {
   description: string;
   stages: readonly FlowStage[];
 };
-const node = (
-  id: string,
-  label: string,
-  question: string,
-  example: string,
-  after: string[] = [],
-  kind: FlowNode["kind"] = "question",
-  choices?: string[],
-): FlowNode => ({ id, label, question, example, after, kind, ...(choices ? { choices } : {}) });
 export type FlowRegistry = { readonly [Id in FlowId]: Flow & { readonly id: Id } };
 export const flows: FlowRegistry = {
   "video-game": videoGameFlow,
@@ -55,14 +50,25 @@ export const flows: FlowRegistry = {
         name: "Idea",
         question: "What's your idea?",
         nodes: [
-          node("idea-name", "Name", "What is the project name?", "A neighborhood tool library."),
-          node(
-            "idea-description",
-            "Brief description",
-            "What is the idea in a few words?",
-            "Help neighbors borrow tools they only need once.",
-            ["idea-name"],
-          ),
+          {
+            ...node(
+              "idea-name",
+              "Name",
+              "What is the project name?",
+              "A neighborhood tool library.",
+            ),
+            captureField: "name",
+          },
+          {
+            ...node(
+              "idea-description",
+              "Brief description",
+              "What is the idea in a few words?",
+              "Help neighbors borrow tools they only need once.",
+              ["idea-name"],
+            ),
+            captureField: "description",
+          },
         ],
       },
       {
@@ -115,6 +121,11 @@ export const flows: FlowRegistry = {
       },
       {
         id: "validation",
+        revisit: {
+          prompt: "Revising the idea?",
+          label: "Revisit Exploration ↶",
+          stage: "exploration",
+        },
         name: "Validation",
         question: "Is it worth pursuing?",
         nodes: [
@@ -157,15 +168,18 @@ export const flows: FlowRegistry = {
             "The first version was not useful to the people we asked. We still do not know whether another group would want it.",
             ["feedback", "cheap-test", "affordability"],
           ),
-          node(
-            "venture-direction",
-            "Continue, revise, or park",
-            "What should we do next, and why?",
-            "Revise: focus on one building before a whole neighborhood.",
-            ["learnings"],
-            "outcome",
-            ["Continue", "Revise", "Park"],
-          ),
+          {
+            ...node(
+              "venture-direction",
+              "Continue, revise, or park",
+              "What should we do next, and why?",
+              "Revise: focus on one building before a whole neighborhood.",
+              ["learnings"],
+              "outcome",
+              ["Continue", "Revise", "Park"],
+            ),
+            projectStateByChoice: { Park: "parked" },
+          },
         ],
       },
       {
@@ -212,6 +226,12 @@ export const flows: FlowRegistry = {
       },
       {
         id: "building",
+        revisit: {
+          prompt: "Need help or another round?",
+          label: "Return to the next task ↶",
+          stage: "building",
+          node: "next-task",
+        },
         name: "Building",
         question: "How do we make it happen?",
         nodes: [
@@ -282,14 +302,25 @@ export const flows: FlowRegistry = {
         name: "Concept",
         question: "What are we making?",
         nodes: [
-          node("spark-name", "Name", "What is the project name?", "A short audio documentary."),
-          node(
-            "spark-description",
-            "Brief description",
-            "What sounds fun to make?",
-            "An audio documentary with interviews and original recordings.",
-            ["spark-name"],
-          ),
+          {
+            ...node(
+              "spark-name",
+              "Name",
+              "What is the project name?",
+              "A short audio documentary.",
+            ),
+            captureField: "name",
+          },
+          {
+            ...node(
+              "spark-description",
+              "Brief description",
+              "What sounds fun to make?",
+              "An audio documentary with interviews and original recordings.",
+              ["spark-name"],
+            ),
+            captureField: "description",
+          },
           node(
             "spark-captured",
             "Concept recorded",
@@ -335,6 +366,12 @@ export const flows: FlowRegistry = {
       },
       {
         id: "experiment",
+        revisit: {
+          prompt: "Trying another direction?",
+          label: "Test another prototype ↶",
+          stage: "experiment",
+          node: "rough-version",
+        },
         name: "Experiment",
         question: "Test a prototype",
         nodes: [
@@ -360,15 +397,18 @@ export const flows: FlowRegistry = {
             "Recording was fun; editing felt tiring.",
             ["rough-version"],
           ),
-          node(
-            "experiment-direction",
-            "Keep, try another, or save",
-            "What should we do next, and why?",
-            "Keep the idea, but try a shorter episode so editing stays fun.",
-            ["what-we-like", "enjoyment"],
-            "outcome",
-            ["Keep direction", "Try another", "Save for later"],
-          ),
+          {
+            ...node(
+              "experiment-direction",
+              "Keep, try another, or save",
+              "What should we do next, and why?",
+              "Keep the idea, but try a shorter episode so editing stays fun.",
+              ["what-we-like", "enjoyment"],
+              "outcome",
+              ["Keep direction", "Try another", "Save for later"],
+            ),
+            projectStateByChoice: { "Save for later": "parked" },
+          },
         ],
       },
       {
@@ -413,6 +453,12 @@ export const flows: FlowRegistry = {
       },
       {
         id: "create",
+        revisit: {
+          prompt: "Not finished enough?",
+          label: "Make the next piece ↶",
+          stage: "create",
+          node: "next-piece",
+        },
         name: "Create",
         question: "What shall we make next?",
         nodes: [
@@ -439,15 +485,18 @@ export const flows: FlowRegistry = {
             "Keep the voice; shorten the introduction.",
             ["show-each-other"],
           ),
-          node(
-            "create-loop",
-            "Repeat until finished enough",
-            "Is it finished enough, or do we want another loop?",
-            "Another loop: record the ending, then listen together.",
-            ["keep-change"],
-            "outcome",
-            ["Another loop", "Finished enough"],
-          ),
+          {
+            ...node(
+              "create-loop",
+              "Repeat until finished enough",
+              "Is it finished enough, or do we want another loop?",
+              "Another loop: record the ending, then listen together.",
+              ["keep-change"],
+              "outcome",
+              ["Another loop", "Finished enough"],
+            ),
+            projectStateByChoice: { "Finished enough": "finished_enough" },
+          },
           node(
             "enjoy",
             "Enjoy",
@@ -491,16 +540,22 @@ export function descendants(stage: FlowStage, nodeId: string) {
   return found;
 }
 
-export function isFlowId(value: string): value is FlowId {
-  return Object.hasOwn(flows, value);
-}
+export { isFlowId } from "./flow-catalog.generated";
 
-// The first two question nodes capture project metadata for every supported flow.
 export function captureNodes(flow: Flow) {
-  const stage = required(flow.stages[0], "Flow has no capture stage.");
+  const stage = required(
+    flow.stages.find((stage) => stage.nodes.some((node) => node.captureField === "name")),
+    "Flow has no capture stage.",
+  );
   return {
     stage,
-    name: required(stage.nodes[0], "Flow has no name question."),
-    description: required(stage.nodes[1], "Flow has no description question."),
+    name: required(
+      stage.nodes.find((node) => node.captureField === "name"),
+      "Flow has no name question.",
+    ),
+    description: required(
+      stage.nodes.find((node) => node.captureField === "description"),
+      "Flow has no description question.",
+    ),
   };
 }

@@ -12,7 +12,7 @@ test("home shows the public page signed out and routes signed-in users to projec
   await page.goto("/");
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await page.getByRole("button", { name: "ES — Español", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Proyectos", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Inicio de Nakama", exact: true }).click();
   await expect(page).toHaveURL(/\/projects$/);

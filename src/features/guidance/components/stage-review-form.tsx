@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { useT } from "@/shared/i18n/provider";
 import { Feedback } from "@/shared/ui/feedback";
 import { useActionState, useState } from "react";
-import { Input, Textarea } from "@/shared/ui/controls";
+import { Textarea } from "@/shared/ui/controls";
 import { reviewStage, type GuidanceActionState } from "../actions";
 const initial: GuidanceActionState = {};
 export function StageReviewForm({
@@ -38,7 +38,7 @@ export function StageReviewForm({
         )}{" "}
       </p>
       <FormStack action={action}>
-        <Input
+        <input
           type="hidden"
           name="revision"
           value={contentRevision}
@@ -59,7 +59,7 @@ export function StageReviewForm({
         <Feedback state={state} />
         <Button
           type="submit"
-          disabled={pending}
+          pending={pending}
           className={"secondary mt-2 lg:compact:mt-1"}
           variant="secondary"
         >

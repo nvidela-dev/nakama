@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { ProjectError, type Actor } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 
 import type { WhitelistStore } from "@/features/access/model";
 export type { AllowedEmail, WhitelistStore } from "@/features/access/model";

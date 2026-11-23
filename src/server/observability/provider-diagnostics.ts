@@ -124,6 +124,9 @@ export const usersPage = z.object({
     .max(100),
   totalCount: count,
 });
+export const userIdsPage = usersPage.extend({
+  data: z.array(z.object({ id: z.string().min(1) })).max(100),
+});
 export function incompleteClerkPage(operation: ProviderOperation): never {
   throw new DiagnosticError({
     family: "contract",
@@ -151,5 +154,22 @@ export const currentIdentity = z
 // The footer also consumes the identity ID for its verified-administrator check.
 export const currentIdentityWithId = currentIdentity
   .unwrap()
-  .extend({ id: z.string().min(1) })
+  .extend({
+    id: z.string().min(1),
+    updatedAt: z.number().int().nonnegative().max(8640000000000000),
+  })
   .nullable();
+
+export async function* clerkPages<T>(
+  operation: ProviderOperation,
+  read: (offset: number) => Promise<{ data: T[]; totalCount: number }>,
+) {
+  let offset = 0;
+  while (true) {
+    const page = await read(offset);
+    yield page.data;
+    offset += page.data.length;
+    if (offset >= page.totalCount) return;
+    if (!page.data.length) incompleteClerkPage(operation);
+  }
+}

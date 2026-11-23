@@ -5,7 +5,7 @@ import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { artifactService } from "@/features/artifacts/server/artifacts";
 import { guidanceService } from "@/features/guidance/server/guidance";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import { getT } from "@/shared/i18n/server";
 import { ArtifactEditor } from "@/features/artifacts/components/artifact-editor";
 export const dynamic = "force-dynamic";

@@ -1,3 +1,4 @@
+import { authConfigured, privateRoute } from "@/server/auth-config";
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 import { callClerk } from "@/server/observability/provider-diagnostics";
@@ -17,15 +18,8 @@ function tracedNext(request: NextRequest) {
 }
 const clerk = clerkMiddleware((_auth, request) => tracedNext(request));
 export default function proxy(request: NextRequest, event: Parameters<typeof clerk>[1]) {
-  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
-    if (
-      request.nextUrl.pathname.startsWith("/jobs") ||
-      request.nextUrl.pathname.startsWith("/admin") ||
-      request.nextUrl.pathname.startsWith("/artifacts") ||
-      request.nextUrl.pathname.startsWith("/prospects") ||
-      request.nextUrl.pathname.startsWith("/projects") ||
-      request.nextUrl.pathname.startsWith("/invitations")
-    ) {
+  if (!authConfigured()) {
+    if (privateRoute(request.nextUrl.pathname)) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return tracedNext(request);
