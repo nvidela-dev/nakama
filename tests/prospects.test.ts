@@ -99,6 +99,8 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
     const change = (p: typeof owner, cmd: object) => svc.change(p, cmd);
     const detail = (p: typeof owner) => svc.read(p, id);
     for (const record of records) await change(owner, { type: "add", record });
+    // This scenario exercises a pre-existing Ready prospect, not a new Assessment.
+    await db.query("UPDATE prospects SET status='ready' WHERE id=$1", [id]);
     assert.equal((await svc.read(owner)).prospects.length, 2);
     assert.equal((await svc.read(ana)).prospects.length, 0);
     await assert.rejects(detail(ana));
@@ -513,6 +515,7 @@ test("Business stages preserve legacy rows and keep sales activity independent o
     assert.deepEqual(
       salesStages.map((stage) => statusLabel[stage]),
       [
+        "Assess fit",
         "Ready to call",
         "Attempted contact",
         "In conversation",
@@ -523,7 +526,7 @@ test("Business stages preserve legacy rows and keep sales activity independent o
       ],
     );
     let from = "in_progress";
-    for (const status of salesStages) {
+    for (const status of salesStages.filter((s) => s !== "assess_fit")) {
       const rev = await revision();
       await svc.change(owner, { type: "stage", id, revision: rev, status });
       const updated = await detail();

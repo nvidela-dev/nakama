@@ -458,31 +458,35 @@ export function ProspectWork({
             />
           </label>
         </ChangeForm>
-        <ChangeForm
-          label="Move business"
-          submit={(data) => {
-            const status = salesStages.find((stage) => stage === value(data, "stage"));
-            return status
-              ? updateProspect({ ...target, type: "stage", status })
-              : Promise.resolve({ error: "Choose a current sales stage." });
-          }}
-        >
-          <label>
-            {t("Sales stage")}
-            <Select key={record.status} name="stage" defaultValue={record.status}>
-              {record.status === "in_progress" && (
-                <option value="in_progress" disabled>
-                  {t(statusLabel.in_progress)}
-                </option>
-              )}
-              {salesStages.map((v) => (
-                <option key={v} value={v}>
-                  {t(statusLabel[v])}
-                </option>
-              ))}
-            </Select>
-          </label>
-        </ChangeForm>
+        {record.status !== "assess_fit" && (
+          <ChangeForm
+            label="Move business"
+            submit={(data) => {
+              const status = salesStages.find((stage) => stage === value(data, "stage"));
+              return status
+                ? updateProspect({ ...target, type: "stage", status })
+                : Promise.resolve({ error: "Choose a current sales stage." });
+            }}
+          >
+            <label>
+              {t("Sales stage")}
+              <Select key={record.status} name="stage" defaultValue={record.status}>
+                {record.status === "in_progress" && (
+                  <option value="in_progress" disabled>
+                    {t(statusLabel.in_progress)}
+                  </option>
+                )}
+                {salesStages
+                  .filter((v) => v !== "assess_fit")
+                  .map((v) => (
+                    <option key={v} value={v}>
+                      {t(statusLabel[v])}
+                    </option>
+                  ))}
+              </Select>
+            </label>
+          </ChangeForm>
+        )}
       </section>
     </div>
   );

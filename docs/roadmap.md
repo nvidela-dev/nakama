@@ -528,3 +528,8 @@ Track calls, messages, replies, outcomes and follow-ups separately from delibera
 ## Job stages and outreach · November 23, 2026
 
 Screening holds the first recruiter interview. Interviewing holds subsequent rounds. Each review records type, date, outcome, a personal rating from 1 to 10, and notes for practice. Calls, emails and messages have a dated outreach history. After the final round the owner moves the role to Waiting. Fourteen days of silence marks it Ghosted. A later response can resume Waiting or record Accepted or Rejected while retaining the earlier deadline in stage history. Existing Offer and Closed records keep their original meaning.
+
+
+## Private prospect assessment and call debrief — 2026-11-23
+
+Assess fit precedes Ready to call for new businesses. The owner can save incomplete assessments; four complete ratings enable an informational average, not a decision. Only an explicit ready choice and confirmed move advances the stage. Store private drafts, dated call debriefs with outcome-specific prompts, and dated next actions separately from existing shared outreach. Retain previous stages and history when migrating. See [business prospects](domain.md#business-prospects).

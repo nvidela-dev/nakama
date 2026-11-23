@@ -58,7 +58,13 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
     );
   }
   function move(card: BusinessCard, status: SalesStage) {
-    if (pending || card.status === status) return;
+    if (
+      pending ||
+      card.status === status ||
+      card.status === "assess_fit" ||
+      status === "assess_fit"
+    )
+      return;
     start(async () => {
       try {
         setFeedback(
@@ -104,7 +110,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
     return (
       <li
         key={card.id}
-        draggable={!pending}
+        draggable={!pending && card.status !== "assess_fit"}
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = "move";
           e.dataTransfer.setData("text/plain", card.id);
@@ -289,7 +295,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
                   aria-label={t(statusLabel[stage])}
                   key={stage}
                   onDragOver={(e) => {
-                    if (dragged && stage !== "in_progress") {
+                    if (dragged && stage !== "in_progress" && stage !== "assess_fit") {
                       e.preventDefault();
                       setHover(stage);
                     }
@@ -306,6 +312,11 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
                     <span>{t(statusLabel[stage])}</span>
                     <span className="text-muted tabular-nums">{total}</span>
                   </h3>
+                  {stage === "assess_fit" && (
+                    <p className="mb-2 text-xs text-muted">
+                      {t("Open the business to assess fit before calling.")}
+                    </p>
+                  )}
                   {stage === "in_progress" && (
                     <p className="mb-2 text-xs text-muted">
                       {t("Move these businesses to a specific stage when you review them.")}
