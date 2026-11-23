@@ -7,11 +7,11 @@ import { Input, Select } from "@/shared/ui/controls";
 import { Button } from "@/shared/ui/button";
 import { Feedback } from "@/shared/ui/feedback";
 import { useT } from "@/shared/i18n/provider";
-import { ProspectStatusValues, type ProspectStatus } from "@/shared/contracts/database.generated";
 import type { ActionState } from "@/shared/contracts/action-state";
 import type { BrowseResult } from "../filters";
 import { catalogueHref, type BusinessCard } from "../filters";
-import { statusLabel } from "../model";
+import { salesStages, statusLabel, type SalesStage } from "../model";
+import { SalesSummary } from "./sales-summary";
 import { BoardEntry } from "./prospect-forms";
 import { updateProspect } from "../actions";
 
@@ -24,7 +24,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
     board = params.get("view") === "board",
     focus = params.get("focus") === "1";
   const [dragged, setDragged] = useState<BusinessCard | null>(null),
-    [hover, setHover] = useState<ProspectStatus | null>(null);
+    [hover, setHover] = useState<SalesStage | null>(null);
   const [feedback, setFeedback] = useState<ActionState>({}),
     [pending, start] = useTransition();
   const exit = useRef<HTMLAnchorElement>(null);
@@ -39,6 +39,8 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
     return () => window.removeEventListener("keydown", escape);
   }, [focus, exitLink, router]);
   const count = Object.values(listing.counts).reduce((a, b) => a + b, 0);
+  const legacyLane = (listing.counts.in_progress ?? 0) > 0;
+  const boardStages = legacyLane ? [...salesStages, "in_progress" as const] : salesStages;
   const simple = (names: string[]): Option[] => names.map((v) => [v, v]);
   function pick(key: string, label: string, options: Option[]) {
     return (
@@ -55,7 +57,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
       </label>
     );
   }
-  function move(card: BusinessCard, status: ProspectStatus) {
+  function move(card: BusinessCard, status: SalesStage) {
     if (pending || card.status === status) return;
     start(async () => {
       try {
@@ -125,9 +127,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
             .filter(Boolean)
             .join(" · ")}
         </span>
-        {card.latest_outcome && (
-          <span className="line-clamp-2 text-sm wrap-anywhere">{card.latest_outcome}</span>
-        )}
+        <SalesSummary summary={card} t={t} compact />
       </li>
     );
   }
@@ -196,7 +196,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
           {pick(
             "stage",
             "Sales stage",
-            ProspectStatusValues.map((v) => [v, t(statusLabel[v])]),
+            [...salesStages, "in_progress" as const].map((v) => [v, t(statusLabel[v])]),
           )}
           {!board &&
             pick("assignee", "Assigned to", [
@@ -280,8 +280,8 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
       <Feedback state={feedback} />
       {board ? (
         <div className="overflow-x-auto pb-3" tabIndex={0} role="region" aria-label={t("My board")}>
-          <div className="grid grid-cols-4 gap-3 min-w-[850px]">
-            {ProspectStatusValues.map((stage) => {
+          <div className="grid grid-flow-col auto-cols-[minmax(13.5rem,1fr)] gap-3">
+            {boardStages.map((stage) => {
               const cards = listing.cards.filter((c) => c.status === stage),
                 total = listing.counts[stage] ?? 0;
               return (
@@ -289,14 +289,14 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
                   aria-label={t(statusLabel[stage])}
                   key={stage}
                   onDragOver={(e) => {
-                    if (dragged) {
+                    if (dragged && stage !== "in_progress") {
                       e.preventDefault();
                       setHover(stage);
                     }
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    if (dragged) move(dragged, stage);
+                    if (dragged && stage !== "in_progress") move(dragged, stage);
                     setHover(null);
                     setDragged(null);
                   }}
@@ -306,6 +306,11 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
                     <span>{t(statusLabel[stage])}</span>
                     <span className="text-muted tabular-nums">{total}</span>
                   </h3>
+                  {stage === "in_progress" && (
+                    <p className="mb-2 text-xs text-muted">
+                      {t("Move these businesses to a specific stage when you review them.")}
+                    </p>
+                  )}
                   <ul className="grid gap-2">{cards.map(tile)}</ul>
                 </section>
               );
@@ -328,6 +333,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
                 <th className="p-3 hidden lg:table-cell">{t("Industry")}</th>
                 <th className="p-3 hidden sm:table-cell">{t("Assigned to")}</th>
                 <th className="p-3">{t("Sales stage")}</th>
+                <th className="p-3">{t("Sales activity")}</th>
                 <th className="p-3">
                   <span className="sr-only sm:not-sr-only">{t("My board")}</span>
                 </th>
@@ -347,15 +353,9 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
                   <td className="p-3 hidden sm:table-cell">
                     {card.assignee_name ?? t("Unassigned")}
                   </td>
+                  <td className="p-2">{t(statusLabel[card.status])}</td>
                   <td className="p-2">
-                    {t(
-                      !card.on_board && card.status === "ready"
-                        ? "Backlog"
-                        : statusLabel[card.status],
-                    )}
-                    <span className="block text-xs text-muted">
-                      {t(card.called ? "Called" : "Not called")}
-                    </span>
+                    <SalesSummary summary={card} t={t} compact />
                   </td>
                   <td className="p-2">
                     {(card.mine || (owner && card.unassigned)) && !card.on_board && (
@@ -381,7 +381,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
         <p className="p-3">
           {t(
             board && !filterItems.length
-              ? "Add a business to Ready from the backlog to start your board."
+              ? "Add a business from the backlog to start your board."
               : "No matching businesses.",
           )}
         </p>

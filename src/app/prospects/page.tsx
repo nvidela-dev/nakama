@@ -10,7 +10,7 @@ import { ProspectMigrationPending } from "@/features/prospects/server/access";
 import { prospectService } from "@/features/prospects/server/catalogue";
 import { getLocale, getT } from "@/shared/i18n/server";
 import { translator, formatDate } from "@/shared/i18n";
-import { kindLabel, statusLabel } from "@/features/prospects/model";
+import { isProspectStatus, kindLabel, statusLabel } from "@/features/prospects/model";
 import {
   BoardEntry,
   EditProspect,
@@ -23,6 +23,7 @@ import {
   InviteCollaborator,
   LogOutreach,
 } from "@/features/prospects/components/prospect-forms";
+import { SalesSummary } from "@/features/prospects/components/sales-summary";
 import { Dossier } from "@/features/prospects/components/dossier";
 import { Panel } from "@/shared/ui/panel";
 
@@ -73,18 +74,16 @@ export default async function ProspectsPage({
         </h1>
         {prospect && (
           <p className="mt-2 text-muted">
-            {t(
-              !prospect.on_board && prospect.status === "ready"
-                ? "Backlog"
-                : statusLabel[prospect.status],
-            )}{" "}
-            · {prospect.assignee_name ?? t("Unassigned")} ·{" "}
+            {t(statusLabel[prospect.status])} · {prospect.assignee_name ?? t("Unassigned")} ·{" "}
             {t(prospect.called ? "Called" : "Not called")}
           </p>
         )}
       </header>
       {prospect ? (
         <>
+          <Panel>
+            <SalesSummary summary={prospect} t={t} />
+          </Panel>
           <section aria-label={t("Business images")} className="grid gap-3">
             {data.images.length ? (
               <ul className="flex flex-wrap items-start gap-3">
@@ -261,19 +260,16 @@ export default async function ProspectsPage({
                           <p>
                             {t(
                               e.profile_changes.board === "added"
-                                ? "Added to Ready on my board"
+                                ? "Added to my board"
                                 : "Removed from my board",
                             )}
                           </p>
                         ) : e.kind === "stage" &&
-                          e.profile_changes &&
-                          typeof e.profile_changes.from === "string" &&
-                          typeof e.profile_changes.to === "string" &&
-                          e.profile_changes.from in statusLabel &&
-                          e.profile_changes.to in statusLabel ? (
+                          isProspectStatus(e.profile_changes?.from) &&
+                          isProspectStatus(e.profile_changes?.to) ? (
                           <p>
-                            {t(statusLabel[e.profile_changes.from as keyof typeof statusLabel])} →{" "}
-                            {t(statusLabel[e.profile_changes.to as keyof typeof statusLabel])}
+                            {t(statusLabel[e.profile_changes.from])} →{" "}
+                            {t(statusLabel[e.profile_changes.to])}
                           </p>
                         ) : typeof e.profile_changes?.todo === "string" ? (
                           <p>

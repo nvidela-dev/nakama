@@ -2,6 +2,7 @@ import { z } from "zod";
 import { queryRows } from "@/server/database/query";
 import { ProspectStatusValues } from "@/shared/contracts/database.generated";
 import type { CatalogueRead } from "./access";
+import { salesSummaryFields, salesSummaryJoins } from "./sales-summary";
 const card = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -12,6 +13,9 @@ const card = z.object({
   industry: z.string(),
   called: z.boolean(),
   latest_outcome: z.string().nullable(),
+  latest_call_note: z.string().nullable(),
+  latest_call_outcome: z.enum(["deal", "rejected"]).nullable(),
+  next_follow_up: z.string().nullable(),
   open_todos: z.number(),
   image: z.string().nullable(),
   mine: z.boolean(),
@@ -57,12 +61,15 @@ export async function browse(
     AND (cardinality($14::text[])=0 OR CASE WHEN $15='all' THEN services @> $14::text[] ELSE services && $14::text[] END)
   ), ranked AS (
     SELECT *,row_number() OVER(PARTITION BY CASE WHEN $16 THEN status END ORDER BY lower(name),id) AS rn FROM filtered
+  ), page AS MATERIALIZED (
+    SELECT * FROM ranked WHERE rn>$17 AND rn<=$18
   ), shown AS (
     SELECT r.id,r.name,r.status,r.revision,r.assignee_name,r.city,r.industry,r.called,r.image,r.mine,r.unassigned,r.on_board,
       (SELECT e.note FROM prospect_events e WHERE e.catalogue_id=$1 AND e.prospect_id=r.id
        AND (e.outcome IS NOT NULL OR e.kind IN ('call','message','reply')) ORDER BY e.id DESC LIMIT 1) latest_outcome,
+      ${salesSummaryFields},
       (SELECT count(*)::int FROM prospect_todos t WHERE t.catalogue_id=$1 AND t.prospect_id=r.id AND NOT done) open_todos
-    FROM ranked r WHERE rn>$17 AND rn<=$18 ORDER BY lower(name),id
+    FROM page r ${salesSummaryJoins("$1", "r.id")}
   )
   SELECT coalesce((SELECT jsonb_agg(to_jsonb(s) ORDER BY lower(s.name),s.id) FROM shown s),'[]') AS cards,
     coalesce((SELECT jsonb_object_agg(status,n) FROM (SELECT status,count(*)::int n FROM filtered GROUP BY status)c),'{}') AS counts,

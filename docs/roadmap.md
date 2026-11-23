@@ -491,7 +491,7 @@ Remove the example project, Lab guide and Wiki, including the glossary aliases a
 
 ## Sales work and catalogue browsing — 2026-11-21
 
-Nakama stores a checklist and an optional Linear issue or project link per prospect. Collaborators can update businesses they can see. The list and four-column sales board use the same access rules, search and filters. Users can move a business by dragging a card or selecting a stage on its detail screen. Record each change in its timeline. Opening a Linear link is a user action and does not publish business records to Linear.
+Nakama stores a checklist and an optional Linear issue or project link per prospect. Collaborators can update businesses they can see. The list and sales board use the same access rules, search and filters. Users can move a business by dragging a card or selecting a stage on its detail screen. Record each change in its timeline. Opening a Linear link is a user action and does not publish business records to Linear.
 
 ## Direct project links — 2026-11-21
 
@@ -509,7 +509,7 @@ Catalogue invitations use the same seven-day window as project invitations. The 
 
 ## Personal sales board and backlog — 2026-11-21
 
-The catalogue opens as a backlog table of every business the viewer can access. My board is personal. Adding a business to Ready assigns it to the viewer and admits it to their board. Collaborators can add their existing assignments. Cards remain there as sales progress and leave on removal or handoff. Both views show the business image. Opening a record exposes the preferred original near the title and the remaining images beside it.
+The catalogue opens as a backlog table of every business the viewer can access. My board is personal. Adding a business assigns it to the viewer when unassigned and admits it to their board without resetting its stage. Collaborators can add their existing assignments. Cards remain there as sales progress and leave on removal or handoff. Both views show the business image. Opening a record exposes the preferred original near the title and the remaining images beside it.
 
 ## Jobs and interviews · November 21, 2026
 
@@ -520,3 +520,7 @@ The jobs backlog is ordered by date found, newest first, with a group for each c
 The owner wants a résumé compatibility bar on the jobs backlog. Use the share of recognized listed job skills documented in the owner's résumé. Show the count and the matched and unlisted skills, with an explicit unscored state when evidence is missing.
 
 Résumé match and Date found lead the jobs table. Either header sorts the whole filtered backlog in both directions. Date defaults to newest first, résumé match opens highest first, ties use newest discovery first, and missing values appear last. Date sorting retains weekly groups. Match sorting keeps each role's age beside its date.
+
+## Business sales stages — 2026-11-23
+
+Track calls, messages, replies, outcomes and follow-ups separately from deliberate stage changes. Use Ready to call, Attempted contact, In conversation, Proposal sent, Negotiating, Won and Lost. Keep the existing broad In progress state unclassified until reviewed rather than guessing what happened. Existing identifiers for Ready, Deal reached and Offer declined remain stable.

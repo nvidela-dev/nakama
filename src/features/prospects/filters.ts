@@ -49,6 +49,9 @@ export type BusinessCard = {
   industry: string;
   called: boolean;
   latest_outcome: string | null;
+  latest_call_note: string | null;
+  latest_call_outcome: "deal" | "rejected" | null;
+  next_follow_up: string | null;
   open_todos: number;
   image: string | null;
   mine: boolean;

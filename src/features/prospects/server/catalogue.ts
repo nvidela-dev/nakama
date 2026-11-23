@@ -1,4 +1,5 @@
 import { browse } from "./browse";
+import { salesSummaryFields, salesSummaryJoins } from "./sales-summary";
 import { z } from "zod";
 import type { Actor } from "@/shared/contracts/actor";
 import { ProjectError } from "@/shared/contracts/errors";
@@ -47,8 +48,10 @@ const visible =
 const summary = `SELECT p.id,p.name,p.details,p.status,p.revision,p.assignee_id,p.on_board,m.display_name AS assignee_name,
   EXISTS (SELECT 1 FROM prospect_events e WHERE e.catalogue_id=p.catalogue_id AND e.prospect_id=p.id AND e.kind='call') AS called,
   (SELECT e.note FROM prospect_events e WHERE e.catalogue_id=p.catalogue_id AND e.prospect_id=p.id
-    AND (e.outcome IS NOT NULL OR e.kind IN ('call','message','reply')) ORDER BY e.id DESC LIMIT 1) AS latest_outcome
-  FROM prospects p LEFT JOIN prospect_memberships m ON m.catalogue_id=p.catalogue_id AND m.user_id=p.assignee_id`;
+    AND (e.outcome IS NOT NULL OR e.kind IN ('call','message','reply')) ORDER BY e.id DESC LIMIT 1) AS latest_outcome,
+  ${salesSummaryFields}
+  FROM prospects p LEFT JOIN prospect_memberships m ON m.catalogue_id=p.catalogue_id AND m.user_id=p.assignee_id
+  ${salesSummaryJoins("p.catalogue_id", "p.id")}`;
 
 export function prospectService(db: Database) {
   return {
@@ -345,7 +348,7 @@ export function prospectService(db: Database) {
             throw unavailable();
           if (current.on_board === cmd.enabled) return;
           await tx.query(
-            "UPDATE prospects SET on_board=$4,assignee_id=$3,status=CASE WHEN $4 THEN 'ready'::prospect_status ELSE status END,revision=revision+1 WHERE catalogue_id=$1 AND id=$2",
+            "UPDATE prospects SET on_board=$4,assignee_id=$3,revision=revision+1 WHERE catalogue_id=$1 AND id=$2",
             [catalogueId, cmd.id, person.userId, cmd.enabled],
           );
           if (unassigned)
@@ -363,7 +366,7 @@ export function prospectService(db: Database) {
               JSON.stringify({
                 board: cmd.enabled ? "added" : "removed",
                 from: current.status,
-                to: cmd.enabled ? "ready" : current.status,
+                to: current.status,
               }),
             ],
           );
@@ -475,13 +478,10 @@ export function prospectService(db: Database) {
           );
           return;
         }
-        let status = current.status;
-        if (cmd.outcome) status = cmd.outcome;
-        else if (cmd.kind !== "note" && status === "ready") status = "in_progress";
-        await tx.query(
-          "UPDATE prospects SET status=$3,revision=revision+1 WHERE catalogue_id=$1 AND id=$2",
-          [catalogueId, cmd.id, status],
-        );
+        await tx.query("UPDATE prospects SET revision=revision+1 WHERE catalogue_id=$1 AND id=$2", [
+          catalogueId,
+          cmd.id,
+        ]);
         await tx.query(
           "INSERT INTO prospect_events(catalogue_id,prospect_id,kind,actor_id,actor_name,note,outcome) VALUES($1,$2,$3,$4,$5,$6,$7)",
           [catalogueId, cmd.id, cmd.kind, person.userId, actorName, cmd.note, cmd.outcome ?? null],

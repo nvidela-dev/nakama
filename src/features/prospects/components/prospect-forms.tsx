@@ -6,13 +6,13 @@ import { Button } from "@/shared/ui/button";
 import { Feedback } from "@/shared/ui/feedback";
 import type { ActionState } from "@/shared/contracts/action-state";
 import { useT } from "@/shared/i18n/provider";
-import { ProspectStatusValues } from "@/shared/contracts/database.generated";
 import { updateProspect, saveProspectImport } from "../actions";
 import {
   importChunkSize,
   maxImportBytes,
   outreachKinds,
   statusLabel,
+  salesStages,
   kindLabel,
   type CatalogueMember,
   type ProspectCommand,
@@ -73,7 +73,7 @@ export function BoardEntry({
 }) {
   return (
     <ChangeForm
-      label={onBoard ? "Remove from my board" : "Add to Ready"}
+      label={onBoard ? "Remove from my board" : "Add to my board"}
       submit={() => updateProspect({ type: "my_board", id, revision, enabled: !onBoard })}
     />
   );
@@ -298,13 +298,16 @@ export function LogOutreach({ record }: { record: Prospect }) {
         </Select>
       </label>
       <label>
-        {t("Outcome")}
+        {t("Interaction outcome")}
         <Select name="outcome">
           <option value="">{t("No decision yet")}</option>
-          <option value="deal">{t("Deal reached")}</option>
-          <option value="rejected">{t("Offer declined")}</option>
+          <option value="deal">{t(statusLabel.deal)}</option>
+          <option value="rejected">{t(statusLabel.rejected)}</option>
         </Select>
       </label>
+      <p className="text-sm text-muted">
+        {t("Logging an interaction does not move the business to another sales stage.")}
+      </p>
       <label>
         {t("What happened?")}
         <Textarea name="note" required maxLength={2000} rows={3} />
@@ -457,18 +460,22 @@ export function ProspectWork({
         </ChangeForm>
         <ChangeForm
           label="Move business"
-          submit={(data) =>
-            updateProspect({
-              ...target,
-              type: "stage",
-              status: value(data, "stage") as Prospect["status"],
-            })
-          }
+          submit={(data) => {
+            const status = salesStages.find((stage) => stage === value(data, "stage"));
+            return status
+              ? updateProspect({ ...target, type: "stage", status })
+              : Promise.resolve({ error: "Choose a current sales stage." });
+          }}
         >
           <label>
             {t("Sales stage")}
             <Select key={record.status} name="stage" defaultValue={record.status}>
-              {ProspectStatusValues.map((v) => (
+              {record.status === "in_progress" && (
+                <option value="in_progress" disabled>
+                  {t(statusLabel.in_progress)}
+                </option>
+              )}
+              {salesStages.map((v) => (
                 <option key={v} value={v}>
                   {t(statusLabel[v])}
                 </option>

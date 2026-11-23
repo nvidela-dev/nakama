@@ -5,6 +5,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { strToU8, zipSync } from "fflate";
 import type { Database } from "../src/server/database/database";
+import { salesStages, statusLabel } from "../src/features/prospects/model";
 import { prospectService } from "../src/features/prospects/server/catalogue";
 import { projectService } from "../src/features/projects/server/projects";
 import { decodeSource, checksum } from "../src/features/prospects/server/source-reader";
@@ -118,7 +119,8 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
     );
     await change(ana, { type: "log", id, revision: 1, kind: "call", note: "No answer" });
     assert.equal((await detail(ana)).prospect?.called, true);
-    assert.equal((await detail(ana)).prospect?.status, "in_progress");
+    assert.equal((await detail(ana)).prospect?.status, "ready");
+    assert.equal((await detail(ana)).prospect?.latest_call_note, "No answer");
     await assert.rejects(
       change(owner, { type: "assign", id, revision: 1, assignee: "Pedro" }),
       /changed/,
@@ -138,7 +140,8 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
       note: "Declined for this quarter",
     });
     const handoff = await detail(pedro);
-    assert.equal(handoff.prospect?.status, "rejected");
+    assert.equal(handoff.prospect?.status, "ready");
+    assert.equal(handoff.prospect?.latest_call_outcome, "rejected");
     assert.equal(handoff.prospect?.latest_outcome, "Declined for this quarter");
     assert.deepEqual(
       handoff.timeline.map((e) => [e.kind, e.actor_name, e.previous_assignee, e.next_assignee]),
@@ -217,7 +220,7 @@ test("standalone catalogue, single assignee, permission changes and preserved ou
     );
     await svc.change(owner, { type: "my_board", id, enabled: true, revision: await revision() });
     assert.equal((await detail(owner)).prospect?.assignee_id, owner.userId);
-    assert.equal((await personal(owner))[0]?.status, "ready");
+    assert.equal((await personal(owner))[0]?.status, "deal");
     await svc.change(owner, { type: "stage", id, status: "deal", revision: await revision() });
     const board = await svc.read(
       owner,
@@ -398,15 +401,23 @@ test("full catalogue publication, exact recovery, evidence access and conflict-s
       }),
       /changed/,
     );
+    assert.equal((await detail()).prospect?.status, "deal");
+    await svc.change(member, {
+      type: "stage",
+      id,
+      revision: (await detail()).prospect!.revision,
+      status: "proposal_sent",
+    });
     await upload(next.zip);
     d = await detail();
     assert.equal(d.prospect?.name, "Updated");
     assert.equal(d.prospect?.details, "Verified locally");
-    assert.equal(d.prospect?.status, "rejected");
+    assert.equal(d.prospect?.status, "proposal_sent");
     assert.equal(d.prospect?.assignee_id, member.userId);
     assert.deepEqual(d.research, { pitch: "new offer" });
-    assert.equal(d.timeline.length, 3);
-    assert.deepEqual(d.timeline[0]?.profile_changes, {
+    assert.equal(d.timeline.length, 4);
+    assert.equal(d.timeline[2]?.outcome, "rejected");
+    assert.deepEqual(d.timeline[1]?.profile_changes, {
       details: "Verified locally",
       research: { pitch: "new offer" },
     });
@@ -437,6 +448,200 @@ test("full catalogue publication, exact recovery, evidence access and conflict-s
     await assert.rejects(svc.image(member, id, checksum(image)));
     await db.query("DELETE FROM prospect_catalogues WHERE id='business'");
     assert.equal((await db.query("SELECT digest FROM prospect_imports")).rows.length, 0);
+  } finally {
+    await sql.close();
+  }
+});
+
+test("Business stages preserve legacy rows and keep sales activity independent of deliberate moves", async () => {
+  const sql = new PGlite();
+  try {
+    const migrations = (await readdir("migrations")).filter((f) => f.endsWith(".sql")).sort();
+    const stageMigration = "032_business_sales_stages.sql";
+    for (const file of migrations.slice(0, migrations.indexOf(stageMigration)))
+      await sql.exec(await readFile("migrations/" + file, "utf8"));
+    const db: Database = {
+      query: (q, v) => sql.query(q, v),
+      transaction: (fn) => sql.transaction((tx) => fn(tx)),
+    };
+    const svc = prospectService(db);
+    const owner = { userId: "Owner", displayName: "Owner", verifiedEmails: [] };
+    const outsider = { userId: "Outsider", displayName: "Outsider", verifiedEmails: [] };
+    const id = randomUUID(),
+      firstTodo = randomUUID(),
+      nextTodo = randomUUID();
+    await db.query("INSERT INTO prospect_catalogues VALUES ('business', 'Owner')");
+    await db.query(
+      "INSERT INTO prospect_memberships VALUES ('business', 'Owner', 'Owner', 'owner')",
+    );
+    await db.query(
+      "INSERT INTO prospects(catalogue_id,id,name,status,revision,assignee_id,on_board) VALUES('business',$1,'Prior prospect','in_progress',42,'Owner',true)",
+      [id],
+    );
+    await db.query(
+      "INSERT INTO prospect_events(catalogue_id,prospect_id,kind,actor_id,actor_name,note) VALUES('business',$1,'call','Owner','Owner','Prior call')",
+      [id],
+    );
+    for (const file of migrations.slice(migrations.indexOf(stageMigration))) {
+      await sql.exec(await readFile("migrations/" + file, "utf8"));
+    }
+    const detail = () => svc.read(owner, id);
+    const board = (stage?: string) =>
+      svc.read(
+        owner,
+        undefined,
+        1,
+        "",
+        new URLSearchParams(stage ? { view: "board", stage } : { view: "board" }),
+      );
+    const revision = async () => (await detail()).prospect!.revision;
+    assert.equal(await revision(), 42);
+    assert.equal((await board("in_progress")).listing?.counts.in_progress, 1);
+    assert.equal((await detail()).timeline[0]?.note, "Prior call");
+    await assert.rejects(
+      svc.change(owner, { type: "stage", id, revision: 42, status: "in_progress" }),
+      /Check the prospect/,
+    );
+    await assert.rejects(
+      svc.change(outsider, { type: "stage", id, revision: 42, status: "attempted_contact" }),
+    );
+    await assert.rejects(
+      svc.change(owner, { type: "stage", id, revision: 41, status: "attempted_contact" }),
+      /changed/,
+    );
+    assert.deepEqual(
+      salesStages.map((stage) => statusLabel[stage]),
+      [
+        "Ready to call",
+        "Attempted contact",
+        "In conversation",
+        "Proposal sent",
+        "Negotiating",
+        "Won",
+        "Lost",
+      ],
+    );
+    let from = "in_progress";
+    for (const status of salesStages) {
+      const rev = await revision();
+      await svc.change(owner, { type: "stage", id, revision: rev, status });
+      const updated = await detail();
+      assert.equal(updated.prospect?.status, status);
+      assert.equal(updated.prospect?.revision, rev + 1);
+      assert.deepEqual(updated.timeline[0]?.profile_changes, { from, to: status });
+      assert.equal((await board(status)).listing?.counts[status], 1);
+      from = status;
+    }
+    assert.equal((await board("in_progress")).listing?.counts.in_progress, undefined);
+    const beforeNoOp = await revision();
+    await svc.change(owner, { type: "stage", id, revision: beforeNoOp, status: "rejected" });
+    assert.equal(await revision(), beforeNoOp);
+    await svc.change(owner, {
+      type: "log",
+      id,
+      revision: await revision(),
+      kind: "call",
+      outcome: "deal",
+      note: "Reached decision maker",
+    });
+    await svc.change(owner, {
+      type: "log",
+      id,
+      revision: await revision(),
+      kind: "reply",
+      note: "Separate reply",
+    });
+    await svc.change(owner, {
+      type: "todo_add",
+      id,
+      revision: await revision(),
+      todoId: firstTodo,
+      title: "Old task",
+    });
+    await svc.change(owner, {
+      type: "todo_check",
+      id,
+      revision: await revision(),
+      todoId: firstTodo,
+      done: true,
+    });
+    await svc.change(owner, {
+      type: "todo_add",
+      id,
+      revision: await revision(),
+      todoId: nextTodo,
+      title: "Follow up Friday",
+    });
+    const summary = (await board()).listing?.cards[0];
+    assert.equal(summary?.status, "rejected");
+    assert.equal(summary?.latest_outcome, "Separate reply");
+    assert.equal(summary?.latest_call_note, "Reached decision maker");
+    assert.equal(summary?.latest_call_outcome, "deal");
+    assert.equal(summary?.next_follow_up, "Follow up Friday");
+    assert.equal((await detail()).prospect?.next_follow_up, "Follow up Friday");
+    await svc.change(owner, { type: "my_board", id, revision: await revision(), enabled: false });
+    await svc.change(owner, { type: "my_board", id, revision: await revision(), enabled: true });
+    assert.equal((await board()).listing?.cards[0]?.status, "rejected");
+    assert.ok((await detail()).timeline.some((e) => e.note === "Prior call"));
+    const invited = {
+      userId: "Invited",
+      displayName: "Invited",
+      verifiedEmails: ["viewer@example.invalid"],
+    };
+    const salesperson = {
+      userId: "Salesperson",
+      displayName: "Salesperson",
+      verifiedEmails: ["salesperson@example.invalid"],
+    };
+    const browseAs = (p: typeof owner, boardView = false) =>
+      svc.read(p, undefined, 1, "", new URLSearchParams(boardView ? { view: "board" } : {}));
+    for (const person of [invited, salesperson]) {
+      await svc.change(owner, { type: "invite", email: person.verifiedEmails[0] });
+      assert.deepEqual((await browseAs(person)).listing?.cards, []);
+      await assert.rejects(svc.read(person, id), /Prospect unavailable/);
+    }
+    const assigned = randomUUID();
+    await svc.change(owner, {
+      type: "add",
+      record: { id: assigned, name: "Their prospect", details: "" },
+    });
+    await svc.change(owner, {
+      type: "assign",
+      id: assigned,
+      revision: 0,
+      assignee: salesperson.userId,
+    });
+    await svc.change(salesperson, { type: "my_board", id: assigned, revision: 1, enabled: true });
+    for (const useBoard of [false, true]) {
+      const otherCards = (await browseAs(salesperson, useBoard)).listing?.cards;
+      assert.deepEqual(
+        otherCards?.map((card) => card.id),
+        [assigned],
+      );
+      assert.equal(otherCards?.[0]?.latest_call_note, null);
+      assert.equal(otherCards?.[0]?.latest_call_outcome, null);
+      assert.equal(otherCards?.[0]?.next_follow_up, null);
+    }
+    await assert.rejects(
+      svc.change(salesperson, {
+        type: "stage",
+        id,
+        revision: await revision(),
+        status: "negotiating",
+      }),
+      /Prospect unavailable/,
+    );
+    await svc.change(owner, {
+      type: "assign",
+      id,
+      revision: await revision(),
+      assignee: salesperson.userId,
+    });
+    const nowVisible = (await svc.read(salesperson, id)).prospect;
+    assert.equal(nowVisible?.latest_call_note, "Reached decision maker");
+    assert.equal(nowVisible?.latest_call_outcome, "deal");
+    assert.equal(nowVisible?.next_follow_up, "Follow up Friday");
+    await assert.rejects(svc.read(invited, id), /Prospect unavailable/);
   } finally {
     await sql.close();
   }

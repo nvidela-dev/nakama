@@ -60,7 +60,7 @@ test("a private image follows a business from the backlog into fullscreen, its d
     ]);
     await expect(original).toHaveURL(new RegExp(hash + "$"));
     await original.close();
-    await page.getByRole("button", { name: "Add to Ready", exact: true }).click();
+    await page.getByRole("button", { name: "Add to my board", exact: true }).click();
     await expect(page.getByRole("button", { name: "Remove from my board" })).toBeVisible();
     await page.locator("main > nav").getByRole("link").click();
     await expect(page.getByRole("link", { name: "Exit fullscreen" })).toBeVisible();
@@ -68,25 +68,27 @@ test("a private image follows a business from the backlog into fullscreen, its d
     await expect(page.getByRole("link", { name: "Fullscreen", exact: true })).toBeVisible();
     await page.getByRole("link", { name: "My board", exact: true }).click();
     const card = page
-      .getByRole("region", { name: "Ready", exact: true })
+      .getByRole("region", { name: "Ready to call", exact: true })
       .getByRole("listitem")
       .filter({ hasText: name });
     await expect(card).toBeVisible();
     await decoded();
-    await card.dragTo(page.getByRole("region", { name: "In progress", exact: true }), {
+    await card.dragTo(page.getByRole("region", { name: "Attempted contact", exact: true }), {
       sourcePosition: { x: 6, y: 5 },
       targetPosition: { x: 24, y: 65 },
     });
     const active = page
-      .getByRole("region", { name: "In progress", exact: true })
+      .getByRole("region", { name: "Attempted contact", exact: true })
       .getByRole("link", { name, exact: true });
     await expect(active).toBeVisible();
     await active.click();
     await page.getByLabel("Next action").fill("Call on Friday");
     await page.getByRole("button", { name: "Add to-do" }).click();
-    await expect(page.getByText("Call on Friday", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("term").filter({ hasText: "Next follow-up" }).locator(".."),
+    ).toContainText("Call on Friday");
     await page.getByRole("button", { name: "Remove from my board" }).click();
-    await expect(page.getByRole("button", { name: "Add to Ready" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add to my board" })).toBeVisible();
     await page.locator("main > nav").getByRole("link").click();
     await expect(page.getByRole("heading", { name: "0 businesses" })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });

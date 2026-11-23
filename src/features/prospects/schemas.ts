@@ -5,7 +5,7 @@ import {
   ProspectStatusValues,
 } from "@/shared/contracts/database.generated";
 
-import { outreachKinds } from "./model";
+import { outreachKinds, salesStages } from "./model";
 export const prospectSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -17,6 +17,9 @@ export const prospectSchema = z.object({
   assignee_name: z.string().nullable(),
   called: z.boolean(),
   latest_outcome: z.string().nullable(),
+  latest_call_note: z.string().nullable(),
+  latest_call_outcome: z.enum(["deal", "rejected"]).nullable(),
+  next_follow_up: z.string().nullable(),
 });
 export const eventSchema = z.object({
   id: z.string(),
@@ -37,7 +40,7 @@ const input = z.object({
 const change = z.object({ id: z.uuid(), revision: z.number().int().nonnegative() });
 export const commandSchema = z.discriminatedUnion("type", [
   change.extend({ type: z.literal("my_board"), enabled: z.boolean() }),
-  change.extend({ type: z.literal("stage"), status: z.enum(ProspectStatusValues) }),
+  change.extend({ type: z.literal("stage"), status: z.enum(salesStages) }),
   change.extend({
     type: z.literal("linear"),
     url: z
