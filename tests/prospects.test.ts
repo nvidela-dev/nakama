@@ -5,6 +5,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { strToU8, zipSync } from "fflate";
 import type { Database } from "../src/server/database/database";
+import type { Actor } from "../src/shared/contracts/actor";
 import { salesStages, statusLabel } from "../src/features/prospects/model";
 import { prospectService } from "../src/features/prospects/server/catalogue";
 import { projectService } from "../src/features/projects/server/projects";
@@ -593,7 +594,7 @@ test("Business stages preserve legacy rows and keep sales activity independent o
       displayName: "Salesperson",
       verifiedEmails: ["salesperson@example.invalid"],
     };
-    const browseAs = (p: typeof owner, boardView = false) =>
+    const browseAs = (p: Actor, boardView = false) =>
       svc.read(p, undefined, 1, "", new URLSearchParams(boardView ? { view: "board" } : {}));
     for (const person of [invited, salesperson]) {
       await svc.change(owner, { type: "invite", email: person.verifiedEmails[0] });
