@@ -20,19 +20,20 @@ jobs:
         run: node --import tsx scripts/check-workspace-reads.ts
       - run: make frontend
       - name: Install Chromium for browser verification
+        id: chromium
         if: github.event_name == 'pull_request'
         run: npx playwright install --with-deps chromium
-      - name: Verify Storybook interactions
-        if: github.event_name == 'pull_request'
-        env:
-          STORYBOOK_STATIC: "1"
-          PLAYWRIGHT_CHANNEL: chromium
-        run: npm run test:components
       - name: Verify production routes
         if: github.event_name == 'pull_request'
         env:
           PLAYWRIGHT_CHANNEL: chromium
         run: npm run test:frontend
+      - name: Verify Storybook interactions
+        if: "!cancelled() && steps.chromium.outcome == 'success'"
+        env:
+          STORYBOOK_STATIC: "1"
+          PLAYWRIGHT_CHANNEL: chromium
+        run: npm run test:components
       - uses: actions/upload-artifact@v4
         if: always()
         with:
