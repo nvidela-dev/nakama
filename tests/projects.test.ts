@@ -310,16 +310,36 @@ test("issuing an approved invitation checks current recipient membership inside 
 });
 
 test("signed-in profile refresh changes only active roster labels and keeps historical attribution", async () => {
-  const project = await service.create(alice, {
-    name: "Profile labels",
-    description: "Private roster",
-  });
+  const joinedAt = new Date("2025-12-31T00:00:00Z");
+  const project = await service.create(
+    { ...alice, profileLabelUpdatedAt: joinedAt },
+    {
+      name: "Profile labels",
+      description: "Private roster",
+    },
+  );
   const other = await service.create(cara, {
     name: "Other roster",
     description: "Separate project",
   });
   const invitation = await service.invite(alice, project, "bob@example.com");
-  await service.accept(bob, invitation.token);
+  await service.accept({ ...bob, profileLabelUpdatedAt: joinedAt }, invitation.token);
+  for (const member of [alice, bob]) {
+    await refreshMemberLabel(
+      db,
+      {
+        ...member,
+        displayName: "Stale at join",
+        profileLabelUpdatedAt: new Date("2025-12-30T00:00:00Z"),
+      },
+      project,
+    );
+    assert.equal(
+      (await service.people(alice, project)).members.find((row) => row.user_id === member.userId)
+        ?.display_name,
+      member.displayName,
+    );
+  }
   const { guidanceService } = await import("../src/features/guidance/server/guidance");
   await guidanceService(db).select(bob, project, "creative");
   await guidanceService(db).save(bob, project, "spark-name", {

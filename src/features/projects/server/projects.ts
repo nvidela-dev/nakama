@@ -7,6 +7,7 @@ import {
 } from "@/shared/contracts/domain-schemas";
 import {
   membership,
+  refreshMemberLabel,
   requireActor,
   withProjectRead,
   type ProjectRead,
@@ -112,6 +113,7 @@ export function projectService(db: Database) {
           "INSERT INTO project_memberships (project_id, user_id, display_name, role) VALUES ($1, $2, $3, 'owner')",
           [id, actor.userId, actor.displayName || "Crew member"],
         );
+        await refreshMemberLabel(tx, actor, id);
         await recordActivity(tx, actor, id, "project_created");
       });
       return id;
@@ -287,7 +289,10 @@ export function projectService(db: Database) {
           "UPDATE project_invitations SET accepted_by = $1, accepted_at = now() WHERE token_hash = $2",
           [actor.userId, digest(token)],
         );
-        if (joined.length) await recordActivity(tx, actor, invitation.project_id, "member_joined");
+        if (joined.length) {
+          await refreshMemberLabel(tx, actor, invitation.project_id);
+          await recordActivity(tx, actor, invitation.project_id, "member_joined");
+        }
         return invitation.project_id;
       });
     },

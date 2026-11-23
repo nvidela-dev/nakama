@@ -54,7 +54,7 @@ Template updates never silently rewrite existing projects. Flow/version migratio
 
 ## Comment and activity records — 2026-10-22
 
-Comments belong to one project and one scope: project, stage, node, project tasks, or project artifacts. Stage/node targets require the selected project flow; the server validates stable template keys. Authors retain their membership-time display attribution when they leave. Revisions prevent silent overwrites. Deleted bodies are blanked permanently while the comment ID, original author/time, and deletion marker remain. Discussion does not count toward answered progress or invalidate answer reviews.
+Comments belong to one project and one scope: project, stage, node, project tasks, or project artifacts. Stage/node targets require the selected project flow; the server validates stable template keys. Authors retain their display name recorded with each comment when they leave. Revisions prevent silent overwrites. Deleted bodies are blanked permanently while the comment ID, original author/time, and deletion marker remain. Discussion does not count toward answered progress or invalidate answer reviews.
 
 Activity describes attributable recorded actions. Current comment bodies are not duplicated into activity. Existing answer revisions and stage reviews provide historical source events; new project, flow, invitation, membership, and comment events are stored in a project-owned activity table. Former-member labels do not re-grant access. Whole-project deletion cascades through both stores.
 

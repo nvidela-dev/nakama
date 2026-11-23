@@ -539,3 +539,7 @@ Assess fit precedes Ready to call for new businesses. The owner can save incompl
 Use current main and a fresh measurement as the baseline for each audit phase. The original findings describe migrations 001–015. The first rendering change uses Clerk’s built-in English copy, loads Uruguayan Spanish when selected, and renders project activity on the server using the viewer’s locale. The activity feed keeps its UTC dates and paginated links. The four phases and their verification status are tracked in [AHA-198](https://linear.app/ahab/issue/AHA-198/execute-the-nakama-whole-codebase-audit).
 
 The audit branch implements the four phases tracked under [AHA-198](https://linear.app/ahab/issue/AHA-198). Keep Clerk admission request-scoped and preserve database membership checks on every independent read and mutation. Page older answer revisions in groups of 25. Normalize section comments with migration 035 and keep legacy application writes compatible during a rolling release. The historical author fallback and outcome-node classification are recorded in the [domain reference](domain.md). Hosted migration and deployment are separate release actions.
+
+## Collaborator display names · November 23, 2026
+
+The project roster reflects the public Clerk name a member last used in Nakama. A profile rename keeps the names recorded on earlier comments, activity, answer revisions and reviews. Membership continues to use the Clerk user ID.
