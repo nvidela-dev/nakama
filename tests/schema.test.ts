@@ -367,3 +367,80 @@ test("redundant-index migration preserves task data, ordering and unique positio
     await sql.close();
   }
 });
+
+test("workspace upgrade normalizes legacy section comments and retains their scope for older writers", async () => {
+  const sql = new PGlite();
+  try {
+    await migrate(sql, "034_private_prospect_review.sql");
+    const db = database(sql);
+    const project = await projectService(db).create(actor, {
+      name: "Legacy comments",
+      description: "Synthetic migration fixture",
+    });
+    const { guidanceService } = await import("../src/features/guidance/server/guidance");
+    await guidanceService(db).select(actor, project, "creative");
+    const insert = `INSERT INTO project_comments (id,project_id,flow_id,stage_id,node_id,author_id,author_name,content)
+      VALUES($1,$2,'creative',$3,$4,'historical-author','Original name','Original comment')`;
+    const task = randomUUID(),
+      artifact = randomUUID(),
+      node = randomUUID();
+    for (const [id, stage, child] of [
+      [task, "tasks", null],
+      [artifact, "artifacts", null],
+      [node, "spark", "spark-name"],
+    ]) {
+      await sql.query(insert, [id, project, stage, child]);
+    }
+    await sql.exec(await readFile("migrations/035_workspace_read_integrity.sql", "utf8"));
+    const rolling = randomUUID();
+    await sql.query(insert, [rolling, project, "tasks", null]);
+    for (const id of [task, artifact, rolling, node]) {
+      const row = required(
+        (
+          await sql.query("SELECT flow_id,author_name,content FROM project_comments WHERE id=$1", [
+            id,
+          ])
+        ).rows[0],
+      );
+      assert.deepEqual(row, {
+        flow_id: id === node ? "creative" : null,
+        author_name: "Original name",
+        content: "Original comment",
+      });
+    }
+    await assert.rejects(sql.query(insert, [randomUUID(), project, "artifacts", "invalid-child"]));
+    assert.deepEqual(
+      (
+        await sql.query(
+          "SELECT is_nullable FROM information_schema.columns WHERE table_name='artifact_files' AND column_name='size'",
+        )
+      ).rows,
+      [{ is_nullable: "NO" }],
+    );
+    assert.equal(
+      (
+        await sql.query(
+          "SELECT indexname FROM pg_indexes WHERE indexname IN ('invitations_by_project','comments_by_project_active')",
+        )
+      ).rows.length,
+      2,
+    );
+    await sql.exec(await readFile("migrations/036_membership_profile_label.sql", "utf8"));
+    const captured = await sql.query<{ author_name: string }>(
+      "SELECT author_name FROM answer_revisions WHERE project_id=$1",
+      [project],
+    );
+    assert.ok(captured.rows.length > 0);
+    const label = required(
+      (await projectService(db).people(actor, project)).members[0],
+    ).display_name;
+    assert.ok(captured.rows.every((row) => row.author_name === label));
+    await projectService(db).deleteProject(actor, project, "Legacy comments");
+    assert.deepEqual(
+      (await sql.query("SELECT id FROM project_comments WHERE project_id=$1", [project])).rows,
+      [],
+    );
+  } finally {
+    await sql.close();
+  }
+});
