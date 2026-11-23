@@ -65,13 +65,13 @@ test("self-improvement capture, answers, tasks, artifacts and experiments", asyn
   } finally {
     await pool.end();
   }
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await page.getByRole("button", { name: "ES — Español", exact: true }).click();
   await expect(page.locator(".stage-label").first()).toHaveText("Patrón");
   await page.screenshot({
     path: test.info().outputPath("self-improvement-spanish.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "English", exact: true }).click();
+  await page.getByRole("button", { name: "EN — English", exact: true }).click();
   await expect(page.locator(".stage-label").first()).toHaveText("Pattern");
   await page.goto(`/projects/${fixtureId}?stage=pattern&node=self-scope`);
   await page

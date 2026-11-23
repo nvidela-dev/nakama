@@ -169,7 +169,7 @@ test("bell preserves unread state until explicit read or visible discussion, wit
     );
     await panel.screenshot({ path: test.info().outputPath("notification-phone.png") });
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Español", exact: true }).click();
+    await page.getByRole("button", { name: "ES — Español", exact: true }).click();
     await expect(page.getByRole("button", { name: /Comentarios sin leer/ })).toBeVisible();
   } finally {
     if (id && owner) await projectService(db).deleteProject(owner, id, name);

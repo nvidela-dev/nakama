@@ -283,7 +283,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
     "",
   );
   await expect(list.getByRole("button", { name: "Make a sample", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await page.getByRole("button", { name: "ES — Español", exact: true }).click();
   await expect(page.getByRole("button", { name: "Agregar tarea", exact: true })).toBeVisible();
   await expect(page.getByRole("option", { name: "Pendiente", exact: true }).first()).toHaveText(
     "Pendiente",

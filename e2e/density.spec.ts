@@ -181,7 +181,7 @@ test("density changes keep capture and answer drafts, selections and saving inta
   await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
     "Keep this draft across desktop layouts.",
   );
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await page.getByRole("button", { name: "ES — Español", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
   await expect(page.getByLabel("Vista de escritorio")).toHaveValue("compact");
 });

@@ -51,3 +51,16 @@ for (const width of [390, 1440]) {
     await expect(html).toHaveAttribute("data-theme", "day");
   });
 }
+
+test("compact language controls expose their visible codes and retain the language on reload", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const spanish = page.getByRole("button", { name: "ES — Español", exact: true });
+  await spanish.click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await page.reload();
+  await expect(spanish).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "EN — English", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+});
