@@ -24,7 +24,16 @@ export function Button({
       {...props}
       className={`pointer-coarse:min-h-11! pointer-coarse:min-w-11! ${props.className ?? ""}`}
       htmlType={type}
-      loading={pending}
+      loading={
+        pending && {
+          icon: (
+            <span
+              aria-hidden="true"
+              className="inline-block size-[1em] rounded-full border-2 border-current border-e-transparent motion-safe:animate-spin"
+            />
+          ),
+        }
+      }
       disabled={disabled || pending || (!!props.onClick && !hydrated)}
       aria-busy={pending || undefined}
       danger={variant === "danger"}

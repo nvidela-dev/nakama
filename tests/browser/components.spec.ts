@@ -18,6 +18,13 @@ test("dialog traps focus, closes with Escape and restores its trigger", async ({
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
 });
+test("the pending spinner keeps the button's accessible name", async ({ page }) => {
+  await story(page, "ui-button--pending");
+  const save = page.getByRole("button", { name: "Saving…", exact: true });
+  await expect(save).toBeDisabled();
+  await expect(save).toHaveAttribute("aria-busy", "true");
+});
+
 test("tab keyboard navigation preserves drafts in inactive panels", async ({ page }) => {
   await story(page, "ui-tabs--persistent-panels");
   await page.getByLabel("Draft").fill("Keep this draft");
