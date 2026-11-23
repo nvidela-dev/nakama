@@ -114,6 +114,11 @@ if (process.argv.includes("--pglite")) {
     max: 3,
     connectionTimeoutMillis: 10000,
   });
+  // pg-pool can finish draining before its clients have received their socket close events.
+  const closedConnections: Promise<void>[] = [];
+  pool.on("connect", (client) => {
+    closedConnections.push(new Promise<void>((resolve) => client.once("end", resolve)));
+  });
   try {
     await server.initialise();
     await server.start();
@@ -138,6 +143,7 @@ if (process.argv.includes("--pglite")) {
     await exercise(db, (sql) => pool.query(sql), true);
   } finally {
     await pool.end();
+    await Promise.all(closedConnections);
     await server.stop();
     await rm(directory, { recursive: true, force: true });
   }
