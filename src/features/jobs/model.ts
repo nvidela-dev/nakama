@@ -2,7 +2,12 @@ export const jobPageSize = 40;
 export const jobStages = {
   pursuing: "Pursuing",
   applied: "Applied",
+  screening: "Screening",
   interview: "Interviewing",
+  waiting: "Waiting",
+  accepted: "Accepted",
+  rejected: "Rejected",
+  ghosted: "Ghosted",
   offer: "Offer",
   closed: "Closed",
 } as const;
@@ -10,6 +15,8 @@ export const jobEvents = {
   application: "Application sent",
   contact: "Recruiter contact",
   reply: "Reply received",
+  outreach: "Outreach",
+  screening: "Screening",
   interview: "Interview round",
   feedback: "Interview feedback",
   offer: "Offer received",

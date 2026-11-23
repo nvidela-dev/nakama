@@ -5,9 +5,9 @@ import { createPrivateJobIssue, linearJobsConfigured } from "./server/linear";
 import { ProjectError } from "@/shared/contracts/errors";
 import { observeAction } from "@/server/observability/request-observability";
 import { telemetry } from "@/server/observability/observability";
-import type { JobCommand } from "./schemas";
+import { commands, type JobCommand } from "./schemas";
 import type { ActionState } from "@/shared/contracts/action-state";
-import type { JobStage, JobEvent } from "./model";
+import type { JobStage } from "./model";
 export async function saveJob(form: FormData): Promise<ActionState & { id?: string }> {
   return observeAction("jobs.change", async () => {
     const jobs = await ownerJobs();
@@ -51,21 +51,36 @@ export async function saveJob(form: FormData): Promise<ActionState & { id?: stri
               id,
               revision: Number(value("revision")),
               stage: (value("stage") as JobStage) || null,
+              previous_stage: (value("previous_stage") as JobStage) || null,
               next_action: value("next_action"),
               follow_up: value("follow_up") || null,
             };
             break;
-          case "event":
-            command = {
+          case "event": {
+            const contactAt = value("contact_at");
+            const parsed = commands.safeParse({
               type,
               id,
               token: value("token"),
-              kind: value("kind") as JobEvent,
-              occurred_on: value("occurred_on"),
+              kind: value("kind"),
+              occurred_on: contactAt ? contactAt.slice(0, 10) : value("occurred_on"),
               detail: value("detail"),
               practice: value("practice"),
-            };
+              round_type: value("round_type"),
+              round_outcome: value("round_outcome"),
+              rating: Number(value("rating")),
+              decision: value("decision") || undefined,
+              revision: Number(value("revision")),
+              contact_method: value("contact_method"),
+              direction: value("direction"),
+              response: value("response"),
+              contact_at: contactAt,
+              follow_up: value("contact_follow_up") || null,
+            });
+            if (!parsed.success) throw new ProjectError("Check the event details and dates.");
+            command = parsed.data;
             break;
+          }
           default:
             throw new ProjectError("Check the role details and dates.");
         }

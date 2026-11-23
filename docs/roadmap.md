@@ -524,3 +524,7 @@ Résumé match and Date found lead the jobs table. Either header sorts the whole
 ## Business sales stages — 2026-11-23
 
 Track calls, messages, replies, outcomes and follow-ups separately from deliberate stage changes. Use Ready to call, Attempted contact, In conversation, Proposal sent, Negotiating, Won and Lost. Keep the existing broad In progress state unclassified until reviewed rather than guessing what happened. Existing identifiers for Ready, Deal reached and Offer declined remain stable.
+
+## Job stages and outreach · November 23, 2026
+
+Screening holds the first recruiter interview. Interviewing holds subsequent rounds. Each review records type, date, outcome, a personal rating from 1 to 10, and notes for practice. Calls, emails and messages have a dated outreach history. After the final round the owner moves the role to Waiting. Fourteen days of silence marks it Ghosted. A later response can resume Waiting or record Accepted or Rejected while retaining the earlier deadline in stage history. Existing Offer and Closed records keep their original meaning.

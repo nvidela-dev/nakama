@@ -100,6 +100,9 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await page.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(page.getByText("Saved.", { exact: true }).first()).toBeVisible();
   await page.getByLabel("Event", { exact: true }).selectOption("interview");
+  await page.getByLabel("Interview type").fill("Technical");
+  await page.getByLabel("Round outcome").fill("Finished");
+  await page.getByLabel("How did it go? (1–10)").fill("8");
   await page.getByLabel("What happened?").fill("Completed technical interview");
   await page.getByLabel("What to practice or do differently").fill("Explain the execution plan");
   await page.getByRole("button", { name: "Record event" }).click();

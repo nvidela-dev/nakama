@@ -18,6 +18,14 @@ test("a private image follows a business from the backlog into fullscreen, its d
     await page.goto("/");
     await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
     await page.goto("/prospects");
+    for (const name of ["Add business", "Import catalogue", "Catalogue access"]) {
+      const action = page.getByRole("button", { name, exact: true });
+      await expect(action.locator("svg")).toBeVisible();
+      await action.click();
+      await expect(page.getByRole("dialog", { name })).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(action).toBeFocused();
+    }
     const created = await page.request.put("/prospects/" + id, {
       data: { name, details: "Synthetic photo fixture" },
     });

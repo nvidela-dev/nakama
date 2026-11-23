@@ -1,3 +1,4 @@
+import { recordEvent } from "./record-event";
 import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
 import { queryRows } from "@/server/database/query";
@@ -14,6 +15,7 @@ import {
   id,
   leadSchema,
   observation,
+  stagePeriod,
   nullable,
   type JobCommand,
   type JobFilters,
@@ -22,12 +24,19 @@ function pageFor(requested: number, total: number) {
   return Math.max(1, Math.min(requested, Math.ceil(total / jobPageSize) || 1));
 }
 const pagedLeads = z.object({ total: z.number(), page: z.number(), leads: z.array(leadSchema) });
+const effectiveStage =
+  "CASE WHEN t.stage='waiting' AND h.started_at + interval '336 hours' <= now() THEN 'ghosted' ELSE t.stage END";
+const openInterval =
+  "LEFT JOIN nakama_jobs.stage_history h ON h.owner_id=t.owner_id AND h.lead_id=t.lead_id AND h.ended_at IS NULL";
 const catalogue = `WITH leads AS (
  SELECT d.*, f.found_on FROM nakama_jobs.discoveries d LEFT JOIN nakama_jobs.found_dates f USING (id)
  UNION ALL SELECT id,company,title,url,first_observed,NULL,NULL,'unknown',relevance,NULL,NULL,NULL,first_observed FROM nakama_jobs.manual_leads WHERE owner_id=$1
 ), cards AS (
- SELECT l.id,l.company,l.title,l.url,l.found_on::text,l.first_observed::text,l.first_seen_raw,l.last_checked::text,l.availability,l.relevance,l.company_type,l.employment,l.startup,t.stage,coalesce(t.next_action,'') AS next_action,t.follow_up::text,coalesce(t.revision,0) AS revision,t.linear_url
+ SELECT l.id,l.company,l.title,l.url,l.found_on::text,l.first_observed::text,l.first_seen_raw,l.last_checked::text,l.availability,l.relevance,l.company_type,l.employment,l.startup,
+ ${effectiveStage} AS stage,
+ CASE WHEN t.stage='waiting' THEN to_char(h.started_at AT TIME ZONE 'America/Montevideo','YYYY-MM-DD HH24:MI') END AS waiting_since,coalesce(t.next_action,'') AS next_action,t.follow_up::text,coalesce(t.revision,0) AS revision,t.linear_url
  FROM leads l LEFT JOIN nakama_jobs.tracking t ON t.lead_id=l.id AND t.owner_id=$1
+ ${openInterval}
 )`;
 export function jobsStore(db: Database, person: Actor, ownerEmail: string | undefined) {
   if (!isAppAdmin(person, ownerEmail)) throw new ProjectError("Jobs are private.");
@@ -169,7 +178,7 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
     },
     async detail(key: string) {
       const lead = await get(db, key);
-      const [matches, observations, events] = await Promise.all([
+      const [matches, observations, events, stages] = await Promise.all([
         matchesFor([lead]),
         queryRows(
           db,
@@ -180,11 +189,26 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
         queryRows(
           db,
           event,
-          "SELECT kind,occurred_on::text,detail,practice FROM nakama_jobs.events WHERE owner_id=$1 AND lead_id=$2 ORDER BY occurred_on DESC,recorded_at DESC,id DESC",
+          `SELECT kind,occurred_on::text,detail,practice,round_type,round_outcome,rating,contact_method,direction,response,
+           to_char(contact_at AT TIME ZONE 'America/Montevideo','YYYY-MM-DD HH24:MI') AS contact_at, follow_up::text
+           FROM nakama_jobs.events WHERE owner_id=$1 AND lead_id=$2 ORDER BY occurred_on DESC,coalesce(contact_at,recorded_at) DESC,id DESC`,
+          [owner, key],
+        ),
+        queryRows(
+          db,
+          stagePeriod,
+          `WITH history AS (
+           SELECT * FROM nakama_jobs.stage_history WHERE owner_id=$1 AND lead_id=$2
+         ), changes AS (
+           SELECT stage,started_at,id FROM history
+           UNION ALL SELECT 'ghosted',started_at + interval '336 hours',id FROM history
+             WHERE stage='waiting' AND started_at + interval '336 hours' <= coalesce(ended_at,now())
+         ) SELECT stage,to_char(started_at AT TIME ZONE 'America/Montevideo','YYYY-MM-DD HH24:MI') AS started_at
+           FROM changes ORDER BY changes.started_at DESC, id DESC`,
           [owner, key],
         ),
       ]);
-      return { lead, match: matches.get(lead.id)!, observations, events };
+      return { lead, match: matches.get(lead.id)!, observations, events, stages };
     },
     async change(raw: JobCommand) {
       const result = commands.safeParse(raw);
@@ -210,18 +234,47 @@ export function jobsStore(db: Database, person: Actor, ownerEmail: string | unde
           return key;
         }
         await track(tx, c.id);
-        if (c.type === "event") {
+        // Serialize plan edits and incoming responses for this owner and role.
+        await tx.query(
+          "SELECT revision FROM nakama_jobs.tracking WHERE owner_id=$1 AND lead_id=$2 FOR UPDATE",
+          [owner, c.id],
+        );
+        const [current] = await queryRows(
+          tx,
+          leadSchema.pick({ stage: true, revision: true }),
+          `SELECT ${effectiveStage} AS stage,t.revision FROM nakama_jobs.tracking t ${openInterval}
+           WHERE t.owner_id=$1 AND t.lead_id=$2`,
+          [owner, c.id],
+        );
+        if (!current) throw new ProjectError("Role not found.");
+        if (c.type === "event") return recordEvent(tx, owner, current, c);
+        if (c.previous_stage !== undefined && c.previous_stage !== current.stage)
+          throw new ProjectError("This role changed in another tab. Reload before saving.");
+        if (c.stage !== current.stage) {
+          if (c.stage === "ghosted" || c.stage === "offer" || c.stage === "closed")
+            throw new ProjectError("Choose a current job stage.");
           await tx.query(
-            "INSERT INTO nakama_jobs.events(id,owner_id,lead_id,kind,occurred_on,detail,practice) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT DO NOTHING",
-            [c.token, owner, c.id, c.kind, c.occurred_on, c.detail, c.practice],
+            "UPDATE nakama_jobs.stage_history SET ended_at=now() WHERE owner_id=$1 AND lead_id=$2 AND ended_at IS NULL",
+            [owner, c.id],
           );
-          return c.id;
+          if (c.stage)
+            await tx.query(
+              "INSERT INTO nakama_jobs.stage_history(owner_id,lead_id,stage) VALUES($1,$2,$3)",
+              [owner, c.id, c.stage],
+            );
         }
         const changed = await queryRows(
           tx,
           z.object({ revision: z.number() }),
           "UPDATE nakama_jobs.tracking SET stage=$3,next_action=$4,follow_up=$5,revision=revision+1 WHERE owner_id=$1 AND lead_id=$2 AND revision=$6 RETURNING revision",
-          [owner, c.id, c.stage, c.next_action, c.follow_up, c.revision],
+          [
+            owner,
+            c.id,
+            c.stage === "ghosted" ? "waiting" : c.stage,
+            c.next_action,
+            c.follow_up,
+            c.revision,
+          ],
         );
         if (!changed.length)
           throw new ProjectError("This role changed in another tab. Reload before saving.");

@@ -284,6 +284,7 @@ async function JobsContent({
         <div className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {Object.entries(jobStages).map(([stage, label]) => {
             const cards = rows.filter((r) => r.stage === stage);
+            if (!cards.length && (stage === "offer" || stage === "closed")) return null;
             return (
               <section
                 key={stage}
@@ -304,6 +305,11 @@ async function JobsContent({
                         {r.title}
                       </Link>
                       <p className="text-sm text-muted">{r.company}</p>
+                      {r.waiting_since && (
+                        <p className="text-xs text-muted">
+                          {t("Waiting since")} · {r.waiting_since}
+                        </p>
+                      )}
                       {r.next_action && (
                         <p className="mt-2 text-sm wrap-anywhere">{r.next_action}</p>
                       )}

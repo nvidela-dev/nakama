@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getT } from "@/shared/i18n/server";
-import { Input, Select, Textarea } from "@/shared/ui/controls";
+import { Input, Select } from "@/shared/ui/controls";
 import { ResumeMeter } from "./resume-meter";
+import { EventFields } from "./event-fields";
 import { JobForm } from "./job-form";
 import { availabilityLabels, jobStages, jobEvents, jobDate, sourceLink } from "../model";
 import type { JobDetailData } from "../schemas";
@@ -42,6 +43,11 @@ export async function JobDetail({
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <section className={panel}>
           <h2 className="text-lg font-semibold">{t("Role plan")}</h2>
+          <p className="text-sm text-muted">
+            {t(
+              "Move to Waiting after the final round. After 14 days without a response, the role moves to Ghosted.",
+            )}
+          </p>
           <JobForm
             revision={lead.revision}
             canPursue={!lead.stage}
@@ -49,16 +55,21 @@ export async function JobDetail({
             id={lead.id}
             submit={lead.stage ? "Save plan" : "Save role plan"}
           >
+            <Input type="hidden" name="previous_stage" value={lead.stage ?? ""} />
             <Input type="hidden" name="revision" value={lead.revision} />
             <label className="grid gap-1">
               {t("Board stage")}
               <Select aria-label={t("Board stage")} name="stage" defaultValue={lead.stage ?? ""}>
                 <option value="">{t("Backlog only")}</option>
-                {Object.entries(jobStages).map(([v, label]) => (
-                  <option key={v} value={v}>
-                    {t(label)}
-                  </option>
-                ))}
+                {Object.entries(jobStages)
+                  .filter(
+                    ([key]) => key === lead.stage || !["ghosted", "offer", "closed"].includes(key),
+                  )
+                  .map(([v, label]) => (
+                    <option key={v} value={v}>
+                      {t(label)}
+                    </option>
+                  ))}
               </Select>
             </label>
             <label>
@@ -70,40 +81,27 @@ export async function JobDetail({
               <Input type="date" name="follow_up" defaultValue={lead.follow_up ?? ""} />
             </label>
           </JobForm>
+          {data.stages.length > 0 && (
+            <details>
+              <summary>{t("Stage history")}</summary>
+              <ol className="grid gap-1 py-2 text-sm">
+                {data.stages.map((change, i) => (
+                  <li key={i}>
+                    {t(jobStages[change.stage])} · {change.started_at}
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
         </section>
         <section className={panel}>
           <h2 className="text-lg font-semibold">{t("Log an event")}</h2>
           <JobForm operation="event" id={lead.id} submit="Record event">
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="grid gap-1">
-                {t("Event")}
-                <Select aria-label={t("Event")} name="kind" defaultValue="note">
-                  {Object.entries(jobEvents).map(([v, label]) => (
-                    <option key={v} value={v}>
-                      {t(label)}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-              <label>
-                {t("Date it happened")}
-                <Input
-                  type="date"
-                  required
-                  name="occurred_on"
-                  max={jobDate()}
-                  defaultValue={jobDate()}
-                />
-              </label>
-            </div>
-            <label>
-              {t("What happened?")}
-              <Textarea name="detail" rows={2} maxLength={8000} required />
-            </label>
-            <label>
-              {t("What to practice or do differently")}
-              <Textarea name="practice" rows={2} maxLength={4000} />
-            </label>
+            <Input type="hidden" name="revision" value={lead.revision} />
+            <EventFields
+              today={jobDate()}
+              awaitingDecision={lead.stage === "waiting" || lead.stage === "ghosted"}
+            />
           </JobForm>
         </section>
         <section className={panel}>
@@ -114,8 +112,27 @@ export async function JobDetail({
               <li key={i} className="border-l-2 border-line pl-3">
                 <p className="font-semibold">
                   {t(jobEvents[e.kind])}{" "}
-                  <time className="text-xs font-normal text-muted">{e.occurred_on}</time>
+                  <time className="text-xs font-normal text-muted">
+                    {e.contact_at ?? e.occurred_on}
+                  </time>
                 </p>
+                {e.round_type && (
+                  <p>
+                    {e.round_type} · {e.round_outcome} · {e.rating}/10
+                  </p>
+                )}
+                {e.contact_method && (
+                  <p>
+                    {t({ call: "Call", email: "Email", message: "Message" }[e.contact_method])} ·{" "}
+                    {t(e.direction === "inbound" ? "Inbound" : "Outbound")} ·{" "}
+                    {t(e.response === "reply" ? "Reply" : "No reply")}
+                  </p>
+                )}
+                {e.follow_up && (
+                  <p>
+                    {t("Follow-up date")} · {e.follow_up}
+                  </p>
+                )}
                 <p className="whitespace-pre-wrap wrap-anywhere">{e.detail}</p>
                 {e.practice && (
                   <p className="mt-1 whitespace-pre-wrap wrap-anywhere">

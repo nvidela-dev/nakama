@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { CatalogueAction } from "@/features/prospects/components/catalogue-action";
 import { CatalogueBrowser } from "@/features/prospects/components/catalogue-browser";
 import { catalogueHref, catalogueParams, type CatalogueQuery } from "@/features/prospects/filters";
 import { notFound } from "next/navigation";
@@ -67,11 +68,79 @@ export default async function ProspectsPage({
   const back = catalogueHref(filters, { page });
   return (
     <main id="main" className="mx-auto w-full grid max-w-[1480px] gap-5 px-4 py-6 md:px-8">
-      <nav className="flex gap-4 text-sm">{prospect && <Link href={back}>{title}</Link>}</nav>
+      {prospect && (
+        <nav className="flex gap-4 text-sm">
+          <Link href={back}>{title}</Link>
+        </nav>
+      )}
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight wrap-anywhere">
-          {prospect?.name ?? title}
-        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight wrap-anywhere">
+            {prospect?.name ?? title}
+          </h1>
+          {!prospect && owner && (
+            <div className="flex items-center gap-1">
+              <CatalogueAction label="Add business" icon="plus">
+                <div className="mt-3">
+                  <AddProspect />
+                </div>
+              </CatalogueAction>
+              <CatalogueAction label="Import catalogue" icon="upload">
+                <div className="mt-3">
+                  <ImportProspects />
+                  {data.receipts.length > 0 && (
+                    <ul className="mt-3 grid gap-2">
+                      {data.receipts.map((r) => (
+                        <li key={r.digest}>
+                          <time>{formatDate(r.completed_at, locale)}</time> ·{" "}
+                          {t(
+                            r.format === "database"
+                              ? "Source database"
+                              : r.format === "presentation"
+                                ? "Catalogue dossier"
+                                : "Catalogue index",
+                          )}{" "}
+                          ·{" "}
+                          {t("{count} businesses, {missing} missing image files", {
+                            count: r.businesses,
+                            missing: r.missing,
+                          })}{" "}
+                          ·{" "}
+                          <a className="underline" href={`${base}/imports/${r.digest}`}>
+                            {t("Download original")}
+                          </a>
+                          {Object.keys(r.tables).length > 0 && (
+                            <details>
+                              <summary className="cursor-pointer">
+                                {t("Source table counts")}
+                              </summary>
+                              <dl className="text-sm">
+                                {Object.entries(r.tables)
+                                  .sort(([a], [b]) => a.localeCompare(b))
+                                  .map(([table, count]) => (
+                                    <div key={table} className="flex gap-2">
+                                      <dt>{table.replaceAll("_", " ")}</dt>
+                                      <dd>{count}</dd>
+                                    </div>
+                                  ))}
+                              </dl>
+                            </details>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </CatalogueAction>
+              <CatalogueAction label="Catalogue access" icon="consultancy">
+                <div className="mt-3">
+                  <InviteCollaborator pending={data.invitations} />
+                  {others.length ? <CatalogueAccess members={others} /> : null}
+                </div>
+              </CatalogueAction>
+            </div>
+          )}
+        </div>
         {prospect && (
           <p className="mt-2 text-muted">
             {t(statusLabel[prospect.status])} · {prospect.assignee_name ?? t("Unassigned")} ·{" "}
@@ -304,73 +373,6 @@ export default async function ProspectsPage({
         </>
       ) : (
         <>
-          {owner && (
-            <Panel>
-              <div className="grid gap-3">
-                <details>
-                  <summary className="cursor-pointer font-medium">{t("Add business")}</summary>
-                  <div className="mt-3">
-                    <AddProspect />
-                  </div>
-                </details>
-                <details>
-                  <summary className="cursor-pointer font-medium">{t("Import catalogue")}</summary>
-                  <div className="mt-3">
-                    <ImportProspects />
-                    {data.receipts.length > 0 && (
-                      <ul className="mt-3 grid gap-2">
-                        {data.receipts.map((r) => (
-                          <li key={r.digest}>
-                            <time>{formatDate(r.completed_at, locale)}</time> ·{" "}
-                            {t(
-                              r.format === "database"
-                                ? "Source database"
-                                : r.format === "presentation"
-                                  ? "Catalogue dossier"
-                                  : "Catalogue index",
-                            )}{" "}
-                            ·{" "}
-                            {t("{count} businesses, {missing} missing image files", {
-                              count: r.businesses,
-                              missing: r.missing,
-                            })}{" "}
-                            ·{" "}
-                            <a className="underline" href={`${base}/imports/${r.digest}`}>
-                              {t("Download original")}
-                            </a>
-                            {Object.keys(r.tables).length > 0 && (
-                              <details>
-                                <summary className="cursor-pointer">
-                                  {t("Source table counts")}
-                                </summary>
-                                <dl className="text-sm">
-                                  {Object.entries(r.tables)
-                                    .sort(([a], [b]) => a.localeCompare(b))
-                                    .map(([table, count]) => (
-                                      <div key={table} className="flex gap-2">
-                                        <dt>{table.replaceAll("_", " ")}</dt>
-                                        <dd>{count}</dd>
-                                      </div>
-                                    ))}
-                                </dl>
-                              </details>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </details>
-                <details>
-                  <summary className="cursor-pointer font-medium">{t("Catalogue access")}</summary>
-                  <div className="mt-3">
-                    <InviteCollaborator pending={data.invitations} />
-                    {others.length ? <CatalogueAccess members={others} /> : null}
-                  </div>
-                </details>
-              </div>
-            </Panel>
-          )}
           {data.listing && (
             <CatalogueBrowser
               owner={owner}

@@ -42,6 +42,7 @@ import {
   Trash2,
   Truck,
   Users,
+  Upload,
   X,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
@@ -88,6 +89,7 @@ export const iconCatalog = {
   creative: Sparkles,
   software: SquareTerminal,
   import: Truck,
+  upload: Upload,
   consultancy: Users,
   delete: Trash2,
   close: X,

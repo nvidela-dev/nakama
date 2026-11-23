@@ -33,6 +33,7 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
     await pg.exec(await readFile("integrations/jobs/001_workspace.sql", "utf8"));
     await pg.exec(await readFile("integrations/jobs/002_found_dates.sql", "utf8"));
     await pg.exec(await readFile("integrations/jobs/003_resume_match.sql", "utf8"));
+    await pg.exec(await readFile("integrations/jobs/004_interview_workflow.sql", "utf8"));
     const email = "owner@example.invalid",
       owner = { userId: "owner", verifiedEmails: [email] };
     assert.throws(() => jobsStore(db, { userId: "friend", verifiedEmails: [] }, email), /private/);
@@ -179,6 +180,9 @@ test("jobs read existing evidence and isolate board, dated events, plans and Lin
       token: randomUUID(),
       kind: "interview" as const,
       occurred_on: jobDate(),
+      round_type: "Technical",
+      round_outcome: "Passed",
+      rating: 8,
       detail: "Technical round",
       practice: "Practice joins",
     };
@@ -341,4 +345,107 @@ test("résumé skills use word boundaries, aliases and distinct listed skills", 
     matched: ["PostgreSQL"],
     missing: ["PHP"],
   });
+});
+
+test("only job-level Waiting expires and a late final reply preserves the silent period and every round", async () => {
+  const pg = new PGlite();
+  const db: Database = { query: (q, v) => pg.query(q, v), transaction: (fn) => pg.transaction(fn) };
+  try {
+    for (const path of [
+      "tests/fixtures/job-evidence.sql",
+      ...["001_workspace", "002_found_dates", "003_resume_match", "004_interview_workflow"].map(
+        (m) => "integrations/jobs/" + m + ".sql",
+      ),
+    ])
+      await pg.exec(await readFile(path, "utf8"));
+    const email = "owner@example.invalid";
+    const store = jobsStore(db, { userId: "owner", verifiedEmails: [email] }, email);
+    const role = (await store.browse(base)).rows[0]!;
+    const plan = { type: "plan" as const, id: role.id, next_action: "", follow_up: null };
+    await store.change({ ...plan, revision: 0, stage: "screening" });
+    const round = {
+      type: "event" as const,
+      id: role.id,
+      occurred_on: jobDate(),
+      detail: "Review",
+      practice: "Practice joins",
+      rating: 8,
+      round_type: "HR",
+      round_outcome: "Completed",
+    };
+    await store.change({ ...round, kind: "screening", token: randomUUID() });
+    await store.change({ ...plan, revision: 1, stage: "interview" });
+    for (const round_type of ["Technical", "Team"])
+      await store.change({ ...round, kind: "interview", round_type, token: randomUUID() });
+    await pg.query(
+      "UPDATE nakama_jobs.stage_history SET started_at=now()-interval '30 days' WHERE stage='interview'",
+    );
+    assert.equal((await store.detail(role.id)).lead.stage, "interview");
+    await assert.rejects(
+      store.change({ ...plan, revision: 2, stage: "ghosted" }),
+      /current job stage/,
+    );
+    await store.change({ ...plan, revision: 2, stage: "waiting" });
+    await pg.query(
+      "UPDATE nakama_jobs.stage_history SET started_at=now()-interval '335 hours' WHERE stage='waiting'",
+    );
+    assert.equal((await store.detail(role.id)).lead.stage, "waiting");
+    await pg.query(
+      "UPDATE nakama_jobs.stage_history SET started_at=now()-interval '336 hours' WHERE stage='waiting'",
+    );
+    assert.equal((await store.browse({ ...base, board: true })).rows[0]?.stage, "ghosted");
+    await assert.rejects(
+      store.change({ ...plan, revision: 3, previous_stage: "waiting", stage: "waiting" }),
+      /another tab/,
+    );
+    const contactTime = (
+      await pg.query<{ time: string }>(
+        "SELECT to_char(now() AT TIME ZONE 'America/Montevideo','YYYY-MM-DD\"T\"HH24:MI') AS time",
+      )
+    ).rows[0]!.time;
+    const outreach = {
+      type: "event" as const,
+      kind: "outreach" as const,
+      id: role.id,
+      occurred_on: contactTime.slice(0, 10),
+      contact_at: contactTime,
+      contact_method: "email" as const,
+      detail: "Follow-up",
+      practice: "",
+      follow_up: null,
+    };
+    await store.change({
+      ...outreach,
+      token: randomUUID(),
+      direction: "outbound",
+      response: "no_reply",
+    });
+    assert.equal((await store.detail(role.id)).lead.stage, "ghosted");
+    const reply = {
+      ...outreach,
+      token: randomUUID(),
+      direction: "inbound" as const,
+      response: "reply" as const,
+      decision: "accepted" as const,
+      revision: 3,
+    };
+    // Make the silence end unambiguously before the reply, including its minute precision.
+    await pg.query(
+      "UPDATE nakama_jobs.stage_history SET started_at=now()-interval '337 hours' WHERE stage='waiting'",
+    );
+    await store.change(reply);
+    await store.change(reply);
+    const data = await store.detail(role.id);
+    assert.equal(data.lead.stage, "accepted");
+    assert.equal(data.events.filter((e) => e.rating === 8).length, 3);
+    assert.equal(data.events.filter((e) => e.kind === "outreach").length, 2);
+    assert.deepEqual(
+      data.stages
+        .filter((e) => e.stage === "ghosted" || e.stage === "accepted")
+        .map((e) => e.stage),
+      ["accepted", "ghosted"],
+    );
+  } finally {
+    await pg.close();
+  }
 });
