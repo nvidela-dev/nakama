@@ -15,7 +15,7 @@ export function AddAllowedEmail() {
   const [state, action, pending] = useActionState(manageWhitelist, {});
   return (
     <FormStack action={action}>
-      <Input type="hidden" name="operation" value="add" className={"w-full [resize:vertical]"} />
+      <input type="hidden" name="operation" value="add" className={"w-full [resize:vertical]"} />
       <label htmlFor="allowed-email" className={"text-[13px] text-ink"}>
         {t("Email address")}
       </label>
@@ -28,7 +28,7 @@ export function AddAllowedEmail() {
         autoComplete="off"
         className={"w-full [resize:vertical]"}
       />
-      <Button type="submit" disabled={pending} className={"mt-2 lg:compact:mt-1"}>
+      <Button type="submit" pending={pending} className={"mt-2 lg:compact:mt-1"}>
         {pending ? t("Saving…") : t("Allow email")}
       </Button>
       <Feedback state={state} />
@@ -40,8 +40,8 @@ export function RemoveAllowedEmail({ id }: { id: string }) {
   const [state, action, pending] = useActionState(manageWhitelist, {});
   return (
     <form action={action}>
-      <Input type="hidden" name="operation" value="remove" />
-      <Input type="hidden" name="id" value={id} />
+      <input type="hidden" name="operation" value="remove" />
+      <input type="hidden" name="id" value={id} />
       <Button type="submit" className={"button secondary"} disabled={pending} variant="secondary">
         {pending ? t("Saving…") : t("Remove access")}
       </Button>

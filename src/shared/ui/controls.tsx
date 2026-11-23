@@ -19,7 +19,7 @@ export function Input({
   return (
     <AntInput
       {...(props as Omit<ComponentProps<typeof AntInput>, "ref">)}
-      className={`pointer-coarse:min-h-11! ${props.className ?? ""}`}
+      className={`[:where(&)]:w-full pointer-coarse:min-h-11! ${props.className ?? ""}`}
       {...(size ? { htmlSize: size } : {})}
       prefix={prefix}
       type={type}
@@ -36,6 +36,7 @@ export function Textarea({ disabled, ref, ...props }: ComponentProps<"textarea">
   return (
     <AntInput.TextArea
       {...(props as Omit<ComponentProps<typeof AntInput.TextArea>, "ref">)}
+      className={`[:where(&)]:w-full [:where(&)]:resize-y ${props.className ?? ""}`}
       disabled={disabled || (!hydrated && !!props.onChange && props.value !== undefined)}
       ref={(instance) => {
         const element = instance?.resizableTextArea?.textArea ?? null;

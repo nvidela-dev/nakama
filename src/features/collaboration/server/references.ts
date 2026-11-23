@@ -2,15 +2,10 @@ import { z } from "zod";
 import type { Database } from "@/server/database/database";
 import type { Actor } from "@/shared/contracts/actor";
 import { queryRows } from "@/server/database/query";
-import { membership, ProjectError } from "@/features/projects/server/projects";
+import { membership } from "@/server/database/membership";
+import { ProjectError } from "@/shared/contracts/errors";
 import type { ReferenceResults } from "../references";
-const row = z.object({
-  kind: z.enum(["project", "artifact"]),
-  id: z.uuid(),
-  project_id: z.uuid(),
-  name: z.string(),
-  project_name: z.string(),
-});
+import { referenceSchema } from "./schemas";
 /** Bounded metadata only; every query checks both source and destination membership. */
 export function referenceService(db: Database) {
   return {
@@ -25,7 +20,7 @@ export function referenceService(db: Database) {
         await membership(tx, person, sourceProjectId);
         const rows = await queryRows(
           tx,
-          row,
+          referenceSchema,
           `SELECT kind,id,project_id,name,project_name FROM (
      SELECT 'project'::text AS kind,p.id,p.id AS project_id,p.name,p.name AS project_name
      FROM projects p JOIN project_memberships m ON m.project_id=p.id AND m.user_id=$1

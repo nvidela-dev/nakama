@@ -12,9 +12,9 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { accessPolicy, adminEmail } from "@/features/access/server/whitelist";
 import { isAppAdmin } from "@/features/access/server/app-access";
-import type { Actor } from "@/features/projects/server/projects";
-export const authConfigured = () =>
-  Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
+import type { Actor } from "@/shared/contracts/actor";
+import { authConfigured } from "@/server/auth-config";
+export { authConfigured } from "@/server/auth-config";
 export const currentProfile = cache(async () =>
   clerkResponse(
     "user.current",
@@ -64,7 +64,8 @@ export async function adminActor(): Promise<Actor> {
 }
 
 export const currentIsAdmin = cache(async () => {
-  const user = authConfigured() ? await currentProfile() : null;
+  if (!authConfigured() || !(await auth()).userId) return false;
+  const user = await currentProfile();
   return (
     !!user &&
     isAppAdmin(

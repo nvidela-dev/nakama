@@ -30,7 +30,7 @@ import {
   readLogFiles,
   summarizeLogs,
 } from "../src/server/observability/log-reader";
-import { ProjectError } from "../src/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import { DatabaseDecodeError } from "../src/server/database/query";
 import type { Database } from "../src/server/database/database";
 const fixture = () => {
@@ -289,11 +289,41 @@ test("every exported server action keeps an operation scope and every action cat
     );
     return nested.flat();
   }
+  const runner = readFileSync("src/features/access/server/action-runner.ts", "utf8");
+  const wrappers = ts
+    .createSourceFile("action-runner.ts", runner, ts.ScriptTarget.Latest, true)
+    .statements.filter(ts.isFunctionDeclaration);
+  assert.equal(wrappers.length, 2);
+  for (const wrapper of wrappers) {
+    const statement = wrapper.body?.statements.find(ts.isReturnStatement);
+    assert.ok(
+      statement?.expression &&
+        ts.isCallExpression(statement.expression) &&
+        statement.expression.expression.getText() === "observeAction",
+    );
+  }
   let actions = 0;
   for (const file of await files("src/features")) {
     const source = readFileSync(file, "utf8");
     if (!source.startsWith('"use server";')) continue;
     const tree = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+    const traced = new Set(["observeAction"]);
+    for (const statement of tree.statements) {
+      if (
+        ts.isImportDeclaration(statement) &&
+        ts.isStringLiteral(statement.moduleSpecifier) &&
+        statement.moduleSpecifier.text === "@/features/access/server/action-runner"
+      ) {
+        const named = statement.importClause?.namedBindings;
+        if (named && ts.isNamedImports(named))
+          for (const element of named.elements) {
+            if (
+              ["runAction", "runAdminAction"].includes((element.propertyName ?? element.name).text)
+            )
+              traced.add(element.name.text);
+          }
+      }
+    }
     function walk(node: import("typescript").Node) {
       if (
         ts.isFunctionDeclaration(node) &&
@@ -307,7 +337,7 @@ test("every exported server action keeps an operation scope and every action cat
             ts.isReturnStatement(statement) &&
             statement.expression &&
             ts.isCallExpression(statement.expression) &&
-            statement.expression.expression.getText(tree) === "observeAction",
+            traced.has(statement.expression.expression.getText(tree)),
           `${file}: missing action tracing`,
         );
       }
@@ -495,10 +525,14 @@ test("logs CLI exits non-zero only when unexpected failures exist and can look u
     const logger = new Observability({ write: (r) => records.push(r), level: "debug" });
     const run = (...args: string[]) => {
       try {
-        const out = execFileSync("npx", ["tsx", "scripts/logs.ts", ...args, "--file", file], {
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "pipe"],
-        });
+        const out = execFileSync(
+          process.execPath,
+          ["--import", "tsx", "scripts/logs.ts", ...args, "--file", file],
+          {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "pipe"],
+          },
+        );
         return { code: 0, out };
       } catch (error) {
         const e = error as { status: number; stdout: string };

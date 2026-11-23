@@ -1,3 +1,4 @@
+import { projectPageHref } from "@/shared/navigation/project-href";
 import Link from "next/link";
 import type { Activity, Page, FeedKind } from "@/features/collaboration/model";
 import type { Flow } from "@/features/guidance/model/flows";
@@ -75,7 +76,7 @@ export function ActivityFeed({
               query.set("view", "tasks");
             if (event.kind.startsWith("artifact") || event.stage_id === "artifacts")
               query.set("view", "artifacts");
-            const href = `/projects/${projectId}${query.size ? `?${query}` : ""}`;
+            const href = projectPageHref(`/projects/${projectId}`, query);
             return (
               <li
                 key={event.sort_key}

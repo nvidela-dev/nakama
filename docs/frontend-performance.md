@@ -100,3 +100,7 @@ Before/after comparison from `293325e`, on one local PGlite instance using synth
 | Catalogue: unmatched keyword | 58.91 ms | 45.06 ms |
 
 The Jobs date and keyword paths made one fewer database call, including the empty case. These are local data-path measurements, not authenticated browser latency, hosted cold starts, or a production speed claim. The built server's unconfigured-auth smoke checks redirected both routes and their filtered URLs; the existing authenticated browser suite needs isolated Clerk and database test services to check the actual end-to-end transitions.
+
+## Whole-codebase audit measurements · November 23, 2026
+
+Using the same local webpack build and gzip settings, the project page entry chunk measured 13,840 bytes on main at `f1842e0` and 12,973 bytes after the audit changes. This measures the route entry chunk only. Omitting explicit English Clerk localization removed 98,353 raw bytes in an isolated React Server Components serialization comparison. Actual navigation latency and total bytes transferred require a browser measurement. The original audit’s 66 KB estimate used an earlier version of the application.

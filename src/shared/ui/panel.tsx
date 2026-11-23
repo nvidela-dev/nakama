@@ -23,7 +23,7 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
   return (
     <Empty
       image={Empty.PRESENTED_IMAGE_SIMPLE}
-      description={<span className="text-muted">{title}</span>}
+      description={<h3 className="text-muted">{title}</h3>}
     >
       {children}
     </Empty>

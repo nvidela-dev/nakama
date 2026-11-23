@@ -9,12 +9,8 @@ import type { ActionState } from "@/shared/contracts/action-state";
 import { Feedback } from "@/shared/ui/feedback";
 import { useT } from "@/shared/i18n/provider";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import {
-  acceptInvitation,
-  invitePerson,
-  managePerson,
-} from "@/features/collaboration/invitation-actions";
+import { useActionState, useState } from "react";
+import { invitePerson } from "@/features/collaboration/invitation-actions";
 const initial: ActionState = {};
 export function InviteForm({ projectId, candidates }: { projectId: string; candidates: string[] }) {
   const t = useT();
@@ -122,63 +118,6 @@ export function InviteForm({ projectId, candidates }: { projectId: string; candi
             {copied ? t("Copied") : t("Copy invitation")}
           </Button>
         </div>
-      )}
-    </FormStack>
-  );
-}
-export function AccessButton({
-  projectId,
-  id,
-  operation,
-}: {
-  projectId: string;
-  id: string;
-  operation: "revoke" | "remove";
-}) {
-  const t = useT();
-  const [state, action, pending] = useActionState(managePerson.bind(null, projectId), initial);
-  return (
-    <form action={action}>
-      <Input type="hidden" name="id" value={id} />
-      <Input type="hidden" name="operation" value={operation} />
-      <Button
-        type="submit"
-        variant="ghost"
-        className={"min-h-11 hover:[background:var(--theme-overlay,#ffffff0a)]"}
-        disabled={pending}
-      >
-        {pending
-          ? t("Updating…")
-          : operation === "revoke"
-            ? t("Revoke invitation")
-            : t("Remove member")}
-      </Button>
-      <Feedback state={state} />
-    </form>
-  );
-}
-export function AcceptForm() {
-  const t = useT();
-  const [state, action, pending] = useActionState(acceptInvitation, initial);
-  const [token, setToken] = useState("");
-  const initialized = useRef(false);
-  useEffect(() => {
-    // React development Strict Mode repeats effects. Read once before clearing the fragment.
-    if (initialized.current) return;
-    initialized.current = true;
-    // The fragment is never sent in an HTTP URL or referrer. Remove it from browser history after reading.
-    setToken(window.location.hash.slice(1));
-    window.history.replaceState(null, "", window.location.pathname);
-  }, []);
-  return (
-    <FormStack action={action} className="[&_label]:text-[13px] [&_label]:text-ink">
-      <Input type="hidden" name="token" value={token} className={"w-full [resize:vertical]"} />
-      <Feedback state={state} />
-      <Button type="submit" disabled={pending || !token} className={"mt-2 lg:compact:mt-1"}>
-        {pending ? t("Joining…") : t("Join this project")}
-      </Button>
-      {!token && (
-        <p className={"mb-[1em] mt-0"}>{t("Open the original invitation link to join.")}</p>
       )}
     </FormStack>
   );

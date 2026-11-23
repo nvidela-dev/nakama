@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { actor } from "@/features/access/server/auth";
-import { projectService, ProjectError } from "@/features/projects/server/projects";
+import { projectService } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import { collaborationService, commentTarget } from "@/features/collaboration/server/collaboration";
 import { Discussion } from "@/features/collaboration/components/discussion";
 import { database } from "@/server/database/db";

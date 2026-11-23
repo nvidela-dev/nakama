@@ -189,8 +189,8 @@ export function CatalogueBrowser({ listing, query, page, owner, availableStages 
         action="/prospects"
         className="my-3 rounded-xl border border-line bg-panel p-3 grid gap-3"
       >
-        {board && <Input type="hidden" name="view" value="board" />}
-        {focus && <Input type="hidden" name="focus" value="1" />}
+        {board && <input type="hidden" name="view" value="board" />}
+        {focus && <input type="hidden" name="focus" value="1" />}
         <div className="flex gap-2">
           <Input
             type="search"

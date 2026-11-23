@@ -6,7 +6,7 @@ import {
   type AllowedEmail,
   type WhitelistStore,
 } from "../src/features/access/server/app-access";
-import type { Actor } from "../src/features/projects/server/projects";
+import type { Actor } from "@/shared/contracts/actor";
 const admin: Actor = { userId: "admin", verifiedEmails: [" Admin@example.com "] };
 const friend: Actor = { userId: "friend", verifiedEmails: ["friend@example.com"] };
 const outsider: Actor = { userId: "other", verifiedEmails: ["other@example.com"] };

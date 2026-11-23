@@ -60,7 +60,7 @@ export interface DatabaseRows {
     data: Uint8Array;
     created_at: Date;
     created_by: string;
-    size: number | null;
+    size: number;
   };
   artifact_tasks: {
     project_id: string;

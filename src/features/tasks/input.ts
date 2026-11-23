@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { taskStatusSchema } from "@/shared/contracts/domain-schemas";
-const title = z.string().trim().min(1).max(300);
+import { taskTitleSchema as title } from "@/shared/contracts/domain-schemas";
 const id = z.uuid();
 export const operation = z.discriminatedUnion("kind", [
   z.object({

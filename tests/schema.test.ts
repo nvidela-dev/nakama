@@ -8,7 +8,7 @@ import { projectService } from "../src/features/projects/server/projects";
 import { artifactService } from "../src/features/artifacts/server/artifacts";
 import type { Database } from "../src/server/database/database";
 import { queryRows, required } from "../src/server/database/query";
-import { projectTaskSchema } from "../src/server/database/row-schemas";
+import { projectTaskSchema } from "@/features/tasks/server/schemas";
 const actor = { userId: "schema-owner", verifiedEmails: [] };
 const files = async () => (await readdir("migrations")).filter((f) => f.endsWith(".sql")).sort();
 const migrate = async (sql: PGlite, through = "999") => {

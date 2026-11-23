@@ -1,10 +1,7 @@
-import {
-  readProject,
-  readPeople,
-  readProjectChoices,
-  withProjectRead,
-  type Actor,
-} from "@/features/projects/server/projects";
+import { inviteAudience } from "@/features/collaboration/server/invite-audience";
+import { readProject, readPeople, readProjectChoices } from "@/features/projects/server/projects";
+import { withProjectRead } from "@/server/database/membership";
+import { type Actor } from "@/shared/contracts/actor";
 import { readLinks } from "@/features/projects/server/project-links";
 import { readGuidance, readHistory } from "@/features/guidance/server/guidance";
 import {
@@ -26,6 +23,7 @@ export function loadWorkspace(
     view?: string;
     focusedWork: boolean;
     activityView: boolean;
+    historyBefore?: string;
     commentsBefore?: string;
     activityBefore?: string;
     comment?: string;
@@ -35,7 +33,9 @@ export function loadWorkspace(
     const project = await readProject(scope);
     const guidance = await readGuidance(scope);
     const people = await readPeople(scope);
-    const history = options.node ? await readHistory(scope, options.node) : [];
+    const history = options.node
+      ? await readHistory(scope, options.node, options.historyBefore, guidance?.flow)
+      : [];
     const comments = options.focusedWork
       ? { items: [], next: undefined }
       : await readComments(scope, options.target, options.commentsBefore, options.comment);
@@ -51,6 +51,10 @@ export function loadWorkspace(
       project,
       guidance,
       people,
+      invitees:
+        !options.focusedWork && scope.role === "owner"
+          ? inviteAudience(scope, people.members)
+          : null,
       history,
       comments,
       activity,

@@ -1,4 +1,5 @@
 "use client";
+import { Eyebrow } from "@/shared/ui/workspace-layout";
 import { FormStack } from "@/shared/ui/workspace-layout";
 
 import { Icon } from "@/shared/ui/icon";
@@ -59,15 +60,11 @@ export function ProjectSetup({
         <>
           <div className={"project-setup-heading flex items-start justify-between gap-4"}>
             <div>
-              <p
-                className={
-                  "eyebrow tracking-[2px] text-lime font-bold block [&_>_span:first-child:not(:last-child)]:inline-block [&_>_span:first-child:not(:last-child)]:w-1.5 [&_>_span:first-child:not(:last-child)]:h-1.5 [&_>_span:first-child:not(:last-child)]:bg-lime [&_>_span:first-child:not(:last-child)]:rounded-full [&_>_span:first-child:not(:last-child)]:mr-2 lg:compact:tracking-[1.3px] mt-0 mx-0 mb-1.75 text-[11px]"
-                }
-              >
+              <Eyebrow className="mb-3">
                 {t(
                   step === "type" ? "Step 1 of 2 · Project type" : "Step 2 of 2 · Project details",
                 )}
-              </p>
+              </Eyebrow>
             </div>
             <Button
               type="button"
@@ -108,7 +105,7 @@ export function ProjectSetup({
             </>
           ) : (
             <FormStack action={action}>
-              <Input
+              <input
                 type="hidden"
                 name="flow"
                 value={flow === "later" ? "" : flow}
@@ -179,7 +176,7 @@ export function ProjectSetup({
                 >
                   <Icon name="arrowLeft" /> {t("Back")}
                 </Button>
-                <Button type="submit" disabled={pending} className={"lg:compact:mt-1 mt-0"}>
+                <Button type="submit" pending={pending} className={"lg:compact:mt-1 mt-0"}>
                   {pending ? t("Creating project…") : t("Create project")}
                 </Button>
               </div>

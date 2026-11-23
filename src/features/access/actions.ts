@@ -2,13 +2,11 @@
 import { observeAction } from "@/server/observability/request-observability";
 import { telemetry } from "@/server/observability/observability";
 
-import { createHash } from "node:crypto";
+import { checkRequestLimit } from "./server/request-limit";
 import { headers } from "next/headers";
 import { requestPolicy } from "@/features/access/server/request-store";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 export type AccessEntryState = { error?: string; requested?: boolean; permittedEmail?: string };
-// A bounded per-runtime guard supplements Clerk's own API limits. No raw IP is retained.
-const buckets = new Map<string, { until: number; count: number }>();
 export async function requestAccess(
   _state: AccessEntryState,
   data: FormData,
@@ -20,16 +18,7 @@ export async function requestAccess(
         requestHeaders.get("x-vercel-forwarded-for") ||
         requestHeaders.get("x-forwarded-for") ||
         "local";
-      const key = createHash("sha256")
-        .update(source.split(",")[0] ?? "local")
-        .digest("hex");
-      const now = Date.now();
-      for (const [id, bucket] of buckets) if (bucket.until < now) buckets.delete(id);
-      const bucket = buckets.get(key) ?? { until: now + 15 * 60_000, count: 0 };
-      if (bucket.count >= 10 || (!buckets.has(key) && buckets.size >= 10000))
-        throw new ProjectError("Too many access requests. Please try again later.");
-      bucket.count++;
-      buckets.set(key, bucket);
+      checkRequestLimit(source);
       const result = await requestPolicy().submit(String(data.get("email") ?? ""));
       return result.allowed ? { permittedEmail: result.email } : { requested: true };
     } catch (error) {

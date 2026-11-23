@@ -2,7 +2,7 @@ import {
   callClerk,
   clerkResponse,
   allowlistPage,
-  incompleteClerkPage,
+  clerkPages,
 } from "@/server/observability/provider-diagnostics";
 import { observeAction } from "@/server/observability/request-observability";
 import "server-only";
@@ -19,20 +19,18 @@ const lists = pendingReads<void, AllowedEmail[]>(async () => {
   return observeAction("identity.whitelist.list", async () => {
     const client = await callClerk("client", () => clerkClient());
     const entries: AllowedEmail[] = [];
-    let offset = 0;
-    while (true) {
-      const page = clerkResponse(
+    for await (const page of clerkPages("allowlist.list", async (offset) =>
+      clerkResponse(
         "allowlist.list",
         allowlistPage,
         await callClerk("allowlist.list", () =>
           client.allowlistIdentifiers.getAllowlistIdentifierList({ limit: 100, offset }),
         ),
-      );
-      entries.push(...page.data.map(({ id, identifier }) => ({ id, identifier })));
-      offset += page.data.length;
-      if (offset >= page.totalCount) break;
-      if (!page.data.length) incompleteClerkPage("allowlist.list");
+      ),
+    )) {
+      entries.push(...page.map(({ id, identifier }) => ({ id, identifier })));
     }
+    return entries;
     return entries;
   });
 });

@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import type { Database } from "../src/server/database/database";
-import { projectService, type Actor } from "../src/features/projects/server/projects";
+import { projectService } from "../src/features/projects/server/projects";
+import { type Actor } from "@/shared/contracts/actor";
 import { guidanceService, ConflictError } from "../src/features/guidance/server/guidance";
 import { flows } from "../src/features/guidance/model/flows";
 const sql = new PGlite();
@@ -533,4 +534,44 @@ test("self-improvement uses shared project tools without equating completed work
   await assert.rejects(lab.list(outsider, id));
   const { projectProgress } = await import("../src/features/projects/server/project-progress");
   assert.equal((await projectProgress(db, alice)).get(id)?.length, 5);
+});
+
+test("capture roles, state choices and revisit links resolve inside every template", () => {
+  for (const flow of Object.values(flows)) {
+    const nodes = flow.stages.flatMap((stage) => stage.nodes);
+    for (const field of ["name", "description"])
+      assert.equal(nodes.filter((n) => n.captureField === field).length, 1, flow.id);
+    for (const node of nodes)
+      for (const choice of Object.keys(node.projectStateByChoice ?? {}))
+        assert.ok(node.choices?.includes(choice), node.id);
+    for (const stage of flow.stages)
+      if (stage.revisit)
+        assert.ok(
+          flow.stages.find(
+            (s) =>
+              s.id === stage.revisit?.stage &&
+              (!stage.revisit.node || s.nodes.some((n) => n.id === stage.revisit?.node)),
+          ),
+          stage.id,
+        );
+  }
+});
+test("revision history uses a bounded descending page and rechecks membership", async () => {
+  const id = await project();
+  for (let i = 0; i < 30; i++)
+    await guidance.save(alice, id, "audience", answer("Version " + (i + 1), i));
+  const newest = await guidance.history(alice, id, "audience");
+  assert.equal(newest.length, 26);
+  const older = await guidance.history(
+    alice,
+    id,
+    "audience",
+    String(required(newest[24]).revision),
+  );
+  assert.deepEqual(
+    [...newest.slice(0, 25), ...older].map((r) => r.revision),
+    Array.from({ length: 30 }, (_, i) => 30 - i),
+  );
+  await assert.rejects(guidance.history(outsider, id, "audience", "6"));
+  await assert.rejects(guidance.history(alice, id, "audience", "-1"));
 });

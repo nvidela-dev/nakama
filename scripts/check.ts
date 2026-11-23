@@ -104,14 +104,12 @@ async function run(
 }
 let code = 0;
 if (command === "typecheck" || command === "build") {
-  code = await run(
-    "node_modules/tsx/dist/cli.mjs",
-    ["scripts/database-types.ts", "--check"],
-    "build.schema",
-    { family: "build", code: "SCHEMA_CHECK_FAILED", tool: "schema" },
-  );
-  if (!code)
-    code = await run("node_modules/tsx/dist/cli.mjs", ["scripts/typecheck.ts"], "build.typecheck");
+  code = await run("--import", ["tsx", "scripts/database-types.ts", "--check"], "build.schema", {
+    family: "build",
+    code: "SCHEMA_CHECK_FAILED",
+    tool: "schema",
+  });
+  if (!code) code = await run("--import", ["tsx", "scripts/typecheck.ts"], "build.typecheck");
 }
 if (!code && command !== "typecheck")
   code = await run(

@@ -1,12 +1,20 @@
+import { membershipSchema } from "@/server/database/row-schemas";
+import { flowCountSchema } from "./schemas";
+import {
+  projectNameSchema,
+  projectDescriptionSchema,
+  uuidSchema as uuid,
+} from "@/shared/contracts/domain-schemas";
+import {
+  membership,
+  requireActor,
+  withProjectRead,
+  type ProjectRead,
+} from "@/server/database/membership";
 import { isLinearLink } from "@/shared/contracts/linear-link";
 import { listPage, listPageSize, readListCursor } from "@/server/database/list-page";
-import {
-  invitationAcceptanceSchema,
-  projectSchema,
-  membershipSchema,
-  memberSchema,
-  invitationSchema,
-} from "@/server/database/row-schemas";
+import { invitationAcceptanceSchema, invitationSchema } from "@/features/projects/server/schemas";
+import { projectSchema, memberSchema } from "@/server/database/row-schemas";
 import { flowIdSchema } from "@/shared/contracts/domain-schemas";
 import { queryRows, required } from "@/server/database/query";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -15,56 +23,14 @@ import { z } from "zod";
 import type { Database, Queryable } from "@/server/database/database";
 
 import { ProjectError } from "@/shared/contracts/errors";
-export { ProjectError } from "@/shared/contracts/errors";
 import type { Actor } from "@/shared/contracts/actor";
-export type { Actor } from "@/shared/contracts/actor";
 export type { Project, Member, Invitation } from "@/features/projects/model";
 const projectInput = z.object({
-  name: z.string().trim().min(1).max(100),
-  description: z.string().trim().min(1).max(2000),
+  name: projectNameSchema,
+  description: projectDescriptionSchema,
 });
-const uuid = z.uuid();
+
 const digest = (token: string) => createHash("sha256").update(token).digest("hex");
-function requireActor(actor: Actor) {
-  if (!actor.userId) throw new ProjectError("Please sign in to continue.");
-}
-export async function membership(
-  tx: Queryable,
-  actor: Actor,
-  projectId: string,
-  ownerOnly = false,
-) {
-  requireActor(actor);
-  if (!uuid.safeParse(projectId).success) throw new ProjectError("Project not found.");
-  const rows = await queryRows(
-    tx,
-    membershipSchema,
-    "SELECT role FROM project_memberships WHERE project_id = $1 AND user_id = $2 FOR SHARE",
-    [projectId, actor.userId],
-  );
-  if (!rows[0] || (ownerOnly && rows[0].role !== "owner"))
-    throw new ProjectError("Project not found or access is no longer available.");
-  return rows[0];
-}
-const verifiedProject = Symbol("verified project membership");
-export type ProjectRead = {
-  readonly [verifiedProject]: true;
-  readonly tx: Queryable;
-  readonly actor: Actor;
-  readonly projectId: string;
-  readonly role: Awaited<ReturnType<typeof membership>>["role"];
-};
-export function withProjectRead<T>(
-  db: Database,
-  actor: Actor,
-  projectId: string,
-  read: (scope: ProjectRead) => Promise<T>,
-) {
-  return db.transaction(async (tx) => {
-    const { role } = await membership(tx, actor, projectId);
-    return read({ [verifiedProject]: true, tx, actor, projectId, role });
-  });
-}
 export async function readProject({ tx, projectId, role }: ProjectRead) {
   const rows = await queryRows(
     tx,
@@ -210,7 +176,7 @@ export function projectService(db: Database) {
       requireActor(actor);
       return queryRows(
         db,
-        z.object({ flow_id: flowIdSchema.nullable(), total: z.number().int() }),
+        flowCountSchema,
         "SELECT f.flow_id,count(*)::int AS total FROM project_memberships m JOIN projects p ON p.id=m.project_id LEFT JOIN project_flows f ON f.project_id=m.project_id WHERE m.user_id=$1 AND p.archived=$2 GROUP BY f.flow_id",
         [actor.userId, archived],
       );
@@ -221,7 +187,12 @@ export function projectService(db: Database) {
     async people(actor: Actor, projectId: string) {
       return withProjectRead(db, actor, projectId, readPeople);
     },
-    async invite(actor: Actor, projectId: string, input: unknown) {
+    async invite(
+      actor: Actor,
+      projectId: string,
+      input: unknown,
+      recipientIds: readonly string[] = [],
+    ) {
       const parsed = z.email().trim().toLowerCase().max(254).safeParse(input);
       if (!parsed.success) throw new ProjectError("Enter a valid email address.");
       const email = parsed.data;
@@ -229,6 +200,18 @@ export function projectService(db: Database) {
         await membership(tx, actor, projectId, true);
         // Serialize invitation replacement for this project, including simultaneous submissions.
         await tx.query("SELECT id FROM projects WHERE id = $1 FOR NO KEY UPDATE", [projectId]);
+        if (
+          recipientIds.length &&
+          (
+            await queryRows(
+              tx,
+              membershipSchema,
+              "SELECT role FROM project_memberships WHERE project_id=$1 AND user_id=ANY($2::text[]) LIMIT 1",
+              [projectId, recipientIds],
+            )
+          ).length
+        )
+          throw new ProjectError("Choose an approved person who is not already a project member.");
         await tx.query(
           "UPDATE project_invitations SET revoked_at = now() WHERE project_id = $1 AND email = $2 AND accepted_at IS NULL AND revoked_at IS NULL",
           [projectId, email],
@@ -261,6 +244,12 @@ export function projectService(db: Database) {
       if (!/^[A-Za-z0-9_-]{43}$/.test(token))
         throw new ProjectError("This invitation is unavailable.");
       return db.transaction(async (tx) => {
+        // Acceptance and issue/replacement take the project lock before an invitation row.
+        await tx.query(
+          `SELECT p.id FROM projects p JOIN project_invitations i ON i.project_id=p.id
+          WHERE i.token_hash=$1 AND i.email=ANY($2::text[]) FOR NO KEY UPDATE OF p`,
+          [digest(token), actor.verifiedEmails.map((email) => email.toLowerCase())],
+        );
         const rows = await queryRows(
           tx,
           invitationAcceptanceSchema,

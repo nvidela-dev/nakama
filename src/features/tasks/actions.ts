@@ -1,11 +1,10 @@
 "use server";
-import { observeAction } from "@/server/observability/request-observability";
+import { runAction } from "@/features/access/server/action-runner";
 import { telemetry } from "@/server/observability/observability";
 
 import { revalidatePath } from "next/cache";
-import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import { taskService, TaskConflictError, type TaskOperation } from "@/features/tasks/server/tasks";
 import type { TaskSnapshot } from "@/features/tasks/model";
 type TaskFailure =
@@ -27,8 +26,7 @@ export async function changeTask(
   revision: number,
   operation: TaskOperation,
 ): Promise<TaskResult> {
-  return observeAction("task.change", async () => {
-    const person = await actor();
+  return runAction("task.change", async (person) => {
     let snapshot;
     try {
       snapshot = await taskService(database()).change(person, projectId, revision, operation);

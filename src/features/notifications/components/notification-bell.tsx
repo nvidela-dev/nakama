@@ -1,109 +1,41 @@
 "use client";
+import { useDismissibleLayer } from "@/shared/lib/use-dismissible-layer";
+import { NotificationPanel } from "./notification-panel";
+import { useUnreadNotifications } from "./use-unread-notifications";
 import { Icon } from "@/shared/ui/icon";
-import { Panel } from "@/shared/ui/panel";
 
 import { Button } from "@/shared/ui/button";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
-import { unreadComments, readComments } from "@/features/notifications/actions";
-import { LoadingState } from "@/shared/ui/loading-state";
 import { useT } from "@/shared/i18n/provider";
 
-type Inbox = Awaited<ReturnType<typeof unreadComments>>;
-
 export function NotificationBell() {
-  const path = usePathname();
-  return <NotificationMenu key={path} />;
+  const { userId } = useAuth();
+  return userId ? <NotificationMenu key={userId} /> : null;
 }
 function NotificationMenu() {
   const t = useT();
-  const [inbox, setInbox] = useState<Inbox>(),
-    [open, setOpen] = useState(false);
-  const [error, setError] = useState(false),
-    [busy, setBusy] = useState(false);
+  const path = usePathname();
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const open = openPath !== null && openPath === path;
+  const setOpen = (value: boolean) => setOpenPath(value ? path : null);
+  if (openPath !== null && openPath !== path) setOpenPath(null);
   const root = useRef<HTMLDivElement>(null),
     button = useRef<HTMLButtonElement>(null);
-  const refresh = useCallback(async () => {
-    try {
-      setInbox(await unreadComments());
-      setError(false);
-    } catch {
-      setError(true);
-    }
-  }, []);
-  useEffect(() => {
-    let cancelled = false;
-    void unreadComments()
-      .then((value) => {
-        if (!cancelled) {
-          setInbox(value);
-          setError(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      });
-    const update = () => {
-      if (document.visibilityState === "visible") void refresh();
-    };
-    const timer = setInterval(update, 60000);
-    window.addEventListener("focus", update);
-    window.addEventListener("nakama-comments-read", update);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-      window.removeEventListener("focus", update);
-      window.removeEventListener("nakama-comments-read", update);
-    };
-  }, [refresh]);
-  useEffect(() => {
-    if (!open) return;
-    const outside = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const escape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        button.current?.focus();
-      }
-    };
-    document.addEventListener("pointerdown", outside);
-    document.addEventListener("keydown", escape);
-    return () => {
-      document.removeEventListener("pointerdown", outside);
-      document.removeEventListener("keydown", escape);
-    };
-  }, [open]);
-  async function mark(id: string) {
-    setBusy(true);
-    try {
-      await readComments([id]);
-      await refresh();
-    } catch {
-      setError(true);
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function older() {
-    if (!inbox?.next) return;
-    setBusy(true);
-    try {
-      const page = await unreadComments(inbox.next);
-      setInbox({ ...page, items: [...inbox.items, ...page.items] });
-      setError(false);
-    } catch {
-      setError(true);
-    } finally {
-      setBusy(false);
-    }
-  }
+  const { inbox, error, busy, refresh, mark, older } = useUnreadNotifications();
+  useDismissibleLayer(
+    open,
+    root,
+    () => setOpenPath(null),
+    () => button.current?.focus(),
+  );
+
   return (
     <div className={"notification-bell relative"} ref={root}>
       <Button
-        type="submit"
+        type="button"
         ref={button}
         variant="ghost"
         className={
@@ -130,64 +62,15 @@ function NotificationMenu() {
         {error && <span aria-hidden="true">!</span>}
       </Button>
       {open && (
-        <Panel
-          id="comment-notifications"
-          className={
-            "notification-panel absolute z-[50] right-0 top-[calc(100%_+_8px)] w-[min(390px,_calc(100vw_-_32px))] max-h-[min(650px,_75dvh)] overflow-y-auto [box-shadow:0_12px_36px_#0008] max-[700px]:fixed max-[700px]:top-25 max-[700px]:right-4"
-          }
-          aria-label={t("Unread comments")}
-        >
-          <h2
-            className={
-              "mb-[0.83em] mt-0 font-sans tracking-[-0.045em] font-medium lg:compact:text-[19px] lg:compact:mx-0 lg:compact:mb-3 text-[16px]"
-            }
-          >
-            {t("Unread comments")}
-            {inbox ? ` (${inbox.count})` : ""}
-          </h2>
-          {error && (
-            <p role="alert" className={"mb-[1em] mt-0"}>
-              {t("Could not load notifications.")}{" "}
-              <Button type="submit" onClick={() => void refresh()}>
-                {t("Retry")}
-              </Button>
-            </p>
-          )}
-          {!inbox && !error && <LoadingState label={t("Loading…")} variant="compact" lines={3} />}
-          {inbox?.count === 0 && <p className={"mb-[1em] mt-0"}>{t("No unread comments.")}</p>}
-          <ol className={"notification-list list-none p-0 m-0"}>
-            {inbox?.items.map((c) => {
-              const query = new URLSearchParams();
-              if (c.stage_id === "artifacts") {
-                query.set("view", c.stage_id);
-              } else {
-                if (c.stage_id && c.stage_id !== "tasks") query.set("stage", c.stage_id);
-                if (c.node_id) query.set("node", c.node_id);
-              }
-              query.set("comment", c.id);
-              return (
-                <li key={c.id} className={"py-3.5 border-t border-t-line"}>
-                  <Link
-                    href={`/projects/${c.project_id}${c.stage_id === "tasks" ? "/discussion" : ""}?${query}#comment-${c.id}`}
-                    onClick={() => setOpen(false)}
-                  >
-                    <strong className={"block"}>{c.project_name}</strong>
-                    <span className={"block text-muted text-[12px] mt-1"}>{c.author_name}</span>
-                    <p className={"mb-[1em] mt-0 text-[13px] my-2"}>{c.content}</p>
-                  </Link>
-                  <Button type="submit" disabled={busy} onClick={() => void mark(c.id)}>
-                    {t("Mark as read")}
-                  </Button>
-                </li>
-              );
-            })}
-          </ol>
-          {inbox?.next && (
-            <Button type="submit" disabled={busy} onClick={() => void older()}>
-              {t("Older unread comments")}
-            </Button>
-          )}
-        </Panel>
+        <NotificationPanel
+          inbox={inbox}
+          error={error}
+          busy={busy}
+          refresh={refresh}
+          older={older}
+          mark={mark}
+          close={() => setOpen(false)}
+        />
       )}
     </div>
   );

@@ -1,12 +1,13 @@
 "use server";
-import { observeAction } from "@/server/observability/request-observability";
+import { artifactUrl } from "./model";
+import { artifactUploadByteLimit } from "@/features/artifacts/model";
+import { runAction } from "@/features/access/server/action-runner";
 import { telemetry } from "@/server/observability/observability";
 
 import { revalidatePath } from "next/cache";
-import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { artifactService, ArtifactConflictError } from "@/features/artifacts/server/artifacts";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import type { ArtifactDetail } from "@/features/artifacts/model";
 type ArtifactFailure = {
   error: string;
@@ -47,20 +48,20 @@ function failure(error: unknown): ArtifactFailure {
         : "Could not save the artifact. Your draft is still here.",
   };
 }
-function refresh(projectId: string) {
+function refresh(projectId: string, artifactId: string) {
   revalidatePath("/projects");
   revalidatePath("/artifacts");
-  revalidatePath(`/projects/${projectId}`, "layout");
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(artifactUrl(projectId, artifactId));
 }
 export async function createArtifact(
   projectId: string,
   input: unknown,
 ): Promise<ArtifactCreated | ArtifactFailure> {
-  return observeAction("artifact.create", async () => {
-    const person = await actor();
+  return runAction("artifact.create", async (person) => {
     try {
       const id = await artifactService(database()).create(person, projectId, input);
-      refresh(projectId);
+      refresh(projectId, id);
       return { id };
     } catch (error) {
       telemetry.reportError(error);
@@ -75,9 +76,8 @@ export async function changeArtifact(
   operation: "shirt" | "metadata" | "tasks" | "remove-file" | "delete",
   input: unknown,
 ): Promise<ArtifactResult> {
-  return observeAction("artifact.change", async () => {
-    const person = await actor(),
-      service = artifactService(database());
+  return runAction("artifact.change", async (person) => {
+    const service = artifactService(database());
     try {
       let artifact: ArtifactDetail;
       if (operation === "shirt")
@@ -90,10 +90,10 @@ export async function changeArtifact(
         artifact = await service.removeFile(person, projectId, id, revision, String(input));
       else if (operation === "delete") {
         await service.remove(person, projectId, id, revision, String(input));
-        refresh(projectId);
+        refresh(projectId, id);
         return { deleted: true };
       } else throw new ProjectError("Unknown action.");
-      refresh(projectId);
+      refresh(projectId, id);
       return { artifact };
     } catch (error) {
       telemetry.reportError(error);
@@ -107,17 +107,16 @@ export async function uploadArtifactFile(
   revision: number,
   data: FormData,
 ): Promise<ArtifactSaved | ArtifactFailure> {
-  return observeAction("artifact.upload", async () => {
-    const person = await actor();
+  return runAction("artifact.upload", async (person) => {
     try {
       const file = data.get("file");
-      if (!(file instanceof File) || !file.size || file.size > 2 * 1024 * 1024)
+      if (!(file instanceof File) || !file.size || file.size > artifactUploadByteLimit)
         throw new ProjectError("Choose a file up to 2 MB.");
       const artifact = await artifactService(database()).upload(person, projectId, id, revision, {
         name: file.name,
         data: new Uint8Array(await file.arrayBuffer()),
       });
-      refresh(projectId);
+      refresh(projectId, id);
       return { artifact };
     } catch (error) {
       telemetry.reportError(error);
@@ -130,9 +129,9 @@ export async function readArtifact(
   projectId: string,
   id: string,
 ): Promise<ArtifactSaved | ArtifactFailure> {
-  return observeAction("artifact.read", async () => {
+  return runAction("artifact.read", async (person) => {
     try {
-      return { artifact: await artifactService(database()).get(await actor(), projectId, id) };
+      return { artifact: await artifactService(database()).get(person, projectId, id) };
     } catch (error) {
       telemetry.reportError(error);
       return failure(error);
@@ -141,7 +140,7 @@ export async function readArtifact(
 }
 
 export async function browseArtifacts(filters: unknown, after?: string) {
-  return observeAction("artifact.read", async () =>
-    artifactService(database()).page(await actor(), filters, after),
+  return runAction("artifact.read", async (person) =>
+    artifactService(database()).page(person, filters, after),
   );
 }

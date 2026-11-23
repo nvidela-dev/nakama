@@ -1,6 +1,9 @@
 "use client";
+import { EmptyState, StatusMessage } from "@/shared/ui/panel";
+import { FilterBar } from "@/shared/ui/form-patterns";
+import { TaskActionDialog } from "./task-action-dialog";
+import { TaskTreeRow } from "./task-tree-row";
 import type { ArtifactChoice } from "@/features/artifacts/model";
-import { FormStack } from "@/shared/ui/workspace-layout";
 
 import { Switch } from "@/shared/ui/switch";
 import { BoardCard } from "./board-card";
@@ -10,27 +13,23 @@ import type { FlowId } from "@/shared/contracts/database.generated";
 import { Icon } from "@/shared/ui/icon";
 import { Panel } from "@/shared/ui/panel";
 
-import { Input, Select } from "@/shared/ui/controls";
+import { Select } from "@/shared/ui/controls";
 
-import { Dialog } from "@/shared/ui/dialog";
 import { Button, ToolbarAction } from "@/shared/ui/button";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { changeTask, type TaskResult } from "@/features/tasks/actions";
 import type { TaskOperation } from "@/features/tasks/input";
 import {
-  descendants,
   taskTree,
+  filterTaskTree,
   taskStatusLabels,
   type TaskNode,
   type TaskSnapshot,
   type TaskStatus,
 } from "@/features/tasks/model";
 import { useT } from "@/shared/i18n/provider";
-type Editor = { title: string; revision: number } & (
-  | { kind: "add"; parentId?: string; task?: never }
-  | { kind: "edit" | "delete" | "done"; task: TaskNode; parentId?: never }
-);
+import type { Editor } from "../model";
 export function TaskList({
   projectId,
   initial,
@@ -52,12 +51,13 @@ export function TaskList({
   const [attachmentTask, setAttachmentTask] = useState<string | null>(null);
   const [view, setView] = useState<"board" | "list">("board");
   const [filter, setFilter] = useState("all");
-  const opener = useRef<HTMLElement | null>(null);
   if (initial.revision > list.revision) setList(initial);
   const tree = useMemo(() => taskTree(list.tasks), [list.tasks]);
-  const completed = list.tasks.filter((task) => task.status === "done").length;
+  const completed = useMemo(
+    () => list.tasks.filter((task) => task.status === "done").length,
+    [list.tasks],
+  );
   function open(value: Editor) {
-    opener.current = document.activeElement as HTMLElement;
     setError("");
     setConflict(false);
     setEditor(value);
@@ -66,7 +66,6 @@ export function TaskList({
     setEditor(null);
     setError("");
     setConflict(false);
-    requestAnimationFrame(() => opener.current?.isConnected && opener.current.focus());
   }
   function apply(result: TaskResult, closeAfter: boolean) {
     if (result.snapshot) setList(result.snapshot);
@@ -102,33 +101,10 @@ export function TaskList({
     else run({ kind: "status", id: node.id, status });
   }
   const filtering = filter !== "all";
-  const matches = (node: TaskNode) => filter === "all" || node.status === filter;
-  const containsMatch = (node: TaskNode): boolean =>
-    matches(node) || node.children.some(containsMatch);
-  const visible: TaskNode[] = [];
-  const walk = (nodes: TaskNode[]) => {
-    for (const node of nodes) {
-      if (view === "board") {
-        if (matches(node)) visible.push(node);
-        walk(node.children);
-        continue;
-      }
-      if (filtering && !containsMatch(node)) continue;
-      visible.push(node);
-      if (filtering || !node.collapsed) walk(node.children);
-    }
-  };
-  walk(tree);
+  const visible = useMemo(() => filterTaskTree(tree, view, filter), [tree, view, filter]);
   const errorBox = error && (
     <div className="task-feedback">
-      <p
-        className={
-          "message error text-[13px]! rounded-[8px] p-3 text-ink! m-0 bg-[var(--theme-danger,#4e3030)] [color:var(--theme-danger-ink,#ffe4dd)]!"
-        }
-        role="alert"
-      >
-        {t(error)}
-      </p>
+      <StatusMessage tone="error">{t(error)}</StatusMessage>
       {conflict && editor?.task && (
         <p className={"mb-[1em] mt-0"}>
           {t("Latest task title:")}{" "}
@@ -178,111 +154,16 @@ export function TaskList({
   );
   function renderTask(node: TaskNode) {
     return (
-      <li
+      <TaskTreeRow
         key={node.id}
-        data-task-id={node.id}
-        className={[
-          `task-row task-${node.status}`,
-          node.status === "done" && "[&_.task-title]:text-muted [&_.task-title]:line-through",
-          node.status === "in_progress" && "[&_.task-title]:text-lime",
-          "flex flex-wrap items-center justify-between gap-2 py-2 border-b border-line min-w-0",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        style={{ marginLeft: Math.min(node.depth, 4) * 12 }}
-      >
-        <div
-          className={
-            "task-main flex items-center [flex:1_1_210px] min-w-0 gap-2 max-[700px]:[flex-basis:100%]"
-          }
-        >
-          {node.children.length > 0 ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className={
-                "task-expand min-h-8 text-left [flex:0_0_26px] pointer-coarse:min-h-11 pointer-coarse:min-w-11"
-              }
-              disabled={pending}
-              aria-label={t(node.collapsed ? "Expand subtasks" : "Collapse subtasks")}
-              aria-expanded={node.children.length ? filtering || !node.collapsed : undefined}
-              onClick={() => run({ kind: "collapse", ids: [node.id], collapsed: !node.collapsed })}
-            >
-              <Icon name={filtering || !node.collapsed ? "chevronDown" : "chevronRight"} />
-            </Button>
-          ) : (
-            <span
-              className={
-                "task-leaf [flex:0_0_26px] text-center text-muted pointer-coarse:[flex-basis:44px]"
-              }
-              aria-hidden="true"
-            >
-              ·
-            </span>
-          )}
-          <span className={"task-number text-lime text-[11px] wrap-anywhere max-w-[5em] shrink-0"}>
-            {node.number}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            className={
-              "task-title min-h-8 text-left block wrap-anywhere min-w-0 hover:[transform:none]"
-            }
-            disabled={pending}
-            onClick={() =>
-              open({ kind: "edit", task: node, title: node.title, revision: list.revision })
-            }
-          >
-            {node.title}
-          </Button>
-        </div>
-        <div className={"task-row-controls flex flex-wrap items-center gap-1.5 min-w-0"}>
-          <Select
-            aria-label={`${t("Task status")} ${node.number}`}
-            disabled={pending}
-            value={node.status}
-            onChange={(e) => mark(node, e.target.value as TaskStatus)}
-            className={"w-32.5 min-h-9 pointer-coarse:min-h-11"}
-          >
-            {Object.entries(taskStatusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {t(label)}
-              </option>
-            ))}
-          </Select>
-          <Button
-            type="button"
-            className={
-              "button secondary task-icon w-8 h-8 min-h-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
-            }
-            title={t("Add subtask")}
-            aria-label={`${t("Add subtask")} ${node.number}`}
-            disabled={pending}
-            onClick={() =>
-              open({ kind: "add", parentId: node.id, title: "", revision: list.revision })
-            }
-            variant="secondary"
-          >
-            <Icon name="plus" />
-          </Button>
-          <Button
-            type="button"
-            className={
-              "button secondary task-icon w-8 h-8 min-h-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
-            }
-            title={t("Delete task")}
-            aria-label={`${t("Delete task")} ${node.number}`}
-            disabled={pending}
-            onClick={() =>
-              open({ kind: "delete", task: node, title: node.title, revision: list.revision })
-            }
-            variant="secondary"
-          >
-            <Icon name="delete" />
-          </Button>
-        </div>
-      </li>
+        node={node}
+        pending={pending}
+        filtering={filtering}
+        run={run}
+        open={open}
+        revision={list.revision}
+        mark={mark}
+      />
     );
   }
   const controls = (
@@ -384,7 +265,7 @@ export function TaskList({
         />
       ) : (
         <>
-          <div className="task-toolbar flex flex-wrap items-center gap-2 mb-3">
+          <FilterBar className="task-toolbar mb-3">
             {controls}
             <div className="flex-1" />
             <Button
@@ -406,10 +287,10 @@ export function TaskList({
               {t("Collapse all")}
             </Button>
             {addTaskButton}
-          </div>
+          </FilterBar>
           {feedback}
           {!visible.length ? (
-            <p>{t("No matching tasks.")}</p>
+            <EmptyState title={t("No matching tasks.")} />
           ) : (
             <ol className="task-tree list-none p-0 m-0">{visible.map(renderTask)}</ol>
           )}
@@ -434,154 +315,15 @@ export function TaskList({
         />
       )}
       {editor && (
-        <Dialog
-          open
-          onClose={close}
-          dismissible={!pending}
-          className={
-            "task-dialog [&_select]:w-full w-[min(580px,_calc(100vw_-_32px))] max-h-[calc(100dvh_-_48px)] overflow-y-auto p-6 border border-line rounded-[12px] bg-bg text-ink backdrop:[background:#000a] [&_.task-feedback]:mt-3"
-          }
-          labelledBy="task-editor-heading"
-        >
-          <FormStack
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (editor.kind === "add")
-                run(
-                  { kind: "add", title: editor.title, parentId: editor.parentId ?? null },
-                  editor.revision,
-                  true,
-                );
-              else if (editor.kind === "edit")
-                run(
-                  { kind: "edit", id: editor.task.id, title: editor.title },
-                  editor.revision,
-                  true,
-                );
-              else if (editor.kind === "delete")
-                run({ kind: "delete", id: editor.task.id, confirmed: true }, editor.revision, true);
-            }}
-          >
-            <h2
-              id="task-editor-heading"
-              className={
-                "font-sans tracking-[-0.045em] text-[28px] font-medium lg:compact:text-[19px] lg:compact:mt-0 lg:compact:mx-0 lg:compact:mb-3 m-0"
-              }
-            >
-              {t(
-                editor.kind === "add"
-                  ? editor.parentId
-                    ? "Add subtask"
-                    : "Add task"
-                  : editor.kind === "edit"
-                    ? "Edit task"
-                    : editor.kind === "delete"
-                      ? "Delete task"
-                      : "Complete task",
-              )}
-            </h2>
-            {editor.kind === "add" || editor.kind === "edit" ? (
-              <label className={"grid gap-1.5 text-[13px] text-ink"}>
-                {t("Task title")}
-                <Input
-                  autoFocus
-                  required
-                  maxLength={300}
-                  disabled={pending}
-                  value={editor.title}
-                  onChange={(event) => setEditor({ ...editor, title: event.target.value })}
-                  className={"min-w-0 min-h-9 w-full [resize:vertical]"}
-                />
-              </label>
-            ) : (
-              <>
-                <p className={"preserve-lines mb-[1em] mt-0 whitespace-pre-wrap wrap-anywhere"}>
-                  {editor.task.number} · {editor.title}
-                </p>
-                <p className={"mb-[1em] mt-0"}>
-                  {t(
-                    editor.kind === "delete"
-                      ? "Delete this task and all its subtasks? This cannot be undone."
-                      : "Complete only this task, or include all its subtasks?",
-                  )}
-                </p>
-                <small className={"text-[11px] text-muted"}>
-                  {descendants(editor.task).length} {t("subtasks")}
-                </small>
-              </>
-            )}
-            {errorBox}
-            <div className={"task-dialog-actions flex flex-wrap gap-2 mt-4"}>
-              {editor.kind === "done" ? (
-                <>
-                  <Button
-                    type="button"
-                    disabled={pending || conflict}
-                    onClick={() =>
-                      run(
-                        {
-                          kind: "status",
-                          id: editor.task.id,
-                          status: "done",
-                          scope: "task",
-                          confirmed: true,
-                        },
-                        editor.revision,
-                        true,
-                      )
-                    }
-                    className={"mt-2 lg:compact:mt-1"}
-                  >
-                    {t("Only this task")}
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={pending || conflict}
-                    onClick={() =>
-                      run(
-                        {
-                          kind: "status",
-                          id: editor.task.id,
-                          status: "done",
-                          scope: "subtree",
-                          confirmed: true,
-                        },
-                        editor.revision,
-                        true,
-                      )
-                    }
-                    className={"mt-2 lg:compact:mt-1"}
-                  >
-                    {t("Task and subtasks")}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  type="submit"
-                  disabled={pending || conflict}
-                  className={"mt-2 lg:compact:mt-1"}
-                >
-                  {t(
-                    pending
-                      ? "Saving…"
-                      : editor.kind === "delete"
-                        ? "Confirm deletion"
-                        : "Save task",
-                  )}
-                </Button>
-              )}
-              <Button
-                type="button"
-                className={"button secondary mt-2 lg:compact:mt-1"}
-                disabled={pending}
-                onClick={close}
-                variant="secondary"
-              >
-                {t("Cancel")}
-              </Button>
-            </div>
-          </FormStack>
-        </Dialog>
+        <TaskActionDialog
+          close={close}
+          pending={pending}
+          editor={editor}
+          run={run}
+
+          errorBox={errorBox}
+          conflict={conflict}
+        />
       )}
     </Panel>
   );

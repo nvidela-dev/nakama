@@ -1,13 +1,13 @@
 "use server";
-import { observeAction } from "@/server/observability/request-observability";
+import { runAction } from "@/features/access/server/action-runner";
 import { telemetry } from "@/server/observability/observability";
 
 import { revalidatePath } from "next/cache";
-import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { ConflictError, guidanceService } from "@/features/guidance/server/guidance";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 import type { NodeStatus } from "@/features/guidance/model/flows";
+import { field } from "@/server/actions/form";
 export type GuidanceActionState = {
   error?: string;
   success?: string;
@@ -19,7 +19,6 @@ export type GuidanceActionState = {
     revision: number;
   };
 };
-const field = (data: FormData, name: string) => String(data.get(name) ?? "");
 function failure(error: unknown): GuidanceActionState {
   if (error instanceof ConflictError)
     return {
@@ -43,8 +42,7 @@ export async function chooseFlow(
   _state: GuidanceActionState,
   data: FormData,
 ): Promise<GuidanceActionState> {
-  return observeAction("flow.choose", async () => {
-    const person = await actor();
+  return runAction("flow.choose", async (person) => {
     try {
       await guidanceService(database()).select(person, projectId, field(data, "flow"));
     } catch (error) {
@@ -61,8 +59,7 @@ export async function saveAnswer(
   _state: GuidanceActionState,
   data: FormData,
 ): Promise<GuidanceActionState> {
-  return observeAction("answer.save", async () => {
-    const person = await actor();
+  return runAction("answer.save", async (person) => {
     try {
       const savedRevision = await guidanceService(database()).save(person, projectId, nodeId, {
         content: field(data, "content"),
@@ -85,8 +82,7 @@ export async function reviewStage(
   _state: GuidanceActionState,
   data: FormData,
 ): Promise<GuidanceActionState> {
-  return observeAction("stage.review", async () => {
-    const person = await actor();
+  return runAction("stage.review", async (person) => {
     try {
       await guidanceService(database()).reviewStage(
         person,

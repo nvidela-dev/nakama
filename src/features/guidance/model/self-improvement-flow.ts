@@ -14,6 +14,7 @@ export const selfImprovementFlow: Flow & { readonly id: "self-improvement" } = {
       nodes: [
         {
           id: "self-name",
+          captureField: "name",
           label: "Name",
           question: "What would you call this personal improvement project?",
           example: "Start focused work with less friction.",
@@ -22,6 +23,7 @@ export const selfImprovementFlow: Flow & { readonly id: "self-improvement" } = {
         },
         {
           id: "self-description",
+          captureField: "description",
           label: "Brief description",
           question: "What pattern do you want to work on, in your own words?",
           example: "I check messages before starting the task I chose.",

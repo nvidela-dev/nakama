@@ -3,7 +3,6 @@ import { Panel } from "@/shared/ui/panel";
 import { requestPolicy } from "@/features/access/server/request-store";
 import { AccessRequestList } from "@/features/access/components/access-request-list";
 import { adminActor } from "@/features/access/server/auth";
-import { accessPolicy } from "@/features/access/server/whitelist";
 import { getT } from "@/shared/i18n/server";
 import { WhitelistList } from "@/features/access/components/whitelist-list";
 import { AddAllowedEmail } from "@/features/access/components/whitelist";
@@ -11,10 +10,7 @@ import { AddAllowedEmail } from "@/features/access/components/whitelist";
 export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const person = await adminActor();
-  const [entries, requests] = await Promise.all([
-    accessPolicy().list(person),
-    requestPolicy().list(person),
-  ]);
+  const { entries, requests } = await requestPolicy().overview(person);
   const t = await getT();
   return (
     <Workspace id="main">

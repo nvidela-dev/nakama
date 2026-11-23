@@ -3,7 +3,7 @@ import { Panel } from "@/shared/ui/panel";
 import { Button } from "@/shared/ui/button";
 import { getT } from "@/shared/i18n/server";
 import { Show, SignInButton } from "@clerk/nextjs";
-import { AcceptForm } from "@/features/collaboration/components/forms";
+import { AcceptForm } from "@/features/collaboration/components/accept-form";
 export default async function Page() {
   const t = await getT();
   return (

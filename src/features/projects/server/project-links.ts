@@ -1,13 +1,11 @@
+import { cycleMatchSchema } from "./schemas";
+import { projectLinkSchema } from "./schemas";
 import { queryRows } from "@/server/database/query";
 import { z } from "zod";
 import type { Database } from "@/server/database/database";
-import {
-  withProjectRead,
-  type ProjectRead,
-  membership,
-  ProjectError,
-  type Actor,
-} from "@/features/projects/server/projects";
+import { withProjectRead, type ProjectRead, membership } from "@/server/database/membership";
+import { ProjectError } from "@/shared/contracts/errors";
+import { type Actor } from "@/shared/contracts/actor";
 import type { ProjectLinks } from "@/features/projects/model";
 export type { LinkedProject, ProjectLinks } from "@/features/projects/model";
 export function sourceProjectIds(input: unknown): string[] {
@@ -25,7 +23,7 @@ export async function readLinks({
 }: ProjectRead): Promise<ProjectLinks> {
   const rows = await queryRows(
     tx,
-    z.object({ id: z.uuid(), name: z.string(), direction: z.enum(["source", "child"]) }),
+    projectLinkSchema,
     `
       SELECT p.id,p.name,CASE WHEN l.child_id=$1 THEN 'source' ELSE 'child' END AS direction
       FROM project_links l JOIN projects p ON p.id=CASE WHEN l.child_id=$1 THEN l.source_id ELSE l.child_id END
@@ -39,39 +37,54 @@ export async function readLinks({
   };
 }
 export function projectLinksService(db: Database) {
+  async function change(person: Actor, sourceId: string, childId: string, remove = false) {
+    await db.transaction(async (tx) => {
+      // Serialize graph edits so concurrent opposite edges cannot both pass the cycle check.
+      if (!remove) await tx.query("SELECT pg_advisory_xact_lock(734922)");
+      for (const id of [...new Set([sourceId, childId])].sort()) await membership(tx, person, id);
+      if (sourceId === childId) throw new ProjectError("A project cannot spawn itself.");
+      if (remove) {
+        await tx.query("DELETE FROM project_links WHERE source_id=$1 AND child_id=$2", [
+          sourceId,
+          childId,
+        ]);
+        return;
+      }
+      const cycle = await queryRows(
+        tx,
+        cycleMatchSchema,
+        `WITH RECURSIVE descendants(id) AS (
+          SELECT child_id FROM project_links WHERE source_id=$1
+          UNION SELECT l.child_id FROM project_links l JOIN descendants d ON l.source_id=d.id
+        ) SELECT 1 AS found FROM descendants WHERE id=$2 LIMIT 1`,
+        [childId, sourceId],
+      );
+      if (cycle.length)
+        throw new ProjectError("This link would create a circular project lineage.");
+      await tx.query(
+        "INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
+        [sourceId, childId, person.userId],
+      );
+    });
+  }
+
   return {
     async list(person: Actor, projectId: string): Promise<ProjectLinks> {
       return withProjectRead(db, person, projectId, readLinks);
     },
-    async change(person: Actor, sourceId: string, childId: string, remove = false) {
-      await db.transaction(async (tx) => {
-        // Serialize graph edits so concurrent opposite edges cannot both pass the cycle check.
-        await tx.query("SELECT pg_advisory_xact_lock(734922)");
-        for (const id of [...new Set([sourceId, childId])].sort()) await membership(tx, person, id);
-        if (sourceId === childId) throw new ProjectError("A project cannot spawn itself.");
-        if (remove) {
-          await tx.query("DELETE FROM project_links WHERE source_id=$1 AND child_id=$2", [
-            sourceId,
-            childId,
-          ]);
-          return;
-        }
-        const cycle = await queryRows(
-          tx,
-          z.object({ found: z.literal(1) }),
-          `WITH RECURSIVE descendants(id) AS (
-          SELECT child_id FROM project_links WHERE source_id=$1
-          UNION SELECT l.child_id FROM project_links l JOIN descendants d ON l.source_id=d.id
-        ) SELECT 1 AS found FROM descendants WHERE id=$2 LIMIT 1`,
-          [childId, sourceId],
-        );
-        if (cycle.length)
-          throw new ProjectError("This link would create a circular project lineage.");
-        await tx.query(
-          "INSERT INTO project_links(source_id,child_id,created_by) VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
-          [sourceId, childId, person.userId],
-        );
-      });
+    change,
+    changeRelative(
+      person: Actor,
+      projectId: string,
+      otherId: string,
+      direction: string,
+      remove = false,
+    ) {
+      if (direction !== "source" && direction !== "child")
+        throw new ProjectError("Choose a relationship direction.");
+      return direction === "source"
+        ? change(person, otherId, projectId, remove)
+        : change(person, projectId, otherId, remove);
     },
   };
 }

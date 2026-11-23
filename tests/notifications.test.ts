@@ -58,13 +58,32 @@ test("unread comments persist per person, paginate, deep link and respect curren
     assert.equal((await notifications.unread(owner)).count, 27);
     assert.equal((await notifications.unread(friend)).count, 1);
     const focused = await comments.comments(owner, id, {}, undefined, ids[0]);
-    assert.ok(focused.items.some((c) => c.id === ids[0]));
+    assert.equal(focused.items.find((c) => c.id === ids[0])?.is_read, true);
+    const batch = (await comments.comments(owner, id, {})).items
+      .filter((c) => !c.is_read)
+      .slice(0, 3);
+    assert.equal(batch.length, 3);
+    const unreadBefore = (await notifications.unread(owner)).count;
+    await notifications.read(
+      owner,
+      batch.map((c) => c.id),
+    );
+    await notifications.read(
+      owner,
+      batch.map((c) => c.id),
+    );
+    assert.equal((await notifications.unread(owner)).count, unreadBefore - 3);
+    assert.ok(
+      (await comments.comments(owner, id, {})).items
+        .filter((c) => batch.some((x) => x.id === c.id))
+        .every((c) => c.is_read),
+    );
     const other = await projects.create(owner, { name: "Other project", description: "Unrelated" });
     await assert.rejects(comments.comments(owner, other, {}, undefined, ids[0]));
     await comments.change(friend, id, required(ids[1]), 1, "delete");
-    assert.equal((await notifications.unread(owner)).count, 26);
+    assert.equal((await notifications.unread(owner)).count, 26 - batch.length);
     await comments.change(friend, id, required(ids[0]), 1, "edit", "Edited read comment");
-    assert.equal((await notifications.unread(owner)).count, 26);
+    assert.equal((await notifications.unread(owner)).count, 26 - batch.length);
     await projects.remove(owner, id, friend.userId);
     assert.equal((await notifications.unread(friend)).count, 0);
     await notifications.read(friend, [

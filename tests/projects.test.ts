@@ -3,7 +3,8 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
-import { projectService, type Actor } from "../src/features/projects/server/projects";
+import { projectService } from "../src/features/projects/server/projects";
+import { type Actor } from "@/shared/contracts/actor";
 import type { Database } from "../src/server/database/database";
 
 const sql = new PGlite();
@@ -291,4 +292,18 @@ test("only the project owner can save or clear a direct, revision-checked Linear
   await assert.rejects(service.saveLinearLink(alice, id, 0, ""));
   await service.saveLinearLink(alice, id, 1, "");
   assert.equal((await service.get(alice, id)).linear_project_url, null);
+});
+
+test("issuing an approved invitation checks current recipient membership inside the write", async () => {
+  const id = await service.create(alice, {
+    name: "Invitation scope",
+    description: "Test membership during issue.",
+  });
+  const first = await service.invite(alice, id, "bob@example.com", ["bob"]);
+  await service.accept(bob, first.token);
+  await assert.rejects(
+    service.invite(alice, id, "bob@example.com", ["bob"]),
+    /already a project member/,
+  );
+  await assert.rejects(service.invite(bob, id, "new@example.com", []));
 });

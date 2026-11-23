@@ -1,7 +1,9 @@
 "use client";
+import { memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-export function MarkdownReader({
+const plugins = [remarkGfm];
+export const MarkdownReader = memo(function MarkdownReader({
   content,
   label = "Markdown reader",
   externalImageLabel = "External image",
@@ -22,7 +24,7 @@ export function MarkdownReader({
       aria-label={label}
     >
       <Markdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={plugins}
         skipHtml
         components={{
           input: ({ checked }) => (
@@ -69,4 +71,4 @@ export function MarkdownReader({
       </Markdown>
     </article>
   );
-}
+});

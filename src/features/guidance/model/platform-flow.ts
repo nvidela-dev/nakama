@@ -14,6 +14,7 @@ export const platformFlow: Flow & { readonly id: "platform" } = {
       nodes: [
         {
           id: "platform-name",
+          captureField: "name",
           label: "Name",
           question: "What is this platform service or tooling project called?",
           example: "Hermes dispatch queue and local worker runner.",
@@ -22,6 +23,7 @@ export const platformFlow: Flow & { readonly id: "platform" } = {
         },
         {
           id: "platform-description",
+          captureField: "description",
           label: "Brief description",
           question: "What does this platform capability or infrastructure do in a few words?",
           example: "Run background tasks reliably with automatic retries and dead-letter handling.",
@@ -201,7 +203,7 @@ export const platformFlow: Flow & { readonly id: "platform" } = {
           question: "What production artifact or infrastructure output was delivered?",
           example: "Deployed background worker daemon, migration script, and IaC cloud template.",
           after: [],
-          kind: "question",
+          kind: "outcome",
           choices: [
             "Software package / binary",
             "Cloud infrastructure / IaC",

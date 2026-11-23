@@ -213,9 +213,9 @@ async function JobsContent({
         ))}
       </nav>
       <Form action="/jobs" className="flex flex-wrap items-end gap-2">
-        {sort === "match" && <Input type="hidden" name="sort" value={sort} />}
-        {direction === "asc" && <Input type="hidden" name="direction" value={direction} />}
-        {board && <Input type="hidden" name="view" value="board" />}
+        {sort === "match" && <input type="hidden" name="sort" value={sort} />}
+        {direction === "asc" && <input type="hidden" name="direction" value={direction} />}
+        {board && <input type="hidden" name="view" value="board" />}
         <label className={filterClass + " min-w-48 grow"}>
           {t("Search roles")}
           <Input name="q" type="search" defaultValue={filters.query} maxLength={250} />

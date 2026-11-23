@@ -133,3 +133,9 @@ A prospect is a business in Nakama's standalone, private sales backlog. Its sing
 The catalogue owner can save a private, revision-checked fit assessment and advance a business from Assess fit only by explicitly selecting Ready to call and confirming the move. Research and Park record a decision without changing the stage. Four independent ratings describe evidence, impact, fit and likelihood to pay; the average appears only when all four are present and never moves a card. A private call debrief distinguishes connected calls that went well or poorly from no answer and voicemail. Drafts are editable; recorded debriefs are dated history and do not replace existing outreach events. Next actions may have draft dates, but their dates are required before the call is recorded.
 
 A source package records what the previous catalogue contained at import. Nakama identifies the same business by catalogue and stable source ID. Research added in Nakama, contact corrections, assignment and outreach have their own durable records. The import receipt describes the input and image coverage at the time of publication.
+
+### Activity attribution and flow outputs
+
+Comments and recorded activity retain the display name captured at the time. Historical answers and stage reviews use the current member display name while it is available. After a member leaves, those entries display “Former member.” The activity feed never substitutes a private contact address.
+
+Capture fields, project state choices and revisit destinations belong to the flow template. The investigation deliverable and platform production deliverable are outcome nodes. Their stored node IDs, choices and revision histories remain valid. Question-progress counts include question nodes.

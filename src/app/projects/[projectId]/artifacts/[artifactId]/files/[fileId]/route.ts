@@ -3,7 +3,7 @@ import { telemetry } from "@/server/observability/observability";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
 import { artifactService } from "@/features/artifacts/server/artifacts";
-import { ProjectError } from "@/features/projects/server/projects";
+import { ProjectError } from "@/shared/contracts/errors";
 export const dynamic = "force-dynamic";
 export async function GET(
   request: Request,

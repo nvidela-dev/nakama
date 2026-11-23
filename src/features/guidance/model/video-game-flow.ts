@@ -12,6 +12,7 @@ export const videoGameFlow = {
       nodes: [
         {
           id: "game-name",
+          captureField: "name",
           label: "Name",
           question: "What is the working title?",
           example: "Lantern Courier.",
@@ -20,6 +21,7 @@ export const videoGameFlow = {
         },
         {
           id: "game-description",
+          captureField: "description",
           label: "Brief description",
           question: "Describe the player, their goal and the challenge.",
           example: "Guide a courier through a dark city before the lantern runs out.",

@@ -10,6 +10,7 @@ export type DialogProps = Omit<
     open: boolean;
     onClose: () => void;
     dismissible?: boolean;
+    size?: "md" | "lg" | "fullscreen";
   };
 
 /** Native modal focus trapping, Escape/backdrop dismissal and focus restoration. */
@@ -17,6 +18,8 @@ export function Dialog({
   open,
   onClose,
   dismissible = true,
+  size = "md",
+  className = "",
   label,
   labelledBy,
   onCancel,
@@ -51,6 +54,7 @@ export function Dialog({
   return (
     <dialog
       {...props}
+      className={`${{ md: "[:where(&)]:w-[min(36rem,calc(100vw-2rem))]", lg: "[:where(&)]:w-[min(56rem,calc(100vw-2rem))]", fullscreen: "[:where(&)]:w-screen [:where(&)]:h-dvh" }[size]} [:where(&)]:max-h-[90dvh] [:where(&)]:overflow-y-auto [:where(&)]:rounded-lg [:where(&)]:bg-panel [:where(&)]:text-ink ${className}`}
       ref={dialog}
       aria-label={label}
       aria-labelledby={labelledBy}
