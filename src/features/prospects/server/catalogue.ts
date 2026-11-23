@@ -184,6 +184,7 @@ export function prospectService(db: Database) {
             )[0]?.linear_url ?? null)
           : null;
         return {
+          availableStages: scope.availableStages,
           listing,
           todos,
           linear,
@@ -381,6 +382,8 @@ export function prospectService(db: Database) {
           let kind: "stage" | "profile" = "profile";
           let changes: Record<string, unknown>;
           if (cmd.type === "stage") {
+            if (!scope.availableStages.includes(cmd.status))
+              throw new ProjectError("Choose a current sales stage.");
             if (current.status === "assess_fit" && cmd.status !== "assess_fit")
               throw new ProjectError(
                 "Use the private assessment to mark this business ready to call.",

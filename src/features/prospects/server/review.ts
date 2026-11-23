@@ -30,7 +30,8 @@ async function requireOwnerProspect(
   prospectId: string,
   lock: boolean,
 ) {
-  await catalogueMembership(tx, actor, true);
+  const scope = await catalogueMembership(tx, actor, true);
+  if (!scope.availableStages.includes("assess_fit")) throw unavailable();
   const [p] = await queryRows(
     tx,
     currentProspect,

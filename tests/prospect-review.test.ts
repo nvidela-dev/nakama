@@ -53,6 +53,10 @@ test("private fit and call drafts are revision checked, preserve old CRM, and de
       "INSERT INTO prospect_events(catalogue_id,prospect_id,kind,actor_id,actor_name,note) VALUES('business',$1,'call','Owner','Owner','Original call')",
       [priorId],
     );
+    const preMigration = await crm.read(owner, priorId);
+    assert.equal(preMigration.availableStages.includes("assess_fit"), false);
+    assert.equal(preMigration.timeline[0]?.note, "Original call");
+    await assert.rejects(review.read(owner, priorId), /review unavailable/);
     for (const file of files.filter((f) => f >= "033"))
       await sql.exec(await readFile("migrations/" + file, "utf8"));
     const before = await crm.read(owner, priorId);

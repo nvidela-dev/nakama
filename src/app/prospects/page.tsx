@@ -70,7 +70,7 @@ export default async function ProspectsPage({
   const others = members.filter((m) => m.user_id !== person.userId);
   const back = catalogueHref(filters, { page });
   const review =
-    prospect && owner
+    prospect && owner && data.availableStages.includes("assess_fit")
       ? await prospectReview(database()).read(
           person,
           prospect.id,
@@ -233,7 +233,12 @@ export default async function ProspectsPage({
               }
             />
           )}
-          <ProspectWork record={prospect} todos={data.todos} linear={data.linear} />
+          <ProspectWork
+            availableStages={data.availableStages}
+            record={prospect}
+            todos={data.todos}
+            linear={data.linear}
+          />
           {owner && (
             <Panel>
               <details>
@@ -404,6 +409,7 @@ export default async function ProspectsPage({
         <>
           {data.listing && (
             <CatalogueBrowser
+              availableStages={data.availableStages}
               owner={owner}
               query={filters.toString()}
               listing={data.listing}

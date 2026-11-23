@@ -1,3 +1,4 @@
+import { salesStages, type SalesStage } from "../model";
 import { z } from "zod";
 import { isAppAdmin, normalizeEmail } from "@/features/access/server/app-access";
 import type { Actor } from "@/shared/contracts/actor";
@@ -12,8 +13,10 @@ export async function catalogueMembership(tx: Queryable, actor: Actor, ownerOnly
   if (!actor.userId) throw denied();
   const [schema] = await queryRows(
     tx,
-    z.object({ ready: z.boolean() }),
-    "SELECT to_regclass('prospect_sources') IS NOT NULL AS ready",
+    z.object({ ready: z.boolean(), reviews: z.boolean(), stages: z.array(z.string()) }),
+    `SELECT to_regclass('prospect_sources') IS NOT NULL AS ready,
+       to_regclass('prospect_call_reviews') IS NOT NULL AS reviews,
+       ARRAY(SELECT enumlabel::text FROM pg_enum WHERE enumtypid=to_regtype('prospect_status')) AS stages`,
   );
   if (!schema?.ready) throw new ProspectMigrationPending();
   const find = async () =>
@@ -52,13 +55,19 @@ export async function catalogueMembership(tx: Queryable, actor: Actor, ownerOnly
     member = await find();
   }
   if (!member || (ownerOnly && member.role !== "owner")) throw denied();
-  return member;
+  return {
+    ...member,
+    availableStages: salesStages.filter(
+      (stage) => schema.stages.includes(stage) && (stage !== "assess_fit" || schema.reviews),
+    ),
+  };
 }
 export type CatalogueRead = {
   tx: Queryable;
   actor: Actor;
   catalogueId: string;
   role: "owner" | "member";
+  availableStages: SalesStage[];
 };
 export function withCatalogueRead<T>(
   db: Database,
@@ -66,7 +75,7 @@ export function withCatalogueRead<T>(
   work: (scope: CatalogueRead) => Promise<T>,
 ) {
   return db.transaction(async (tx) => {
-    const { role } = await catalogueMembership(tx, actor);
-    return work({ tx, actor, catalogueId, role });
+    const membership = await catalogueMembership(tx, actor);
+    return work({ tx, actor, catalogueId, ...membership });
   });
 }

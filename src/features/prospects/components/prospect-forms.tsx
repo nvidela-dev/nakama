@@ -12,7 +12,7 @@ import {
   maxImportBytes,
   outreachKinds,
   statusLabel,
-  salesStages,
+  type SalesStage,
   kindLabel,
   type CatalogueMember,
   type ProspectCommand,
@@ -378,10 +378,12 @@ export function ShareProspect({ id, members }: { id: string; members: CatalogueM
 
 export function ProspectWork({
   record,
+  availableStages,
   linear,
   todos,
 }: {
   record: Prospect;
+  availableStages: SalesStage[];
   linear: string | null;
   todos: { id: string; title: string; done: boolean }[];
 }) {
@@ -462,7 +464,7 @@ export function ProspectWork({
           <ChangeForm
             label="Move business"
             submit={(data) => {
-              const status = salesStages.find((stage) => stage === value(data, "stage"));
+              const status = availableStages.find((stage) => stage === value(data, "stage"));
               return status
                 ? updateProspect({ ...target, type: "stage", status })
                 : Promise.resolve({ error: "Choose a current sales stage." });
@@ -476,7 +478,7 @@ export function ProspectWork({
                     {t(statusLabel.in_progress)}
                   </option>
                 )}
-                {salesStages
+                {availableStages
                   .filter((v) => v !== "assess_fit")
                   .map((v) => (
                     <option key={v} value={v}>

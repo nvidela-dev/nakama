@@ -21,7 +21,12 @@ const uploadSchema = z.object({ byte_size: z.number(), report: reportSchema.null
 const invalid = () =>
   new ProjectError("The import could not be verified. Retry with the original file.");
 
-async function publish(tx: Queryable, digest: string, decoded: DecodedSource) {
+async function publish(
+  tx: Queryable,
+  digest: string,
+  decoded: DecodedSource,
+  initialStage: "assess_fit" | "ready",
+) {
   // Serialize catalogue imports inside a catalogueId. Profile edits use the same prospect row locks.
   await tx.query("SELECT id FROM prospect_catalogues WHERE id=$1 FOR NO KEY UPDATE", [catalogueId]);
   let changed = 0,
@@ -41,10 +46,10 @@ async function publish(tx: Queryable, digest: string, decoded: DecodedSource) {
     await tx.query(
       `INSERT INTO prospects(catalogue_id,id,name,details,status)
       SELECT $1,id,name,details,(CASE stage WHEN 'won' THEN 'deal' WHEN 'lost' THEN 'rejected'
-        WHEN 'contacted' THEN 'in_progress' WHEN 'meeting' THEN 'in_progress' WHEN 'proposal' THEN 'in_progress' ELSE 'assess_fit' END)::prospect_status
+        WHEN 'contacted' THEN 'in_progress' WHEN 'meeting' THEN 'in_progress' WHEN 'proposal' THEN 'in_progress' ELSE $3::text END)::prospect_status
       FROM jsonb_to_recordset($2::jsonb) AS r(id uuid,name text,details text,stage text)
       ON CONFLICT(catalogue_id,id) DO NOTHING`,
-      [catalogueId, JSON.stringify(rows)],
+      [catalogueId, JSON.stringify(rows), initialStage],
     );
     // Save each complete source document by stable business ID. Lower-fidelity inputs have their own slot.
     const applied = await queryRows(
@@ -218,7 +223,7 @@ export function sourceImports(db: Database) {
     },
     finish(person: Actor, digest: string) {
       return db.transaction(async (tx) => {
-        await catalogueMembership(tx, person, true);
+        const scope = await catalogueMembership(tx, person, true);
         const [u] = await queryRows(
           tx,
           uploadSchema,
@@ -235,7 +240,12 @@ export function sourceImports(db: Database) {
         );
         const bytes = Buffer.concat(chunks.map((c) => c.content));
         if (bytes.length !== u.byte_size || checksum(bytes) !== digest) throw invalid();
-        return publish(tx, digest, await decodeSource(bytes));
+        return publish(
+          tx,
+          digest,
+          await decodeSource(bytes),
+          scope.availableStages.includes("assess_fit") ? "assess_fit" : "ready",
+        );
       });
     },
   };

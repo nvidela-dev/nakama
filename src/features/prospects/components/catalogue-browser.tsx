@@ -10,14 +10,20 @@ import { useT } from "@/shared/i18n/provider";
 import type { ActionState } from "@/shared/contracts/action-state";
 import type { BrowseResult } from "../filters";
 import { catalogueHref, type BusinessCard } from "../filters";
-import { salesStages, statusLabel, type SalesStage } from "../model";
+import { statusLabel, type SalesStage } from "../model";
 import { SalesSummary } from "./sales-summary";
 import { BoardEntry } from "./prospect-forms";
 import { updateProspect } from "../actions";
 
 type Option = [string, string];
-type Props = { listing: BrowseResult; query: string; page: number; owner: boolean };
-export function CatalogueBrowser({ listing, query, page, owner }: Props) {
+type Props = {
+  listing: BrowseResult;
+  query: string;
+  page: number;
+  owner: boolean;
+  availableStages: SalesStage[];
+};
+export function CatalogueBrowser({ listing, query, page, owner, availableStages }: Props) {
   const t = useT(),
     router = useRouter(),
     params = new URLSearchParams(query),
@@ -40,7 +46,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
   }, [focus, exitLink, router]);
   const count = Object.values(listing.counts).reduce((a, b) => a + b, 0);
   const legacyLane = (listing.counts.in_progress ?? 0) > 0;
-  const boardStages = legacyLane ? [...salesStages, "in_progress" as const] : salesStages;
+  const boardStages = legacyLane ? [...availableStages, "in_progress" as const] : availableStages;
   const simple = (names: string[]): Option[] => names.map((v) => [v, v]);
   function pick(key: string, label: string, options: Option[]) {
     return (
@@ -202,7 +208,7 @@ export function CatalogueBrowser({ listing, query, page, owner }: Props) {
           {pick(
             "stage",
             "Sales stage",
-            [...salesStages, "in_progress" as const].map((v) => [v, t(statusLabel[v])]),
+            [...availableStages, "in_progress" as const].map((v) => [v, t(statusLabel[v])]),
           )}
           {!board &&
             pick("assignee", "Assigned to", [
