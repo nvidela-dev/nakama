@@ -13,6 +13,7 @@ export const kindLabel: Record<ProspectEventKind, string> = {
   membership_ended: "Membership ended",
 };
 export const salesStages = [
+  "assess_fit",
   "ready",
   "attempted_contact",
   "in_conversation",
@@ -25,6 +26,7 @@ export const salesStages = [
 export type SalesStage = (typeof salesStages)[number];
 
 export const statusLabel: Record<ProspectStatus, string> = {
+  assess_fit: "Assess fit",
   ready: "Ready to call",
   attempted_contact: "Attempted contact",
   in_conversation: "In conversation",

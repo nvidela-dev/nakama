@@ -41,7 +41,7 @@ async function publish(tx: Queryable, digest: string, decoded: DecodedSource) {
     await tx.query(
       `INSERT INTO prospects(catalogue_id,id,name,details,status)
       SELECT $1,id,name,details,(CASE stage WHEN 'won' THEN 'deal' WHEN 'lost' THEN 'rejected'
-        WHEN 'contacted' THEN 'in_progress' WHEN 'meeting' THEN 'in_progress' WHEN 'proposal' THEN 'in_progress' ELSE 'ready' END)::prospect_status
+        WHEN 'contacted' THEN 'in_progress' WHEN 'meeting' THEN 'in_progress' WHEN 'proposal' THEN 'in_progress' ELSE 'assess_fit' END)::prospect_status
       FROM jsonb_to_recordset($2::jsonb) AS r(id uuid,name text,details text,stage text)
       ON CONFLICT(catalogue_id,id) DO NOTHING`,
       [catalogueId, JSON.stringify(rows)],
@@ -84,7 +84,7 @@ async function publish(tx: Queryable, digest: string, decoded: DecodedSource) {
       status=CASE WHEN r.stage IS NULL OR EXISTS(SELECT 1 FROM prospect_events e WHERE e.catalogue_id=p.catalogue_id AND e.prospect_id=p.id
         AND (e.kind IN ('call','reply','message','stage') OR e.outcome IS NOT NULL)) THEN p.status
         ELSE (CASE r.stage WHEN 'won' THEN 'deal' WHEN 'lost' THEN 'rejected' WHEN 'contacted' THEN 'in_progress'
-        WHEN 'meeting' THEN 'in_progress' WHEN 'proposal' THEN 'in_progress' ELSE 'ready' END)::prospect_status END
+        WHEN 'meeting' THEN 'in_progress' WHEN 'proposal' THEN 'in_progress' ELSE p.status::text END)::prospect_status END
       FROM jsonb_to_recordset($2::jsonb) AS r(id uuid,rank int,at timestamptz,name text,details text,stage text)
       WHERE p.catalogue_id=$1 AND p.id=r.id AND NOT EXISTS(SELECT 1 FROM prospect_sources s WHERE s.catalogue_id=p.catalogue_id
         AND s.prospect_id=p.id AND ((s.source_rank>1 AND r.rank=1) OR

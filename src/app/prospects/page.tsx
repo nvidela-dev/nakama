@@ -24,6 +24,9 @@ import {
   LogOutreach,
 } from "@/features/prospects/components/prospect-forms";
 import { SalesSummary } from "@/features/prospects/components/sales-summary";
+import { ProspectPrivateReview } from "@/features/prospects/components/private-review";
+import { saveProspectReview } from "@/features/prospects/review-actions";
+import { prospectReview } from "@/features/prospects/server/review";
 import { Dossier } from "@/features/prospects/components/dossier";
 import { Panel } from "@/shared/ui/panel";
 
@@ -65,6 +68,14 @@ export default async function ProspectsPage({
   const title = all ? t("Business catalogue") : t("My prospects");
   const others = members.filter((m) => m.user_id !== person.userId);
   const back = catalogueHref(filters, { page });
+  const review =
+    prospect && owner
+      ? await prospectReview(database()).read(
+          person,
+          prospect.id,
+          typeof query.reviewBefore === "string" ? query.reviewBefore : undefined,
+        )
+      : null;
   return (
     <main id="main" className="mx-auto w-full grid max-w-[1480px] gap-5 px-4 py-6 md:px-8">
       <nav className="flex gap-4 text-sm">{prospect && <Link href={back}>{title}</Link>}</nav>
@@ -135,6 +146,24 @@ export default async function ProspectsPage({
           <Dossier
             data={data.sources.find((source) => source.source_rank === 2)?.payload.dossier}
           />
+          {review && (
+            <ProspectPrivateReview
+              key={prospect.id}
+              prospectId={prospect.id}
+              review={review}
+              saveReviewAction={saveProspectReview}
+              canAdvance={prospect.status === "assess_fit"}
+              olderHref={
+                review.previous
+                  ? catalogueHref(filters, {
+                      business: prospect.id,
+                      page,
+                      reviewBefore: review.previous,
+                    }) + "#private-prospect-review"
+                  : null
+              }
+            />
+          )}
           <ProspectWork record={prospect} todos={data.todos} linear={data.linear} />
           {owner && (
             <Panel>

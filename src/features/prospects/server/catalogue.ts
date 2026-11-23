@@ -381,6 +381,11 @@ export function prospectService(db: Database) {
           let kind: "stage" | "profile" = "profile";
           let changes: Record<string, unknown>;
           if (cmd.type === "stage") {
+            if (current.status === "assess_fit" && cmd.status !== "assess_fit")
+              throw new ProjectError(
+                "Use the private assessment to mark this business ready to call.",
+              );
+            if (cmd.status === "assess_fit" && role !== "owner") throw unavailable();
             const entering =
               !current.on_board && current.assignee_id === person.userId && cmd.status === "ready";
             if (cmd.status === current.status && !entering) return;

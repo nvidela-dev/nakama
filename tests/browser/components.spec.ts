@@ -814,3 +814,58 @@ test("fine-pointer shared controls retain their compact sizing", async ({ page }
     (await page.getByRole("combobox", { name: "Status", exact: true }).boundingBox())!.height,
   ).toBe(32);
 });
+
+test("private prospect assessment keeps separate ratings and requires deliberate advancement", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await story(page, "features-prospects-private-review--owner");
+  await expect(
+    page.getByLabel("What does the business sell, and what does its website do today?"),
+  ).toHaveValue("Fixture notes");
+  await expect(page.getByText("1 of 4 ratings entered")).toBeVisible();
+  await expect(page.getByText(/Average:/)).toHaveCount(0);
+  await page.getByLabel(/^Customer impact/).selectOption("3");
+  await page.getByLabel(/^One-page offer fit/).selectOption("2");
+  await page.getByLabel(/^Likelihood to pay/).selectOption("1");
+  await expect(page.getByText(/Average: 2\.00 of 3/)).toBeVisible();
+  const ready = page.getByRole("button", { name: "Mark Ready to call" });
+  await expect(ready).toBeDisabled();
+  await page.getByLabel("Assessment decision").selectOption("research");
+  await page.getByRole("button", { name: "Save assessment" }).click();
+  await expect(page.getByText("Assessment draft saved")).toBeVisible();
+  await expect(ready).toBeDisabled();
+  await page.getByLabel("Assessment decision").selectOption("ready");
+  await ready.click();
+  await expect(page.getByText("Moved deliberately")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("private prospect call debrief switches branches and saves or records the selected outcome", async ({
+  page,
+}) => {
+  await story(page, "features-prospects-private-review--owner");
+  const outcome = page.getByLabel("Call result");
+  await expect(outcome).toHaveValue("voicemail");
+  await expect(page.getByText("This logs an attempt without ratings.")).toBeVisible();
+  await expect(page.getByLabel("Call date")).toHaveValue("2026-11-23");
+  await outcome.selectOption("well");
+  await expect(page.getByLabel("What clicked?")).toBeVisible();
+  await expect(page.getByLabel(/^Interest/)).toBeVisible();
+  await expect(page.getByLabel(/^Objection clarity/)).toHaveCount(0);
+  await outcome.selectOption("poorly");
+  await expect(page.getByLabel("Where did the call stall?")).toBeVisible();
+  await expect(page.getByLabel(/^Recoverability/)).toBeVisible();
+  await expect(page.getByLabel(/^Interest/)).toHaveCount(0);
+  await page.getByLabel("Next action", { exact: true }).fill("Check Friday");
+  await page.getByLabel("Due date").fill("2026-11-27");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByText("Call draft saved")).toBeVisible();
+  await expect(page.getByLabel("Next action", { exact: true })).toHaveValue("Check Friday");
+  await outcome.selectOption("no_answer");
+  await expect(page.getByText("This logs an attempt without ratings.")).toBeVisible();
+  await expect(page.getByLabel(/^Recoverability/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Record call" }).click();
+  await expect(page.getByText("Call recorded")).toBeVisible();
+  await expect(outcome).toHaveValue("");
+});

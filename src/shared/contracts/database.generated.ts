@@ -32,7 +32,7 @@ export const ProjectStateValues = ["active","parked","finished_enough"] as const
 export type ProjectState = (typeof ProjectStateValues)[number];
 export const ProspectEventKindValues = ["assignment","call","message","reply","note","membership_ended","profile","stage"] as const;
 export type ProspectEventKind = (typeof ProspectEventKindValues)[number];
-export const ProspectStatusValues = ["ready","in_progress","deal","rejected","attempted_contact","in_conversation","proposal_sent","negotiating"] as const;
+export const ProspectStatusValues = ["ready","in_progress","deal","rejected","attempted_contact","in_conversation","proposal_sent","negotiating","assess_fit"] as const;
 export type ProspectStatus = (typeof ProspectStatusValues)[number];
 export const RevisionOriginValues = ["capture","human"] as const;
 export type RevisionOrigin = (typeof RevisionOriginValues)[number];
@@ -306,6 +306,21 @@ export interface DatabaseRows {
     archived: boolean;
     linear_project_url: string | null;
     linear_link_revision: number;
+  };
+  prospect_assessments: {
+    catalogue_id: string;
+    prospect_id: string;
+    revision: number;
+    assessment: unknown;
+    updated_at: Date;
+  };
+  prospect_call_reviews: {
+    id: string;
+    catalogue_id: string;
+    prospect_id: string;
+    revision: number;
+    review: unknown;
+    recorded_at: Date | null;
   };
   prospect_catalogue_grants: {
     catalogue_id: string;

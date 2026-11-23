@@ -524,3 +524,8 @@ Résumé match and Date found lead the jobs table. Either header sorts the whole
 ## Business sales stages — 2026-11-23
 
 Track calls, messages, replies, outcomes and follow-ups separately from deliberate stage changes. Use Ready to call, Attempted contact, In conversation, Proposal sent, Negotiating, Won and Lost. Keep the existing broad In progress state unclassified until reviewed rather than guessing what happened. Existing identifiers for Ready, Deal reached and Offer declined remain stable.
+
+
+## Private prospect assessment and call debrief — 2026-11-23
+
+Assess fit precedes Ready to call for new businesses. The owner can save incomplete assessments; four complete ratings enable an informational average, not a decision. Only an explicit ready choice and confirmed move advances the stage. Store private drafts, dated call debriefs with outcome-specific prompts, and dated next actions separately from existing shared outreach. Retain previous stages and history when migrating. See [business prospects](domain.md#business-prospects).
