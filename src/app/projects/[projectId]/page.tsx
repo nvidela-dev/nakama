@@ -10,7 +10,8 @@ import { ArtifactLibrary } from "@/features/artifacts/components/artifact-librar
 import { ProjectTasks } from "@/features/tasks/components/project-tasks";
 import { ProjectWork } from "@/features/projects/components/project-work";
 import { invitationCandidates } from "@/features/collaboration/server/invitation-candidates";
-import { getT } from "@/shared/i18n/server";
+import { translator } from "@/shared/i18n/index";
+import { getLocale } from "@/shared/i18n/server";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { actor } from "@/features/access/server/auth";
@@ -38,7 +39,8 @@ export default async function ProjectPage({
     activityBefore?: string;
   }>;
 }) {
-  const t = await getT();
+  const locale = await getLocale();
+  const t = translator(locale);
   const person = await actor();
   const { projectId } = await params;
   const query = await searchParams;
@@ -161,6 +163,7 @@ export default async function ProjectPage({
   }
   const activityPanel = (
     <ActivityFeed
+      locale={locale}
       projectId={projectId}
       activity={activity}
       flow={guidance?.flow}

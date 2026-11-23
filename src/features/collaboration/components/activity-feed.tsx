@@ -1,8 +1,7 @@
-"use client";
 import Link from "next/link";
 import type { Activity, Page, FeedKind } from "@/features/collaboration/model";
 import type { Flow } from "@/features/guidance/model/flows";
-import { useLocale, useT } from "@/shared/i18n/provider";
+import { translator, type Locale } from "@/shared/i18n/index";
 import { formatDate } from "@/shared/i18n/date";
 const labels: Record<FeedKind, string> = {
   artifact_created: "created an artifact",
@@ -31,20 +30,21 @@ const labels: Record<FeedKind, string> = {
   stage_reviewed: "reviewed a stage",
 };
 export function ActivityFeed({
+  locale,
   projectId,
   activity,
   flow,
   olderHref,
   latestHref,
 }: {
+  locale: Locale;
   projectId: string;
   activity: Page<Activity>;
   flow?: Flow | undefined;
   olderHref?: string | undefined;
   latestHref?: string | undefined;
 }) {
-  const t = useT(),
-    locale = useLocale();
+  const t = translator(locale);
   const activityHint = t(
     "Earlier history includes recorded answers and stage reviews. Other activity starts with this release.",
   );
