@@ -1,10 +1,9 @@
 "use client";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Input, Select } from "@/shared/ui/controls";
-import { Button } from "@/shared/ui/button";
+import { CatalogueToolbar } from "./catalogue-toolbar";
 import { Feedback } from "@/shared/ui/feedback";
 import { useT } from "@/shared/i18n/provider";
 import type { ActionState } from "@/shared/contracts/action-state";
@@ -15,15 +14,15 @@ import { SalesSummary } from "./sales-summary";
 import { BoardEntry } from "./prospect-forms";
 import { updateProspect } from "../actions";
 
-type Option = [string, string];
 type Props = {
+  actions?: ReactNode;
   listing: BrowseResult;
   query: string;
   page: number;
   owner: boolean;
   availableStages: SalesStage[];
 };
-export function CatalogueBrowser({ listing, query, page, owner, availableStages }: Props) {
+export function CatalogueBrowser({ actions, listing, query, page, owner, availableStages }: Props) {
   const t = useT(),
     router = useRouter(),
     params = new URLSearchParams(query),
@@ -39,7 +38,8 @@ export function CatalogueBrowser({ listing, query, page, owner, availableStages 
     if (!focus) return;
     exit.current?.focus();
     const escape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") router.replace(exitLink, { scroll: false });
+      if (e.key === "Escape" && !e.defaultPrevented && !document.querySelector("dialog[open]"))
+        router.replace(exitLink, { scroll: false });
     };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
@@ -47,22 +47,6 @@ export function CatalogueBrowser({ listing, query, page, owner, availableStages 
   const count = Object.values(listing.counts).reduce((a, b) => a + b, 0);
   const legacyLane = (listing.counts.in_progress ?? 0) > 0;
   const boardStages = legacyLane ? [...availableStages, "in_progress" as const] : availableStages;
-  const simple = (names: string[]): Option[] => names.map((v) => [v, v]);
-  function pick(key: string, label: string, options: Option[]) {
-    return (
-      <label key={key} className="grid content-start gap-1 text-xs text-muted">
-        {t(label)}
-        <Select name={key} defaultValue={params.get(key) ?? ""} className="w-full min-w-0 text-ink">
-          <option value="">{t("All")}</option>
-          {options.map(([v, name]) => (
-            <option value={v} key={v}>
-              {name}
-            </option>
-          ))}
-        </Select>
-      </label>
-    );
-  }
   function move(card: BusinessCard, status: SalesStage) {
     if (
       pending ||
@@ -143,12 +127,11 @@ export function CatalogueBrowser({ listing, query, page, owner, availableStages 
       </li>
     );
   }
+  const hasFilters = [...params.keys()].some((key) => !["view", "focus", "match"].includes(key));
+
   const nextPage = board
     ? Object.values(listing.counts).some((n) => n > page * 16)
     : page * 40 < count;
-  const filterItems = Array.from(params.entries()).filter(
-    ([k]) => !["view", "focus", "match"].includes(k),
-  );
   return (
     <section
       aria-label={t("Browse businesses")}
@@ -156,139 +139,15 @@ export function CatalogueBrowser({ listing, query, page, owner, availableStages 
         focus ? "fixed inset-0 z-[90] overflow-auto bg-bg p-4 md:p-8" : "min-w-0 grid gap-4"
       }
     >
-      <div className="flex items-center flex-wrap justify-between gap-3">
-        <h2 className="text-xl font-semibold">
-          {count === 1 ? t("1 business") : t("{count} businesses", { count })}
-        </h2>
-        <nav
-          aria-label={t("Catalogue view")}
-          className="flex min-h-9 items-center gap-1 rounded-lg border border-line bg-panel p-1 text-sm"
-        >
-          {(["list", "board"] as const).map((v) => (
-            <Link
-              key={v}
-              aria-current={(board ? v === "board" : v === "list") ? "page" : undefined}
-              href={catalogueHref(params, { view: v === "board" ? "board" : null })}
-              className="rounded px-3 py-1.5 aria-[current=page]:bg-[var(--theme-surface)] aria-[current=page]:font-bold"
-            >
-              {t(v === "board" ? "My board" : "Backlog")}
-            </Link>
-          ))}
-          <Link
-            ref={exit}
-            className="border-l border-line px-2"
-            href={focus ? exitLink : catalogueHref(params, { focus: "1", page })}
-          >
-            {t(focus ? "Exit fullscreen" : "Fullscreen")}
-          </Link>
-        </nav>
-      </div>
-      <form
-        key={query}
-        method="get"
-        action="/prospects"
-        className="my-3 rounded-xl border border-line bg-panel p-3 grid gap-3"
-      >
-        {board && <Input type="hidden" name="view" value="board" />}
-        {focus && <Input type="hidden" name="focus" value="1" />}
-        <div className="flex gap-2">
-          <Input
-            type="search"
-            name="q"
-            defaultValue={params.get("q") ?? ""}
-            maxLength={300}
-            placeholder={t("Search businesses, contacts and research")}
-            aria-label={t("Find a business")}
-          />
-          <Button type="submit">{t("Search")}</Button>
-        </div>
-        <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
-          {pick("region", "Region", simple(listing.facets.regions))}
-          {pick("industry", "Industry", simple(listing.facets.industries))}
-          {pick(
-            "stage",
-            "Sales stage",
-            [...availableStages, "in_progress" as const].map((v) => [v, t(statusLabel[v])]),
-          )}
-          {!board &&
-            pick("assignee", "Assigned to", [
-              ["unassigned", t("Unassigned")],
-              ...listing.facets.owners.map((m): Option => [m.id, m.name]),
-            ])}
-        </div>
-        <details
-          open={
-            ["city", "called", "images", "identity", "classification", "service"].some((k) =>
-              params.has(k),
-            ) || undefined
-          }
-        >
-          <summary className="w-fit cursor-pointer text-sm font-medium">
-            {t("More filters")}
-          </summary>
-          <div className="mt-2 grid gap-2 grid-cols-2 md:grid-cols-4">
-            {pick("city", "City", simple(listing.facets.cities))}
-            {pick("called", "Calls", [
-              ["yes", t("Called")],
-              ["no", t("Not called")],
-            ])}
-            {pick("images", "Evidence images", [
-              ["yes", t("With images")],
-              ["no", t("Without images")],
-            ])}
-            {pick("identity", "Source identity", [
-              ["recorded", t("Recorded")],
-              ["tentative", t("Tentative")],
-              ["unknown", t("Unknown")],
-            ])}
-            {pick("classification", "Service classification", [
-              ["tagged", t("Classified")],
-              ["untagged", t("Unclassified")],
-            ])}
-          </div>
-          {listing.facets.services.length > 0 && (
-            <fieldset className="mt-3">
-              <legend className="font-medium">{t("Services")}</legend>
-              <div className="flex flex-wrap gap-x-4 gap-y-2 py-2">
-                {listing.facets.services.map((s) => (
-                  <label key={s} className="flex gap-1 items-center">
-                    <Input
-                      type="checkbox"
-                      name="service"
-                      value={s}
-                      defaultChecked={params.getAll("service").includes(s)}
-                    />
-                    {s}
-                  </label>
-                ))}
-              </div>
-              <label className="text-sm">
-                {t("Match services")}{" "}
-                <Select name="match" defaultValue={params.get("match") ?? "any"}>
-                  <option value="any">{t("Any selected service")}</option>
-                  <option value="all">{t("Every selected service")}</option>
-                </Select>
-              </label>
-            </fieldset>
-          )}
-        </details>
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button type="submit" variant="secondary">
-            {t("Apply filters")}
-          </Button>
-          {filterItems.length > 0 && (
-            <Link
-              className="underline"
-              href={catalogueHref(new URLSearchParams(), {
-                view: board ? "board" : null,
-                focus: focus ? "1" : null,
-              })}
-            >
-              {t("Clear filters")}
-            </Link>
-          )}
-        </div>
-      </form>
+      <CatalogueToolbar
+        actions={actions}
+        availableStages={availableStages}
+        count={count}
+        exit={exit}
+        facets={listing.facets}
+        page={page}
+        query={query}
+      />
       <Feedback state={feedback} />
       {board ? (
         <div className="overflow-x-auto pb-3" tabIndex={0} role="region" aria-label={t("My board")}>
@@ -397,7 +256,7 @@ export function CatalogueBrowser({ listing, query, page, owner, availableStages 
       {count === 0 && (
         <p className="p-3">
           {t(
-            board && !filterItems.length
+            board && !hasFilters
               ? "Add a business from the backlog to start your board."
               : "No matching businesses.",
           )}

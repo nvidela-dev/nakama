@@ -1,17 +1,17 @@
 "use client";
 import { useState, type ReactNode } from "react";
-import { Dialog } from "@/shared/ui/dialog";
-import { Icon } from "@/shared/ui/icon";
-import { ToolbarAction } from "@/shared/ui/button";
+import { Dialog } from "./dialog";
+import { Icon, type IconName } from "./icon";
+import { ToolbarAction } from "./button";
 import { useT } from "@/shared/i18n/provider";
 
-export function CatalogueAction({
+export function ToolbarDialog({
   label,
   icon,
   children,
 }: {
   label: string;
-  icon: "plus" | "upload" | "consultancy";
+  icon: IconName;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);

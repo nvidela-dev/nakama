@@ -1,5 +1,5 @@
+import { WorkspaceToolbar, workspaceFilterLabel } from "@/shared/navigation/workspace-toolbar";
 import Link from "next/link";
-import Form from "next/form";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ownerJobs } from "@/features/jobs/server/connection";
@@ -23,9 +23,9 @@ import {
   sourceLink,
 } from "@/features/jobs/model";
 import { getT } from "@/shared/i18n/server";
-import { Button } from "@/shared/ui/button";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
 import { ProjectError } from "@/shared/contracts/errors";
+import { ToolbarDialog } from "@/shared/ui/toolbar-dialog";
 import Loading from "./loading";
 
 export async function generateMetadata() {
@@ -148,7 +148,7 @@ async function JobsContent({
     filters.contract,
     filters.startup,
   ].some(Boolean);
-  const filterClass = "grid gap-1 text-xs text-muted";
+  const filterClass = workspaceFilterLabel;
   return (
     <main
       id="main"
@@ -161,58 +161,82 @@ async function JobsContent({
             {t(board ? "{count} roles on your board" : "{count} leads", { count: total })}
           </p>
         </div>
-        <details className="min-w-44 rounded-lg border border-line bg-panel px-3 py-2">
-          <summary className="cursor-pointer font-medium">{t("Add job lead")}</summary>
-          <div className="mt-3">
-            <JobForm operation="add" submit="Save lead">
-              <label>
-                {t("Company")}
-                <Input name="company" required maxLength={200} />
-              </label>
-              <label>
-                {t("Role title")}
-                <Input name="title" required maxLength={250} />
-              </label>
-              <label>
-                {t("Date found")}
-                <Input name="found_on" type="date" required max={today} defaultValue={today} />
-              </label>
-              <label>
-                {t("Source URL")}
-                <Input name="url" type="url" maxLength={2000} />
-              </label>
-              <label>
-                {t("Skills listed for the role")}
-                <Textarea name="listed_skills" maxLength={2000} rows={2} />
-              </label>
-              <label>
-                {t("Relevance")}
-                <Textarea name="relevance" maxLength={2000} rows={2} />
-              </label>
-            </JobForm>
-          </div>
-        </details>
       </header>
-      <nav className="flex gap-2 border-b border-line" aria-label={t("Job views")}>
-        {[
-          [false, "Leads backlog"],
-          [true, "Active roles"],
-        ].map(([active, label]) => (
-          <Link
-            key={String(label)}
-            aria-current={board === active ? "page" : undefined}
-            className={
-              board === active
-                ? "border-b-2 border-lime px-3 py-2 font-semibold"
-                : "px-3 py-2 text-muted"
-            }
-            href={path({ view: active ? "board" : "", page: "" })}
-          >
-            {t(String(label))}
-          </Link>
-        ))}
-      </nav>
-      <Form action="/jobs" className="flex flex-wrap items-end gap-2">
+      <WorkspaceToolbar
+        label={t("Job actions")}
+        action="/jobs"
+        applyLabel={t("Apply filters")}
+        clear={
+          filtering
+            ? {
+                href: path({
+                  q: "",
+                  found: "",
+                  source: "",
+                  availability: "",
+                  employer: "",
+                  contract: "",
+                  startup: "",
+                  page: "",
+                }),
+                label: t("Clear filters"),
+              }
+            : undefined
+        }
+        views={
+          <nav className="flex flex-wrap gap-2" aria-label={t("Job views")}>
+            {[
+              [false, "Leads backlog"],
+              [true, "Active roles"],
+            ].map(([active, label]) => (
+              <Link
+                key={String(label)}
+                aria-current={board === active ? "page" : undefined}
+                className={
+                  board === active
+                    ? "border-b-2 border-lime px-3 py-2 font-semibold"
+                    : "px-3 py-2 text-muted"
+                }
+                href={path({ view: active ? "board" : "", page: "" })}
+              >
+                {t(String(label))}
+              </Link>
+            ))}
+          </nav>
+        }
+        actions={
+          <ToolbarDialog label="Add job lead" icon="plus">
+            <div className="mt-3">
+              <JobForm operation="add" submit="Save lead">
+                <label>
+                  {t("Company")}
+                  <Input name="company" required maxLength={200} />
+                </label>
+                <label>
+                  {t("Role title")}
+                  <Input name="title" required maxLength={250} />
+                </label>
+                <label>
+                  {t("Date found")}
+                  <Input name="found_on" type="date" required max={today} defaultValue={today} />
+                </label>
+                <label>
+                  {t("Source URL")}
+                  <Input name="url" type="url" maxLength={2000} />
+                </label>
+                <label>
+                  {t("Skills listed for the role")}
+                  <Textarea name="listed_skills" maxLength={2000} rows={2} />
+                </label>
+                <label>
+                  {t("Relevance")}
+                  <Textarea name="relevance" maxLength={2000} rows={2} />
+                </label>
+              </JobForm>
+            </div>
+          </ToolbarDialog>
+        }
+      >
         {sort === "match" && <Input type="hidden" name="sort" value={sort} />}
         {direction === "asc" && <Input type="hidden" name="direction" value={direction} />}
         {board && <Input type="hidden" name="view" value="board" />}
@@ -261,26 +285,7 @@ async function JobsContent({
           {t("Contract terms")}
           <Input name="contract" defaultValue={filters.contract} maxLength={100} />
         </label>
-        <Button type="submit" variant="secondary">
-          {t("Apply filters")}
-        </Button>
-        {filtering && (
-          <Link
-            href={path({
-              q: "",
-              found: "",
-              source: "",
-              availability: "",
-              employer: "",
-              contract: "",
-              startup: "",
-              page: "",
-            })}
-          >
-            {t("Clear filters")}
-          </Link>
-        )}
-      </Form>
+      </WorkspaceToolbar>
       {board ? (
         <div className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {Object.entries(jobStages).map(([stage, label]) => {

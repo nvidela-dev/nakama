@@ -18,8 +18,9 @@ test("a private image follows a business from the backlog into fullscreen, its d
     await page.goto("/");
     await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
     await page.goto("/prospects");
+    const toolbar = page.getByRole("group", { name: "Catalogue actions" });
     for (const name of ["Add business", "Import catalogue", "Catalogue access"]) {
-      const action = page.getByRole("button", { name, exact: true });
+      const action = toolbar.getByRole("button", { name, exact: true });
       await expect(action.locator("svg")).toBeVisible();
       await action.click();
       await expect(page.getByRole("dialog", { name })).toBeVisible();
@@ -58,6 +59,27 @@ test("a private image follows a business from the backlog into fullscreen, its d
     await page.getByRole("link", { name: "Fullscreen", exact: true }).click();
     await expect(page.getByRole("link", { name: "Exit fullscreen", exact: true })).toBeFocused();
     await decoded();
+    const more = toolbar.locator("summary").filter({ hasText: "More filters" });
+    await more.click();
+    const images = toolbar.getByLabel("Evidence images");
+    await images.selectOption("no");
+    await images.focus();
+    await page.keyboard.press("Escape");
+    await expect(more).toBeFocused();
+    await expect(toolbar.getByRole("link", { name: "Exit fullscreen" })).toBeVisible();
+    const apply = toolbar.getByRole("button", { name: "Apply filters", exact: true });
+    await apply.click();
+    await expect(page.getByRole("heading", { name: "0 businesses" })).toBeVisible();
+    await page.waitForURL((url) => {
+      const p = url.searchParams;
+      return p.get("focus") === "1" && p.get("images") === "no" && p.get("q") === name;
+    });
+    await more.click();
+    await expect(images).toHaveValue("no");
+    await images.selectOption("yes");
+    await more.click();
+    await apply.click();
+    await expect(row).toBeVisible();
     await row.getByRole("link", { name, exact: true }).click();
     const gallery = page.getByRole("region", { name: "Business images" });
     await expect(gallery.getByRole("img", { name: name + " · image 1" })).toBeVisible();
