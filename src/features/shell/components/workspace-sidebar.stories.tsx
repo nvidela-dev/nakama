@@ -9,7 +9,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 const render: Story["render"] = (args) => (
-  <div className="grid min-h-60 w-full lg:grid-cols-[12rem_minmax(0,1fr)]">
+  <div className="grid min-h-60 w-full lg:grid-cols-[3.75rem_minmax(0,1fr)]">
     <DesktopSidebar {...args} />
     <div>
       <MobileSidebar {...args} />

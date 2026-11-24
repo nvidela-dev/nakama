@@ -1,5 +1,6 @@
 "use client";
 
+import { Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,11 +17,26 @@ const destinations = [
 ] as const;
 type Props = { owner: boolean };
 
-function SidebarLinks({ owner, close }: Props & { close?: () => void }) {
+function SidebarLinks({
+  owner,
+  close,
+  compact,
+}: Props & { close?: () => void; compact?: boolean }) {
   const t = useT(),
     path = usePathname();
   const linkClass =
     "flex min-h-11 min-w-11 items-center gap-3 rounded-lg px-3 py-2 font-medium text-muted hover:bg-[var(--theme-selected)] hover:text-ink aria-[current=page]:bg-[var(--theme-selected)] aria-[current=page]:text-ink aria-[current=page]:ring-1 aria-[current=page]:ring-inset aria-[current=page]:ring-line focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-lime";
+  const appearance = compact ? linkClass + " justify-center px-0" : linkClass;
+  const label = (text: string) =>
+    compact ? null : <span className="min-w-0 wrap-anywhere">{text}</span>;
+  const tooltip = (text: string, link: React.ReactElement) =>
+    compact ? (
+      <Tooltip title={text} placement="right" trigger={["hover", "focus"]}>
+        {link}
+      </Tooltip>
+    ) : (
+      link
+    );
   return (
     <>
       <nav aria-label={t("Main navigation")}>
@@ -29,36 +45,44 @@ function SidebarLinks({ owner, close }: Props & { close?: () => void }) {
             .filter(({ href }) => owner || href !== "/jobs")
             .map(({ href, name, icon }) => (
               <li key={href}>
-                <Link
-                  href={href}
-                  prefetch={false}
-                  className={linkClass}
-                  aria-current={
-                    path === href || (href !== "/" && path.startsWith(href + "/"))
-                      ? "page"
-                      : undefined
-                  }
-                  {...(close ? { onNavigate: close } : {})}
-                >
-                  <Icon name={icon} className="shrink-0" />
-                  <span className="min-w-0 wrap-anywhere">{t(name)}</span>
-                </Link>
+                {tooltip(
+                  t(name),
+                  <Link
+                    href={href}
+                    prefetch={false}
+                    aria-label={t(name)}
+                    className={appearance}
+                    aria-current={
+                      path === href || (href !== "/" && path.startsWith(href + "/"))
+                        ? "page"
+                        : undefined
+                    }
+                    {...(close ? { onNavigate: close } : {})}
+                  >
+                    <Icon name={icon} className="shrink-0" />
+                    {label(t(name))}
+                  </Link>,
+                )}
               </li>
             ))}
         </ul>
       </nav>
       <nav className="mt-4 border-t border-line pt-3" aria-label={t("Workspace tools")}>
-        <Link
-          href="/artifacts"
-          prefetch={false}
-          {...(close ? { onNavigate: close } : {})}
-          aria-current={
-            path === "/artifacts" || path.startsWith("/artifacts/") ? "page" : undefined
-          }
-          className={linkClass}
-        >
-          <Icon name="box" className="shrink-0" /> {t("Artifacts")}
-        </Link>
+        {tooltip(
+          t("Artifacts"),
+          <Link
+            href="/artifacts"
+            prefetch={false}
+            {...(close ? { onNavigate: close } : {})}
+            aria-current={
+              path === "/artifacts" || path.startsWith("/artifacts/") ? "page" : undefined
+            }
+            aria-label={t("Artifacts")}
+            className={appearance}
+          >
+            <Icon name="box" className="shrink-0" /> {label(t("Artifacts"))}
+          </Link>,
+        )}
       </nav>
     </>
   );
@@ -66,8 +90,8 @@ function SidebarLinks({ owner, close }: Props & { close?: () => void }) {
 
 export function DesktopSidebar(props: Props) {
   return (
-    <aside className="hidden min-h-0 overflow-y-auto overscroll-contain border-r border-line bg-panel p-3 lg:block">
-      <SidebarLinks {...props} />
+    <aside className="hidden min-h-0 overflow-y-auto overscroll-contain border-r border-line bg-panel px-2 py-3 lg:block">
+      <SidebarLinks {...props} compact />
     </aside>
   );
 }

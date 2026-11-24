@@ -101,13 +101,13 @@ function NotificationMenu() {
     }
   }
   return (
-    <div className={"notification-bell relative"} ref={root}>
+    <div className={"notification-bell relative grid size-11 place-items-center"} ref={root}>
       <Button
         type="submit"
         ref={button}
         variant="ghost"
         className={
-          "notification-trigger relative min-w-11 min-h-11 hover:[background:transparent] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
+          "notification-trigger relative size-11! p-0! hover:[background:transparent] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
         }
         aria-label={`${t("Unread comments")}${inbox ? `: ${inbox.count}` : ""}`}
         aria-expanded={open}

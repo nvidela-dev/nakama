@@ -1,18 +1,30 @@
 import "server-only";
-import { actor } from "@/features/access/server/auth";
+import { cache } from "react";
+import { actor, currentAdmittedActor } from "@/features/access/server/auth";
 import { adminEmail } from "@/features/access/server/whitelist";
 import { database } from "@/server/database/db";
+import type { Actor } from "@/shared/contracts/actor";
 import { homeActivity } from "./home-activity-store";
 import { homeMetrics } from "./home-metrics";
 
+const jobs = () => (process.env.JOBS_DATABASE_URL ? database("jobs") : null);
+
+// The auth layer gives both consumers the same admitted Actor within the render.
+// React's cache shares its counts without persisting them across requests.
+const workspaceMetrics = cache((person: Actor) =>
+  homeMetrics(database(), jobs, person, adminEmail()),
+);
+
+export async function loadWorkspaceMetrics() {
+  const person = await currentAdmittedActor();
+  return person ? workspaceMetrics(person) : null;
+}
+
 export async function loadHomeSnapshot() {
   const person = await actor(true);
-  const workspace = database();
-  const jobs = () => (process.env.JOBS_DATABASE_URL ? database("jobs") : null);
-  const owner = adminEmail();
   const [activity, metrics] = await Promise.all([
-    homeActivity(workspace, jobs, person, owner),
-    homeMetrics(workspace, jobs, person, owner),
+    homeActivity(database(), jobs, person, adminEmail()),
+    workspaceMetrics(person),
   ]);
   return { activity, metrics };
 }

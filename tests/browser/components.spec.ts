@@ -947,26 +947,27 @@ test("catalogue toolbar fits a narrow screen without exposing owner actions to m
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
-test("workspace sidebar preserves labels, current route, permissions and navigation target", async ({
+test("workspace sidebar preserves accessible labels, tooltips, current route and permissions", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1200, height: 720 });
   await story(page, "features-shell-workspace-sidebar--owner");
   const nav = page.getByRole("navigation", { name: "Main navigation" });
-  await expect(nav.getByRole("link")).toHaveText([
-    "Home",
-    "Explorations",
-    "Consultancy",
-    "Job Search",
-  ]);
-  await expect(nav.getByRole("link", { name: "Explorations" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(nav.getByRole("link")).toHaveCount(4);
+  for (const label of ["Home", "Explorations", "Consultancy", "Job Search"]) {
+    const link = nav.getByRole("link", { name: label });
+    await expect(link).toHaveText("");
+    await expect(link).toBeVisible();
+  }
+  const active = nav.getByRole("link", { name: "Explorations" });
+  await expect(active).toHaveAttribute("aria-current", "page");
+  await active.focus();
+  await expect(page.getByRole("tooltip").filter({ hasText: "Explorations" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Job Search" })).toHaveAttribute("href", "/jobs");
   await expect(page.getByRole("link", { name: "Artifacts" })).toBeVisible();
   await story(page, "features-shell-workspace-sidebar--collaborator");
-  await expect(nav.getByRole("link")).toHaveText(["Home", "Explorations", "Consultancy"]);
+  await expect(nav.getByRole("link")).toHaveCount(3);
+  await expect(nav.getByRole("link", { name: "Job Search" })).toHaveCount(0);
 });
 
 for (const [width, height] of [
@@ -1055,4 +1056,37 @@ test("Home digest fits narrow screens, identifies source and time, links to reco
   await expect(
     page.getByRole("region", { name: "Workspace overview" }).getByRole("article"),
   ).toHaveCount(1);
+});
+
+test("header indicators fit phones, align with account controls and omit private sources", async ({
+  page,
+}) => {
+  for (const width of [320, 360, 390, 1200]) {
+    await page.setViewportSize({ width, height: 700 });
+    await story(page, "features-shell-header-indicators--owner");
+    const banner = page.getByRole("banner");
+    const nav = banner.getByRole("navigation", { name: "Indicadores de actividad" });
+    await expect(nav.getByRole("link")).toHaveCount(3);
+    await expect(nav.getByRole("link", { name: "Búsqueda laboral: 12 en curso" })).toHaveAttribute(
+      "href",
+      "/jobs?view=board",
+    );
+    await expect(nav.getByRole("link", { name: "Consultoría: 1590 en curso" })).toHaveAttribute(
+      "href",
+      "/prospects?view=board",
+    );
+    const alert = await banner.getByRole("button", { name: "Alerts" }).boundingBox();
+    const avatar = await banner.getByRole("button", { name: "Account" }).boundingBox();
+    expect(alert?.y).toBe(avatar?.y);
+    expect(alert?.height).toBe(44);
+    expect(avatar?.height).toBe(44);
+    expect(avatar!.x + avatar!.width).toBeLessThanOrEqual(width);
+    expect(await banner.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+      true,
+    );
+  }
+  await story(page, "features-shell-header-indicators--collaborator");
+  const nav = page.getByRole("navigation", { name: "Workspace activity indicators" });
+  await expect(nav.getByRole("link")).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Explorations: 3 active" })).toBeVisible();
 });

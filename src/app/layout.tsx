@@ -57,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="flex min-h-0 min-w-0">
           {authConfigured() && (
             <Show when="signed-in">
-              <div className="hidden w-49 shrink-0 lg:grid lg:grid-rows-[minmax(0,1fr)]">
+              <div className="hidden w-15 shrink-0 lg:grid lg:grid-rows-[minmax(0,1fr)]">
                 <DesktopSidebar owner={owner} />
               </div>
             </Show>

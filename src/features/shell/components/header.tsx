@@ -1,11 +1,22 @@
 import { Button } from "@/shared/ui/button";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { WaveMark } from "@/shared/ui/wave-mark";
-import { getT } from "@/shared/i18n/server";
+import { Suspense } from "react";
+import { getLocale, getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { authConfigured, currentIsAdmin } from "@/features/access/server/auth";
+import { loadWorkspaceMetrics } from "../server/home-activity";
+import { HeaderIndicators } from "./header-indicators";
 import { MobileSidebar } from "./workspace-sidebar";
+
+async function WorkspaceIndicatorSlot() {
+  const [metrics, locale] = await Promise.all([
+    loadWorkspaceMetrics().catch(() => null),
+    getLocale(),
+  ]);
+  return <HeaderIndicators metrics={metrics} locale={locale} />;
+}
 
 export async function Header() {
   const [t, owner] = await Promise.all([getT(), currentIsAdmin()]);
@@ -28,19 +39,30 @@ export async function Header() {
           >
             <WaveMark />
           </span>
-          nakama
+          <span className="max-[419px]:sr-only">nakama</span>
         </Link>
       </div>
       {authConfigured() && (
         <>
           <Show when="signed-in">
-            <div className="flex shrink-0 items-center gap-0.5 text-xs lg:gap-4">
+            <div className="flex min-h-11 shrink-0 items-center gap-0.5 text-xs sm:gap-2">
+              <Suspense fallback={null}>
+                <WorkspaceIndicatorSlot />
+              </Suspense>
               <NotificationBell />
               <div className="grid size-11 place-items-center">
                 <UserButton
                   appearance={{
                     elements: {
-                      userButtonTrigger: { minWidth: 44, minHeight: 44, justifyContent: "center" },
+                      userButtonBox: { display: "flex", alignItems: "center" },
+                      userButtonTrigger: {
+                        display: "flex",
+                        alignItems: "center",
+                        width: 44,
+                        height: 44,
+                        justifyContent: "center",
+                        padding: 0,
+                      },
                     },
                   }}
                 />

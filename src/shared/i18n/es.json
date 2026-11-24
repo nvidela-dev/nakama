@@ -1,4 +1,6 @@
 {
+  "Workspace activity indicators": "Indicadores de actividad",
+  "{area}: {count} active": "{area}: {count} en curso",
   "Parked": "En pausa",
   "Finished": "Finalizadas",
   "Workspace overview": "Resumen del espacio de trabajo",
