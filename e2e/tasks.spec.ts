@@ -89,11 +89,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
   await page.goto(path);
   await page.getByRole("tab", { name: "Activity", exact: true }).click();
   await expect(page.locator(".activity-list")).toContainText("created the project");
-  await expect(
-    page
-      .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("button", { name: "New project" }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "New Exploration", exact: true })).toHaveCount(0);
   await page.getByRole("tab", { name: "To-do", exact: true }).click();
   const list = page.getByRole("region", { name: "Project to-do list" });
   await expect(page.locator(".project-discussion-column")).toHaveCount(0);

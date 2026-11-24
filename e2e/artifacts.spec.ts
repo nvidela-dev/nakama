@@ -274,7 +274,7 @@ test("shirt shop groups, four print areas, rotatable preview and physical printe
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
   await page.goto("/projects");
-  await page.getByRole("button", { name: "New project", exact: true }).click();
+  await page.getByRole("button", { name: "New Exploration", exact: true }).click();
   let dialog = page.getByRole("dialog");
   await dialog.locator('button[value="shirt-eshop"]').click();
   await dialog.getByRole("button", { name: /Continue/ }).click();

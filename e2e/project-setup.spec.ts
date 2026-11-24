@@ -53,7 +53,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
   await page.goto("/projects");
   await expect(page.getByLabel("Project name", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "New project", exact: true }).click();
+  await page.getByRole("button", { name: "New Exploration", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.locator(".flow-option")).toHaveCount(flowCatalog.length);
@@ -85,8 +85,8 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await dialog.getByRole("button", { name: /Continue/ }).click();
   await expect(dialog.getByLabel("Project name", { exact: true })).toHaveValue(name);
   await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
-  await expect(page.getByRole("button", { name: "New project", exact: true })).toBeFocused();
-  await page.getByRole("button", { name: "New project", exact: true }).click();
+  await expect(page.getByRole("button", { name: "New Exploration", exact: true })).toBeFocused();
+  await page.getByRole("button", { name: "New Exploration", exact: true }).click();
   await expect(dialog.getByLabel("Project name", { exact: true })).toHaveValue(name);
   await dialog.getByRole("button", { name: "Create project", exact: true }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
@@ -106,7 +106,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
   await expect(page.getByLabel("Related question", { exact: true })).toHaveCount(0);
   await page.goto("/projects");
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "New project", exact: true }).click();
+  await page.getByRole("button", { name: "New Exploration", exact: true }).click();
   await expect(dialog.locator(".flow-option")).toHaveCount(flowCatalog.length);
   const positions = await dialog
     .locator(".flow-option")
@@ -131,7 +131,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
     .screenshot({ path: test.info().outputPath("existing-project-type-grid.png") });
   await page.goto("/projects");
   await page.getByRole("button", { name: "Español", exact: true }).click();
-  await page.getByRole("button", { name: "Nuevo proyecto", exact: true }).click();
+  await page.getByRole("button", { name: "Nueva exploración", exact: true }).click();
   await expect(dialog.getByText("Paso 1 de 2 · Tipo de proyecto", { exact: true })).toBeVisible();
   await dialog.getByRole("button", { name: "Elegir más adelante", exact: true }).click();
   await dialog.getByRole("button", { name: /Continuar/ }).click();

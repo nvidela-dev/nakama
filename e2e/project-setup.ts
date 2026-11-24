@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 // Existing journeys can defer a flow and continue exercising selection later.
 export async function openProjectSetup(page: Page) {
-  await page.getByRole("button", { name: /^(New project|Nuevo proyecto)(\s*\+)?$/ }).click();
+  await page.getByRole("button", { name: /^(New Exploration|Nueva exploración)(\s*\+)?$/ }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   if (await dialog.getByRole("button", { name: /^(Choose later|Elegir más adelante)$/ }).count()) {

@@ -4,6 +4,7 @@ import { ProjectError } from "@/shared/contracts/errors";
 import { Workspace } from "@/shared/ui/workspace-layout";
 import { WaveMark } from "@/shared/ui/wave-mark";
 import { getT } from "@/shared/i18n/server";
+import { NewProjectButton } from "@/features/projects/components/new-project";
 import { ProjectCard } from "@/features/projects/components/project-card";
 import { actor } from "@/features/access/server/auth";
 import { database } from "@/server/database/db";
@@ -61,12 +62,15 @@ export default async function ProjectsPage({
             {totals.reduce((sum, row) => sum + row.total, 0)}
           </span>
         </h1>
-        <Link
-          href={archived ? "/projects" : "/projects?view=archived"}
-          className="text-sm underline"
-        >
-          {t(archived ? "Active projects" : "Archived projects")}
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link
+            href={archived ? "/projects" : "/projects?view=archived"}
+            className="inline-flex min-h-11 items-center text-sm underline"
+          >
+            {t(archived ? "Active projects" : "Archived projects")}
+          </Link>
+          {!archived && <NewProjectButton />}
+        </div>
       </div>
       <section aria-label={t("Your projects")} className="grid gap-6">
         {projects.length ? (
@@ -134,7 +138,9 @@ export default async function ProjectsPage({
               )}
             </h3>
             {!after && !archived && (
-              <p className={"mb-[1em] mt-0 text-[14px]"}>{t("Create a project to get started.")}</p>
+              <p className={"mb-[1em] mt-0 text-[14px]"}>
+                {t("Create an exploration to get started.")}
+              </p>
             )}
           </div>
         )}

@@ -48,7 +48,7 @@ test("self-improvement capture, answers, tasks, artifacts and experiments", asyn
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: process.env.NAKAMA_ADMIN_EMAIL! });
   await page.goto("/projects");
-  await page.getByRole("button", { name: "New project", exact: true }).click();
+  await page.getByRole("button", { name: "New Exploration", exact: true }).click();
   const setup = page.getByRole("dialog");
   await setup.getByRole("button", { name: /Self-improvement/ }).click();
   await setup.getByRole("button", { name: /Continue/ }).click();
