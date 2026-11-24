@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 
@@ -29,7 +30,7 @@ test("public landing remains separate from the signed-in digest and sidebar navi
   await page.getByRole("link", { name: "Archived projects", exact: true }).click();
   await expect(page.getByRole("button", { name: "New Exploration", exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "Active projects", exact: true }).click();
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(page, "es");
   await expect(page.getByRole("heading", { name: "Exploraciones", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Nueva exploración", exact: true })).toHaveCount(1);
   await expect(page.getByRole("button", { name: "Nueva exploración", exact: true })).toBeVisible();

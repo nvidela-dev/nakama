@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { openProjectSetup } from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
@@ -67,7 +68,7 @@ test("administrator manages exact-email admission without granting project membe
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
       false,
     );
-    await page.getByRole("button", { name: "Español", exact: true }).click();
+    await switchLanguage(page, "es");
     await expect(page.getByRole("heading", { name: "Administración", exact: true })).toBeVisible();
   } finally {
     if (added) {

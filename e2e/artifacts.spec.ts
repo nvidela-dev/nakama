@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { openProjectSetup } from "./project-setup";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
@@ -247,7 +248,7 @@ test("private artifact library, typed outputs, image lightbox, Markdown reader, 
   await page.getByRole("button", { name: "Expand image: design-one.png", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Expanded image" })).toBeVisible();
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(page, "es");
   await expect(
     page.getByRole("heading", { name: "Espacio de artefacto", exact: true }),
   ).toBeVisible();

@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 import { Pool } from "pg";
@@ -124,7 +125,7 @@ test("spawn, add several sources, navigate both ways, link/unlink existing proje
   await expect(panel.getByRole("link", { name: aName, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await panel.screenshot({ path: "/tmp/nakama-lineage-phone.png" });
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(page, "es");
   await expect(
     panel.getByRole("heading", { name: "Proyectos vinculados", exact: true }),
   ).toBeVisible();

@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { required } from "../src/server/database/query";
 import { openProjectSetup } from "./project-setup";
 import { test, expect } from "@playwright/test";
@@ -142,9 +143,9 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
     .getByRole("button", { name: "Save changes", exact: true })
     .click();
   await expect(second.locator(".comment-body")).toHaveText("Newer saved version");
-  await friend.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(friend, "es");
   await expect(friend.locator("html")).toHaveAttribute("lang", "es");
-  await friend.getByRole("button", { name: "English", exact: true }).click();
+  await switchLanguage(friend, "en");
   await expect(friend.locator("html")).toHaveAttribute("lang", "en");
   await friendDiscussion.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(friendDiscussion.getByRole("alert")).toHaveText(
@@ -176,9 +177,9 @@ test("two-person scoped comments, conflict handling, moderation, activity, and r
   await expect(page.locator(".activity-list")).not.toContainText("Newer saved version");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(page, "es");
   await expect(page.locator(".discussion h2")).toContainText("Discusión");
-  await page.getByRole("button", { name: "English", exact: true }).click();
+  await switchLanguage(page, "en");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await page.setViewportSize({ width: 1440, height: 900 });
   const progressPanel = page.locator(".journey-progress-panel");

@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { flowCatalog } from "../src/features/guidance/model/flow-catalog.generated";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
@@ -130,7 +131,7 @@ test("single-button project setup, compact type grid, retained drafts, atomic se
     .locator(".flow-options")
     .screenshot({ path: test.info().outputPath("existing-project-type-grid.png") });
   await page.goto("/projects");
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(page, "es");
   await page.getByRole("button", { name: "Nueva exploración", exact: true }).click();
   await expect(dialog.getByText("Paso 1 de 2 · Tipo de proyecto", { exact: true })).toBeVisible();
   await dialog.getByRole("button", { name: "Elegir más adelante", exact: true }).click();

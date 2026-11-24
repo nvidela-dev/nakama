@@ -1,14 +1,8 @@
 import { frontendBudgets, measureProjectInteractions } from "../scripts/frontend-metrics";
 import { openProjectSetup } from "./project-setup";
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
-async function density(page: Page, value: "compact" | "comfortable") {
-  await page.getByLabel("Desktop layout").selectOption(value);
-  await expect(page.locator("html")).toHaveAttribute("data-density", value);
-}
-test("desktop and ultrawide use compact full-width rows; comfortable and phone retain roomier cards", async ({
-  page,
-}) => {
+test("desktop, ultrawide and phone keep responsive exploration navigation", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await clerk.signIn({
@@ -24,7 +18,6 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Creative/ }).click();
   const projectPath = new URL(page.url()).pathname;
-  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
   await expect(page.locator(".stage-card:visible")).toHaveCount(5);
   const compact = await page.locator(".stage-card:visible").first().boundingBox();
   expect(compact!.height).toBeGreaterThanOrEqual(88);
@@ -42,13 +35,6 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
     path: test.info().outputPath("desktop-compact.png"),
     fullPage: true,
   });
-  await density(page, "comfortable");
-  await expect(page.locator(".stage-card:visible")).toHaveCount(5);
-  const comfortable = await page.locator(".stage-card:visible").first().boundingBox();
-  expect(comfortable!.height).toBeGreaterThan(compact!.height);
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-density", "comfortable");
-  await density(page, "compact");
   await page.setViewportSize({ width: 3440, height: 1440 });
   await expect(page.locator(".workspace:visible")).toHaveCount(1);
   const workspace = await page.locator(".workspace:visible").boundingBox();
@@ -74,7 +60,6 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByLabel("Desktop layout")).toBeHidden();
   await page.goto(projectPath);
   await expect(page.locator(".stage-card:visible")).toHaveCount(5);
   expect(
@@ -109,7 +94,7 @@ test("desktop and ultrawide use compact full-width rows; comfortable and phone r
     expect(result.mapLazyJsGzip).toBeLessThanOrEqual(frontendBudgets.mapLazyJsGzip);
   }
 });
-test("density changes keep capture and answer drafts, selections and saving intact", async ({
+test("viewport changes keep capture and answer drafts, selections and saving intact", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -124,11 +109,11 @@ test("density changes keep capture and answer drafts, selections and saving inta
   await page.getByLabel("Project name").fill(name);
   await page.getByLabel("Description").fill("A compact desktop workspace.");
   await page.getByRole("button", { name: "Close setup", exact: true }).click();
-  await density(page, "comfortable");
+  await page.setViewportSize({ width: 1280, height: 1080 });
   await openProjectSetup(page);
   await expect(page.getByLabel("Project name")).toHaveValue(name);
   await page.getByRole("button", { name: "Close setup", exact: true }).click();
-  await density(page, "compact");
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await openProjectSetup(page);
   await page.getByRole("button", { name: "Create project" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
@@ -137,33 +122,29 @@ test("density changes keep capture and answer drafts, selections and saving inta
   const project = new URL(page.url()).pathname;
   for (const width of [1280, 1440, 1900]) {
     await page.setViewportSize({ width, height: 1080 });
-    for (const layout of ["compact", "comfortable"] as const) {
-      await density(page, layout);
-      await page.evaluate(() => window.scrollTo(0, 0));
-      const left = await page.locator(".project-discussion-column").boundingBox();
-      const middle = await page.locator(".project-working-column").boundingBox();
-      const right = await page.locator(".project-sidebar").boundingBox();
-      const workspace = await page.locator(".workspace-columns").boundingBox();
-      expect(Math.abs(left!.x - workspace!.x)).toBeLessThan(1);
-      expect(Math.abs(left!.width - workspace!.width)).toBeLessThan(1);
-      expect(left!.y).toBeGreaterThanOrEqual(
-        Math.max(middle!.y + middle!.height, right!.y + right!.height),
-      );
-      expect(middle!.x).toBeLessThan(right!.x);
-    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const left = await page.locator(".project-discussion-column").boundingBox();
+    const middle = await page.locator(".project-working-column").boundingBox();
+    const right = await page.locator(".project-sidebar").boundingBox();
+    const workspace = await page.locator(".workspace-columns").boundingBox();
+    expect(Math.abs(left!.x - workspace!.x)).toBeLessThan(1);
+    expect(Math.abs(left!.width - workspace!.width)).toBeLessThan(1);
+    expect(left!.y).toBeGreaterThanOrEqual(
+      Math.max(middle!.y + middle!.height, right!.y + right!.height),
+    );
+    expect(middle!.x).toBeLessThan(right!.x);
   }
   await page.setViewportSize({ width: 1920, height: 1080 });
-  await density(page, "compact");
   await page.goto(`${project}?stage=experiment&node=experiment-direction`);
   await page
     .getByLabel("Your answer, learning, or uncertainty")
     .fill("Keep this draft across desktop layouts.");
   await page.getByLabel("Your direction").selectOption("Save for later");
-  await density(page, "comfortable");
+  await page.setViewportSize({ width: 1100, height: 1080 });
   await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
     "Keep this draft across desktop layouts.",
   );
-  await density(page, "compact");
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await expect(page.getByLabel("Your direction")).toHaveValue("Save for later");
   const answer = await page.getByLabel("Your answer, learning, or uncertainty").boundingBox();
   const state = await page.getByLabel("Where does this stand?").boundingBox();
@@ -181,7 +162,4 @@ test("density changes keep capture and answer drafts, selections and saving inta
   await expect(page.getByLabel("Your answer, learning, or uncertainty")).toHaveValue(
     "Keep this draft across desktop layouts.",
   );
-  await page.getByRole("button", { name: "Español", exact: true }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  await expect(page.getByLabel("Vista de escritorio")).toHaveValue("compact");
 });

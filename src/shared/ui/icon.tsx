@@ -1,5 +1,7 @@
 import { cn } from "./cn";
 import {
+  Globe,
+  ShieldCheck,
   House,
   Compass,
   BriefcaseBusiness,
@@ -56,6 +58,8 @@ import type { LucideProps } from "lucide-react";
 
 /** Explicit catalog: never import the whole library or construct icon names at runtime. */
 export const iconCatalog = {
+  language: Globe,
+  admin: ShieldCheck,
   home: House,
   compass: Compass,
   jobSearch: BriefcaseBusiness,

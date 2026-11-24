@@ -434,7 +434,7 @@ test("existing identity-provider calls cannot bypass their diagnostic adapter", 
   const ts = await import("typescript");
   for (const file of [
     "src/proxy.ts",
-    "src/features/shell/components/footer.tsx",
+    "src/features/shell/components/header.tsx",
     "src/features/access/server/auth.ts",
     "src/features/access/server/whitelist.ts",
     "src/features/access/server/request-store.ts",

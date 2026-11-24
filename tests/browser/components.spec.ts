@@ -947,27 +947,32 @@ test("catalogue toolbar fits a narrow screen without exposing owner actions to m
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
-test("workspace sidebar preserves accessible labels, tooltips, current route and permissions", async ({
+test("workspace sidebar preserves visible names and scoped counts and joins the selected tab to the content", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1200, height: 720 });
   await story(page, "features-shell-workspace-sidebar--owner");
   const nav = page.getByRole("navigation", { name: "Main navigation" });
   await expect(nav.getByRole("link")).toHaveCount(4);
-  for (const label of ["Home", "Explorations", "Consultancy", "Job Search"]) {
-    const link = nav.getByRole("link", { name: label });
-    await expect(link).toHaveText("");
-    await expect(link).toBeVisible();
-  }
   const active = nav.getByRole("link", { name: "Explorations" });
+  await expect(active).toHaveText("Explorations");
   await expect(active).toHaveAttribute("aria-current", "page");
-  await active.focus();
-  await expect(page.getByRole("tooltip").filter({ hasText: "Explorations" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Job Search" })).toHaveAttribute("href", "/jobs");
+  await expect(nav.getByRole("link", { name: /^Job Search/ })).toContainText("12");
+  await expect(nav.getByRole("link", { name: /^Consultancy/ })).toContainText("7");
   await expect(page.getByRole("link", { name: "Artifacts" })).toBeVisible();
+  const rail = await page.getByRole("complementary").boundingBox();
+  const tab = await active.boundingBox();
+  expect(tab!.x + tab!.width).toBe(rail!.x + rail!.width);
+  const canvas = page.getByRole("main");
+  expect(await active.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(
+    await canvas.evaluate((element) => getComputedStyle(element).backgroundColor),
+  );
   await story(page, "features-shell-workspace-sidebar--collaborator");
   await expect(nav.getByRole("link")).toHaveCount(3);
-  await expect(nav.getByRole("link", { name: "Job Search" })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: /^Job Search/ })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: "Consultancy", exact: true })).toHaveText(
+    "Consultancy",
+  );
 });
 
 for (const [width, height] of [
@@ -992,7 +997,7 @@ for (const [width, height] of [
     await expect(close).toBeFocused();
     await expect(
       dialog.getByRole("navigation", { name: "Navegación principal" }).getByRole("link"),
-    ).toHaveText(["Inicio", "Exploraciones", "Consultoría", "Búsqueda laboral"]);
+    ).toHaveText(["Inicio", "Exploraciones", "Consultoría7", "Búsqueda laboral12"]);
     for (const element of [close, ...(await dialog.getByRole("link").all())]) {
       const box = await element.boundingBox();
       expect(box?.height).toBeGreaterThanOrEqual(44);
@@ -1066,15 +1071,16 @@ test("header indicators fit phones, align with account controls and omit private
     await story(page, "features-shell-header-indicators--owner");
     const banner = page.getByRole("banner");
     const nav = banner.getByRole("navigation", { name: "Indicadores de actividad" });
-    await expect(nav.getByRole("link")).toHaveCount(3);
-    await expect(nav.getByRole("link", { name: "Búsqueda laboral: 12 en curso" })).toHaveAttribute(
+    await expect(nav.getByRole("link")).toHaveCount(1);
+    await expect(nav.getByRole("link", { name: "Exploraciones: 3 en curso" })).toHaveAttribute(
       "href",
-      "/jobs?view=board",
+      "/projects",
     );
-    await expect(nav.getByRole("link", { name: "Consultoría: 1590 en curso" })).toHaveAttribute(
-      "href",
-      "/prospects?view=board",
-    );
+    await expect(banner.getByRole("button", { name: "Language" })).toBeVisible();
+    const prefs = await banner.getByRole("group", { name: "Workspace preferences" }).boundingBox();
+    const account = await banner.getByRole("button", { name: "Account" }).boundingBox();
+    if (width < 520) expect(prefs!.y).toBeGreaterThan(account!.y);
+    else expect(prefs!.y).toBe(account!.y);
     const alert = await banner.getByRole("button", { name: "Alerts" }).boundingBox();
     const avatar = await banner.getByRole("button", { name: "Account" }).boundingBox();
     expect(alert?.y).toBe(avatar?.y);

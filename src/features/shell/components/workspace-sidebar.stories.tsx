@@ -9,13 +9,23 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 const render: Story["render"] = (args) => (
-  <div className="grid min-h-60 w-full lg:grid-cols-[3.75rem_minmax(0,1fr)]">
+  <div className="grid min-h-60 w-full lg:grid-cols-[12.75rem_minmax(0,1fr)]">
     <DesktopSidebar {...args} />
     <div>
       <MobileSidebar {...args} />
-      <main>Example workspace</main>
+      <main className="bg-bg">Example workspace</main>
     </div>
   </div>
 );
-export const Owner: Story = { args: { owner: true }, render };
+export const Owner: Story = {
+  args: {
+    owner: true,
+    metrics: {
+      explorations: { active: 3, withFlow: 3, withoutFlow: 0, parked: 0, finished: 0 },
+      jobs: { active: 12, stages: [] },
+      consultancy: { active: 7, stages: [] },
+    },
+  },
+  render,
+};
 export const Collaborator: Story = { args: { owner: false }, render };

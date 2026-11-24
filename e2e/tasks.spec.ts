@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { openProjectSetup } from "./project-setup";
 import { test, expect, type Locator } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
@@ -279,7 +280,7 @@ test("browser tasks, explicit subtree operations, conflicts, and preserved guide
     "",
   );
   await expect(list.getByRole("button", { name: "Make a sample", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(page, "es");
   await expect(page.getByRole("button", { name: "Agregar tarea", exact: true })).toBeVisible();
   await expect(page.getByRole("option", { name: "Pendiente", exact: true }).first()).toHaveText(
     "Pendiente",

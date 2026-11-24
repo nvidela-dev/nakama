@@ -1,6 +1,6 @@
 # Preferences
 
-Language/density controls and their cookie actions.
+Language and theme controls and their cookie actions.
 
 Start with [the public contract or composition](components/language-switcher.tsx). Keep UI in `components`, authorized orchestration in explicit `use server` actions, and persistence/provider work in `server` when needed. The feature stylesheet owns its prefixed product selectors.
 

@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 import { Pool } from "pg";
@@ -65,13 +66,13 @@ test("self-improvement capture, answers, tasks, artifacts and experiments", asyn
   } finally {
     await pool.end();
   }
-  await page.getByRole("button", { name: "Español", exact: true }).click();
+  await switchLanguage(page, "es");
   await expect(page.locator(".stage-label").first()).toHaveText("Patrón");
   await page.screenshot({
     path: test.info().outputPath("self-improvement-spanish.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "English", exact: true }).click();
+  await switchLanguage(page, "en");
   await expect(page.locator(".stage-label").first()).toHaveText("Pattern");
   await page.goto(`/projects/${fixtureId}?stage=pattern&node=self-scope`);
   await page

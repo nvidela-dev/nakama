@@ -1,3 +1,4 @@
+import { switchLanguage } from "./language";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
 import { Pool } from "pg";
@@ -169,7 +170,7 @@ test("bell preserves unread state until explicit read or visible discussion, wit
     );
     await panel.screenshot({ path: test.info().outputPath("notification-phone.png") });
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Español", exact: true }).click();
+    await switchLanguage(page, "es");
     await expect(page.getByRole("button", { name: /Comentarios sin leer/ })).toBeVisible();
   } finally {
     if (id && owner) await projectService(db).deleteProject(owner, id, name);

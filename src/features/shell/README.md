@@ -1,6 +1,6 @@
 # Shell
 
-Application header/footer composition across product features.
+Application header and sidebar composition across product features.
 
 Start with [the public contract or composition](components/header.tsx). Keep UI in `components`, authorized orchestration in explicit `use server` actions, and persistence/provider work in `server` when needed. The feature stylesheet owns its prefixed product selectors.
 

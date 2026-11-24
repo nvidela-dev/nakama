@@ -17,18 +17,6 @@ export function HeaderIndicators({
   });
   const entries = [
     {
-      label: "Job Search",
-      icon: "jobSearch",
-      href: "/jobs?view=board",
-      count: metrics.jobs?.active,
-    },
-    {
-      label: "Consultancy",
-      icon: "consultancy",
-      href: "/prospects?view=board",
-      count: metrics.consultancy?.active,
-    },
-    {
       label: "Explorations",
       icon: "compass",
       href: "/projects",

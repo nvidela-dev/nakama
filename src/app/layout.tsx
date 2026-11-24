@@ -7,12 +7,13 @@ import { getLocale, getT } from "@/shared/i18n/server";
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { authConfigured, currentIsAdmin } from "@/features/access/server/auth";
+import { Suspense } from "react";
+import { loadWorkspaceMetrics } from "@/features/shell/server/home-activity";
 import { Header } from "@/features/shell/components/header";
 
 import "./globals.css";
 import { Show } from "@clerk/nextjs";
 import { DesktopSidebar } from "@/features/shell/components/workspace-sidebar";
-import { Footer } from "@/features/shell/components/footer";
 import { LanguageProvider } from "@/shared/i18n/provider";
 import { enUS } from "@clerk/localizations/en-US";
 import { esUY } from "@clerk/localizations/es-UY";
@@ -36,12 +37,14 @@ export async function generateMetadata(): Promise<Metadata> {
     referrer: "no-referrer",
   };
 }
+async function Sidebar({ owner }: { owner: boolean }) {
+  const metrics = await loadWorkspaceMetrics().catch(() => null);
+  return <DesktopSidebar owner={owner} metrics={metrics} />;
+}
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [t, owner] = await Promise.all([getT(), currentIsAdmin()]);
   const locale = await getLocale();
   const theme = parseStyleTheme((await cookies()).get("nakama-theme")?.value);
-  const density =
-    (await cookies()).get("nakama-density")?.value === "comfortable" ? "comfortable" : "compact";
   const content = (
     <>
       <a
@@ -52,21 +55,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       >
         {t("Skip to content")}{" "}
       </a>
-      <div className="fixed inset-0 grid grid-rows-[auto_minmax(0,1fr)_auto]">
-        <Header />
+      <div className="fixed inset-0 grid grid-rows-[auto_minmax(0,1fr)]">
+        <Header theme={theme} />
         <div className="flex min-h-0 min-w-0">
           {authConfigured() && (
             <Show when="signed-in">
-              <div className="hidden w-15 shrink-0 lg:grid lg:grid-rows-[minmax(0,1fr)]">
-                <DesktopSidebar owner={owner} />
+              <div className="hidden w-51 shrink-0 lg:grid lg:grid-rows-[minmax(0,1fr)]">
+                <Suspense fallback={<DesktopSidebar owner={owner} metrics={null} />}>
+                  <Sidebar owner={owner} />
+                </Suspense>
               </div>
             </Show>
           )}
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto" id="workspace-scroll">
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-bg" id="workspace-scroll">
             {children}
           </div>
         </div>
-        <Footer density={density} theme={theme} />
       </div>
     </>
   );
@@ -75,7 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={styleThemeProperties(theme)}
       data-theme={theme}
       lang={locale}
-      data-density={density}
+      data-density="compact"
       data-scroll-behavior="smooth"
     >
       <body className={"m-0 bg-bg text-ink font-sans text-[14px] leading-[1.5]"}>
