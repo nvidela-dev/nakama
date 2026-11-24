@@ -1097,3 +1097,30 @@ test("header indicators fit phones, align with account controls and omit private
   await expect(nav.getByRole("link")).toHaveCount(1);
   await expect(nav.getByRole("link", { name: "Explorations: 3 active" })).toBeVisible();
 });
+
+test("Exploration index spacing brings the first group or empty state up without shrinking actions", async ({
+  page,
+}) => {
+  for (const width of [320, 390, 1200]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const state of ["populated", "empty"]) {
+      const measure = async (name: string) => {
+        await story(page, `features-projects-exploration-index-spacing--${name}`);
+        const firstEntry = page.getByTestId("first-entry");
+        const main = page.getByRole("main");
+        await expect(firstEntry).toBeVisible();
+        const action = await page.getByRole("button", { name: "New Exploration" }).boundingBox();
+        const entry = await firstEntry.boundingBox();
+        const box = await main.boundingBox();
+        expect(action!.height).toBeGreaterThanOrEqual(44);
+        expect(entry!.y).toBeGreaterThanOrEqual(action!.y + action!.height);
+        expect(await main.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+        return entry!.y - box!.y;
+      };
+      const previous = await measure("prior-" + state);
+      const latest = await measure(state);
+      console.log(`Exploration ${width}px ${state}: ${previous} → ${latest} CSS px to first entry`);
+      expect(previous - latest).toBeGreaterThanOrEqual(8);
+    }
+  }
+});

@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectError } from "@/shared/contracts/errors";
+import {
+  ExplorationIndexHeading,
+  explorationIndexSpacing,
+} from "@/features/projects/components/exploration-index-heading";
 import { Workspace } from "@/shared/ui/workspace-layout";
 import { WaveMark } from "@/shared/ui/wave-mark";
 import { getT } from "@/shared/i18n/server";
@@ -44,30 +48,32 @@ export default async function ProjectsPage({
     projectActivityCounts(db, person, ids),
   ]);
   const groups = groupProjectsByType(projects, t);
+  const actions = (
+    <>
+      <Link
+        href={archived ? "/projects" : "/projects?view=archived"}
+        className="inline-flex min-h-11 items-center text-sm underline"
+      >
+        {t(archived ? "Active projects" : "Archived projects")}
+      </Link>
+      {!archived && <NewProjectButton />}
+    </>
+  );
   return (
-    <Workspace id="main" variant="dashboard">
+    <Workspace id="main" variant="dashboard" className={explorationIndexSpacing}>
       <h1 className="sr-only">{title}</h1>
-      <div className="mb-4 flex flex-wrap items-center justify-end gap-4">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <Link
-            href={archived ? "/projects" : "/projects?view=archived"}
-            className="inline-flex min-h-11 items-center text-sm underline"
-          >
-            {t(archived ? "Active projects" : "Archived projects")}
-          </Link>
-          {!archived && <NewProjectButton />}
-        </div>
-      </div>
+      {!projects.length && <ExplorationIndexHeading actions={actions} />}
       <section aria-label={t("Your projects")} className="grid gap-6">
         {projects.length ? (
-          groups.map((group) => (
+          groups.map((group, index) => (
             <section key={group.id ?? "unset"} aria-label={t(group.name)}>
-              <h2 className="flex items-baseline gap-2 mb-2 font-semibold text-base">
-                {t(group.name)}{" "}
-                <small className="text-muted font-normal">
-                  {totals.find((row) => row.flow_id === group.id)?.total ?? group.projects.length}
-                </small>
-              </h2>
+              <ExplorationIndexHeading
+                actions={index === 0 ? actions : undefined}
+                label={t(group.name)}
+                count={
+                  totals.find((row) => row.flow_id === group.id)?.total ?? group.projects.length
+                }
+              />
               <div className="project-list grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-2">
                 {group.projects.map((p) => {
                   const c = counts.get(p.id);
