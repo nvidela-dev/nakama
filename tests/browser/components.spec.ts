@@ -1098,6 +1098,31 @@ test("header indicators fit phones, align with account controls and omit private
   await expect(nav.getByRole("link", { name: "Explorations: 3 active" })).toBeVisible();
 });
 
+test("shared route tabs keep labels, links, and the active underline on a narrow screen", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await story(page, "ui-route-tabs--three-views");
+  const nav = page.getByRole("navigation", { name: "Views" });
+  const tabs = nav.getByRole("link");
+  await expect(tabs).toHaveCount(3);
+  const active = nav.getByRole("link", { name: "Procesos finalizados" });
+  await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+  await expect(active).toHaveAttribute("aria-current", "page");
+  await expect(active).toHaveAttribute("href", "/jobs?view=finished&q=desk");
+  expect(await active.evaluate((el) => getComputedStyle(el).borderBottomColor)).not.toBe(
+    await tabs.first().evaluate((el) => getComputedStyle(el).borderBottomColor),
+  );
+  for (const tab of await tabs.all()) {
+    await expect(tab.locator("svg[aria-hidden=true]")).toHaveCount(1);
+    const bounds = await tab.boundingBox();
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+  }
+  await tabs.first().focus();
+  await page.keyboard.press("Tab");
+  await expect(tabs.nth(1)).toBeFocused();
+});
+
 test("Exploration index spacing brings the first group or empty state up without shrinking actions", async ({
   page,
 }) => {

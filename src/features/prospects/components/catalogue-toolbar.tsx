@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/shared/ui/button";
 import { Input, Select } from "@/shared/ui/controls";
 import { Icon } from "@/shared/ui/icon";
+import { RouteTabs } from "@/shared/navigation/route-tabs";
 import { WorkspaceToolbar, workspaceFilterLabel } from "@/shared/navigation/workspace-toolbar";
 import { useT } from "@/shared/i18n/provider";
 import { catalogueHref, type BrowseResult } from "../filters";
@@ -90,23 +91,15 @@ export function CatalogueToolbar({
         applyLabel={t("Apply filters")}
         clear={showClear ? { href: clearHref, label: t("Clear filters") } : undefined}
         views={
-          <nav aria-label={t("Catalogue view")} className="flex items-end gap-2">
-            {(["list", "board"] as const).map((view) => {
-              const label = t(view === "board" ? "My board" : "Backlog");
-              const selected = board === (view === "board");
-              return (
-                <Link
-                  key={view}
-                  aria-current={selected ? "page" : undefined}
-                  href={catalogueHref(params, { view: view === "board" ? "board" : null })}
-                  className={`inline-flex min-h-9 items-center gap-1.5 border-b-2 px-2 py-1 text-sm whitespace-nowrap pointer-coarse:min-h-11 ${selected ? "border-lime font-semibold" : "border-transparent text-muted hover:text-ink"}`}
-                >
-                  <Icon name={view === "board" ? "board" : "listTree"} />
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
+          <RouteTabs
+            label={t("Catalogue view")}
+            items={(["list", "board"] as const).map((view) => ({
+              label: t(view === "board" ? "My board" : "Backlog"),
+              active: board === (view === "board"),
+              href: catalogueHref(params, { view: view === "board" ? "board" : null }),
+              icon: view === "board" ? "board" : "listTree",
+            }))}
+          />
         }
         actions={
           <>

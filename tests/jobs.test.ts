@@ -417,10 +417,19 @@ test("only job-level Waiting expires and a late final reply preserves the silent
       "UPDATE nakama_jobs.stage_history SET started_at=now()-interval '335 hours' WHERE stage='waiting'",
     );
     assert.equal((await store.detail(role.id)).lead.stage, "waiting");
+    assert.equal((await store.browse({ ...base, board: true })).rows[0]?.stage, "waiting");
+    assert.equal((await store.browse({ ...base, finished: true })).total, 0);
     await pg.query(
       "UPDATE nakama_jobs.stage_history SET started_at=now()-interval '336 hours' WHERE stage='waiting'",
     );
-    assert.equal((await store.browse({ ...base, board: true })).rows[0]?.stage, "ghosted");
+    assert.equal((await store.browse({ ...base, board: true })).total, 0);
+    const finished = await store.browse({ ...base, finished: true, finishedStage: "ghosted" });
+    assert.equal(finished.rows[0]?.stage, "ghosted");
+    assert.ok(finished.rows[0]?.finished_at);
+    assert.equal(
+      (await store.browse({ ...base, finished: true, finishedStage: "accepted" })).total,
+      0,
+    );
     await assert.rejects(
       store.change({ ...plan, revision: 3, previous_stage: "waiting", stage: "waiting" }),
       /another tab/,
@@ -464,6 +473,14 @@ test("only job-level Waiting expires and a late final reply preserves the silent
     await store.change(reply);
     const data = await store.detail(role.id);
     assert.equal(data.lead.stage, "accepted");
+    assert.equal(
+      (await store.browse({ ...base, finished: true, finishedStage: "ghosted" })).total,
+      0,
+    );
+    const accepted = await store.browse({ ...base, finished: true, finishedStage: "accepted" });
+    assert.equal(accepted.rows[0]?.id, role.id);
+    assert.ok(accepted.rows[0]?.finished_at);
+    assert.equal((await store.browse({ ...base, board: true })).total, 0);
     assert.equal(data.events.filter((e) => e.rating === 8).length, 3);
     assert.equal(data.events.filter((e) => e.kind === "outreach").length, 2);
     assert.deepEqual(
@@ -472,6 +489,73 @@ test("only job-level Waiting expires and a late final reply preserves the silent
         .map((e) => e.stage),
       ["accepted", "ghosted"],
     );
+  } finally {
+    await pg.close();
+  }
+});
+
+test("Finished Processes lists only current outcomes for this owner and paginates by outcome time", async () => {
+  const pg = new PGlite();
+  const db: Database = { query: (q, v) => pg.query(q, v), transaction: (fn) => pg.transaction(fn) };
+  try {
+    for (const path of [
+      "tests/fixtures/job-evidence.sql",
+      ...["001_workspace", "002_found_dates", "003_resume_match", "004_interview_workflow"].map(
+        (m) => "integrations/jobs/" + m + ".sql",
+      ),
+    ])
+      await pg.exec(await readFile(path, "utf8"));
+    const email = "owner@example.invalid";
+    const store = jobsStore(db, { userId: "owner", verifiedEmails: [email] }, email);
+    await pg.exec(`
+      INSERT INTO nakama_jobs.manual_leads(id,owner_id,company,title,first_observed)
+      SELECT 'm-'||md5(n::text)::uuid::text, CASE WHEN n=45 THEN 'other' ELSE 'owner' END,
+       'Fixture staffing', 'Process '||n::text, '2025-02-01'::date - n
+      FROM generate_series(1,45) n;
+      INSERT INTO nakama_jobs.tracking(owner_id,lead_id,stage)
+      SELECT CASE WHEN n=45 THEN 'other' ELSE 'owner' END, 'm-'||md5(n::text)::uuid::text,
+       CASE WHEN n=42 THEN 'closed' WHEN n=43 THEN 'interview'
+       WHEN n=44 THEN NULL WHEN n=2 THEN 'accepted' ELSE 'rejected' END
+      FROM generate_series(1,45) n;
+      INSERT INTO nakama_jobs.stage_history(owner_id,lead_id,stage,started_at)
+      SELECT CASE WHEN n=45 THEN 'other' ELSE 'owner' END, 'm-'||md5(n::text)::uuid::text,
+       CASE WHEN n=2 THEN 'accepted' ELSE 'rejected' END, '2025-03-01'::timestamptz + n * interval '1 day'
+      FROM generate_series(1,45) n WHERE n<=41 OR n=45;
+    `);
+    const filters = { ...base, finished: true, query: "Fixture staffing" };
+    const page = await store.browse(filters);
+    assert.equal(page.total, 42);
+    assert.equal(page.rows.length, 40);
+    assert.equal(page.rows[0]?.title, "Process 41");
+    const last = await store.browse({ ...filters, page: 900 });
+    assert.equal(last.page, 2);
+    assert.deepEqual(
+      last.rows.map((r) => [r.title, r.stage, Boolean(r.finished_at)]),
+      [
+        ["Process 1", "rejected", true],
+        ["Process 42", "closed", false],
+      ],
+    );
+    assert.equal(
+      (await store.browse({ ...filters, direction: "asc" })).rows[0]?.title,
+      "Process 1",
+    );
+    assert.equal(
+      (await store.browse({ ...filters, finishedStage: "accepted" })).rows[0]?.title,
+      "Process 2",
+    );
+    assert.equal((await store.browse({ ...filters, finishedStage: "rejected" })).total, 40);
+    assert.equal((await store.browse({ ...filters, query: "no such job", page: 12 })).page, 1);
+    assert.deepEqual(
+      (await store.browse({ ...base, board: true })).rows.map((r) => r.title),
+      ["Process 43"],
+    );
+    assert.equal((await store.browse({ ...base, query: "Fixture staffing" })).total, 44);
+    assert.equal((await store.detail(page.rows[0]!.id)).lead.stage, "rejected");
+    const legacy = jobsStore(db, { userId: "owner", verifiedEmails: [email] }, email, false);
+    const legacyClosed = await legacy.browse({ ...filters, finishedStage: "closed" });
+    assert.equal(legacyClosed.rows[0]?.stage, "closed");
+    assert.equal(legacyClosed.rows[0]?.finished_at, null);
   } finally {
     await pg.close();
   }

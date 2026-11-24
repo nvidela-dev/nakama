@@ -11,6 +11,12 @@ export const jobStages = {
   offer: "Offer",
   closed: "Closed",
 } as const;
+export const finishedStages = [
+  "accepted",
+  "rejected",
+  "ghosted",
+  "closed",
+] as const satisfies readonly JobStage[];
 export const originalStages = new Set<string>([
   "pursuing",
   "applied",

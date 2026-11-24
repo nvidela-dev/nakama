@@ -7,7 +7,7 @@ import { isAppAdmin } from "@/features/access/server/app-access";
 import { ProjectError } from "@/shared/contracts/errors";
 import { resumeMatch, type ResumeMatch } from "../resume-match";
 import { foundRange } from "../discovery-weeks";
-import { availabilityLabels, jobDate, jobPageSize, originalStages } from "../model";
+import { availabilityLabels, finishedStages, jobDate, jobPageSize, originalStages } from "../model";
 
 import {
   commands,
@@ -24,8 +24,11 @@ function pageFor(requested: number, total: number) {
   return Math.max(1, Math.min(requested, Math.ceil(total / jobPageSize) || 1));
 }
 const pagedLeads = z.object({ total: z.number(), page: z.number(), leads: z.array(leadSchema) });
-const effectiveStage =
-  "CASE WHEN t.stage='waiting' AND h.started_at + interval '336 hours' <= now() THEN 'ghosted' ELSE t.stage END";
+const ghostDeadline = "h.started_at + interval '336 hours'";
+const expiredWait = `t.stage='waiting' AND ${ghostDeadline} <= now()`;
+const effectiveStage = `CASE WHEN ${expiredWait} THEN 'ghosted' ELSE t.stage END`;
+const finishedAt = `CASE WHEN ${expiredWait} THEN ${ghostDeadline}
+  WHEN t.stage IN ('accepted','rejected','closed') AND h.stage=t.stage THEN h.started_at END`;
 const openInterval =
   "LEFT JOIN nakama_jobs.stage_history h ON h.owner_id=t.owner_id AND h.lead_id=t.lead_id AND h.ended_at IS NULL";
 export function jobsStore(
@@ -42,7 +45,9 @@ export function jobsStore(
 ), cards AS (
  SELECT l.id,l.company,l.title,l.url,l.found_on::text,l.first_observed::text,l.first_seen_raw,l.last_checked::text,l.availability,l.relevance,l.company_type,l.employment,l.startup,
  ${workflowReady ? effectiveStage : "t.stage"} AS stage,
- ${workflowReady ? "CASE WHEN t.stage='waiting' THEN to_char(h.started_at AT TIME ZONE 'America/Montevideo','YYYY-MM-DD HH24:MI') END" : "NULL::text"} AS waiting_since,coalesce(t.next_action,'') AS next_action,t.follow_up::text,coalesce(t.revision,0) AS revision,t.linear_url
+ ${workflowReady ? "CASE WHEN t.stage='waiting' THEN to_char(h.started_at AT TIME ZONE 'America/Montevideo','YYYY-MM-DD HH24:MI') END" : "NULL::text"} AS waiting_since,
+ ${workflowReady ? `to_char((${finishedAt}) AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')` : "NULL::text"} AS finished_at,
+ coalesce(t.next_action,'') AS next_action,t.follow_up::text,coalesce(t.revision,0) AS revision,t.linear_url
  FROM leads l LEFT JOIN nakama_jobs.tracking t ON t.lead_id=l.id AND t.owner_id=$1
  ${workflowReady ? openInterval : ""}
 )`;
@@ -95,13 +100,17 @@ export function jobsStore(
   return {
     workflowReady,
     async browse(filters: JobFilters, today = jobDate()) {
-      const { query, availability, employer, contract, startup, board } = filters;
-      const found = board ? "" : filters.found;
+      const { query, availability, employer, contract, startup } = filters;
+      const finished = filters.finished === true;
+      const board = filters.board && !finished;
+      const stage = finishedStages.find((value) => value === filters.finishedStage) ?? "";
+      const found = board || finished ? "" : filters.found;
       const range = foundRange(found, today);
       const where = ` WHERE ($2='' OR strpos(lower(concat_ws(' ',title,company,relevance,url)),lower($2))>0)
  AND ($3='' OR availability=$3) AND ($4='' OR CASE WHEN lower(company_type) ~ '^(product|own.product|direct)' THEN 'direct' WHEN lower(company_type) ~ '^(consult|intermed|staffing|client delivery)' THEN 'agency' ELSE 'unknown' END=$4)
  AND ($5='' OR strpos(lower(coalesce(employment,'')),lower($5))>0)
- AND ($6='' OR coalesce(startup::text,'unknown')=$6) AND (NOT $7 OR stage IS NOT NULL)
+ AND ($6='' OR coalesce(startup::text,'unknown')=$6) AND ($7='backlog' OR CASE WHEN $7='finished' THEN stage=ANY($12::text[]) AND ($13='' OR stage=$13)
+      ELSE stage<>ALL($12::text[]) END)
  AND ($8 <> 'linkedin' OR url ~* '^https?://([a-z0-9-]+[.])*(linkedin[.]com|lnkd[.]in)([/:?#]|$)' OR EXISTS (SELECT 1 FROM nakama_jobs.evidence se WHERE se.lead_id=cards.id AND se.from_linkedin))
  AND (NOT $9::boolean OR found_on IS NULL) AND ($10::text IS NULL OR found_on >= $10) AND ($11::text IS NULL OR found_on < $11)`;
       const values = [
@@ -111,16 +120,18 @@ export function jobsStore(
         employer,
         contract.slice(0, 100),
         startup,
-        board,
+        finished ? "finished" : board ? "active" : "backlog",
         filters.source,
         found === "unknown",
         range?.since ?? null,
         range?.until ?? null,
+        [...finishedStages],
+        stage,
       ];
       const selection = catalogue + " SELECT * FROM cards" + where;
       const ascending = filters.direction === "asc";
       const dateOrder = (oldestFirst: boolean) =>
-        `found_on ${oldestFirst ? "ASC" : "DESC"} NULLS LAST,company,title,id`;
+        `${finished ? "finished_at" : "found_on"} ${oldestFirst ? "ASC" : "DESC"} NULLS LAST,company,title,id`;
       if (!board && filters.sort === "match") {
         // Scoring uses the same evidence as the visible meter. Sort all filtered roles
         // before paging; stable ties keep the newest discovery first.
@@ -167,7 +178,7 @@ export function jobsStore(
           `, filtered AS MATERIALIZED (SELECT * FROM cards${where}),
              counted AS (SELECT count(*)::int AS total FROM filtered),
              bounds AS (
-               SELECT total, greatest(1,least($12::bigint, (total::bigint+${jobPageSize - 1})/${jobPageSize}))::int AS page
+               SELECT total, greatest(1,least($14::bigint, (total::bigint+${jobPageSize - 1})/${jobPageSize}))::int AS page
                FROM counted
              )
              SELECT total,page,

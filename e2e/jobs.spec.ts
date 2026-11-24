@@ -114,6 +114,35 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   await page.goto("/jobs?view=board");
   await page.getByRole("link", { name: role }).click();
   await expect(page.getByLabel("Next action")).toHaveValue("Practice joins");
+  const rolePath = page.url();
+  await page.getByLabel("Board stage").selectOption("rejected");
+  await page.getByRole("button", { name: "Save plan", exact: true }).click();
+  await expect(page.getByLabel("Board stage")).toHaveValue("rejected");
+  await expect(page).toHaveURL(rolePath);
+  await page.goto("/jobs?view=board");
+  await expect(page.getByRole("link", { name: role })).toHaveCount(0);
+  await page.getByRole("link", { name: "Finished Processes" }).click();
+  await expect(page.getByRole("link", { name: "Finished Processes" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await page.getByLabel("Outcome", { exact: true }).selectOption("rejected");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page).toHaveURL(/view=finished.*stage=rejected/);
+  await page.getByRole("link", { name: role, exact: false }).click();
+  await expect(page.getByRole("heading", { name: role, exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Jobs and interviews/ })).toHaveAttribute(
+    "href",
+    "/jobs?view=finished&stage=rejected",
+  );
+  await page.getByLabel("Board stage").selectOption("pursuing");
+  await page.getByRole("button", { name: "Save plan", exact: true }).click();
+  await expect(page.getByLabel("Board stage")).toHaveValue("pursuing");
+  await expect(page).toHaveURL(/view=finished.*role=/);
+  await page.getByRole("link", { name: /Jobs and interviews/ }).click();
+  await expect(page.getByRole("link", { name: role, exact: false })).toHaveCount(0);
+  await page.goto(rolePath);
+
   await expect(page.getByText("Explain the execution plan", { exact: false }).last()).toBeVisible();
   await page.getByLabel("Board stage").selectOption("");
   await page.getByRole("button", { name: "Save plan", exact: true }).click();

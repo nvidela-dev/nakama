@@ -20,6 +20,7 @@ export const leadSchema = z.object({
     .enum(Object.keys(jobStages) as [keyof typeof jobStages, ...(keyof typeof jobStages)[]])
     .nullable(),
   waiting_since: nullable,
+  finished_at: z.iso.datetime().nullable().optional(),
   next_action: z.string(),
   follow_up: nullable,
   revision: z.number(),
@@ -155,6 +156,8 @@ export type JobFilters = {
   startup: string;
   source: string;
   board: boolean;
+  finished?: boolean;
+  finishedStage?: string;
   page: number;
 };
 export type JobDetailData = {

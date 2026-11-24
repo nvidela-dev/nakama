@@ -1,3 +1,4 @@
+import { RouteTabs } from "@/shared/navigation/route-tabs";
 import { WorkspaceToolbar, workspaceFilterLabel } from "@/shared/navigation/workspace-toolbar";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -16,13 +17,15 @@ import {
 } from "@/features/jobs/discovery-weeks";
 import {
   availabilityLabels,
+  finishedStages,
   jobDate,
   jobPageSize,
   jobStages,
   originalStages,
   sourceLink,
 } from "@/features/jobs/model";
-import { getT } from "@/shared/i18n/server";
+import { getLocale, getT } from "@/shared/i18n/server";
+import { formatDate } from "@/shared/i18n/index";
 import { Input, Select, Textarea } from "@/shared/ui/controls";
 import { ProjectError } from "@/shared/contracts/errors";
 import { ToolbarDialog } from "@/shared/ui/toolbar-dialog";
@@ -55,20 +58,26 @@ async function JobsContent({
   t: Awaited<ReturnType<typeof getT>>;
 }) {
   const pick = (key: string) => (typeof params[key] === "string" ? params[key] : "");
-  const board = pick("view") === "board";
+  const view = pick("view");
+  const board = view === "board";
+  const finished = view === "finished";
+  const showBacklog = !board && !finished;
+  const finishedStage = finished ? pick("stage") : "";
   const sort: JobSort = pick("sort") === "match" ? "match" : "date";
   const direction = pick("direction") === "asc" ? "asc" : "desc";
   const filters: JobFilters = {
     sort,
     direction,
     query: pick("q"),
-    found: board ? "" : pick("found"),
+    found: showBacklog ? pick("found") : "",
     availability: pick("availability"),
     employer: pick("employer"),
     contract: pick("contract"),
     startup: pick("startup"),
     source: pick("source"),
     board,
+    finished,
+    finishedStage,
     page: Math.max(1, parseInt(pick("page"), 10) || 1),
   };
   function path(changes: Record<string, string> = {}) {
@@ -82,6 +91,7 @@ async function JobsContent({
       "startup",
       "source",
       "found",
+      "stage",
       "sort",
       "direction",
       "page",
@@ -133,7 +143,16 @@ async function JobsContent({
     );
   }
   const today = jobDate();
-  const { rows, total, page, matches } = await jobs.browse(filters, today);
+  const [{ rows, total, page, matches }, locale] = await Promise.all([
+    jobs.browse(filters, today),
+    getLocale(),
+  ]);
+  const finishedOptions = finishedStages.filter(
+    (stage) =>
+      stage !== "closed" ||
+      finishedStage === "closed" ||
+      rows.some((row) => row.stage === "closed"),
+  );
   const last = Math.ceil(total / jobPageSize);
   const groups =
     sort === "date"
@@ -147,6 +166,7 @@ async function JobsContent({
     filters.employer,
     filters.contract,
     filters.startup,
+    finishedStage,
   ].some(Boolean);
   const filterClass = workspaceFilterLabel;
   return (
@@ -158,7 +178,14 @@ async function JobsContent({
         <div>
           <h1 className="sr-only">{t("Job Search")}</h1>
           <p className="mt-1 text-sm text-muted">
-            {t(board ? "{count} roles on your board" : "{count} leads", { count: total })}
+            {t(
+              finished
+                ? "{count} finished processes"
+                : board
+                  ? "{count} roles on your board"
+                  : "{count} leads",
+              { count: total },
+            )}
           </p>
         </div>
       </header>
@@ -177,6 +204,7 @@ async function JobsContent({
                   employer: "",
                   contract: "",
                   startup: "",
+                  stage: "",
                   page: "",
                 }),
                 label: t("Clear filters"),
@@ -184,25 +212,29 @@ async function JobsContent({
             : undefined
         }
         views={
-          <nav className="flex flex-wrap gap-2" aria-label={t("Job views")}>
-            {[
-              [false, "Leads backlog"],
-              [true, "Active roles"],
-            ].map(([active, label]) => (
-              <Link
-                key={String(label)}
-                aria-current={board === active ? "page" : undefined}
-                className={
-                  board === active
-                    ? "border-b-2 border-lime px-3 py-2 font-semibold"
-                    : "px-3 py-2 text-muted"
-                }
-                href={path({ view: active ? "board" : "", page: "" })}
-              >
-                {t(String(label))}
-              </Link>
-            ))}
-          </nav>
+          <RouteTabs
+            label={t("Job views")}
+            items={[
+              {
+                href: path({ view: "", stage: "", page: "" }),
+                label: t("Leads backlog"),
+                icon: "listTree",
+                active: showBacklog,
+              },
+              {
+                href: path({ view: "board", found: "", stage: "", page: "" }),
+                label: t("Active roles"),
+                icon: "board",
+                active: board,
+              },
+              {
+                href: path({ view: "finished", found: "", stage: "", page: "" }),
+                label: t("Finished Processes"),
+                icon: "answered",
+                active: finished,
+              },
+            ]}
+          />
         }
         actions={
           <ToolbarDialog label="Add job lead" icon="plus">
@@ -239,14 +271,27 @@ async function JobsContent({
       >
         {sort === "match" && <Input type="hidden" name="sort" value={sort} />}
         {direction === "asc" && <Input type="hidden" name="direction" value={direction} />}
-        {board && <Input type="hidden" name="view" value="board" />}
+        {(board || finished) && <Input type="hidden" name="view" value={view} />}
         <label className={filterClass + " min-w-48 grow"}>
           {t("Search roles")}
           <Input name="q" type="search" defaultValue={filters.query} maxLength={250} />
         </label>
+        {finished && (
+          <label className={filterClass}>
+            {t("Outcome")}
+            <Select aria-label={t("Outcome")} name="stage" defaultValue={finishedStage}>
+              <option value="">{t("All")}</option>
+              {finishedOptions.map((stage) => (
+                <option key={stage} value={stage}>
+                  {t(jobStages[stage])}
+                </option>
+              ))}
+            </Select>
+          </label>
+        )}
         {(
           [
-            ...(!board ? [["found", "Found", Object.entries(foundFilters)]] : []),
+            ...(showBacklog ? [["found", "Found", Object.entries(foundFilters)]] : []),
             ["source", "Source", [["linkedin", "LinkedIn"]]],
             ["availability", "Availability", Object.entries(availabilityLabels)],
             [
@@ -290,9 +335,9 @@ async function JobsContent({
         <div className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {Object.entries(jobStages).map(([stage, label]) => {
             const cards = rows.filter((r) => r.stage === stage);
+            if (finishedStages.some((finishedStage) => finishedStage === stage)) return null;
             if (!jobs.workflowReady && !originalStages.has(stage)) return null;
-            if (jobs.workflowReady && !cards.length && (stage === "offer" || stage === "closed"))
-              return null;
+            if (jobs.workflowReady && !cards.length && stage === "offer") return null;
             return (
               <section
                 key={stage}
@@ -329,6 +374,82 @@ async function JobsContent({
             );
           })}
         </div>
+      ) : finished ? (
+        <>
+          <nav
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted"
+            aria-label={t("Sort finished processes")}
+          >
+            {(
+              [
+                ["date", "Date finished"],
+                ["match", "Résumé match"],
+              ] as const
+            ).map(([key, label]) => (
+              <Link
+                key={key}
+                href={path({
+                  sort: key,
+                  direction: sort === key && direction === "desc" ? "asc" : "",
+                  page: "",
+                })}
+                aria-current={sort === key ? "true" : undefined}
+                className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 hover:bg-panel focus-visible:outline-2 focus-visible:outline-lime aria-[current=true]:font-semibold aria-[current=true]:text-ink"
+              >
+                {t(label)}
+                {sort === key ? (
+                  <>
+                    <span aria-hidden="true">{direction === "asc" ? "↑" : "↓"}</span>
+                    <span className="sr-only">
+                      {t(direction === "asc" ? "Ascending" : "Descending")}
+                    </span>
+                  </>
+                ) : null}
+              </Link>
+            ))}
+          </nav>
+          {rows.length > 0 && (
+            <ul
+              className="m-0 grid min-w-0 list-none gap-2 p-0"
+              aria-label={t("Finished Processes")}
+            >
+              {rows.map((role) => {
+                const match = matches.get(role.id);
+                return (
+                  <li key={role.id} className="min-w-0 rounded-lg border border-line bg-panel">
+                    <Link
+                      href={path({ role: role.id })}
+                      prefetch={false}
+                      className="flex min-h-11 min-w-0 flex-wrap items-center justify-between gap-2 rounded-lg p-3 hover:bg-[var(--theme-selected)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-lime"
+                    >
+                      <span className="grid min-w-0 flex-1 basis-48 gap-0.5">
+                        <span className="font-semibold wrap-anywhere">{role.title}</span>
+                        <span className="text-sm text-muted wrap-anywhere">{role.company}</span>
+                      </span>
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                        {role.stage && (
+                          <span className="rounded-md border border-line bg-bg px-2 py-0.5 font-medium">
+                            {t(jobStages[role.stage])}
+                          </span>
+                        )}
+                        {role.finished_at && (
+                          <time dateTime={role.finished_at} className="text-xs text-muted">
+                            {formatDate(role.finished_at, locale)}
+                          </time>
+                        )}
+                        {sort === "match" && match?.status === "scored" && (
+                          <span className="text-xs text-muted">
+                            {t("Résumé match")} · {match.percent}%
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
       ) : (
         <div className="min-w-0 overflow-x-auto rounded-lg border border-line">
           <table
@@ -426,9 +547,13 @@ async function JobsContent({
       {!total && (
         <p className="text-muted">
           {t(
-            board && !filtering
-              ? "Choose a lead and move it to Pursuing to start your board."
-              : "No matching leads.",
+            finished
+              ? filtering
+                ? "No finished processes match these filters."
+                : "No finished processes yet."
+              : board && !filtering
+                ? "Choose a lead and move it to Pursuing to start your board."
+                : "No matching leads.",
           )}
         </p>
       )}

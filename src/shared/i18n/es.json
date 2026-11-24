@@ -1,4 +1,12 @@
 {
+  "Finished Processes": "Procesos finalizados",
+  "{count} finished processes": "{count} procesos finalizados",
+  "Sort finished processes": "Ordenar procesos finalizados",
+  "Date finished": "Fecha de cierre",
+  "Ascending": "Ascendente",
+  "Descending": "Descendente",
+  "No finished processes match these filters.": "No hay procesos finalizados que coincidan con estos filtros.",
+  "No finished processes yet.": "Todavía no hay procesos finalizados.",
   "Workspace preferences": "Preferencias del espacio",
   "Workspace activity indicators": "Indicadores de actividad",
   "{area}: {count} active": "{area}: {count} en curso",
