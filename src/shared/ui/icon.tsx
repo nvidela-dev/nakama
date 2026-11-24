@@ -1,5 +1,9 @@
 import { cn } from "./cn";
 import {
+  House,
+  Compass,
+  BriefcaseBusiness,
+  Menu,
   Ellipsis,
   Brush,
   Eraser,
@@ -52,6 +56,10 @@ import type { LucideProps } from "lucide-react";
 
 /** Explicit catalog: never import the whole library or construct icon names at runtime. */
 export const iconCatalog = {
+  home: House,
+  compass: Compass,
+  jobSearch: BriefcaseBusiness,
+  menu: Menu,
   more: Ellipsis,
   shirt: Shirt,
   brush: Brush,

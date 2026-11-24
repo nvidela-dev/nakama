@@ -1,13 +1,17 @@
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { getT } from "@/shared/i18n/server";
+import { HomeDigest } from "@/features/shell/components/home-digest";
+import { loadHomeActivity } from "@/features/shell/server/home-activity";
+import { getLocale, getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { authConfigured } from "@/features/access/server/auth";
 export default async function Home() {
-  if (authConfigured() && (await auth()).isAuthenticated) redirect("/projects");
+  if (authConfigured() && (await auth()).isAuthenticated) {
+    const [activity, locale] = await Promise.all([loadHomeActivity(), getLocale()]);
+    return <HomeDigest activity={activity} locale={locale} />;
+  }
   const t = await getT();
   return (
-    <main id="main" className="w-full max-w-360 m-auto p-4 lg:p-6 grid gap-4">
+    <main id="main" className="landing w-full max-w-360 m-auto p-4 lg:p-6 grid gap-4">
       <section className="grid gap-6 lg:grid-cols-2 bg-panel border border-line rounded-[18px] p-6 lg:p-8">
         <div className="grid gap-4 content-start">
           <h1 className="text-[clamp(32px,_4vw,_44px)] leading-[1.15] font-semibold tracking-[-1px] max-w-175">
@@ -23,7 +27,7 @@ export default async function Home() {
               className="inline-flex w-fit items-center min-h-11 px-4 py-2 rounded-[9px] bg-lime text-dark font-semibold"
               href="/projects"
             >
-              {t("Open projects")}
+              {t("Open explorations")}
             </Link>
           )}
         </div>

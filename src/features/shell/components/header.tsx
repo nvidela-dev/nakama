@@ -7,63 +7,61 @@ import { getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { authConfigured, currentIsAdmin } from "@/features/access/server/auth";
+import { MobileSidebar } from "./workspace-sidebar";
+
 export async function Header() {
   const [t, owner] = await Promise.all([getT(), currentIsAdmin()]);
   return (
-    <header
-      className={
-        "site-header w-full max-w-none m-auto flex items-center justify-between border-b border-line bg-panel relative z-40 px-4 py-3 gap-4 flex-wrap lg:px-6 [&:has(.project-navigation-panel)]:z-[60] [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:p-3 [&_.project-navigation-panel_a]:wrap-anywhere [&:has(.notification-panel)]:z-[60] [&_.notification-list_a]:block [&_.notification-list_a]:wrap-anywhere"
-      }
-    >
-      <Link
-        href="/"
-        className={
-          "brand font-sans text-[29px] [font-weight:800] tracking-[-1px] flex items-center gap-2 max-[700px]:text-[24px] lg:compact:text-[23px]"
-        }
-        aria-label={t("Nakama home")}
-      >
-        <span
-          className={
-            "brand-mark text-lime text-[40px] leading-[1] max-[700px]:text-[32px] lg:compact:text-[30px]"
-          }
-          aria-hidden="true"
-        >
-          <WaveMark />
-        </span>{" "}
-        nakama
-      </Link>
-      <nav
-        aria-label={t("Main navigation")}
-        className={
-          "flex items-center gap-7 text-[13px] max-[700px]:text-[12px] max-[1000px]:flex-wrap max-[1000px]:gap-3.5 max-[700px]:w-full max-[700px]:justify-between max-[700px]:gap-2.5 lg:compact:gap-4.5"
-        }
-      >
-        <Link href="/" className={"max-[700px]:first:hidden"}>
-          {t("Home")}
-        </Link>
+    <header className="site-header relative z-40 flex min-h-14 min-w-0 items-center justify-between gap-1 border-b border-line bg-panel px-2 py-1 sm:px-4 lg:px-6 [&_.project-navigation-panel_a]:block [&_.project-navigation-panel_a]:min-h-11 [&_.project-navigation-panel_a]:p-3 [&_.project-navigation-panel_a]:wrap-anywhere [&_.notification-list_a]:block [&_.notification-list_a]:wrap-anywhere">
+      <div className="flex min-w-0 items-center gap-1 lg:gap-3">
         {authConfigured() && (
-          <>
-            <Show when="signed-in">
-              <NewProjectButton />
-              <ProjectNavigation />
-              <Link href="/prospects" prefetch={false}>
-                {t("Business catalogue")}
-              </Link>
-              {owner && <Link href="/jobs">{t("Jobs and interviews")}</Link>}
-              <Link href="/artifacts">{t("Artifacts")}</Link>
-              <NotificationBell />
-              <UserButton />
-            </Show>
-            <Show when="signed-out">
-              <SignInButton mode="redirect">
-                <Button type="submit" variant="ghost" className={"nav-button min-h-10"}>
-                  {t("Sign in")}
-                </Button>
-              </SignInButton>
-            </Show>
-          </>
+          <Show when="signed-in">
+            <MobileSidebar owner={owner} />
+          </Show>
         )}
-      </nav>
+        <Link
+          href="/"
+          className="brand flex min-h-11 items-center gap-1 font-sans text-xl font-extrabold tracking-tight lg:gap-2 lg:text-2xl"
+          aria-label={t("Nakama home")}
+        >
+          <span
+            className="brand-mark text-2xl leading-none text-lime lg:text-3xl"
+            aria-hidden="true"
+          >
+            <WaveMark />
+          </span>
+          nakama
+        </Link>
+      </div>
+      {authConfigured() && (
+        <>
+          <Show when="signed-in">
+            <div className="flex shrink-0 items-center gap-0.5 text-xs lg:gap-4">
+              <NewProjectButton />
+              <div className="hidden lg:block">
+                <ProjectNavigation />
+              </div>
+              <NotificationBell />
+              <div className="grid size-11 place-items-center">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonTrigger: { minWidth: 44, minHeight: 44, justifyContent: "center" },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          </Show>
+          <Show when="signed-out">
+            <SignInButton mode="redirect">
+              <Button type="button" variant="ghost" className="nav-button min-h-11">
+                {t("Sign in")}
+              </Button>
+            </SignInButton>
+          </Show>
+        </>
+      )}
     </header>
   );
 }

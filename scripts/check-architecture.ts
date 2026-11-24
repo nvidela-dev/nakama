@@ -16,7 +16,7 @@ const featureDependencies: Readonly<Record<string, readonly string[]>> = {
   prospects: ["access"],
   jobs: ["access"],
   projects: ["access", "guidance", "collaboration"],
-  shell: ["access", "projects", "notifications", "preferences"],
+  shell: ["access", "projects", "notifications", "preferences", "prospects"],
   tasks: ["access", "projects", "artifacts"],
   experiments: ["access", "projects", "guidance"],
 };

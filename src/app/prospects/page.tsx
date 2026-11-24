@@ -32,7 +32,7 @@ import { Dossier } from "@/features/prospects/components/dossier";
 import { Panel } from "@/shared/ui/panel";
 
 export async function generateMetadata() {
-  return { title: (await getT())("Business catalogue") };
+  return { title: (await getT())("Consultancy") };
 }
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -58,15 +58,15 @@ export default async function ProspectsPage({
     if (error instanceof ProspectMigrationPending)
       return (
         <main id="main" className="mx-auto max-w-5xl p-6">
-          <h1 className="my-3 text-2xl">{t("Business catalogue")}</h1>
+          <h1 className="my-3 text-2xl">{t("Consultancy")}</h1>
           <p>{t("The prospect database is awaiting its migration.")}</p>
         </main>
       );
     if (error instanceof ProjectError) notFound();
     throw error;
   }
-  const { prospect, members, owner, all, page, timeline } = data;
-  const title = all ? t("Business catalogue") : t("My prospects");
+  const { prospect, members, owner, page, timeline } = data;
+  const title = t("Consultancy");
   const others = members.filter((m) => m.user_id !== person.userId);
   const back = catalogueHref(filters, { page });
   const review =

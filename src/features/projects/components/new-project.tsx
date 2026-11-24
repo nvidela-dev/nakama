@@ -41,7 +41,7 @@ function ProjectTrigger({ initialSourceIds = [], label = "New project" }: Props)
       ) : (
         <ToolbarAction
           label={t(label)}
-          className="new-project-trigger"
+          className="new-project-trigger max-lg:min-h-11 max-lg:min-w-11"
           aria-haspopup="dialog"
           aria-expanded={open}
           onClick={showSetup}

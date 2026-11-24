@@ -29,7 +29,7 @@ import { ToolbarDialog } from "@/shared/ui/toolbar-dialog";
 import Loading from "./loading";
 
 export async function generateMetadata() {
-  return { title: (await getT())("Jobs and interviews") };
+  return { title: (await getT())("Job Search") };
 }
 type Params = Record<string, string | string[] | undefined>;
 export default async function JobsPage({ searchParams }: { searchParams: Promise<Params> }) {
@@ -156,7 +156,7 @@ async function JobsContent({
     >
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold">{t("Jobs and interviews")}</h1>
+          <h1 className="text-3xl font-semibold">{t("Job Search")}</h1>
           <p className="mt-1 text-sm text-muted">
             {t(board ? "{count} roles on your board" : "{count} leads", { count: total })}
           </p>

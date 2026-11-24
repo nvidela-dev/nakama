@@ -6,10 +6,12 @@ import { messages } from "@/shared/i18n/index";
 import { getLocale, getT } from "@/shared/i18n/server";
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { authConfigured } from "@/features/access/server/auth";
+import { authConfigured, currentIsAdmin } from "@/features/access/server/auth";
 import { Header } from "@/features/shell/components/header";
 
 import "./globals.css";
+import { Show } from "@clerk/nextjs";
+import { DesktopSidebar } from "@/features/shell/components/workspace-sidebar";
 import { Footer } from "@/features/shell/components/footer";
 import { LanguageProvider } from "@/shared/i18n/provider";
 import { enUS } from "@clerk/localizations/en-US";
@@ -35,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const t = await getT();
+  const [t, owner] = await Promise.all([getT(), currentIsAdmin()]);
   const locale = await getLocale();
   const theme = parseStyleTheme((await cookies()).get("nakama-theme")?.value);
   const density =
@@ -52,8 +54,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </a>
       <div className="fixed inset-0 grid grid-rows-[auto_minmax(0,1fr)_auto]">
         <Header />
-        <div className="min-h-0 overflow-y-auto" id="workspace-scroll">
-          {children}
+        <div className="flex min-h-0 min-w-0">
+          {authConfigured() && (
+            <Show when="signed-in">
+              <div className="hidden w-49 shrink-0 lg:grid lg:grid-rows-[minmax(0,1fr)]">
+                <DesktopSidebar owner={owner} />
+              </div>
+            </Show>
+          )}
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto" id="workspace-scroll">
+            {children}
+          </div>
         </div>
         <Footer density={density} theme={theme} />
       </div>

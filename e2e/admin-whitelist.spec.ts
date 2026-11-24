@@ -30,7 +30,7 @@ test("administrator manages exact-email admission without granting project membe
     await expect(friendEntry()).toBeVisible();
     added = true;
     await member.goto("/projects");
-    await expect(member.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
+    await expect(member.getByRole("heading", { name: "Explorations", exact: true })).toBeVisible();
     await member.goto("/admin");
     await expect(
       member.getByRole("heading", { name: "This project isn't available." }),

@@ -946,3 +946,87 @@ test("catalogue toolbar fits a narrow screen without exposing owner actions to m
   await expect(toolbar.getByRole("checkbox", { name: "Social media" })).toBeChecked();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
+
+test("workspace sidebar preserves labels, current route, permissions and navigation target", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1200, height: 720 });
+  await story(page, "features-shell-workspace-sidebar--owner");
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(nav.getByRole("link")).toHaveText([
+    "Home",
+    "Explorations",
+    "Consultancy",
+    "Job Search",
+  ]);
+  await expect(nav.getByRole("link", { name: "Explorations" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(nav.getByRole("link", { name: "Job Search" })).toHaveAttribute("href", "/jobs");
+  await expect(page.getByRole("link", { name: "Artifacts" })).toBeVisible();
+  await story(page, "features-shell-workspace-sidebar--collaborator");
+  await expect(nav.getByRole("link")).toHaveText(["Home", "Explorations", "Consultancy"]);
+});
+
+for (const [width, height] of [
+  [320, 568],
+  [360, 640],
+  [390, 844],
+  [620, 250],
+] as const) {
+  test(`workspace drawer fits ${width}×${height} with Spanish labels and keyboard dismissal`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto(
+      "/iframe.html?id=features-shell-workspace-sidebar--owner&viewMode=story&globals=a11y.manual:!true;locale:es;density:compact",
+    );
+    const trigger = page.getByRole("button", { name: "Abrir navegación" });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const close = dialog.getByRole("button", { name: "Cerrar navegación" });
+    await expect(close).toBeFocused();
+    await expect(
+      dialog.getByRole("navigation", { name: "Navegación principal" }).getByRole("link"),
+    ).toHaveText(["Inicio", "Exploraciones", "Consultoría", "Búsqueda laboral"]);
+    for (const element of [close, ...(await dialog.getByRole("link").all())]) {
+      const box = await element.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+      expect(box?.width).toBeGreaterThanOrEqual(44);
+    }
+    expect((await dialog.boundingBox())?.height).toBe(height);
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
+  });
+}
+
+test("Home digest fits narrow screens, identifies source and time, links to records, and has a real empty state", async ({
+  page,
+}) => {
+  for (const width of [320, 360, 390, 1200]) {
+    await page.setViewportSize({ width, height: 700 });
+    await story(page, "features-shell-home-digest--recent");
+    const links = page.getByRole("main").getByRole("link");
+    await expect(links).toHaveCount(3);
+    await expect(links.nth(0)).toHaveAttribute("href", "/jobs?role=example");
+    await expect(links.nth(0)).toContainText("Búsqueda laboral · Entrevista registrada");
+    await expect(links.nth(0).locator("time")).toHaveAttribute(
+      "datetime",
+      "2026-11-24T18:00:00.000Z",
+    );
+    await expect(links.nth(1)).toHaveAttribute("href", "/prospects?business=example");
+    await expect(links.nth(2)).toHaveAttribute("href", "/projects/example");
+    expect(
+      await page
+        .getByRole("main")
+        .evaluate((element) => element.scrollWidth === element.clientWidth),
+    ).toBe(true);
+  }
+  await story(page, "features-shell-home-digest--empty");
+  await expect(page.getByText("No recent activity yet.")).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link")).toHaveCount(0);
+});

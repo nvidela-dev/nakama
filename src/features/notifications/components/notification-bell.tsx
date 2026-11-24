@@ -107,7 +107,7 @@ function NotificationMenu() {
         ref={button}
         variant="ghost"
         className={
-          "notification-trigger relative min-w-7 min-h-7 hover:[background:transparent] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
+          "notification-trigger relative min-w-11 min-h-11 hover:[background:transparent] focus-visible:[outline:2px_solid_var(--color-lime)] focus-visible:[outline-offset:3px] pointer-coarse:min-w-11 pointer-coarse:min-h-11"
         }
         aria-label={`${t("Unread comments")}${inbox ? `: ${inbox.count}` : ""}`}
         aria-expanded={open}
@@ -133,7 +133,7 @@ function NotificationMenu() {
         <Panel
           id="comment-notifications"
           className={
-            "notification-panel absolute z-[50] right-0 top-[calc(100%_+_8px)] w-[min(390px,_calc(100vw_-_32px))] max-h-[min(650px,_75dvh)] overflow-y-auto [box-shadow:0_12px_36px_#0008] max-[700px]:fixed max-[700px]:top-25 max-[700px]:right-4"
+            "notification-panel absolute z-[50] right-0 top-[calc(100%_+_8px)] w-[min(390px,_calc(100vw_-_32px))] max-h-[min(650px,calc(100dvh-4.5rem))] overscroll-contain overflow-y-auto [box-shadow:0_12px_36px_#0008] max-[700px]:fixed max-[700px]:top-14 max-[700px]:right-4"
           }
           aria-label={t("Unread comments")}
         >

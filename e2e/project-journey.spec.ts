@@ -8,7 +8,7 @@ async function signIn(page: Page, email: string) {
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: email });
   await page.goto("/projects");
-  await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Explorations", exact: true })).toBeVisible();
 }
 test("private capture, invitation, guided editing, conflict, and removal on real development services", async ({
   browser,

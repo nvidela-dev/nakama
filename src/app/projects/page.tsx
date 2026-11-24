@@ -26,7 +26,7 @@ export default async function ProjectsPage({
   const { after, view } = await searchParams;
   const archived = view === "archived";
   const firstPage = archived ? "/projects?view=archived" : "/projects";
-  const title = t(archived ? "Archived projects" : "Projects");
+  const title = t(archived ? "Archived explorations" : "Explorations");
   const db = database(),
     service = projectService(db);
   const [page, totals] = await Promise.all([

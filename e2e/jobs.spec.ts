@@ -28,7 +28,7 @@ test("owner can pursue a lead, record an interview and send it back to the backl
   } finally {
     await db.end();
   }
-  await page.getByRole("link", { name: "Jobs and interviews" }).click();
+  await page.getByRole("link", { name: "Job Search" }).click();
   await expect(page.getByRole("table", { name: "Leads backlog" })).toBeVisible();
   const headers = page.getByRole("columnheader");
   const matchHeader = headers.nth(0);
@@ -133,9 +133,7 @@ test("owner can pursue a lead, record an interview and send it back to the backl
     });
     await other.goto(page.url());
     await expect(other.getByRole("heading", { name: role })).toHaveCount(0);
-    await expect(other.getByRole("link", { name: "Jobs and interviews", exact: true })).toHaveCount(
-      0,
-    );
+    await expect(other.getByRole("link", { name: "Job Search", exact: true })).toHaveCount(0);
     await expect(other.getByText("Completed technical interview", { exact: true })).toHaveCount(0);
   } finally {
     await outsider.close();
