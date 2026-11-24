@@ -947,7 +947,7 @@ test("catalogue toolbar fits a narrow screen without exposing owner actions to m
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
-test("workspace sidebar preserves visible names and scoped counts and joins the selected tab to the content", async ({
+test("workspace sidebar preserves visible names without navigation badges and joins the selected tab to the content", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1200, height: 720 });
@@ -957,8 +957,8 @@ test("workspace sidebar preserves visible names and scoped counts and joins the 
   const active = nav.getByRole("link", { name: "Explorations" });
   await expect(active).toHaveText("Explorations");
   await expect(active).toHaveAttribute("aria-current", "page");
-  await expect(nav.getByRole("link", { name: /^Job Search/ })).toContainText("12");
-  await expect(nav.getByRole("link", { name: /^Consultancy/ })).toContainText("7");
+  await expect(nav.getByRole("link", { name: /^Job Search/ })).toHaveText("Job Search");
+  await expect(nav.getByRole("link", { name: /^Consultancy/ })).toHaveText("Consultancy");
   await expect(page.getByRole("link", { name: "Artifacts" })).toBeVisible();
   const rail = await page.getByRole("complementary").boundingBox();
   const tab = await active.boundingBox();
@@ -997,7 +997,7 @@ for (const [width, height] of [
     await expect(close).toBeFocused();
     await expect(
       dialog.getByRole("navigation", { name: "Navegación principal" }).getByRole("link"),
-    ).toHaveText(["Inicio", "Exploraciones", "Consultoría7", "Búsqueda laboral12"]);
+    ).toHaveText(["Inicio", "Exploraciones", "Consultoría", "Búsqueda laboral"]);
     for (const element of [close, ...(await dialog.getByRole("link").all())]) {
       const box = await element.boundingBox();
       expect(box?.height).toBeGreaterThanOrEqual(44);
@@ -1016,6 +1016,7 @@ test("Home digest fits narrow screens, identifies source and time, links to reco
   for (const width of [320, 360, 390, 1200]) {
     await page.setViewportSize({ width, height: 700 });
     await story(page, "features-shell-home-digest--recent");
+    await expect(page.getByRole("heading", { name: "Inicio", level: 1 })).toHaveClass("sr-only");
     const activity = page.getByRole("region", { name: "Actividad reciente" });
     const overview = page.getByRole("region", { name: "Resumen del espacio de trabajo" });
     await expect(overview.getByRole("article")).toHaveCount(3);
@@ -1066,7 +1067,7 @@ test("Home digest fits narrow screens, identifies source and time, links to reco
 test("header indicators fit phones, align with account controls and omit private sources", async ({
   page,
 }) => {
-  for (const width of [320, 360, 390, 1200]) {
+  for (const width of [320, 360, 390, 599, 600, 1200]) {
     await page.setViewportSize({ width, height: 700 });
     await story(page, "features-shell-header-indicators--owner");
     const banner = page.getByRole("banner");
@@ -1076,10 +1077,10 @@ test("header indicators fit phones, align with account controls and omit private
       "href",
       "/projects",
     );
-    await expect(banner.getByRole("button", { name: "Language" })).toBeVisible();
+    await expect(banner.getByRole("button", { name: "English" })).toBeVisible();
     const prefs = await banner.getByRole("group", { name: "Workspace preferences" }).boundingBox();
     const account = await banner.getByRole("button", { name: "Account" }).boundingBox();
-    if (width < 520) expect(prefs!.y).toBeGreaterThan(account!.y);
+    if (width < 600) expect(prefs!.y).toBeGreaterThan(account!.y);
     else expect(prefs!.y).toBe(account!.y);
     const alert = await banner.getByRole("button", { name: "Alerts" }).boundingBox();
     const avatar = await banner.getByRole("button", { name: "Account" }).boundingBox();

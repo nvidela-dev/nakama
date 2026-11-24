@@ -18,14 +18,7 @@ const render: Story["render"] = (args) => (
   </div>
 );
 export const Owner: Story = {
-  args: {
-    owner: true,
-    metrics: {
-      explorations: { active: 3, withFlow: 3, withoutFlow: 0, parked: 0, finished: 0 },
-      jobs: { active: 12, stages: [] },
-      consultancy: { active: 7, stages: [] },
-    },
-  },
+  args: { owner: true },
   render,
 };
 export const Collaborator: Story = { args: { owner: false }, render };

@@ -7,8 +7,6 @@ import { getLocale, getT } from "@/shared/i18n/server";
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { authConfigured, currentIsAdmin } from "@/features/access/server/auth";
-import { Suspense } from "react";
-import { loadWorkspaceMetrics } from "@/features/shell/server/home-activity";
 import { Header } from "@/features/shell/components/header";
 
 import "./globals.css";
@@ -37,10 +35,6 @@ export async function generateMetadata(): Promise<Metadata> {
     referrer: "no-referrer",
   };
 }
-async function Sidebar({ owner }: { owner: boolean }) {
-  const metrics = await loadWorkspaceMetrics().catch(() => null);
-  return <DesktopSidebar owner={owner} metrics={metrics} />;
-}
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [t, owner] = await Promise.all([getT(), currentIsAdmin()]);
   const locale = await getLocale();
@@ -61,9 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {authConfigured() && (
             <Show when="signed-in">
               <div className="hidden w-51 shrink-0 lg:grid lg:grid-rows-[minmax(0,1fr)]">
-                <Suspense fallback={<DesktopSidebar owner={owner} metrics={null} />}>
-                  <Sidebar owner={owner} />
-                </Suspense>
+                <DesktopSidebar owner={owner} />
               </div>
             </Show>
           )}

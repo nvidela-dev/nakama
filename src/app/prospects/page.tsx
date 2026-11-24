@@ -84,19 +84,17 @@ export default async function ProspectsPage({
           <Link href={back}>{title}</Link>
         </nav>
       )}
-      <header>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight wrap-anywhere">
-            {prospect?.name ?? title}
-          </h1>
-        </div>
-        {prospect && (
+      {prospect ? (
+        <header>
+          <h1 className="text-3xl font-semibold tracking-tight wrap-anywhere">{prospect.name}</h1>
           <p className="mt-2 text-muted">
             {t(statusLabel[prospect.status])} · {prospect.assignee_name ?? t("Unassigned")} ·{" "}
             {t(prospect.called ? "Called" : "Not called")}
           </p>
-        )}
-      </header>
+        </header>
+      ) : (
+        <h1 className="sr-only">{title}</h1>
+      )}
       {prospect ? (
         <>
           <Panel>

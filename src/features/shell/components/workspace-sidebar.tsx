@@ -6,8 +6,7 @@ import { usePathname } from "next/navigation";
 import { Icon } from "@/shared/ui/icon";
 import { Button } from "@/shared/ui/button";
 import { Dialog } from "@/shared/ui/dialog";
-import type { HomeMetrics } from "../model";
-import { useLocale, useT } from "@/shared/i18n/provider";
+import { useT } from "@/shared/i18n/provider";
 
 const destinations = [
   { href: "/", name: "Home", icon: "home" },
@@ -15,18 +14,11 @@ const destinations = [
   { href: "/prospects", name: "Consultancy", icon: "consultancy" },
   { href: "/jobs", name: "Job Search", icon: "jobSearch" },
 ] as const;
-type Props = { owner: boolean; metrics?: HomeMetrics | null };
+type Props = { owner: boolean };
 
-function SidebarLinks({
-  owner,
-  metrics,
-  close,
-  rail,
-}: Props & { close?: () => void; rail?: boolean }) {
+function SidebarLinks({ owner, close, rail }: Props & { close?: () => void; rail?: boolean }) {
   const t = useT(),
-    locale = useLocale(),
     path = usePathname();
-  const number = new Intl.NumberFormat(locale === "es" ? "es-UY" : "en-US");
   const base =
     "flex min-h-11 min-w-0 items-center gap-2.5 px-3 py-2 font-medium text-muted hover:bg-[var(--theme-selected)] hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-lime";
   const linkClass = rail
@@ -41,12 +33,6 @@ function SidebarLinks({
           {destinations
             .filter(({ href }) => owner || href !== "/jobs")
             .map(({ href, name, icon }) => {
-              const count =
-                href === "/jobs"
-                  ? metrics?.jobs?.active
-                  : href === "/prospects"
-                    ? metrics?.consultancy?.active
-                    : undefined;
               return (
                 <li key={href}>
                   <Link
@@ -61,17 +47,7 @@ function SidebarLinks({
                     {...(close ? { onNavigate: close } : {})}
                   >
                     <Icon name={icon} className="shrink-0" />
-                    <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                      <span className="min-w-0 wrap-anywhere">{t(name)}</span>
-                      {count !== undefined && (
-                        <span
-                          className="rounded-md border border-line bg-panel px-1.5 text-xs text-ink tabular-nums"
-                          aria-label={t("{count} active", { count: number.format(count) })}
-                        >
-                          {number.format(count)}
-                        </span>
-                      )}
-                    </span>
+                    <span className="min-w-0 wrap-anywhere">{t(name)}</span>
                   </Link>
                 </li>
               );

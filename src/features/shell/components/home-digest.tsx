@@ -83,7 +83,7 @@ export function HomeDigest({
       className="mx-auto grid w-full max-w-320 min-w-0 content-start gap-6 px-4 py-6 sm:px-6 lg:py-8"
     >
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("Home")}</h1>
+        <h1 className="sr-only">{t("Home")}</h1>
         <p className="mt-1 text-muted">{t("Pick up where you left off across your workspace.")}</p>
       </header>
       <div className="grid min-w-0 items-start gap-6 min-[1130px]:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">

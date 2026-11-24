@@ -23,7 +23,9 @@ test("public landing remains separate from the signed-in digest and sidebar navi
   await drawer.getByRole("link", { name: "Explorations", exact: true }).click();
   await expect(drawer).not.toBeVisible();
   await expect(page).toHaveURL(/\/projects$/);
-  await expect(page.getByRole("heading", { name: "Explorations", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Explorations", exact: true })).toHaveClass(
+    "sr-only",
+  );
   await expect(page.getByRole("button", { name: "New Exploration", exact: true })).toHaveCount(1);
   await expect(page.getByRole("button", { name: "New Exploration", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Open project list" })).toHaveCount(0);

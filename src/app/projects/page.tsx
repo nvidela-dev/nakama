@@ -46,22 +46,8 @@ export default async function ProjectsPage({
   const groups = groupProjectsByType(projects, t);
   return (
     <Workspace id="main" variant="dashboard">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <h1
-          aria-label={title}
-          className={
-            "mb-[0.67em] mt-0 font-sans tracking-[-0.045em] text-[clamp(36px,_5vw,_66px)] font-medium max-w-212.5 wrap-anywhere max-[700px]:text-[38px] lg:compact:text-[30px] lg:compact:leading-[1.15] lg:compact:max-w-none lg:compact:my-1.75 lg:compact:mx-0 lg:compact:tracking-[-1px]"
-          }
-        >
-          {title}{" "}
-          <span
-            className={
-              "count text-[13px] align-middle text-muted border border-line py-0.75 px-2.25 rounded-[100px] ml-2"
-            }
-          >
-            {totals.reduce((sum, row) => sum + row.total, 0)}
-          </span>
-        </h1>
+      <h1 className="sr-only">{title}</h1>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Link
             href={archived ? "/projects" : "/projects?view=archived"}

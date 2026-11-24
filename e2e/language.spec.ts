@@ -2,38 +2,35 @@ import { openProjectSetup } from "./project-setup";
 import { switchLanguage } from "./language";
 import { test, expect } from "@playwright/test";
 import { clerk } from "@clerk/testing/playwright";
-test("language menu persists across reload and Clerk on mobile", async ({ page }) => {
+test("direct language switch supports keyboard, persisted preference and mobile Clerk", async ({
+  page,
+}) => {
   await page.goto("/");
-  const trigger = page.getByRole("button", { name: "Language", exact: true });
-  await trigger.focus();
+  const switcher = page.getByRole("group", { name: /^(Language|Idioma)$/ });
+  const english = switcher.getByRole("button", { name: "English" });
+  const spanish = switcher.getByRole("button", { name: "Español" });
+  await expect(english).toHaveAttribute("aria-pressed", "true");
+  await spanish.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog").getByRole("button", { name: "English" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await page.keyboard.press("Escape");
-  await expect(trigger).toBeFocused();
-  await expect(trigger).toHaveAttribute("aria-expanded", "false");
-  await switchLanguage(page, "es");
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(spanish).toHaveAttribute("aria-pressed", "true");
   await expect(
     page.getByRole("heading", { name: "Una pregunta. Una prueba acotada. Una decisión útil." }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(spanish).toHaveAttribute("aria-pressed", "true");
   await page.setViewportSize({ width: 390, height: 844 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  expect(
+    await page.evaluate(() => document.querySelector("header")!.scrollWidth > innerWidth),
+  ).toBe(false);
   await page.goto("/sign-in");
   await expect(
     page.getByRole("heading", { name: /Inicia sesión|Iniciá sesión|Iniciar sesión/ }),
   ).toBeVisible();
-  const spanishTrigger = page.getByRole("button", { name: "Idioma", exact: true });
-  await spanishTrigger.click();
-  await expect(page.getByRole("dialog").getByRole("button", { name: "Español" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await page.getByRole("dialog").getByRole("button", { name: "English" }).click();
+  const route = page.url();
+  await english.click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  expect(page.url()).toBe(route);
   await expect(page.getByRole("heading", { name: /Sign in to/ })).toBeVisible();
 });
 
