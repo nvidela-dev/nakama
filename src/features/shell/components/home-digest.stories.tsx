@@ -9,6 +9,11 @@ type Story = StoryObj<typeof meta>;
 export const Recent: Story = {
   args: {
     locale: "es",
+    metrics: {
+      explorations: { active: 3, withFlow: 2, withoutFlow: 1, parked: 1, finished: 2 },
+      jobs: { active: 2, stages: [{ stage: "interview", label: "Interviewing", count: 2 }] },
+      consultancy: { active: 1, stages: [{ stage: "assess_fit", label: "Assess fit", count: 1 }] },
+    },
     activity: [
       {
         id: "jobs:1",
@@ -37,4 +42,14 @@ export const Recent: Story = {
     ],
   },
 };
-export const Empty: Story = { args: { locale: "en", activity: [] } };
+export const Empty: Story = {
+  args: {
+    locale: "en",
+    activity: [],
+    metrics: {
+      explorations: { active: 0, withFlow: 0, withoutFlow: 0, parked: 0, finished: 0 },
+      jobs: null,
+      consultancy: null,
+    },
+  },
+};

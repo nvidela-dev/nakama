@@ -1,4 +1,12 @@
 {
+  "Parked": "En pausa",
+  "Finished": "Finalizadas",
+  "Workspace overview": "Resumen del espacio de trabajo",
+  "Active applications": "Postulaciones activas",
+  "Active in pipeline": "Activos en el proceso comercial",
+  "Active explorations": "Exploraciones activas",
+  "With a flow": "Con flujo",
+  "Without a flow": "Sin flujo",
   "New Exploration": "Nueva exploración",
   "Create an exploration to get started.": "Creá una exploración para empezar.",
   "Open explorations": "Abrir exploraciones",

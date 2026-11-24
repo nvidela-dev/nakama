@@ -1,13 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { HomeDigest } from "@/features/shell/components/home-digest";
-import { loadHomeActivity } from "@/features/shell/server/home-activity";
+import { loadHomeSnapshot } from "@/features/shell/server/home-activity";
 import { getLocale, getT } from "@/shared/i18n/server";
 import Link from "next/link";
 import { authConfigured } from "@/features/access/server/auth";
 export default async function Home() {
   if (authConfigured() && (await auth()).isAuthenticated) {
-    const [activity, locale] = await Promise.all([loadHomeActivity(), getLocale()]);
-    return <HomeDigest activity={activity} locale={locale} />;
+    const [snapshot, locale] = await Promise.all([loadHomeSnapshot(), getLocale()]);
+    return <HomeDigest {...snapshot} locale={locale} />;
   }
   const t = await getT();
   return (

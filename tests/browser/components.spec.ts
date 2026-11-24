@@ -1010,7 +1010,28 @@ test("Home digest fits narrow screens, identifies source and time, links to reco
   for (const width of [320, 360, 390, 1200]) {
     await page.setViewportSize({ width, height: 700 });
     await story(page, "features-shell-home-digest--recent");
-    const links = page.getByRole("main").getByRole("link");
+    const activity = page.getByRole("region", { name: "Actividad reciente" });
+    const overview = page.getByRole("region", { name: "Resumen del espacio de trabajo" });
+    await expect(overview.getByRole("article")).toHaveCount(3);
+    const jobs = overview
+      .getByRole("article")
+      .filter({ has: page.getByRole("heading", { name: "Búsqueda laboral" }) });
+    await expect(jobs.getByText("Postulaciones activas", { exact: true })).toBeVisible();
+    await expect(jobs.getByRole("definition").first()).toHaveText("2");
+    const exploration = overview
+      .getByRole("article")
+      .filter({ has: page.getByRole("heading", { name: "Exploraciones" }) });
+    await expect(exploration.getByText("Con flujo", { exact: true })).toBeVisible();
+    await expect(exploration.getByRole("definition").first()).toHaveText("2");
+    const firstEvent = activity.locator("li").first();
+    expect(
+      await firstEvent.evaluate((event) => getComputedStyle(event, "::before").borderLeftStyle),
+    ).toBe("dotted");
+    const overviewBox = await overview.boundingBox();
+    const activityBox = await activity.boundingBox();
+    if (width === 1200) expect(activityBox!.x).toBeGreaterThan(overviewBox!.x);
+    else expect(activityBox!.y).toBeGreaterThan(overviewBox!.y);
+    const links = activity.getByRole("link");
     await expect(links).toHaveCount(3);
     await expect(links.nth(0)).toHaveAttribute("href", "/jobs?role=example");
     await expect(links.nth(0)).toContainText("Búsqueda laboral · Entrevista registrada");
@@ -1028,5 +1049,10 @@ test("Home digest fits narrow screens, identifies source and time, links to reco
   }
   await story(page, "features-shell-home-digest--empty");
   await expect(page.getByText("No recent activity yet.")).toBeVisible();
-  await expect(page.getByRole("main").getByRole("link")).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Recent activity" }).getByRole("link")).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("region", { name: "Workspace overview" }).getByRole("article"),
+  ).toHaveCount(1);
 });

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
+import { homeMetrics } from "../src/features/shell/server/home-metrics";
 import { homeActivity } from "../src/features/shell/server/home-activity-store";
 import { jobsStore } from "../src/features/jobs/server/store";
 import { projectService } from "../src/features/projects/server/projects";
@@ -120,7 +121,52 @@ test("Home activity observes membership before returning events across three dis
       (await homeActivity(db, noJobs, collaborator, adminEmail)).map(({ title }) => title),
       ["Shared exploration"],
     );
+    const readMetrics = (person = owner) =>
+      homeMetrics(db, person === owner ? () => jobsDb : noJobs, person, adminEmail);
+    const expiredRole = "m-" + randomUUID();
+    await jobsDb.query(
+      "INSERT INTO nakama_jobs.manual_leads(id,owner_id,company,title,first_observed) VALUES($1,'owner','Example','Expired','2025-01-01')",
+      [expiredRole],
+    );
+    await jobsDb.query(
+      "INSERT INTO nakama_jobs.tracking(owner_id,lead_id,stage) VALUES('owner',$1,'waiting')",
+      [expiredRole],
+    );
+    await jobsDb.query(
+      "INSERT INTO nakama_jobs.stage_history(owner_id,lead_id,stage,started_at) VALUES('owner',$1,'waiting',now()-interval '336 hours')",
+      [expiredRole],
+    );
+    await jobsDb.query("UPDATE nakama_jobs.tracking SET stage='applied' WHERE owner_id='other'");
+    await jobsDb.query(
+      "UPDATE nakama_jobs.tracking SET stage='interview' WHERE owner_id='owner' AND lead_id=$1",
+      [ownerRole],
+    );
+    await db.query(
+      "UPDATE prospects SET status='ready',assignee_id='owner',on_board=true WHERE id=$1",
+      [prospect],
+    );
+    await db.query(
+      "INSERT INTO prospects(catalogue_id,id,name,status,assignee_id,on_board) VALUES('business',$1,'Not on board','ready','owner',false),('business',$2,'Won','deal','owner',true),('business',$3,'Someone else','ready','collaborator',true)",
+      [randomUUID(), randomUUID(), randomUUID()],
+    );
+    const archived = await projects.create(owner, { name: "Archived", description: "Excluded" });
+    await projects.setArchived(owner, archived, true);
+    await db.query(
+      "UPDATE project_activity SET created_at='2025-01-02T00:00:00Z' WHERE project_id=$1",
+      [archived],
+    );
+    assert.deepEqual(await readMetrics(), {
+      explorations: { active: 1, withFlow: 0, withoutFlow: 1, parked: 0, finished: 0 },
+      consultancy: { active: 1, stages: [{ stage: "ready", label: "Ready to call", count: 1 }] },
+      jobs: { active: 1, stages: [{ stage: "interview", label: "Interviewing", count: 1 }] },
+    });
+    assert.deepEqual(await readMetrics(collaborator), {
+      explorations: { active: 1, withFlow: 0, withoutFlow: 1, parked: 0, finished: 0 },
+      consultancy: null,
+      jobs: null,
+    });
     await projects.remove(owner, shared, collaborator.userId);
+    assert.equal((await readMetrics(collaborator)).explorations.active, 0);
     assert.deepEqual(await homeActivity(db, noJobs, collaborator, adminEmail), []);
 
     for (let n = 0; n < 25; n++)
