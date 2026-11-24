@@ -170,6 +170,12 @@ export default async function ProjectPage({
   );
   const sidebar = (
     <>
+      <LinearProject
+        projectId={projectId}
+        url={project.linear_project_url}
+        revision={project.linear_link_revision}
+        owner={project.role === "owner"}
+      />
       <ProjectRelations
         projectId={projectId}
         links={links}
@@ -308,12 +314,6 @@ export default async function ProjectPage({
         >
           {t("Project context")}
         </Link>
-        <LinearProject
-          projectId={projectId}
-          url={project.linear_project_url}
-          revision={project.linear_link_revision}
-          owner={project.role === "owner"}
-        />
       </PageHeading>
       {guidance ? (
         <Journey

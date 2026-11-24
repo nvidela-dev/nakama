@@ -63,7 +63,23 @@ test("live lab database target and availability", async ({ page }) => {
     await pool.end();
   }
   if (!process.env.LAB_PREFLIGHT) {
-    await page.getByText("Link Linear project", { exact: true }).click();
+    const sidebar = page.locator(".project-sidebar");
+    const linear = sidebar.locator(".project-linear-panel");
+    await expect(linear).toHaveCount(1);
+    await expect(
+      page.locator(".page-heading").getByRole("link", { name: "Project context" }),
+    ).toBeVisible();
+    await expect(
+      page.locator(".page-heading").getByText("Link Linear project", { exact: true }),
+    ).toHaveCount(0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await linear.getByText("Link Linear project", { exact: true }).click();
+    await expect(linear.getByLabel("Linear project URL")).toBeVisible();
+    expect(await linear.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const panelBox = await linear.boundingBox();
+    const workBox = await page.locator(".project-working-column").boundingBox();
+    expect(panelBox!.x).toBeGreaterThan(workBox!.x + workBox!.width);
     const address = "https://linear.app/example/project/synthetic-project";
     const input = page.getByLabel("Linear project URL");
     await input.fill(address);
